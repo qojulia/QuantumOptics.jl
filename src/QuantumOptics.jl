@@ -20,6 +20,7 @@ export bases, Basis, GenericBasis, CompositeBasis,
         subspace, SubspaceBasis, projector,
         particle, PositionBasis, MomentumBasis, gaussianstate,
                 positionoperator, momentumoperator, laplace_x, laplace_p,
+        nlevel, NLevelBasis, transition,
         nparticlebasis, BosonicNParticleBasis, FermionicNParticleBasis, nparticleoperator_1, nparticleoperator_2,
         metrics, tracedistance,
         spectralanalysis, operatorspectrum, operatorspectrum_hermitian,
@@ -42,6 +43,7 @@ include("spin.jl")
 include("fock.jl")
 include("subspace.jl")
 include("particle.jl")
+include("nlevel.jl")
 include("nparticles.jl")
 include("metrics.jl")
 include("ode_dopri.jl")
@@ -71,6 +73,7 @@ using .spin
 using .fock
 using .subspace
 using .particle
+using .nlevel
 using .nparticles
 using .metrics
 using .spectralanalysis
