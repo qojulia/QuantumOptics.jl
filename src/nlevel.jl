@@ -9,13 +9,16 @@ export NLevelBasis, transition
 
 type NLevelBasis <: Basis
     shape::Vector{Int}
-    energies::Vector{Float64}
-    function NLevelBasis(energies::Vector{Float64})
-        new([length(energies)], energies)
+    N::Int
+    function NLevelBasis(N::Int)
+        if N < 1
+            throw(DimensionMismatch())
+        end
+        new([N], N)
     end
 end
 
-==(b1::NLevelBasis, b2::NLevelBasis) = b1.energies == b2.energies
+==(b1::NLevelBasis, b2::NLevelBasis) = b1.N == b2.N
 
 function transition(b::NLevelBasis, to::Int, from::Int)
     op = SparseOperator(b)
