@@ -4,7 +4,7 @@ import Base.==
 
 using ..bases, ..states, ..operators, ..operators_sparse
 
-export NLevelBasis, transition
+export NLevelBasis, transition, nlevelstate
 
 
 type NLevelBasis <: Basis
@@ -26,5 +26,9 @@ function transition(b::NLevelBasis, to::Int, from::Int)
     op
 end
 
+function nlevelstate(b::NLevelBasis, n::Int)
+    @assert n <= b.N
+    basis_ket(b, n)
+end
 
 end # module
