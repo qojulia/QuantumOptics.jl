@@ -206,6 +206,18 @@ Fock
 .. jl:autofunction:: fock.jl qfunc
 
 
+.. _section-api-nlevel:
+
+N-level
+^^^^^^^
+
+.. jl:autotype:: nlevel.jl NLevelBasis
+
+.. jl:autofunction:: nlevel.jl transition
+
+.. jl:autofunction:: nlevel.jl nlevelstate
+
+
 .. _section-api-spin:
 
 Spin

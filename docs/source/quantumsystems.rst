@@ -9,5 +9,6 @@ Quantum systems in **QuantumOptics.jl** primarily define one or more appropriate
 
     spin
     fock
+    nlevel
     particle
     nparticles

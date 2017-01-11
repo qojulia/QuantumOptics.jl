@@ -7,6 +7,7 @@ The primary purpose of bases in **QuantumOptics.jl** is to specify the dimension
 
 * :ref:`Spin basis <section-spin>`
 * :ref:`Fock basis <section-fock>`
+* :ref:`N-level basis <section-nlevel>`
 * :ref:`Position basis and Momentum basis <section-particle>`
 * :ref:`N-particle basis <section-nparticles>`
 
