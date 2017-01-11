@@ -66,3 +66,7 @@ nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 ρss = steadystate.eigenvector(full(Hp), map(full, Jp))
 nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 @test n_an - real(nss) < 1e-3
+
+
+# Test error messages
+@test_throws ErrorException steadystate.eigenvector(sx, [sm])
