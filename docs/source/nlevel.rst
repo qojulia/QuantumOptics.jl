@@ -3,7 +3,7 @@
 N-level basis
 =============
 
-Systems consisting of a discrete states like e.g. an atom represented by a few relevant levels can be treated using the :jl:type:`NLevelBasis`. The only thing it needs to know is the number of states::
+Systems consisting of discrete states like e.g. an atom represented by a few relevant levels can be treated using the :jl:type:`NLevelBasis`. The only thing it needs to know is the number of states::
 
     N = 3
     b = NLevelBasis(N)
