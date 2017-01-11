@@ -98,7 +98,15 @@ function eigenvector(L::DenseSuperOperator)
 end
 
 function eigenvector(L::SparseSuperOperator)
-    d, v, nconv, niter, nmult, resid = Base.eigs(L.data; nev=1, sigma=1e-30)
+    d, v, nconv, niter, nmult, resid = try
+      Base.eigs(L.data; nev=1, sigma=1e-30)
+    catch err
+      if isa(err, LinAlg.SingularException)
+        error("Base.LinAlg.eigs() algorithm failed; try using DenseOperators")
+      else
+        rethrow(err)
+      end
+    end
     data = reshape(v[:,1], length(L.basis_r[1]), length(L.basis_r[2]))
     op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
     return op/trace(op)
