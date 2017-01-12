@@ -93,13 +93,9 @@ end
 """
 Diagonal operator.
 """
-function diagonaloperator(b::Basis, diag::Vector{Complex128})
+function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
   @assert 1 <= length(diag) <= b.shape[1]
-  SparseOperator(b, spdiagm(diag))
+  SparseOperator(b, spdiagm(complex(float(diag))))
 end
-
-diagonaloperator(b::Basis, diag::Vector{Float64}) = diagonaloperator(b, complex(diag))
-diagonaloperator(b::Basis, diag::Vector{Int}) = diagonaloperator(b, complex(float(diag)))
-diagonaloperator(b::Basis, diag::Vector{Complex{Int}}) = diagonaloperator(b, float(diag))
 
 end # module
