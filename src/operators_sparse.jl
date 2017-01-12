@@ -5,7 +5,7 @@ import ..operators
 
 using ..bases, ..states, ..operators, ..sparsematrix
 
-export SparseOperator, sparse_identityoperator
+export SparseOperator, sparse_identityoperator, diagonaloperator
 
 
 """
@@ -89,5 +89,17 @@ function operators.embed(basis::CompositeBasis, indices::Vector{Int}, operators:
     return op_total
 end
 
+
+"""
+Diagonal operator.
+"""
+function diagonaloperator(b::Basis, diag::Vector{Complex128})
+  @assert 1 <= length(diag) <= b.shape[1]
+  SparseOperator(b, spdiagm(diag))
+end
+
+diagonaloperator(b::Basis, diag::Vector{Float64}) = diagonaloperator(b, complex(diag))
+diagonaloperator(b::Basis, diag::Vector{Int}) = diagonaloperator(b, complex(float(diag)))
+diagonaloperator(b::Basis, diag::Vector{Complex{Int}}) = diagonaloperator(b, float(diag))
 
 end # module

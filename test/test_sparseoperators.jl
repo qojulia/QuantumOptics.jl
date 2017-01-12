@@ -36,3 +36,9 @@ end
 a = A()
 
 @test_throws ArgumentError sparse(a)
+
+
+@test diagonaloperator(b, [1, 1, 1, 1]) == I
+@test diagonaloperator(b, [1., 1., 1., 1.]) == I
+@test diagonaloperator(b, [1im, 1im, 1im, 1im]) == 1im*I
+@test diagonaloperator(b, [0:3;]) == number(b)
