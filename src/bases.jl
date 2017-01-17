@@ -3,7 +3,7 @@ module bases
 import Base.==
 
 export Basis, GenericBasis, CompositeBasis,
-       tensor, ⊗, dualbasis, ptrace,
+       tensor, ⊗, dualbasis, ptrace, permutesystems,
        equal_shape, equal_bases, multiplicable,
        IncompatibleBases,
        check_equal, check_multiplicable
@@ -185,6 +185,29 @@ function ptrace(b::CompositeBasis, indices::Vector{Int})
         return CompositeBasis(reduced_basis...)
     end
 end
+
+
+function permutesystems(bases::Vector{Basis}, perm::Vector{Int})
+    @assert length(bases) == length(perm)
+    @assert issubset(Set(1:length(bases)), Set(perm))
+    bases[perm]
+end
+
+"""
+Change the ordering of the subbases in a CompositeBasis.
+
+For a permutation vector [2,1,3] and a given composite basis [b1, b2, b3]
+this function results in [b2,b1,b3].
+
+Arguments
+---------
+
+basis
+    A composite basis.
+perm
+    Vector defining the new ordering of the sub-bases.
+"""
+bases.permutesystems(basis::CompositeBasis, perm::Vector{Int}) = CompositeBasis(permutesystems(basis.bases, perm)...)
 
 
 end # module

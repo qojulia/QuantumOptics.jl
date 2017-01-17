@@ -93,3 +93,18 @@ operators.gemv!(complex(1.0), at, xket, complex(0.), result_ket)
 result_bra = deepcopy(xbra)
 operators.gemv!(complex(1.0), xbra, at, complex(0.), result_bra)
 @test_approx_eq 0. norm(result_bra-xbra*at)
+
+# Test permutating systems
+b1a = NLevelBasis(2)
+b1b = SpinBasis(3//2)
+b2a = SpinBasis(1//2)
+b2b = FockBasis(7)
+b3a = FockBasis(2)
+b3b = NLevelBasis(4)
+
+srand(0)
+rho1 = DenseOperator(b1a, b1b, rand(Complex128, length(b1a), length(b1b)))
+rho2 = DenseOperator(b2a, b2b, rand(Complex128, length(b2a), length(b2b)))
+rho3 = DenseOperator(b3a, b3b, rand(Complex128, length(b3a), length(b3b)))
+
+@test_approx_eq_eps 0. tracedistance_general(permutesystems(rho1⊗rho2⊗rho3, [2, 1, 3]), rho2⊗rho1⊗rho3) 1e-5

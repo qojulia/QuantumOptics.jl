@@ -102,4 +102,25 @@ basis_ket(b::Basis, indices::Array{Int}) = Ket(b, basis_vector(b.shape, indices)
 basis_ket(b::Basis, index::Int) = basis_ket(b, [index])
 
 
+"""
+Change the ordering of the subsystems of the given state.
+
+Arguments
+---------
+state
+    A state represented in a composite basis.
+perm
+    Vector defining the new ordering of the subsystems.
+"""
+function bases.permutesystems{T<:StateVector}(state::T, perm::Vector{Int})
+    @assert length(state.basis.bases) == length(perm)
+    @assert issubset(Set(1:length(state.basis.bases)), Set(perm))
+    data = reshape(state.data, reverse(state.basis.shape)...)
+    dataperm = length(perm) - reverse(perm) + 1
+    data = permutedims(data, dataperm)
+    data = reshape(data, length(data))
+    T(permutesystems(state.basis, perm), data)
+end
+
+
 end # module

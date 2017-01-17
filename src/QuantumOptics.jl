@@ -3,7 +3,7 @@ __precompile__()
 module QuantumOptics
 
 export bases, Basis, GenericBasis, CompositeBasis,
-        tensor, ⊗,
+        tensor, ⊗, permutesystems,
         states, StateVector, Bra, Ket, basis_bra, basis_ket,
                 dagger, normalize, normalize!,
         operators, Operator, DenseOperator, projector,

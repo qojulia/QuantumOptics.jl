@@ -54,3 +54,21 @@ c = normalize(Bra(CompositeBasis(basis, basis), [1im, 2im, 0, 0]))
 @test_approx_eq 0. norm(tensor(a, b) - c)
 @test_approx_eq_eps 0. tracedistance(operators.ptrace(c, 1), tensor(dagger(b), b)) 1e-15
 @test_approx_eq_eps 0. tracedistance(operators.ptrace(c, 2), tensor(dagger(a), a)) 1e-15
+
+
+# Test permutating systems
+b1 = NLevelBasis(2)
+b2 = SpinBasis(1//2)
+b3 = FockBasis(2)
+
+srand(0)
+psi1 = normalize(Ket(b1, rand(Complex128, length(b1))))
+psi2 = normalize(Ket(b2, rand(Complex128, length(b2))))
+psi3 = normalize(Ket(b3, rand(Complex128, length(b3))))
+
+psi123 = psi1 ⊗ psi2 ⊗ psi3
+psi213 = psi2 ⊗ psi1 ⊗ psi3
+
+c = dagger(psi213)*permutesystems(psi123, [2,1,3])
+
+@test_approx_eq_eps 1. c 1e-5

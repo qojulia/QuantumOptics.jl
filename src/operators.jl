@@ -283,5 +283,24 @@ Partial trace of the given state vector over the specified indices.
 bases.ptrace(a::Ket, indices) = bases.ptrace(tensor(a, dagger(a)), indices)
 bases.ptrace(a::Bra, indices) = bases.ptrace(tensor(dagger(a), a), indices)
 
+"""
+Change the ordering of the subsystems of the given operator.
+
+Arguments
+---------
+rho
+    A dense operator represented in a composite basis.
+perm
+    Vector defining the new ordering of the subsystems.
+"""
+function bases.permutesystems(rho::DenseOperator, perm::Vector{Int})
+    @assert length(rho.basis_l.bases) == length(rho.basis_r.bases) == length(perm)
+    @assert issubset(Set(1:length(rho.basis_l.bases)), Set(perm))
+    data = reshape(rho.data, [reverse(rho.basis_l.shape); reverse(rho.basis_r.shape)]...)
+    dataperm = length(perm) - reverse(perm) + 1
+    data = permutedims(data, [dataperm; dataperm + length(perm)])
+    data = reshape(data, length(rho.basis_l), length(rho.basis_r))
+    DenseOperator(permutesystems(rho.basis_l, perm), permutesystems(rho.basis_r, perm), data)
+end
 
 end # module

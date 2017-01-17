@@ -59,5 +59,19 @@ function gemv!(alpha::Complex128, v::Vector{Complex128}, M::SparseMatrixCSC{Comp
     nothing
 end
 
+function permutedims(x, shape, perm)
+    shape = (shape...)
+    shape_perm = ([shape[i] for i in perm]...)
+    y = spzeros(Complex128, x.m, x.n)
+    for I in eachindex(x)
+        linear_index = sub2ind((x.m, x.n), I.I...)
+        cartesian_index = ind2sub(shape, linear_index)
+        cartesian_index_perm = [cartesian_index[i] for i=perm]
+        linear_index_perm = sub2ind(shape_perm, cartesian_index_perm...)
+        J = ind2sub((x.m, x.n), linear_index_perm)
+        y[J...] = x[I.I...]
+    end
+    y
+end
 
 end # module

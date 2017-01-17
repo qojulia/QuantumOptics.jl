@@ -38,8 +38,8 @@ type LazyTensor <: LazyOperator
     operators::Dict{Int,Operator}
 
     function LazyTensor(basis_l::CompositeBasis, basis_r::CompositeBasis, operators::Dict{Int,Operator}, factor::Number=1.)
-        N = length(basis_l)
-        @assert N==length(basis_r)
+        N = length(basis_l.bases)
+        @assert N==length(basis_r.bases)
         @assert maximum(keys(operators))<=N
         @assert 1<=minimum(keys(operators))
         for (i,op) = operators
@@ -332,5 +332,15 @@ function operators.gemv!(alpha, a::Bra, b::LazyProduct, beta, result::Bra)
     end
     operators.gemv!(alpha, tmp1, b.operators[end], beta, result)
 end
+
+function operators.permutesystems(op::LazyTensor, perm::Vector{Int})
+    b_l = permutesystems(op.basis_l, perm)
+    b_r = permutesystems(op.basis_r, perm)
+    operators = Dict{Int,Operator}(findfirst(perm, i)=>op_i for (i, op_i) in op.operators)
+    LazyTensor(b_l, b_r, operators, op.factor)
+end
+
+operators.permutesystems(op::LazySum, perm::Vector{Int}) = LazySum(op.factors, Operator[permutesystems(op_i, perm) for op_i in op.operators])
+operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(op.factor, Operator[permutesystems(op_i, perm) for op_i in op.operators])
 
 end

@@ -26,6 +26,8 @@ Composite bases
 
 .. jl:autofunction:: bases.jl ptrace
 
+.. jl:autofunction:: bases.jl permutebases
+
 
 Subspace bases
 ^^^^^^^^^^^^^^
@@ -121,6 +123,8 @@ DenseOperators
 .. jl:autofunction:: operators.jl full
 
 .. jl:autofunction:: operators.jl dense_identityoperator
+
+.. jl:autofunction:: operators.jl permutesystems
 
 
 .. _section-api-sparseoperators:

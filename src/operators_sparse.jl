@@ -98,4 +98,24 @@ function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
   SparseOperator(b, spdiagm(complex(float(diag))))
 end
 
+
+"""
+Change the ordering of the subsystems of the given operator.
+
+Arguments
+---------
+rho
+    A sparse operator represented in a composite basis.
+perm
+    Vector defining the new ordering of the subsystems.
+"""
+function operators.permutesystems(rho::SparseOperator, perm::Vector{Int})
+    @assert length(rho.basis_l.bases) == length(rho.basis_r.bases) == length(perm)
+    @assert issubset(Set(1:length(rho.basis_l.bases)), Set(perm))
+    shape = [reverse(rho.basis_l.shape); reverse(rho.basis_r.shape)]
+    dataperm = length(perm) - reverse(perm) + 1
+    data = sparsematrix.permutedims(rho.data, shape, [dataperm; dataperm + length(perm)])
+    SparseOperator(permutesystems(rho.basis_l, perm), permutesystems(rho.basis_r, perm), data)
+end
+
 end # module
