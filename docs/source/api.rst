@@ -178,6 +178,8 @@ Metrics
 
 .. jl:autofunction:: metrics.jl tracedistance
 
+.. jl:autofunction:: metrics.jl tracedistance_general
+
 
 
 Systems
