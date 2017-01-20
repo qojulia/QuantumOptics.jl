@@ -1,4 +1,4 @@
-using quantumoptics
+using QuantumOptics
 
 # System parameters for a pumped decaying cavity
 η = 0.9

@@ -1,4 +1,4 @@
-using quantumoptics
+using QuantumOptics
 
 # System parameters for a single decaying spin
 ω0 = 1.

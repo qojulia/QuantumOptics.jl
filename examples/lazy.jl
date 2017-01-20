@@ -1,6 +1,6 @@
 require("../src/quantumoptics.jl")
 
-using quantumoptics
+using QuantumOptics
 
 srand(0)
 

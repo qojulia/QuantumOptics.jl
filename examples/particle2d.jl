@@ -1,4 +1,4 @@
-using quantumoptics
+using QuantumOptics
 
 N = 200
 xmin = -10.
