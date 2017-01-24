@@ -7,9 +7,11 @@ spinbasis = SpinBasis(1//2)
 
 sx = sigmax(spinbasis)
 sy = sigmay(spinbasis)
+sz = sigmaz(spinbasis)
 
 sx_dense = full(sx)
 sy_dense = full(sy)
+sz_dense = full(sz)
 
 @test typeof(sx_dense) == DenseOperator
 @test typeof(sparse(sx_dense)) == SparseOperator
@@ -19,9 +21,9 @@ b = FockBasis(3)
 I = sparse_identityoperator(b)
 I_dense = dense_identityoperator(b)
 
-
-s = tensor(sx, sy)
-s_dense = tensor(sx_dense, sy_dense)
+# Test tensor product
+s = tensor(sx, sy, sz)
+s_dense = tensor(sx_dense, sy_dense, sz_dense)
 
 @test typeof(I) == SparseOperator
 @test typeof(I_dense) == DenseOperator
