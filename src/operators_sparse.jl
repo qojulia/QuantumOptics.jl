@@ -99,6 +99,21 @@ function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
 end
 
 
+function operators.ptrace(op::SparseOperator, indices::Vector{Int})
+    operators.check_ptrace_arguments(op, indices)
+    rank = length(op.basis_l.shape) - length(indices)
+    if rank==0
+        return trace(op)
+    end
+    shape = [reverse(op.basis_l.shape); reverse(op.basis_r.shape)]
+    indices_data = length(op.basis_l.shape) - indices + 1
+    data = sparsematrix.ptrace(op.data, shape, indices_data)
+    b_l = ptrace(op.basis_l, indices)
+    b_r = ptrace(op.basis_r, indices)
+    SparseOperator(b_l, b_r, data)
+end
+
+
 """
 Change the ordering of the subsystems of the given operator.
 

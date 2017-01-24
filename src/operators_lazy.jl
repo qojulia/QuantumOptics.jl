@@ -40,8 +40,8 @@ type LazyTensor <: LazyOperator
     function LazyTensor(basis_l::CompositeBasis, basis_r::CompositeBasis, operators::Dict{Int,Operator}, factor::Number=1.)
         N = length(basis_l.bases)
         @assert N==length(basis_r.bases)
-        @assert maximum(keys(operators))<=N
-        @assert 1<=minimum(keys(operators))
+        @assert length(operators)==0 || maximum(keys(operators))<=N
+        @assert length(operators)==0 || 1<=minimum(keys(operators))
         for (i,op) = operators
             @assert op.basis_l==basis_l.bases[i] && op.basis_r==basis_r.bases[i]
         end
@@ -170,7 +170,7 @@ function operators.dagger(op::LazyTensor)
 end
 operators.dagger(op::LazySum) = LazySum(conj(op.factors), Operator[dagger(op_i) for op_i in op.operators])
 
-operators.trace(op::LazyTensor) = op.factor*prod([(haskey(op.operators,i) ? trace(op.operators[i]): prod(op.basis_l.shape)) for i=1:length(op.basis_l)])
+operators.trace(op::LazyTensor) = op.factor*prod([(haskey(op.operators,i) ? trace(op.operators[i]): prod(op.basis_l.shape)) for i=1:length(op.basis_l.bases)])
 operators.trace(op::LazySum) = sum([trace(x) for x=op.operators])
 
 function *(a::LazyTensor, b::LazyTensor)
@@ -332,6 +332,44 @@ function operators.gemv!(alpha, a::Bra, b::LazyProduct, beta, result::Bra)
     end
     operators.gemv!(alpha, tmp1, b.operators[end], beta, result)
 end
+
+
+function operators.ptrace(op::LazyTensor, indices::Vector{Int})
+    operators.check_ptrace_arguments(op, indices)
+    rank = length(op.basis_l.shape) - length(indices)
+    if rank==0
+        return trace(op)
+    end
+    D = Dict{Int,Operator}()
+    factor = op.factor
+    for (i, op_i) in op.operators
+        if i in indices
+            factor *= trace(op_i)
+        else
+            D[i] = op_i
+        end
+    end
+    if rank==1 && length(D)==1
+        return factor*first(values(D))
+    end
+    b_l = ptrace(op.basis_l, indices)
+    b_r = ptrace(op.basis_r, indices)
+    if rank==1
+        return identityoperator(b_l, b_r) * factor
+    end
+    LazyTensor(b_l, b_r, D, factor)
+end
+
+function operators.ptrace(op::LazySum, indices::Vector{Int})
+    operators.check_ptrace_arguments(op, indices)
+    rank = length(op.basis_l.shape) - length(indices)
+    if rank==0
+        return trace(op)
+    end
+    D = Operator[ptrace(op_i, indices) for op_i in op.operators]
+    LazySum(op.factors, D)
+end
+
 
 function operators.permutesystems(op::LazyTensor, perm::Vector{Int})
     b_l = permutesystems(op.basis_l, perm)

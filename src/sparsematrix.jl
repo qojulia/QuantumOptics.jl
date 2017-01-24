@@ -59,6 +59,30 @@ function gemv!(alpha::Complex128, v::Vector{Complex128}, M::SparseMatrixCSC{Comp
     nothing
 end
 
+function sub2sub{N, M}(shape1::NTuple{N, Int}, shape2::NTuple{M, Int}, I::CartesianIndex{N})
+    linearindex = sub2ind(shape1, I.I...)
+    CartesianIndex(ind2sub(shape2, linearindex)...)
+end
+
+function ptrace(x, shape_nd::Vector{Int}, indices::Vector{Int})
+    shape_nd = (shape_nd...)
+    N = div(length(shape_nd), 2)
+    shape_2d = (x.m, x.n)
+    shape_nd_after = ([i ∈ indices || i-N ∈ indices ? 1 : shape_nd[i] for i=1:2*N]...)
+    shape_2d_after = (prod(shape_nd_after[1:N]), prod(shape_nd_after[N+1:end]))
+    I_nd_after_max = CartesianIndex(shape_nd_after...)
+    y = spzeros(Complex128, shape_2d_after...)
+    for I in eachindex(x)
+        I_nd = sub2sub(shape_2d, shape_nd, I)
+        if I_nd.I[indices] != I_nd.I[indices + N]
+            continue
+        end
+        I_after = sub2sub(shape_nd_after, shape_2d_after, min(I_nd, I_nd_after_max))
+        y[I_after] += x[I]
+    end
+    y
+end
+
 function permutedims(x, shape, perm)
     shape = (shape...)
     shape_perm = ([shape[i] for i in perm]...)

@@ -266,16 +266,28 @@ end
     end
 end
 
+
+function check_ptrace_arguments(a::Operator, indices::Vector{Int})
+    @assert length(a.basis_l.shape) == length(a.basis_r.shape)
+    S = Set(indices)
+    @assert length(S) == length(indices)
+    @assert issubset(S, Set(1:length(a.basis_l.shape)))
+end
+
 """
 Partial trace of the given operator over the specified indices.
 """
 function bases.ptrace(a::DenseOperator, indices::Vector{Int})
+    check_ptrace_arguments(a, indices)
+    if length(a.basis_l.shape) == length(indices)
+        return trace(a)
+    end
     rank = zeros(Int, [0 for i=1:length(a.basis_l.shape)]...)
     result = _ptrace(rank, a.data, a.basis_l.shape, a.basis_r.shape, indices)
     return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
 end
 
-bases.ptrace(a::DenseOperator, index::Int) = bases.ptrace(a, Int[index])
+bases.ptrace(a::Operator, index::Int) = bases.ptrace(a, Int[index])
 
 """
 Partial trace of the given state vector over the specified indices.
