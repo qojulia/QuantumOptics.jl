@@ -53,6 +53,10 @@ I = dense_identityoperator(fockbasis)
 # Test division
 @test_approx_eq_eps 0. norm((at/5.)*xket - (at*xket)/5) 1e-13
 
+# Test tensor product
+@test_approx_eq_eps 0. tracedistance_general((sx ⊗ sy) ⊗ op1, sx ⊗ (sy ⊗ op1)) 1e-13
+@test_approx_eq_eps 0. tracedistance_general(sx ⊗ sy ⊗ op1, tensor(sx, sy, op1)) 1e-13
+
 # Test projector
 @test_approx_eq_eps 0. norm(projector(xket)*xket - xket) 1e-13
 @test_approx_eq_eps 0. norm(xbra*projector(xket) - xbra) 1e-13

@@ -56,7 +56,6 @@ Base.zero{T<:StateVector}(x::T) = T(x.basis)
 Tensor product of given bras or kets.
 """
 bases.tensor{T<:StateVector}(a::T, b::T) = T(tensor(a.basis, b.basis), kron(a.data, b.data))
-bases.tensor{T<:StateVector}(states::T...) = reduce(tensor, states)
 
 
 """

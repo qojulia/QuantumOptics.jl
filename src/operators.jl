@@ -88,7 +88,6 @@ gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = gemv!(alpha, a.data,
 Tensor product of operators.
 """
 bases.tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
-bases.tensor(ops::DenseOperator...) = reduce(tensor, ops)
 
 """
 Tensor product of a ket and a bra results in an operator.

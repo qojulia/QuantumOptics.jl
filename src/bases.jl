@@ -64,6 +64,7 @@ tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(b1.bases..., b2.
 tensor(b1::CompositeBasis, b2::Basis) = CompositeBasis(b1.bases..., b2)
 tensor(b1::Basis, b2::CompositeBasis) = CompositeBasis(b1, b2.bases...)
 tensor(bases::Basis...) = reduce(tensor, bases)
+tensor{T}(x::T...) = reduce(tensor, x)
 ⊗(a,b) = tensor(a,b)
 
 """
