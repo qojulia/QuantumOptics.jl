@@ -73,22 +73,7 @@ sparse_identityoperator(b1::Basis, b2::Basis) = SparseOperator(b1, b2, speye(Com
 operators.identityoperator(b::Basis) = sparse_identityoperator(b)
 operators.identityoperator(b1::Basis, b2::Basis) = sparse_identityoperator(b1, b2)
 operators.identityoperator(op::SparseOperator) = sparse_identityoperator(op.basis_l, op.basis_r)
-
-
-function operators.embed(basis::CompositeBasis, indices::Vector{Int}, operators::Vector{SparseOperator})
-    @assert length(indices) == length(operators)
-    @assert length(basis.bases) >= maximum(indices)
-    if length(basis.bases) == 1
-        return SparseOperator(basis, basis, deepcopy(operators[1].data))
-    end
-    op_total = (1 in indices ? operators[findfirst(indices, 1)] : sparse_identityoperator(basis.bases[1]))
-    for i=2:length(basis.bases)
-        op = (i in indices ? operators[findfirst(indices, i)] : sparse_identityoperator(basis.bases[i]))
-        op_total = tensor(op_total, op)
-    end
-    return op_total
-end
-
+operators.identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = sparse_identityoperator(b1, b2)
 
 """
 Diagonal operator.

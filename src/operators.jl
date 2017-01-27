@@ -160,6 +160,7 @@ dense_identityoperator(b::Basis) = DenseOperator(b, b, eye(Complex, length(b)))
 dense_identityoperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(Complex, length(b1), length(b2)))
 dense_identityoperator(op::Operator) = dense_identityoperator(op.basis_l, op.basis_r)
 identityoperator(op::DenseOperator) = dense_identityoperator(op.basis_l, op.basis_r)
+identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = dense_identityoperator(b1, b2)
 
 
 # Multiplication for Operators in terms of their gemv! implementation
@@ -212,20 +213,64 @@ end
 Base.prod{B<:Basis, T<:AbstractArray}(basis::B, operators::T) = (length(operators)==0 ? dense_identityoperator(basis) : prod(operators))
 
 """
-Tensor product of operators where all missing indices are identity operators.
+Vector of indices that are not in the given vector.
+"""
+complement(N::Int, indices::Vector{Int}) = Int[i for i=1:N if i ∉ indices]
+
+"""
+Tensor product of operators where missing indices are filled up with identity operators.
 
 Arguments
 ---------
-basis
-    CompositeBasis of the resulting operator.
+basis_l
+    Left hand side basis of the resulting operator.
+basis_r
+    Right hand side basis of the resulting operator.
 indices
     Indices of the subsystems in which the given operators live.
 operators
     Operators defined in the subsystems.
 """
-embed(basis::CompositeBasis, indices::Vector{Int}, operators::Vector) = tensor([prod(basis.bases[i], operators[find(indices.==i)]) for i=1:length(basis.bases)]...)
-embed{T<:Operator}(basis::CompositeBasis, index::Int, op::T) = embed(basis, Int[index], T[op])
+function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
+                            indices::Vector{Int}, operators::Vector{T})
+    N = length(basis_l.bases)
+    @assert length(basis_r.bases) == N
+    @assert length(indices) == length(Set(indices)) == length(operators)
+    @assert maximum(indices) <= N
+    @assert minimum(indices) > 0
+    tensor([i ∈ indices ? operators[findfirst(indices, i)] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
+end
+embed(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Int, op::Operator) = embed(basis_l, basis_r, Int[index], [op])
+embed(basis::CompositeBasis, index::Int, op::Operator) = embed(basis, basis, Int[index], [op])
+embed{T<:Operator}(basis::CompositeBasis, indices::Vector{Int}, operators::Vector{T}) = embed(basis, basis, indices, operators)
 
+"""
+Tensor product of operators where all missing indices are identity operators.
+
+Arguments
+---------
+basis_l
+    Left hand side basis of the resulting operator.
+basis_r
+    Right hand side basis of the resulting operator.
+operators
+    Dictionary specifying to which subsystems the corresponding operator
+    belongs.
+"""
+function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
+                            operators::Dict{Vector{Int}, T})
+    @assert length(basis_l.bases) == length(basis_r.bases)
+    N = length(basis_l.bases)
+    indices, operator_list = zip(operators...)
+    indices = [indices...;]
+    complement_operators = [identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i in complement(N, indices)]
+    op = tensor(operator_list...) ⊗ tensor(complement_operators...)
+    perm = sortperm([indices; complement(N, indices)])
+    permutesystems(op, perm)
+end
+embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis, operators::Dict{Int, T}; kwargs...) = embed(basis_l, basis_r, Dict([i]=>op_i for (i, op_i) in operators); kwargs...)
+embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Int, T}; kwargs...) = embed(basis, basis, operators; kwargs...)
+embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Vector{Int}, T}; kwargs...) = embed(basis, basis, operators; kwargs...)
 
 # Partial trace for dense operators.
 function _strides(shape::Vector{Int})
