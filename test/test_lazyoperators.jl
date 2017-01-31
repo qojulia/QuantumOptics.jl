@@ -131,3 +131,93 @@ operators.gemv!(Complex(1.), op, psi_ket, Complex(0.), result_ket)
 @test_approx_eq_eps 0. norm(full(op)*psi_ket - result_ket) 1e-12
 operators.gemv!(Complex(1.), psi_bra, op, Complex(0.), result_bra)
 @test_approx_eq_eps 0. norm(psi_bra*full(op) - result_bra) 1e-12
+
+
+# Test partial trace
+b1 = NLevelBasis(2)
+b2 = SpinBasis(1//2)
+b3 = FockBasis(3)
+b = b1 ⊗ b2 ⊗ b3
+
+rho1 = DenseOperator(b1, rand(Complex128, length(b1), length(b1)))
+rho2 = DenseOperator(b2, rand(Complex128, length(b2), length(b2)))
+rho3 = DenseOperator(b3, rand(Complex128, length(b3), length(b3)))
+
+rho123 = LazyTensor(b, [1,2,3], [rho1, rho2, rho3])
+x1 = ptrace(rho123, [2,3])
+x2 = ptrace(full(rho123), [2,3])
+@test_approx_eq_eps 0. tracedistance_general(full(x1), x2) 1e-5
+
+x1 = ptrace(rho123, [1,2,3])
+x2 = ptrace(full(rho123), [1,2,3])
+@test_approx_eq_eps x1 x2 1e-5
+
+x1 = ptrace(rho123, [3])
+x2 = ptrace(full(rho123), [3])
+@test_approx_eq_eps 0. tracedistance_general(full(x1), x2) 1e-5
+
+x1 = ptrace(LazyTensor(b, [3], [rho3]), [3])
+x2 = ptrace(embed(b, 3, rho3), [3])
+@test_approx_eq_eps 0. tracedistance_general(full(x1), x2) 1e-5
+
+
+rho1 = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+rho2 = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+rho3 = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+
+rho = LazySum(rho1, rho2, rho3)
+rho_ = rho1 + rho2 + rho3
+
+x1 = ptrace(rho, [2])
+x2 = ptrace(rho_, [2])
+@test_approx_eq_eps 0. tracedistance_general(full(x1), x2) 1e-5
+
+x1 = ptrace(rho, [1,3])
+x2 = ptrace(rho_, [1,3])
+@test_approx_eq_eps 0. tracedistance_general(full(x1), x2) 1e-5
+
+x1 = ptrace(rho, [1,2,3])
+x2 = ptrace(rho_, [1,2,3])
+@test_approx_eq_eps x1 x2 1e-5
+
+# Test permutating systems
+b1a = NLevelBasis(2)
+b1b = SpinBasis(3//2)
+b2a = SpinBasis(1//2)
+b2b = FockBasis(7)
+b3a = FockBasis(2)
+b3b = NLevelBasis(4)
+
+b_l = b1a⊗b2a⊗b3a
+b_r = b1b⊗b2b⊗b3b
+
+rho1 = DenseOperator(b1a, b1b, rand(Complex128, length(b1a), length(b1b)))
+rho2 = DenseOperator(b2a, b2b, rand(Complex128, length(b2a), length(b2b)))
+rho3 = DenseOperator(b3a, b3b, rand(Complex128, length(b3a), length(b3b)))
+
+rho123 = LazyTensor(b_l, b_r, [1,2,3], [rho1,rho2,rho3])
+rho213_ = permutesystems(rho123, [2, 1, 3])
+
+@test_approx_eq_eps 0. tracedistance_general(full(rho213_), rho2⊗rho1⊗rho3) 1e-5
+
+
+rho1 = DenseOperator(b_l, b_r, rand(Complex128, length(b_l), length(b_r)))
+rho2 = DenseOperator(b_r, b_l, rand(Complex128, length(b_r), length(b_l)))
+rho3 = DenseOperator(b_l, b_r, rand(Complex128, length(b_l), length(b_r)))
+
+rho123 = LazyProduct(rho1, rho2, rho3)
+rho213_ = permutesystems(rho123, [2, 1, 3])
+rho213 = permutesystems(rho1*rho2*rho3, [2, 1, 3])
+
+@test_approx_eq_eps 0. tracedistance_general(full(rho213_), rho213) 1e-5
+
+
+rho1 = DenseOperator(b_l, b_r, rand(Complex128, length(b_l), length(b_r)))
+rho2 = DenseOperator(b_l, b_r, rand(Complex128, length(b_l), length(b_r)))
+rho3 = DenseOperator(b_l, b_r, rand(Complex128, length(b_l), length(b_r)))
+
+rho123 = LazySum(rho1, rho2, rho3)
+rho213_ = permutesystems(rho123, [2, 1, 3])
+rho213 = permutesystems(rho1+rho2+rho3, [2, 1, 3])
+
+@test_approx_eq_eps 0. tracedistance_general(full(rho213_), rho213) 1e-5
