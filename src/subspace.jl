@@ -1,9 +1,9 @@
 module subspace
 
 import Base.==
-import ..operators
+import ..operators_dense: projector
 
-using ..bases, ..states, ..operators
+using ..bases, ..states, ..operators, ..operators_dense
 
 export SubspaceBasis, projector
 
@@ -62,19 +62,19 @@ end
 """
 Operator projecting states from one subspace to another.
 """
-function operators.projector(b1::SubspaceBasis, b2::SubspaceBasis)
+function projector(b1::SubspaceBasis, b2::SubspaceBasis)
     if b1.superbasis != b2.superbasis
         throw(ArgumentError("Both subspace bases have to have the same superbasis."))
     end
-    T1 = operators.projector(b1, b1.superbasis)
-    T2 = operators.projector(b2.superbasis, b2)
+    T1 = projector(b1, b1.superbasis)
+    T2 = projector(b2.superbasis, b2)
     return T1*T2
 end
 
 """
 Operator projecting states from the superspace to the subspace.
 """
-function operators.projector(b1::SubspaceBasis, b2::Basis)
+function projector(b1::SubspaceBasis, b2::Basis)
     if b1.superbasis != b2
         throw(ArgumentError("Second basis has to be the superbasis of the first one."))
     end
@@ -88,7 +88,7 @@ end
 """
 Operator projecting states from the subspace to the superspace.
 """
-function operators.projector(b1::Basis, b2::SubspaceBasis)
+function projector(b1::Basis, b2::SubspaceBasis)
     if b1 != b2.superbasis
         throw(ArgumentError("First basis has to be the superbasis of the second one."))
     end

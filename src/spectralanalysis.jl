@@ -1,6 +1,6 @@
 module spectralanalysis
 
-using ..states, ..operators, ..operators_sparse
+using ..states, ..operators, ..operators_dense, ..operators_sparse
 
 export operatorspectrum, operatorspectrum_hermitian, eigenstates, eigenstates_hermitian, groundstate
 

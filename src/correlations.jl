@@ -1,6 +1,7 @@
 module correlations
 
 using ..operators
+using ..operators_dense
 using ..timeevolution
 using ..metrics
 using ..steadystate

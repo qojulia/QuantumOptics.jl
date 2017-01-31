@@ -3,8 +3,8 @@ module timeevolution_mcwf
 export mcwf, mcwf_h, mcwf_nh
 
 using ...bases
-using ...operators
 using ...states
+using ...operators
 using ...ode_dopri
 
 """

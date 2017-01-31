@@ -1,11 +1,12 @@
 module operators_sparse
 
 import Base: ==, *, /, +, -
-import ..operators
+import ..operators: dagger, identityoperator,
+                    trace, ptrace, normalize!, tensor, permutesystems
 
-using ..bases, ..states, ..operators, ..sparsematrix
+using ..bases, ..states, ..operators, ..operators_dense, ..sparsematrix
 
-export SparseOperator, sparse_identityoperator, diagonaloperator
+export SparseOperator, diagonaloperator, sparse_identityoperator
 
 
 """
@@ -42,6 +43,7 @@ Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.da
 ==(x::SparseOperator, y::SparseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
 
 
+# Arithmetic operations
 *(a::SparseOperator, b::SparseOperator) = (check_multiplicable(a.basis_r, b.basis_l); SparseOperator(a.basis_l, b.basis_r, a.data*b.data))
 *(a::SparseOperator, b::Number) = SparseOperator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::SparseOperator) = SparseOperator(b.basis_l, b.basis_r, complex(a)*b.data)
@@ -53,36 +55,17 @@ Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.da
 -(a::SparseOperator) = SparseOperator(a.basis_l, a.basis_r, -a.data)
 -(a::SparseOperator, b::SparseOperator) = (operators.check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data-b.data))
 
-# Fast in-place multiplication implementations
-operators.gemm!{T<:Complex}(alpha::T, M::SparseOperator, b::DenseOperator, beta::T, result::DenseOperator) = sparsematrix.gemm!(alpha, M.data, b.data, beta, result.data)
-operators.gemm!{T<:Complex}(alpha::T, a::DenseOperator, M::SparseOperator, beta::T, result::DenseOperator) = sparsematrix.gemm!(alpha, a.data, M.data, beta, result.data)
-operators.gemv!{T<:Complex}(alpha::T, M::SparseOperator, b::Ket, beta::T, result::Ket) = sparsematrix.gemv!(alpha, M.data, b.data, beta, result.data)
-operators.gemv!{T<:Complex}(alpha::T, b::Bra, M::SparseOperator, beta::T, result::Bra) = sparsematrix.gemv!(alpha, b.data, M.data, beta, result.data)
 
-
-operators.tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
-
-operators.dagger(x::SparseOperator) = SparseOperator(x.basis_r, x.basis_l, x.data')
-
-operators.norm(op::SparseOperator, p) = norm(op.data, p)
-operators.trace(op::SparseOperator) = trace(op.data)
+dagger(x::SparseOperator) = SparseOperator(x.basis_r, x.basis_l, x.data')
 
 sparse_identityoperator(b::Basis) = SparseOperator(b, b, speye(Complex128, length(b)))
 sparse_identityoperator(b1::Basis, b2::Basis) = SparseOperator(b1, b2, speye(Complex128, length(b1), length(b2)))
 
-operators.identityoperator(b::Basis) = sparse_identityoperator(b)
-operators.identityoperator(b1::Basis, b2::Basis) = sparse_identityoperator(b1, b2)
-operators.identityoperator(op::SparseOperator) = sparse_identityoperator(op.basis_l, op.basis_r)
-operators.identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = sparse_identityoperator(b1, b2)
+identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = SparseOperator(b1, b2, speye(Complex128, length(b1), length(b2)))
+identityoperator(b1::Basis, b2::Basis) = identityoperator(SparseOperator, b1, b2)
+identityoperator(b::Basis) = identityoperator(b, b)
 
-"""
-Diagonal operator.
-"""
-function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
-  @assert 1 <= length(diag) <= b.shape[1]
-  SparseOperator(b, spdiagm(complex(float(diag))))
-end
-
+trace(op::SparseOperator) = trace(op.data)
 
 function operators.ptrace(op::SparseOperator, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)
@@ -98,18 +81,9 @@ function operators.ptrace(op::SparseOperator, indices::Vector{Int})
     SparseOperator(b_l, b_r, data)
 end
 
+tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
 
-"""
-Change the ordering of the subsystems of the given operator.
-
-Arguments
----------
-rho
-    A sparse operator represented in a composite basis.
-perm
-    Vector defining the new ordering of the subsystems.
-"""
-function operators.permutesystems(rho::SparseOperator, perm::Vector{Int})
+function permutesystems(rho::SparseOperator, perm::Vector{Int})
     @assert length(rho.basis_l.bases) == length(rho.basis_r.bases) == length(perm)
     @assert issubset(Set(1:length(rho.basis_l.bases)), Set(perm))
     shape = [reverse(rho.basis_l.shape); reverse(rho.basis_r.shape)]
@@ -117,5 +91,22 @@ function operators.permutesystems(rho::SparseOperator, perm::Vector{Int})
     data = sparsematrix.permutedims(rho.data, shape, [dataperm; dataperm + length(perm)])
     SparseOperator(permutesystems(rho.basis_l, perm), permutesystems(rho.basis_r, perm), data)
 end
+
+# Fast in-place multiplication implementations
+operators.gemm!{T<:Complex}(alpha::T, M::SparseOperator, b::DenseOperator, beta::T, result::DenseOperator) = sparsematrix.gemm!(alpha, M.data, b.data, beta, result.data)
+operators.gemm!{T<:Complex}(alpha::T, a::DenseOperator, M::SparseOperator, beta::T, result::DenseOperator) = sparsematrix.gemm!(alpha, a.data, M.data, beta, result.data)
+operators.gemv!{T<:Complex}(alpha::T, M::SparseOperator, b::Ket, beta::T, result::Ket) = sparsematrix.gemv!(alpha, M.data, b.data, beta, result.data)
+operators.gemv!{T<:Complex}(alpha::T, b::Bra, M::SparseOperator, beta::T, result::Bra) = sparsematrix.gemv!(alpha, b.data, M.data, beta, result.data)
+
+
+"""
+Diagonal operator.
+"""
+function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
+  @assert 1 <= length(diag) <= b.shape[1]
+  SparseOperator(b, spdiagm(complex(float(diag))))
+end
+
+operators.norm(op::SparseOperator, p) = norm(op.data, p)
 
 end # module

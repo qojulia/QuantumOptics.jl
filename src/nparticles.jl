@@ -4,7 +4,7 @@ export NParticleBasis, BosonicNParticleBasis, FermionicNParticleBasis, nparticle
 
 import Base.==
 
-using ..bases, ..operators, ..operators_sparse
+using ..bases, ..operators, ..operators_dense, ..operators_sparse
 
 
 function distribute_bosons(particlenumber::Int, singleparticledimension::Int, index::Int=1, occupations::Vector{Int}=zeros(Int,singleparticledimension), results::Vector{Vector{Int}}=Vector{Int}[])

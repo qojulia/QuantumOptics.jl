@@ -2,6 +2,7 @@ module steadystate
 
 using ..states
 using ..operators
+using ..operators_dense
 using ..superoperators
 using ..timeevolution
 using ..metrics

@@ -3,7 +3,7 @@ module particle
 import Base.==
 import ..operators
 
-using ..bases, ..states, ..operators, ..operators_sparse, ..operators_lazy
+using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse, ..operators_lazy
 
 export PositionBasis, MomentumBasis,
         gaussianstate,

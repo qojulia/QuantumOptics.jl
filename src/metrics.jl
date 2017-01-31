@@ -1,6 +1,6 @@
 module metrics
 
-using ..operators, ..operators_sparse
+using ..operators, ..operators_dense
 
 export tracedistance, tracedistance_general
 

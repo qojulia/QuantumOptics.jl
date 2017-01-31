@@ -2,6 +2,7 @@ module timeevolution_simple
 
 using ..states
 using ..operators
+using ..operators_dense
 using ODE
 
 export master

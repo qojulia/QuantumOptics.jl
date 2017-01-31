@@ -6,12 +6,10 @@ export bases, Basis, GenericBasis, CompositeBasis,
         tensor, ⊗, permutesystems,
         states, StateVector, Bra, Ket, basis_bra, basis_ket,
                 dagger, normalize, normalize!,
-        operators, Operator, DenseOperator, projector,
-                expect, identityoperator, dense_identityoperator,
-                ptrace, embed,
+        operators, Operator, expect, identityoperator, ptrace, embed,
+        operators_dense, DenseOperator, projector, dense_identityoperator,
+        operators_sparse, SparseOperator, sparse_identityoperator, diagonaloperator,
         operators_lazy, LazyOperator, LazyTensor, LazySum, LazyProduct,
-        operators_sparse, SparseOperator,
-                sparse_identityoperator, diagonaloperator,
         super, DenseSuperOperator, SparseSuperOperator,
                 spre, spost, liouvillian,
         fock, FockBasis, number, destroy, create,
@@ -35,6 +33,7 @@ export bases, Basis, GenericBasis, CompositeBasis,
 include("bases.jl")
 include("states.jl")
 include("operators.jl")
+include("operators_dense.jl")
 include("sparsematrix.jl")
 include("operators_sparse.jl")
 include("operators_lazy.jl")
@@ -66,6 +65,7 @@ include("io.jl")
 using .bases
 using .states
 using .operators
+using .operators_dense
 using .operators_sparse
 using .operators_lazy
 using .superoperators

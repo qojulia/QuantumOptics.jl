@@ -3,8 +3,9 @@ module timeevolution_master
 export master, master_nh, master_h
 
 using ...bases
-using ...operators
 using ...states
+using ...operators
+using ...operators_dense
 using ...ode_dopri
 
 """

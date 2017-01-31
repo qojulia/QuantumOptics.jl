@@ -3,6 +3,7 @@ module cumulantexpansion
 using ..bases
 using ..states
 using ..operators
+using ..operators_dense
 using ..operators_lazy
 using ..ode_dopri
 

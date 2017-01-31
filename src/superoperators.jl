@@ -3,7 +3,7 @@ module superoperators
 import Base: ==, *, /, +, -
 import ..operators.check_samebases
 
-using ..bases, ..operators, ..operators_sparse
+using ..bases, ..operators, ..operators_dense, ..operators_sparse
 
 export DenseSuperOperator, SparseSuperOperator, spre, spost, liouvillian
 

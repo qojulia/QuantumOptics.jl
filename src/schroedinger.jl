@@ -3,8 +3,8 @@ module timeevolution_schroedinger
 export schroedinger, schroedinger_timedependent
 
 using ...bases
-using ...operators
 using ...states
+using ...operators
 using ...ode_dopri
 
 """

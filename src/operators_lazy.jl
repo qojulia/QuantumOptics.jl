@@ -4,7 +4,7 @@ import Base: *, /, +, -
 import ..operators
 
 using Base.Cartesian
-using ..bases, ..states, ..operators, ..operators_sparse
+using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
 export LazyOperator, LazyTensor, LazySum, LazyProduct
 
@@ -230,8 +230,8 @@ end
         y = Ket(result.basis.bases[$INDEX])
         indices_others = filter(x->(x!=$INDEX), 1:$RANK)
         shape_others = [b.basis.shape[i] for i=indices_others]
-        strides_others = [operators._strides(b.basis.shape)[i] for i=indices_others]
-        stride = operators._strides(b.basis.shape)[$INDEX]
+        strides_others = [operators_dense._strides(b.basis.shape)[i] for i=indices_others]
+        stride = operators_dense._strides(b.basis.shape)[$INDEX]
         N = b.basis.shape[$INDEX]
         @nexprs 1 d->(I_{$(RANK-1)}=1)
         @nloops $(RANK-1) i d->(1:shape_others[d]) d->(I_{d-1}=I_{d}) d->(I_d+=strides_others[d]) begin
@@ -267,8 +267,8 @@ end
         y = Bra(result.basis.bases[$INDEX])
         indices_others = filter(x->(x!=$INDEX), 1:$RANK)
         shape_others = [b.basis.shape[i] for i=indices_others]
-        strides_others = [operators._strides(b.basis.shape)[i] for i=indices_others]
-        stride = operators._strides(b.basis.shape)[$INDEX]
+        strides_others = [operators_dense._strides(b.basis.shape)[i] for i=indices_others]
+        stride = operators_dense._strides(b.basis.shape)[$INDEX]
         N = b.basis.shape[$INDEX]
         @nexprs 1 d->(I_{$(RANK-1)}=1)
         @nloops $(RANK-1) i d->(1:shape_others[d]) d->(I_{d-1}=I_{d}) d->(I_d+=strides_others[d]) begin
