@@ -344,6 +344,7 @@ function FFTOperator(basis_l::PositionBasis, basis_r::MomentumBasis)
     FFTOperator(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), mul_before, mul_after)
 end
 
+operators.full(op::FFTOperator) = op*identityoperator(DenseOperator, op.basis_r)
 
 operators.dagger(op::FFTOperator) = FFTOperator(op.basis_r, op.basis_l)
 

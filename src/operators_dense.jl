@@ -9,7 +9,7 @@ using Base.LinAlg
 using Base.Cartesian
 using ..bases, ..states, ..operators
 
-export DenseOperator, projector, dense_identityoperator
+export DenseOperator, projector
 
 """
 Dense array implementation of Operator.
@@ -33,7 +33,6 @@ Converting an arbitrary Operator into a DenseOperator.
 """
 Base.copy(x::DenseOperator) = deepcopy(x)
 Base.full(x::DenseOperator) = deepcopy(x)
-Base.full(op::Operator) = op*dense_identityoperator(op.basis_r)
 
 ==(x::DenseOperator, y::DenseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
 
@@ -81,9 +80,6 @@ end
 
 dagger(x::DenseOperator) = DenseOperator(x.basis_r, x.basis_l, x.data')
 
-dense_identityoperator(b::Basis) = DenseOperator(b, b, eye(Complex, length(b)))
-dense_identityoperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(Complex, length(b1), length(b2)))
-dense_identityoperator(op::Operator) = dense_identityoperator(op.basis_l, op.basis_r)
 identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(Complex128, length(b1), length(b2)))
 
 trace(op::DenseOperator) = trace(op.data)
@@ -143,9 +139,6 @@ end
 p-norm of given operator.
 """
 Base.norm(op::DenseOperator, p) = norm(op.data, p)
-
-
-Base.prod{B<:Basis, T<:AbstractArray}(basis::B, operators::T) = (length(operators)==0 ? dense_identityoperator(basis) : prod(operators))
 
 
 # Partial trace for dense operators.

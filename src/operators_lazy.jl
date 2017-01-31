@@ -111,7 +111,7 @@ function operators.full(x::LazyTensor)
         if i in keys(x.operators)
             push!(op_list, full(x.operators[i]))
         else
-            push!(op_list, dense_identityoperator(x.basis_l.bases[i], x.basis_r.bases[i]))
+            push!(op_list, identityoperator(DenseOperator, x.basis_l.bases[i], x.basis_r.bases[i]))
         end
     end
     return x.factor*tensor(op_list...)
@@ -139,7 +139,7 @@ function operators_sparse.sparse(x::LazyTensor)
         if i in keys(x.operators)
             push!(op_list, sparse(x.operators[i]))
         else
-            push!(op_list, sparse_identityoperator(x.basis_l.bases[i], x.basis_r.bases[i]))
+            push!(op_list, identityoperator(SparseOperator, x.basis_l.bases[i], x.basis_r.bases[i]))
         end
     end
     return x.factor*tensor(op_list...)

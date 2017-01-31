@@ -5,7 +5,7 @@ T = [0.:0.1:0.5;]
 
 # Define Spin 1/2 operators
 spinbasis = SpinBasis(1//2)
-I = dense_identityoperator(spinbasis)
+I = full(identityoperator(spinbasis))
 sigmax = full(spin.sigmax(spinbasis))
 sigmay = full(spin.sigmay(spinbasis))
 sigmaz = full(spin.sigmaz(spinbasis))

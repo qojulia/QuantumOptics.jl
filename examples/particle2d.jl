@@ -27,7 +27,7 @@ psamplepoints = quantumoptics.particle.samplepoints(basis_momentum)
 @time p = SparseOperator(quantumoptics.particle.momentumoperator(basis_position))
 @time x = SparseOperator(quantumoptics.particle.positionoperator(basis_position))
 @time V = SparseOperator(basis_position, diagm(complex(omega)^2*xsamplepoints.^2))
-@time I = sparse_identityoperator(basis_position)
+@time I = identityoperator(basis_position)
 
 @time p2 = p^2/2
 @time Hkin2d = (tensor(p2, I) + tensor(I, p2))

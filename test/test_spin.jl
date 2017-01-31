@@ -70,7 +70,7 @@ end
 # Test special relations for spin 1/2
 
 spinbasis = SpinBasis(1//2)
-I = sparse_identityoperator(spinbasis)
+I = identityoperator(spinbasis)
 Zero = SparseOperator(spinbasis)
 sx = sigmax(spinbasis)
 sy = sigmay(spinbasis)

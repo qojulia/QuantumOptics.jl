@@ -19,10 +19,7 @@ sz_dense = full(sz)
 @test sparse(sx_dense) == sx
 
 b = FockBasis(3)
-I = sparse_identityoperator(b)
-I_dense = dense_identityoperator(b)
-
-@test I == identityoperator(destroy(b))
+I = identityoperator(b)
 
 type A <: Operator
 end

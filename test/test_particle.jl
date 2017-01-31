@@ -135,7 +135,7 @@ operators.gemv!(Complex(1.), LazyProduct(Txp, Tpx), psix0, Complex(0.), psi_)
 @test_approx_eq_eps 0. norm(Txp*(Tpx*psix0) - psix0) 1e-12
 
 psi_ = deepcopy(psix0)
-I = dense_identityoperator(basis_momentum)
+I = full(identityoperator(basis_momentum))
 operators.gemv!(Complex(1.), LazyProduct(Txp, I, Tpx), psix0, Complex(0.), psi_)
 @test_approx_eq_eps 0. norm(psi_ - psix0) 1e-12
 @test_approx_eq_eps 0. norm(Txp*I*(Tpx*psix0) - psix0) 1e-12

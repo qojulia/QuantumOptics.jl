@@ -10,9 +10,9 @@ b1 = NLevelBasis(3)
 b2 = SpinBasis(1//2)
 b3 = FockBasis(2)
 
-I1 = dense_identityoperator(b1)
-I2 = dense_identityoperator(b2)
-I3 = dense_identityoperator(b3)
+I1 = full(identityoperator(b1))
+I2 = full(identityoperator(b2))
+I3 = full(identityoperator(b3))
 
 b = b1 ⊗ b2 ⊗ b3
 

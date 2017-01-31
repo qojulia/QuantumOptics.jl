@@ -56,6 +56,7 @@ dagger(a::Operator) = arithmetic_unary_error("Hermitian conjugate", a)
 Identity operator.
 """
 identityoperator{T<:Operator}(::Type{T}, b1::Basis, b2::Basis) = throw(ArgumentError("Identity operator not defined for operator type $T."))
+identityoperator{T<:Operator}(::Type{T}, b::Basis) = identityoperator(T, b, b)
 identityoperator{T<:Operator}(op::T) = identityoperator(T, op.basis_l, op.basis_r)
 
 """

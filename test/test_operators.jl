@@ -24,7 +24,7 @@ ybra = dagger(yket)
 
 op1 = DenseOperator(spinbasis, GenericBasis([3]), [1 1 1; 1 1 1])
 op2 = DenseOperator(GenericBasis([3]), spinbasis, [1 1; 1 1; 1 1])
-I = dense_identityoperator(fockbasis)
+I = full(identityoperator(fockbasis))
 
 
 # Test creation
@@ -60,9 +60,6 @@ P = projector(v, b)
 op_diag = P*op*dagger(P)
 op_diag_exp = DenseOperator(v, diagm(exp(diag(op_diag.data))))
 @test_approx_eq_eps 0. tracedistance(expm(op), dagger(P)*op_diag_exp*P) 1e-13
-
-# Test identity function
-@test full(I) == dense_identityoperator(a)
 
 # Test gemv implementation
 result_ket = deepcopy(xket)

@@ -6,7 +6,7 @@ import ..operators: dagger, identityoperator,
 
 using ..bases, ..states, ..operators, ..operators_dense, ..sparsematrix
 
-export SparseOperator, diagonaloperator, sparse_identityoperator
+export SparseOperator, diagonaloperator
 
 
 """
@@ -57,9 +57,6 @@ Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.da
 
 
 dagger(x::SparseOperator) = SparseOperator(x.basis_r, x.basis_l, x.data')
-
-sparse_identityoperator(b::Basis) = SparseOperator(b, b, speye(Complex128, length(b)))
-sparse_identityoperator(b1::Basis, b2::Basis) = SparseOperator(b1, b2, speye(Complex128, length(b1), length(b2)))
 
 identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = SparseOperator(b1, b2, speye(Complex128, length(b1), length(b2)))
 identityoperator(b1::Basis, b2::Basis) = identityoperator(SparseOperator, b1, b2)
