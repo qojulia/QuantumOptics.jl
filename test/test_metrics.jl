@@ -21,3 +21,6 @@ sigma = tensor(psi2, dagger(psi2))
 rho = spinup(b1) ⊗ dagger(coherentstate(b2, 0.1))
 @test_throws AssertionError tracedistance(rho, rho)
 @test tracedistance_general(rho, rho) == 0.
+
+rho_mix = full(identityoperator(b1))/2.
+@test entropy_vn(rho_mix)/log(2) == 1.0
