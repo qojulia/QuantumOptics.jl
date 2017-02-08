@@ -26,7 +26,7 @@ Composite bases
 
 .. jl:autofunction:: bases.jl ptrace
 
-.. jl:autofunction:: bases.jl permutebases
+.. jl:autofunction:: bases.jl permutesystems
 
 
 Subspace bases
@@ -53,11 +53,7 @@ States
 
 .. jl:autofunction:: states.jl tensor
 
-.. jl:autofunction:: operators.jl tensor(::Ket, ::Bra)
-
-.. jl:autofunction:: operators.jl ptrace(::Ket, )
-
-.. jl:autofunction:: operators.jl ptrace(::Bra, )
+.. jl:autofunction:: operators_dense.jl tensor(::Ket, ::Bra)
 
 .. jl:autofunction:: states.jl dagger
 
@@ -80,31 +76,27 @@ Operators
 
 .. jl:autoabstract:: operators.jl Operator
 
-.. jl:autofunction:: operators.jl tensor(a::DenseOperator, b::DenseOperator)
-
-.. jl:autofunction:: operators.jl tensor(ops...)
-
 .. jl:autofunction:: operators.jl dagger
 
-.. jl:autofunction:: operators.jl projector
+.. jl:autofunction:: operators.jl identityoperator
 
-.. jl:autofunction:: operators.jl norm
+.. jl:autofunction:: operators_dense.jl projector
 
 .. jl:autofunction:: operators.jl trace
+
+.. jl:autofunction:: operators.jl ptrace
 
 .. jl:autofunction:: operators.jl normalize
 
 .. jl:autofunction:: operators.jl normalize!
 
-.. jl:autofunction:: operators.jl identityoperator
-
 .. jl:autofunction:: operators.jl expect
+
+.. jl:autofunction:: operators.jl tensor
 
 .. jl:autofunction:: operators.jl embed
 
-.. jl:autofunction:: operators.jl ptrace(::DenseOperator, indices)
-
-.. jl:autofunction:: operators.jl ptrace(::DenseOperator, index)
+.. jl:autofunction:: operators.jl permutesystems
 
 .. jl:autofunction:: operators.jl gemv!
 
@@ -116,13 +108,9 @@ Operators
 DenseOperators
 ^^^^^^^^^^^^^^
 
-.. jl:autotype:: operators.jl DenseOperator
+.. jl:autotype:: operators_dense.jl DenseOperator
 
-.. jl:autofunction:: operators.jl DenseOperator
-
-.. jl:autofunction:: operators.jl full
-
-.. jl:autofunction:: operators.jl permutesystems
+.. jl:autofunction:: operators_dense.jl full
 
 
 .. _section-api-sparseoperators:
@@ -131,8 +119,6 @@ SparseOperators
 ^^^^^^^^^^^^^^^
 
 .. jl:autotype:: operators_sparse.jl SparseOperator
-
-.. jl:autofunction:: operators_sparse.jl SparseOperator
 
 .. jl:autofunction:: operators_sparse.jl sparse
 
@@ -173,7 +159,7 @@ Superoperators
 
 
 
-.. section-api-metrics:
+.. _section-api-metrics:
 
 Metrics
 -------
