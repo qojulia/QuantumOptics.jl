@@ -2,7 +2,7 @@ module metrics
 
 using ..operators, ..operators_dense
 
-export tracedistance, tracedistance_general
+export tracedistance, tracedistance_general, entropy_vn
 
 """
 Trace distance between two density operators.
@@ -46,5 +46,20 @@ end
 function tracedistance{T<:Operator}(rho::T, sigma::T)
     throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
 end
+
+
+"""
+Von Neumann entropy of density matrix.
+
+The VN entropy of a density operator is defined as
+
+.. math:
+
+    S(\\rho) = -Tr(\\rho \\log(\\rho)) = -\\sum_n \\lambda_n\\log(\\lambda_n)
+
+where :math:`\\lambda_n` are the eigenvalues of the density matrix
+:math:`\\rho`, :math:`log` is the natural logarithm and :math:`\\log(0)\\equiv 0`.
+"""
+entropy_vn(rho::DenseOperator) = sum([d == 0 ? 0 : -d*log(d) for d=eigvals(rho.data)])
 
 end # module
