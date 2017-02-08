@@ -1,0 +1,301 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Time-evolution &mdash; QuantumOptics.jl</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="QuantumOptics.jl" href="index.html"/>
+        <link rel="next" title="Steady state" href="steadystate.html"/>
+        <link rel="prev" title="N-Particles Basis" href="nparticles.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuantumOptics.jl
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States and Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantumsystems.html">Quantum systems</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Time-evolution</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#schroedinger-time-evolution">Schroedinger time evolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#master-time-evolution">Master time evolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcwf-time-evolution">MCWF time evolution</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="steadystate.html">Steady state</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlations.html">Two-time correlation functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectralanalysis.html">Spectral Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="superoperators.html">Super-operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bases.html">Bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operators.html">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">QuantumOptics.jl</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Time-evolution</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/timeevolution.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="time-evolution">
+<span id="section-timeevolution"></span><h1>Time-evolution<a class="headerlink" href="#time-evolution" title="Permalink to this headline">¶</a></h1>
+<p><strong>QuantumOptics.jl</strong> implements solver for dynamics of closed and open quantum systems:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#section-schroedinger"><span class="std std-ref">Schroedinger equation</span></a></li>
+<li><a class="reference internal" href="#section-master"><span class="std std-ref">Master equation</span></a></li>
+<li><a class="reference internal" href="#section-mcwf"><span class="std std-ref">Monte Carlo wave function method (MCWF)</span></a></li>
+</ul>
+<p>The interfaces are designed to be as consistent as possible to make it easy to switch between different methods.</p>
+<div class="section" id="schroedinger-time-evolution">
+<span id="section-schroedinger"></span><h2>Schroedinger time evolution<a class="headerlink" href="#schroedinger-time-evolution" title="Permalink to this headline">¶</a></h2>
+<p>The Schroedinger equation as one of the basic postulates of quantum mechanics describes the dynamics of a quantum state in a closed quantum system. In Dirac notation the Schroedinger equation and its adjoint equation read</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}i\hbar\frac{\mathrm{d}}{\mathrm{d} t} |\Psi(t)\rangle = H |\Psi(t)\rangle\\- i\hbar\frac{\mathrm{d}}{\mathrm{d} t} \langle \Psi(t)| = \langle\Psi(t)| H\end{aligned}\end{align} \]</div>
+<p>Both versions are implemented and are chosen automatically depending on the type of the provided initial state (Bra or Ket):</p>
+<ul class="simple">
+<li><a class="reference internal" href="api.html#schroedinger-b72c1165931411de1b8d64ad17517104" title="schroedinger"><code class="xref jl jl-func docutils literal"><span class="pre">schroedinger</span></code></a></li>
+</ul>
+</div>
+<div class="section" id="master-time-evolution">
+<span id="section-master"></span><h2>Master time evolution<a class="headerlink" href="#master-time-evolution" title="Permalink to this headline">¶</a></h2>
+<p>The dynamics of open quantum systems are governed by a master equation in Lindblad form:</p>
+<div class="math">
+\[\dot{\rho} = -\frac{i}{\hbar} \big[H,\rho\big]
+             + \sum_i \big(
+                    J_i \rho J_i^\dagger
+                    - \frac{1}{2} J_i^\dagger J_i \rho
+                    - \frac{1}{2} \rho J_i^\dagger J_i
+                \big)\]</div>
+<p>For performance reasons the solver internally first creates the non-hermitian Hamiltonian <span class="math">\(H_\mathrm{nh} = H - \frac{i\hbar}{2} \sum_i J_i^\dagger J_i\)</span> and solves the equation</p>
+<div class="math">
+\[\dot{\rho} = -\frac{i}{\hbar} \big[H_\mathrm{nh},\rho\big]
+             + \sum_i J_i \rho J_i^\dagger\]</div>
+<p>If for any reason this behavior is unwanted, e.g. special operators are used that don&#8217;t support addition, the function master_h (h for hermitian) can be used.</p>
+<ul class="simple">
+<li><a class="reference internal" href="api.html#master-f31d83a59cbb151523ff15d586133bb1" title="master(tspan, rho0::DenseOperator, H::Operator, J::Vector)"><code class="xref jl jl-func docutils literal"><span class="pre">master(tspan,</span> <span class="pre">rho0::DenseOperator,</span> <span class="pre">H::Operator,</span> <span class="pre">J::Vector)</span></code></a></li>
+<li><a class="reference internal" href="api.html#master_h-f31d83a59cbb151523ff15d586133bb1" title="master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector)"><code class="xref jl jl-func docutils literal"><span class="pre">master_h(tspan,</span> <span class="pre">rho0::DenseOperator,</span> <span class="pre">H::Operator,</span> <span class="pre">J::Vector)</span></code></a></li>
+<li><a class="reference internal" href="api.html#master_nh-c062d2933ff0c4311f276bd42daf8c98" title="master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector)"><code class="xref jl jl-func docutils literal"><span class="pre">master_nh(tspan,</span> <span class="pre">rho0::DenseOperator,</span> <span class="pre">Hnh::Operator,</span> <span class="pre">J::Vector)</span></code></a></li>
+</ul>
+</div>
+<div class="section" id="mcwf-time-evolution">
+<span id="section-mcwf"></span><h2>MCWF time evolution<a class="headerlink" href="#mcwf-time-evolution" title="Permalink to this headline">¶</a></h2>
+<p>Instead of solving the Master equation</p>
+<div class="math">
+\[\dot{\rho} = -\frac{i}{\hbar} \big[H,\rho\big]
+             + \sum_i \big(
+                    J_i \rho J_i^\dagger
+                    - \frac{1}{2} J_i^\dagger J_i \rho
+                    - \frac{1}{2} \rho J_i^\dagger J_i
+                \big)\]</div>
+<p>directly, one can use the quantum jump formalism to evaluate single stochastic quantum trajectories using the Monte Carlo wave function method. For large numbers of trajectories the statistical average then approximates the result of the Master equation. The huge advantage is that instead of describing the state of the quantum system by a density matrix of size <span class="math">\(N^2\)</span> these trajectories work in terms of state vectors of size <span class="math">\(N\)</span>. This is somewhat negated by the stochastic nature of the formalism which makes it necessary to repeat the simulation until the wanted accuracy is reached. It turns out, however, that for many cases, especially for high dimensional quantum systems, the necessary number of repetitions is much smaller than the system size <span class="math">\(N\)</span> and therefore using the MCWF method is advantageous.</p>
+<p>Additionally this quantum jump formalism also has a very intuitive physical interpretation. It basically describes the situation where every quantum jump, e.g. the emission of a photon, is detected by a detector and therefore the time evolution can be completely reconstructed by an outside observer. Depending on the efficiency of the used detectors this might be a much better description for an actual experiment.</p>
+<p>This physical picture can be used to easily understand the actual MCWF algorithm:</p>
+<ol class="arabic">
+<li><p class="first">Calculate coherent time evolution according to a Schroedinger equation with non-hermitian Hamiltonian <span class="math">\(H_\mathrm{nh} = H - \frac{i\hbar}{2} \sum_i J_i^\dagger J_i\)</span></p>
+<blockquote>
+<div><div class="math">
+\[i\hbar\frac{\mathrm{d}}{\mathrm{d} t} |\Psi(t)\rangle = H_\mathrm{nh} |\Psi(t)\rangle\]</div>
+</div></blockquote>
+</li>
+<li><p class="first">Since the Hamiltonian is non-hermitian the norm of the quantum state is not conserved and actually decreases with time. This can be interpreted in the way that the smaller the norm of the state gets the more probable it is that a quantum jump occurs. Quantitatively this means that the coherent time evolution stops when <span class="math">\(\langle \Psi(t)|\Psi(t)\rangle &lt; p\)</span> where <span class="math">\(p\)</span> is a randomly generated number between 0 and 1.</p>
+</li>
+<li><p class="first">At these randomly determined times a quantum jump according to</p>
+<blockquote>
+<div><div class="math">
+\[|\Psi(t)\rangle \rightarrow \frac{J_i |\Psi(t)\rangle}{||J_i |\Psi(t)\rangle||}\]</div>
+<p>is performed.</p>
+</div></blockquote>
+</li>
+<li><p class="first">Continue with coherent time evolution.</p>
+</li>
+</ol>
+<p>The stochastic average of these trajectories is then equal to the solution of the master equation <span class="math">\(\rho(t)\)</span></p>
+<div class="math">
+\[\lim\limits_{N \rightarrow \infty}\frac{1}{N} \sum_{k=1}^N |\Psi^k(t)\rangle\langle\Psi^k(t)| = \rho(t)\]</div>
+<p>and also the stochastic average of the single trajectory expectation values is equal to the expectation value according to the master equation</p>
+<div class="math">
+\[\lim\limits_{N \rightarrow \infty}\frac{1}{N} \sum_{k=1}^N \langle\Psi^k(t)| A |\Psi^k(t)\rangle = \mathrm{Tr}\big\{A \rho(t)\big\}\]</div>
+<p>avoiding explicit calculations of density matrices.</p>
+<ul class="simple">
+<li><a class="reference internal" href="api.html#master-41a995985f1cd6406c10fa76ccf65679" title="master(tspan, psi0::Ket, H::Operator, J::Vector)"><code class="xref jl jl-func docutils literal"><span class="pre">master(tspan,</span> <span class="pre">psi0::Ket,</span> <span class="pre">H::Operator,</span> <span class="pre">J::Vector)</span></code></a></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="steadystate.html" class="btn btn-neutral float-right" title="Steady state" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="nparticles.html" class="btn btn-neutral" title="N-Particles Basis" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Sebastian Krämer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

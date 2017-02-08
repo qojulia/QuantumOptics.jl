@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Bases &mdash; QuantumOptics.jl</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="QuantumOptics.jl" href="index.html"/>
+        <link rel="next" title="Operators" href="operators.html"/>
+        <link rel="prev" title="Raman Transition of a \(\Lambda\)-scheme Atom" href="examples/raman.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuantumOptics.jl
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States and Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantumsystems.html">Quantum systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeevolution.html">Time-evolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="steadystate.html">Steady state</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlations.html">Two-time correlation functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectralanalysis.html">Spectral Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="superoperators.html">Super-operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bases</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#composite-bases">Composite bases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subspace-basis">Subspace basis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generic-bases">Generic bases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#implementing-new-bases">Implementing new bases</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="operators.html">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">QuantumOptics.jl</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Bases</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/bases.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="bases">
+<span id="section-bases"></span><h1>Bases<a class="headerlink" href="#bases" title="Permalink to this headline">¶</a></h1>
+<p>The primary purpose of bases in <strong>QuantumOptics.jl</strong> is to specify the dimension of the Hilbert space of the system and to make sure that quantum objects associated to distinct bases can&#8217;t be combined accidentally in an incorrect way. Many of the common types of bases used in quantum mechanics like</p>
+<ul class="simple">
+<li><a class="reference internal" href="spin.html#section-spin"><span class="std std-ref">Spin basis</span></a></li>
+<li><a class="reference internal" href="fock.html#section-fock"><span class="std std-ref">Fock basis</span></a></li>
+<li><a class="reference internal" href="nlevel.html#section-nlevel"><span class="std std-ref">N-level basis</span></a></li>
+<li><a class="reference internal" href="particle.html#section-particle"><span class="std std-ref">Position basis and Momentum basis</span></a></li>
+<li><a class="reference internal" href="nparticles.html#section-nparticles"><span class="std std-ref">N-particle basis</span></a></li>
+</ul>
+<p>are already implemented. They are treated in more detail in the section <a class="reference internal" href="quantumsystems.html#section-quantumsystems"><span class="std std-ref">Quantum systems</span></a>.</p>
+<div class="section" id="composite-bases">
+<h2>Composite bases<a class="headerlink" href="#composite-bases" title="Permalink to this headline">¶</a></h2>
+<p>Hilbert spaces of composite systems can be handled with the <a class="reference internal" href="api.html#CompositeBasis" title="CompositeBasis"><code class="xref jl jl-type docutils literal"><span class="pre">CompositeBasis</span></code></a> which can be created using the <cite>tensor</cite> function or the equivalent ⊗ operator:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">basis_fock</span> <span class="o">=</span> <span class="n">FockBasis</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">basis_particle</span> <span class="o">=</span> <span class="n">MomentumBasis</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">basis</span> <span class="o">=</span> <span class="n">tensor</span><span class="p">(</span><span class="n">basis_fock</span><span class="p">,</span> <span class="n">basis_particle</span><span class="p">)</span>
+<span class="n">basis</span> <span class="o">=</span> <span class="n">basis_fock</span> <span class="n">⊗</span> <span class="n">basis_particle</span>
+</pre></div>
+</div>
+<p>Most of the time this will happen implicitly when operators are combined using the tensor function.</p>
+</div>
+<div class="section" id="subspace-basis">
+<h2>Subspace basis<a class="headerlink" href="#subspace-basis" title="Permalink to this headline">¶</a></h2>
+<p>Restricting a Hilbert space to a subspace is done using a <a class="reference internal" href="api.html#SubspaceBasis" title="SubspaceBasis"><code class="xref jl jl-type docutils literal"><span class="pre">SubspaceBasis</span></code></a>. It is defined by <span class="math">\(N\)</span>, not necessarily orthogonal states <span class="math">\(\{|u\rangle\}\)</span> that live in the embedding Hilbert space. However, for the following operations to work correctly, the basis states have to be orthonormal. This can be achieved for any SubspaceBasis with help of the <a class="reference internal" href="api.html#orthonormalize-88335c580fbbd1d45dd2761c8a39fe0d" title="orthonormalize"><code class="xref jl jl-func docutils literal"><span class="pre">orthonormalize</span></code></a> function which utilizes the numerical stable modified Gram-Schmidt algorithm. Projecting a state <span class="math">\(|x\rangle\)</span> into the subspace,</p>
+<div class="math">
+\[| x^\prime \rangle
+        = \sum_{u \in \mathrm{subspace}} |u \rangle \langle u | x \rangle\]</div>
+<p>results in the state <span class="math">\(|x^\prime\rangle\)</span>. This is done with a projection operator that can be obtained via the <a class="reference internal" href="api.html#projector-747761afa6a2b64aef46a67b8a960b70" title="projector(::SubspaceBasis, ::Basis)"><code class="xref jl jl-func docutils literal"><span class="pre">projector(::SubspaceBasis,</span> <span class="pre">::Basis)</span></code></a> function:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">FockBasis</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">b_sub</span> <span class="o">=</span> <span class="n">SubspaceBasis</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">[</span><span class="n">fockstate</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fockstate</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">)])</span>
+
+<span class="n">P</span> <span class="o">=</span> <span class="n">projector</span><span class="p">(</span><span class="n">b_sub</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">coherentstate</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">x_prime</span> <span class="o">=</span> <span class="n">P</span><span class="o">*</span><span class="n">x</span>
+</pre></div>
+</div>
+<p>The projection operation is irreversible if the original state was not already contained in the subspace. However, it is of course possible to represent any state contained in the subspace in the superbasis:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">dagger</span><span class="p">(</span><span class="n">P</span><span class="p">)</span><span class="o">*</span><span class="n">x_prime</span> <span class="c"># Not equal to x</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="generic-bases">
+<h2>Generic bases<a class="headerlink" href="#generic-bases" title="Permalink to this headline">¶</a></h2>
+<p>If a needed basis type is not implemented the quick and dirty way is to use a <a class="reference internal" href="api.html#GenericBasis" title="GenericBasis"><code class="xref jl jl-type docutils literal"><span class="pre">GenericBasis</span></code></a>, which just needs to know the dimension of the Hilbert space and is ready to go:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">GenericBasis</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>However, since operators and states represented in any generic basis can be combined as long as the bases have the same dimension it might lead to errors that otherwise could have been caught easily.</p>
+</div>
+<div class="section" id="implementing-new-bases">
+<h2>Implementing new bases<a class="headerlink" href="#implementing-new-bases" title="Permalink to this headline">¶</a></h2>
+<p>The cleaner way is to implement own special purpose bases by deriving from the abstract <a class="reference internal" href="api.html#Basis" title="Basis"><code class="xref jl jl-abstract docutils literal"><span class="pre">Basis</span></code></a> type. The only mandatory property of all basis types is that they have a field <cite>shape</cite> which specifies the dimensionality of their Hilbert space. E.g. a spin 1/2 basis could be implemented as:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="k">type</span><span class="nc"> SpinBasis</span> <span class="o">&lt;:</span> <span class="n">Basis</span>
+    <span class="n">shape</span><span class="p">::</span><span class="n">Vector</span><span class="p">{</span><span class="kt">Int</span><span class="p">}</span>
+    <span class="n">SpinBasis</span><span class="p">()</span> <span class="o">=</span> <span class="nb">new</span><span class="p">(</span><span class="kt">Int</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="c"># Constructor</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>The default behavior for new bases is to allow operations for bases of the same type, but reject mixing with other bases. Finer control over the interaction with other bases can be achieved by overloading the <cite>==</cite> operator as well as the <code class="xref jl jl-func docutils literal"><span class="pre">bases.multiplicable</span></code> function.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="operators.html" class="btn btn-neutral float-right" title="Operators" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="examples/raman.html" class="btn btn-neutral" title="Raman Transition of a \(\Lambda\)-scheme Atom" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Sebastian Krämer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

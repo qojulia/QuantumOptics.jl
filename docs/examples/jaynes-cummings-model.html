@@ -1,0 +1,414 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Jaynes-Cummings model &mdash; QuantumOptics.jl</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="QuantumOptics.jl" href="../index.html"/>
+        <link rel="up" title="Examples" href="../examples.html"/>
+        <link rel="next" title="Particle in harmonic trap potential" href="particle-in-harmonic-trap.html"/>
+        <link rel="prev" title="Examples" href="../examples.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> QuantumOptics.jl
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../states.html">States and Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantumsystems.html">Quantum systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timeevolution.html">Time-evolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../steadystate.html">Steady state</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../correlations.html">Two-time correlation functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../spectralanalysis.html">Spectral Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../superoperators.html">Super-operators</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Jaynes-Cummings model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lossy-jaynes-cummings-model">Lossy Jaynes-Cummings model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="particle-in-harmonic-trap.html">Particle in harmonic trap potential</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raman.html">Raman Transition of a <span class="math">\(\Lambda\)</span>-scheme Atom</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../bases.html">Bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators.html">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">QuantumOptics.jl</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../examples.html">Examples</a> &raquo;</li>
+      
+    <li>Jaynes-Cummings model</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/examples/jaynes-cummings-model.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <p><em>This notebook can be found on</em>
+<a class="reference external" href="https://github.com/bastikr/QuantumOptics.jl/blob/master/examples/jaynes-cummings-model.ipynb">github</a></p>
+<div class="section" id="jaynes-cummings-model">
+<h1>Jaynes-Cummings model<a class="headerlink" href="#jaynes-cummings-model" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference external" href="https://en.wikipedia.org/wiki/Jaynes%E2%80%93Cummings_model">Jaynes Cummings
+model</a>
+is a famous theoretical model in the field of quantum optics. It
+describes a two level atom coupled to a quantized mode of a cavity.</p>
+<p><span class="math">\(H = \omega_c a^\dagger a + \frac{\omega_a}{2} \sigma_z + \Omega (a \sigma_+ + a^\dagger \sigma_-)\)</span></p>
+<p>The first step is always to import the library</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">QuantumOptics</span>
+<span class="k">using</span> <span class="n">PyPlot</span>
+</pre></div>
+</div>
+<p>Then we can define all the necessary parameters</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Parameters</span>
+<span class="n">N_cutoff</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="n">ωc</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">ωa</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">Ω</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Describe the Fock Hilbert space and the Spin Hilbert space by choosing
+the appropriate bases</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Bases</span>
+<span class="n">b_fock</span> <span class="o">=</span> <span class="n">FockBasis</span><span class="p">(</span><span class="n">N_cutoff</span><span class="p">)</span>
+<span class="n">b_spin</span> <span class="o">=</span> <span class="n">SpinBasis</span><span class="p">(</span><span class="mi">1</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">b_fock</span> <span class="n">⊗</span> <span class="n">b_spin</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>With the help of these bases build up the Jaynes-Cummings Hamiltonian</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Fundamental operators</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">destroy</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span>
+<span class="n">at</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">number</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span>
+
+<span class="n">sm</span> <span class="o">=</span> <span class="n">sigmam</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span>
+<span class="n">sp</span> <span class="o">=</span> <span class="n">sigmap</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span>
+<span class="n">sz</span> <span class="o">=</span> <span class="n">sigmaz</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span>
+
+<span class="c"># Hamiltonian</span>
+<span class="n">Hatom</span> <span class="o">=</span> <span class="n">ωa</span><span class="o">*</span><span class="n">sz</span><span class="o">/</span><span class="mi">2</span>
+<span class="n">Hfield</span> <span class="o">=</span> <span class="n">ωc</span><span class="o">*</span><span class="n">n</span>
+<span class="n">Hint</span> <span class="o">=</span> <span class="n">Ω</span><span class="o">*</span><span class="p">(</span><span class="n">at⊗sm</span> <span class="o">+</span> <span class="n">a⊗sp</span><span class="p">)</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">identityoperator</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span><span class="n">⊗Hatom</span> <span class="o">+</span> <span class="n">Hfield⊗identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span> <span class="o">+</span> <span class="n">Hint</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The time evolution of the system is governed by a Schroedinger equation.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Initial state</span>
+<span class="n">α</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">Ψ0</span> <span class="o">=</span> <span class="n">coherentstate</span><span class="p">(</span><span class="n">b_fock</span><span class="p">,</span> <span class="n">α</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">spindown</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span>
+
+<span class="c"># Integration time</span>
+<span class="n">T</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mf">0.1</span><span class="p">:</span><span class="mi">20</span><span class="p">;]</span>
+
+<span class="c"># Schroedinger time evolution</span>
+<span class="n">tout</span><span class="p">,</span> <span class="n">Ψt</span> <span class="o">=</span> <span class="n">timeevolution</span><span class="o">.</span><span class="n">schroedinger</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Ψ0</span><span class="p">,</span> <span class="n">H</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The integration routine returns two objects - a vector containing points
+of time where output was generated (which will in most cases be the same
+as the given input time vector) and a vector containing the state of the
+quantum system at these points in time. These can further on be used to
+calculate expectation values.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="n">exp_n</span> <span class="o">=</span> <span class="n">expect</span><span class="p">(</span><span class="n">n</span> <span class="n">⊗</span> <span class="n">identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">),</span> <span class="n">Ψt</span><span class="p">)</span>
+<span class="n">exp_sz</span> <span class="o">=</span> <span class="n">expect</span><span class="p">(</span><span class="n">identityoperator</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">sz</span><span class="p">,</span> <span class="n">Ψt</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Finally we can us <a class="reference external" href="http://matplotlib.org/">matplotlib</a> to visualize
+the the time evolution of the calculated expectation values</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">exp_n</span><span class="p">);</span>
+<span class="n">xlabel</span><span class="p">(</span><span class="s">L&quot;T&quot;</span><span class="p">)</span>
+<span class="n">ylabel</span><span class="p">(</span><span class="s">L&quot;\langle n \rangle&quot;</span><span class="p">)</span>
+
+<span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">exp_sz</span><span class="p">);</span>
+<span class="n">xlabel</span><span class="p">(</span><span class="s">L&quot;T&quot;</span><span class="p">)</span>
+<span class="n">ylabel</span><span class="p">(</span><span class="s">L&quot;\langle \sigma_z \rangle&quot;</span><span class="p">)</span>
+
+<span class="n">tight_layout</span><span class="p">();</span>
+</pre></div>
+</div>
+<img alt="../_images/jaynes-cummings-model_15_0.png" src="../_images/jaynes-cummings-model_15_0.png" />
+<div class="section" id="lossy-jaynes-cummings-model">
+<h2>Lossy Jaynes-Cummings model<a class="headerlink" href="#lossy-jaynes-cummings-model" title="Permalink to this headline">¶</a></h2>
+<p>The Jaynes-Cummings model can be expanded by giving the 2 level atom a
+finite spontenous decay rate <span class="math">\(\gamma\)</span>. The system is then a open
+quantum system which is described by a master equation of the form</p>
+<div class="math">
+\[\dot{\rho} = -\frac{i}{\hbar} \big[H,\rho\big]
+             + \sum_i \big(
+                    J_i \rho J_i^\dagger
+                    - \frac{1}{2} J_i^\dagger J_i \rho
+                    - \frac{1}{2} \rho J_i^\dagger J_i
+                \big)\]</div>
+<p>where in this case there is only one jump operator
+<span class="math">\(J=\sqrt{\gamma} \sigma_-\)</span>.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="n">γ</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">J</span> <span class="o">=</span> <span class="p">[</span><span class="n">sqrt</span><span class="p">(</span><span class="n">γ</span><span class="p">)</span><span class="o">*</span><span class="n">identityoperator</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">sm</span><span class="p">];</span>
+</pre></div>
+</div>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Master</span>
+<span class="n">tout</span><span class="p">,</span> <span class="n">ρt</span> <span class="o">=</span> <span class="n">timeevolution</span><span class="o">.</span><span class="n">master</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Ψ0</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">J</span><span class="p">)</span>
+<span class="n">exp_n_master</span> <span class="o">=</span> <span class="n">expect</span><span class="p">(</span><span class="n">n</span> <span class="n">⊗</span> <span class="n">identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">),</span> <span class="n">ρt</span><span class="p">)</span>
+<span class="n">exp_sz_master</span> <span class="o">=</span> <span class="n">expect</span><span class="p">(</span><span class="n">identityoperator</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">sz</span><span class="p">,</span> <span class="n">ρt</span><span class="p">)</span>
+
+<span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">exp_n_master</span><span class="p">);</span>
+<span class="n">xlabel</span><span class="p">(</span><span class="s">L&quot;T&quot;</span><span class="p">)</span>
+<span class="n">ylabel</span><span class="p">(</span><span class="s">L&quot;\langle n \rangle&quot;</span><span class="p">)</span>
+
+<span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">exp_sz_master</span><span class="p">);</span>
+<span class="n">xlabel</span><span class="p">(</span><span class="s">L&quot;T&quot;</span><span class="p">)</span>
+<span class="n">ylabel</span><span class="p">(</span><span class="s">L&quot;\langle \sigma_z \rangle&quot;</span><span class="p">);</span>
+
+<span class="n">tight_layout</span><span class="p">();</span>
+</pre></div>
+</div>
+<img alt="../_images/jaynes-cummings-model_18_0.png" src="../_images/jaynes-cummings-model_18_0.png" />
+<p>Alternatively we can solve the system using the Monte Carlo wave
+function formalism. A single trajectory shows characteristic jumps in
+the expectation values.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Monte Carlo wave function</span>
+<span class="n">tout</span><span class="p">,</span> <span class="n">Ψt</span> <span class="o">=</span> <span class="n">timeevolution</span><span class="o">.</span><span class="n">mcwf</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Ψ0</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">J</span><span class="p">;</span> <span class="n">seed</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                <span class="n">display_beforeevent</span><span class="o">=</span><span class="n">true</span><span class="p">,</span>
+                                <span class="n">display_afterevent</span><span class="o">=</span><span class="n">true</span><span class="p">)</span>
+<span class="n">exp_n_mcwf</span> <span class="o">=</span> <span class="n">expect</span><span class="p">(</span><span class="n">n</span> <span class="n">⊗</span> <span class="n">identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">),</span> <span class="n">Ψt</span><span class="p">)</span>
+<span class="n">exp_sz_mcwf</span> <span class="o">=</span> <span class="n">expect</span><span class="p">(</span><span class="n">identityoperator</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">sz</span><span class="p">,</span> <span class="n">Ψt</span><span class="p">)</span>
+
+<span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">tout</span><span class="p">,</span> <span class="n">exp_n_mcwf</span><span class="p">)</span>
+<span class="n">xlabel</span><span class="p">(</span><span class="s">L&quot;T&quot;</span><span class="p">)</span>
+<span class="n">ylabel</span><span class="p">(</span><span class="s">L&quot;\langle n \rangle&quot;</span><span class="p">)</span>
+
+<span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">tout</span><span class="p">,</span> <span class="n">exp_sz_mcwf</span><span class="p">)</span>
+<span class="n">xlabel</span><span class="p">(</span><span class="s">L&quot;T&quot;</span><span class="p">)</span>
+<span class="n">ylabel</span><span class="p">(</span><span class="s">L&quot;\langle \sigma_z \rangle&quot;</span><span class="p">);</span>
+
+<span class="n">tight_layout</span><span class="p">();</span>
+</pre></div>
+</div>
+<img alt="../_images/jaynes-cummings-model_20_0.png" src="../_images/jaynes-cummings-model_20_0.png" />
+<p>For large number of trajectories the statistical average of the MCWF
+trajectories approaches the solution of the master equation.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="n">Ntrajectories</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">exp_n_average</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float64</span><span class="p">,</span> <span class="n">length</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
+<span class="n">exp_sz_average</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float64</span><span class="p">,</span> <span class="n">length</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">Ntrajectories</span>
+    <span class="n">tout</span><span class="p">,</span> <span class="n">Ψt</span> <span class="o">=</span> <span class="n">timeevolution</span><span class="o">.</span><span class="n">mcwf</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Ψ0</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">J</span><span class="p">;</span> <span class="n">seed</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">exp_n_average</span> <span class="o">+=</span> <span class="n">expect</span><span class="p">(</span><span class="n">n</span> <span class="n">⊗</span> <span class="n">identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">),</span> <span class="n">Ψt</span><span class="p">)</span>
+    <span class="n">exp_sz_average</span> <span class="o">+=</span> <span class="n">expect</span><span class="p">(</span><span class="n">identityoperator</span><span class="p">(</span><span class="n">b_fock</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">sz</span><span class="p">,</span> <span class="n">Ψt</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="n">exp_n_average</span> <span class="o">/=</span> <span class="n">Ntrajectories</span>
+<span class="n">exp_sz_average</span> <span class="o">/=</span> <span class="n">Ntrajectories</span>
+
+<span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">exp_n_master</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">exp_n_average</span><span class="p">)</span>
+<span class="n">xlabel</span><span class="p">(</span><span class="s">L&quot;T&quot;</span><span class="p">)</span>
+<span class="n">ylabel</span><span class="p">(</span><span class="s">L&quot;\langle n \rangle&quot;</span><span class="p">)</span>
+
+<span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">exp_sz_master</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">exp_sz_average</span><span class="p">)</span>
+<span class="n">xlabel</span><span class="p">(</span><span class="s">L&quot;T&quot;</span><span class="p">)</span>
+<span class="n">ylabel</span><span class="p">(</span><span class="s">L&quot;\langle \sigma_z \rangle&quot;</span><span class="p">);</span>
+
+<span class="n">tight_layout</span><span class="p">();</span>
+</pre></div>
+</div>
+<img alt="../_images/jaynes-cummings-model_22_0.png" src="../_images/jaynes-cummings-model_22_0.png" />
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="particle-in-harmonic-trap.html" class="btn btn-neutral float-right" title="Particle in harmonic trap potential" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../examples.html" class="btn btn-neutral" title="Examples" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Sebastian Krämer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
