@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>States and Operators &mdash; QuantumOptics.jl</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="QuantumOptics.jl" href="index.html"/>
+        <link rel="next" title="Quantum systems" href="quantumsystems.html"/>
+        <link rel="prev" title="Installation" href="installation.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuantumOptics.jl
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">States and Operators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#states">States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operators">Operators</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quantumsystems.html">Quantum systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeevolution.html">Time-evolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="steadystate.html">Steady state</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlations.html">Two-time correlation functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectralanalysis.html">Spectral Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="superoperators.html">Super-operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bases.html">Bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operators.html">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">QuantumOptics.jl</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>States and Operators</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/states.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="states-and-operators">
+<span id="section-states"></span><h1>States and Operators<a class="headerlink" href="#states-and-operators" title="Permalink to this headline">¶</a></h1>
+<p>Here we will give a brief overview over the operations that are available for states and operators. All states and operators are defined on a basis, such as for example the <a class="reference internal" href="api.html#FockBasis-77917e60097f57406fde5e6b8056ffdb" title="FockBasis"><code class="xref jl jl-func docutils literal"><span class="pre">FockBasis</span></code></a>. For a full list of implemented bases and their predefined states and operators please refer to <a class="reference internal" href="quantumsystems.html#section-quantumsystems"><span class="std std-ref">Quantumsystems</span></a>. More details on the different types of operators can be found in <a class="reference internal" href="operators.html#section-operators-detail"><span class="std std-ref">Operators</span></a>.</p>
+<div class="section" id="states">
+<span id="id1"></span><h2>States<a class="headerlink" href="#states" title="Permalink to this headline">¶</a></h2>
+<p>State vectors in <strong>QuantumOptics.jl</strong> are interpreted as coefficients in respect to a certain <a class="reference internal" href="bases.html#section-bases"><span class="std std-ref">basis</span></a>. For example the particle state <span class="math">\(|\Psi\rangle\)</span> can be represented in a (discrete) real space basis <span class="math">\(\{|x_i\rangle\}_i\)</span> as <span class="math">\(\Psi(x_i)\)</span>. These quantities are connected by</p>
+<div class="math">
+\[|\Psi\rangle = \sum_i \Psi(x) |x_i\rangle\]</div>
+<p>and the conjugate equation</p>
+<div class="math">
+\[\langle\Psi| = \sum_i \Psi(x)^* \langle x_i|\]</div>
+<p>The distinction between coefficients in respect to bra or ket states is strictly enforced which guarantees that algebraic mistakes raise an explicit error:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">basis</span> <span class="o">=</span> <span class="n">FockBasis</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Ket</span><span class="p">(</span><span class="n">basis</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span> <span class="c"># Not necessarily normalized</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">Bra</span><span class="p">(</span><span class="n">basis</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Many commonly used states are already implemented for various systems, like e.g. <a class="reference internal" href="api.html#fockstate-70a3900c7b18d216a5a51b853b1b77d5" title="fockstate"><code class="xref jl jl-func docutils literal"><span class="pre">fockstate</span></code></a> or <a class="reference internal" href="api.html#gaussianstate-3c1bad9ea29750d56206c18a577e50c0" title="gaussianstate(::MomentumBasis, x0, p0, sigma)"><code class="xref jl jl-func docutils literal"><span class="pre">gaussianstate(::MomentumBasis,</span> <span class="pre">x0,</span> <span class="pre">p0,</span> <span class="pre">sigma)</span></code></a>.</p>
+<p>All expected arithmetic functions like *, /, +, - are implemented:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">+</span> <span class="n">x</span>
+<span class="n">x</span> <span class="o">-</span> <span class="n">x</span>
+<span class="mi">2</span><span class="o">*</span><span class="n">x</span>
+<span class="n">y</span><span class="o">*</span><span class="n">x</span> <span class="c"># Inner product</span>
+</pre></div>
+</div>
+<p>The hermitian conjugate is performed by the <a class="reference internal" href="api.html#dagger-15b16380e2a9a16d54df4efb014b67f9" title="dagger(::Ket)"><code class="xref jl jl-func docutils literal"><span class="pre">dagger(::Ket)</span></code></a> function which transforms a bra in a ket and vice versa:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">dagger</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c"># Bra(basis, [1,1,1])</span>
+</pre></div>
+</div>
+<p>Composite states can be created with the <code class="xref jl jl-func docutils literal"><span class="pre">tensor(::Ket,</span> <span class="pre">::Ket)</span></code> function or with the equivalent <span class="math">\(\otimes\)</span> operator:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">tensor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">x</span> <span class="n">⊗</span> <span class="n">x</span>
+<span class="n">tensor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following functions are also available for states:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>Normalization functions:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">norm(x::Ket,</span> <span class="pre">p=2)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">normalize(x::Ket,</span> <span class="pre">p=2)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">normalize!(x::Ket,</span> <span class="pre">p=2)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Partial trace</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">ptrace(x::Ket,</span> <span class="pre">indices)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">ptrace(x::Bra,</span> <span class="pre">indices)</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="operators">
+<span id="section-operators"></span><h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
+<p>Operators can be defined as linear mappings from one Hilbert space to another. However, equivalently to states, operators in <strong>QuantumOptics.jl</strong> are interpreted as coefficients of an abstract operator in respect to one or more generally two, possibly distinct <a class="reference internal" href="bases.html#section-bases"><span class="std std-ref">bases</span></a>. For a certain choice of bases <span class="math">\(\{|u_i\rangle\}_i\)</span> and <span class="math">\(\{|v_j\rangle\}_j\)</span> an abstract operator <span class="math">\(A\)</span> has the coefficients <span class="math">\(A_{ij}\)</span> which are connected by the relation</p>
+<div class="math">
+\[A =  \sum_{ij} A_{ij} | u_i \rangle \langle v_j |\]</div>
+<p>All standard arithmetic functions for operators are defined, *, /, +, -:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">SpinBasis</span><span class="p">(</span><span class="mi">1</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">sx</span> <span class="o">=</span> <span class="n">sigmax</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="n">sy</span> <span class="o">=</span> <span class="n">sigmay</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="n">sx</span> <span class="o">+</span> <span class="n">sy</span>
+<span class="n">sx</span> <span class="o">*</span> <span class="n">sy</span> <span class="c"># Matrix product</span>
+<span class="n">sx</span> <span class="n">⊗</span> <span class="n">sy</span>
+</pre></div>
+</div>
+<p>Additionally the following functions are implemented (for operators A, B):</p>
+<ul>
+<li><dl class="first docutils">
+<dt>Hermitian conjugate:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">dagger(A)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Normalization:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">trace(A)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">norm(A)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">normalize(A)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">normalize!(A)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Expectation values:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">expect(A,</span> <span class="pre">B)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Tensor product:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">tensor(A,</span> <span class="pre">B)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Partial trace:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">ptrace(A,</span> <span class="pre">index)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">ptrace(A,</span> <span class="pre">indices)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Creating operators from states:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">tensor(x::Ket,</span> <span class="pre">y::Bra)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">projector(x::Ket,</span> <span class="pre">y::Bra)</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>For creating operators of the type <span class="math">\(A = I \otimes I \otimes ... a_i ... \otimes I\)</span> the very useful embed function can be used:</p>
+<ul class="simple">
+<li><a class="reference internal" href="api.html#embed-4d6dcd76e52da120b9e9a737d48a7aa1" title="embed(basis, indices, operators)"><code class="xref jl jl-func docutils literal"><span class="pre">embed(basis,</span> <span class="pre">indices,</span> <span class="pre">operators)</span></code></a></li>
+<li><a class="reference internal" href="api.html#embed-80cba82457ce0038995d6ac27941e3de" title="embed(basis, index, op)"><code class="xref jl jl-func docutils literal"><span class="pre">embed(basis,</span> <span class="pre">index,</span> <span class="pre">op)</span></code></a></li>
+</ul>
+<p>E.g. for a system consisting of 3 spins one can define the basis with:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">b_spin</span> <span class="o">=</span> <span class="n">SpinBasis</span><span class="p">(</span><span class="mi">1</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">b_spin</span> <span class="n">⊗</span> <span class="n">b_spin</span> <span class="n">⊗</span> <span class="n">b_spin</span>
+</pre></div>
+</div>
+<p>An operator in this basis b that only acts onto the second spin could be created as:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">sigmap</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Equivalently, the embed function simplifies this to:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">embed</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sigmap</span><span class="p">(</span><span class="n">b_spin</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="quantumsystems.html" class="btn btn-neutral float-right" title="Quantum systems" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral" title="Installation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Sebastian Krämer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Raman Transition of a \(\Lambda\)-scheme Atom &mdash; QuantumOptics.jl</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="QuantumOptics.jl" href="../index.html"/>
+        <link rel="up" title="Examples" href="../examples.html"/>
+        <link rel="next" title="Bases" href="../bases.html"/>
+        <link rel="prev" title="Particle in harmonic trap potential" href="particle-in-harmonic-trap.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> QuantumOptics.jl
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../states.html">States and Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quantumsystems.html">Quantum systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timeevolution.html">Time-evolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../steadystate.html">Steady state</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../correlations.html">Two-time correlation functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../spectralanalysis.html">Spectral Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../superoperators.html">Super-operators</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="jaynes-cummings-model.html">Jaynes-Cummings model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particle-in-harmonic-trap.html">Particle in harmonic trap potential</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Raman Transition of a <span class="math">\(\Lambda\)</span>-scheme Atom</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../bases.html">Bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operators.html">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">QuantumOptics.jl</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../examples.html">Examples</a> &raquo;</li>
+      
+    <li>Raman Transition of a <span class="math">\(\Lambda\)</span>-scheme Atom</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/examples/raman.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <p><em>This notebook can be found on</em>
+<a class="reference external" href="https://github.com/bastikr/QuantumOptics.jl/blob/master/examples/raman.ipynb">github</a></p>
+<div class="section" id="raman-transition-of-a-scheme-atom">
+<h1>Raman Transition of a <span class="math">\(\Lambda\)</span>-scheme Atom<a class="headerlink" href="#raman-transition-of-a-scheme-atom" title="Permalink to this headline">¶</a></h1>
+<p>Consider a three-level atom with two ground states and one excited state
+(<span class="math">\(\Lambda\)</span>-scheme), which decays only to one of the ground states.
+The atom is initially prepared in one of its ground states (the one it
+does not decay into). A Raman transition occurs when the transition from
+the initial ground state to the excited state is driven by a laser that
+is far detuned from the transition, but matches the energy difference
+between the two ground states. In this case, the atom is driven from the
+initial ground state to its other ground state without ever populating
+the excited state (even though no direct transition between the two
+ground states is possible).</p>
+<p>This system is described by the Hamiltonian</p>
+<p><span class="math">\(H = \Delta_2|2\rangle\langle2| + \Delta_3|3\rangle\langle3| + \Omega\left(\sigma_1 + \sigma_1^\dagger\right),\)</span></p>
+<p>where <span class="math">\(|1\rangle\)</span> is the initial ground state with energy 0,
+<span class="math">\(|2\rangle\)</span> is the excited state and <span class="math">\(|3\rangle\)</span> is the
+final ground state. The detunings <span class="math">\(\Delta_{2,3}\)</span> are with respect
+to the laser driving the transition <span class="math">\(|1\rangle\to|2\rangle\)</span>.
+Matching the laser frequency to the energy difference between
+<span class="math">\(|1\rangle\)</span> and <span class="math">\(|3\rangle\)</span> means <span class="math">\(\Delta_3=0\)</span>. The
+laser has the amplitude <span class="math">\(\Omega\)</span> and drives the transition with
+the operators <span class="math">\(\sigma_1=|1\rangle\langle2|\)</span>.</p>
+<p>The decay is given by the Lindblad super-operator</p>
+<p><span class="math">\(\mathcal{L}[\rho] = \frac{\gamma_3}{2}\left(2\sigma_3\rho\sigma_3^\dagger - \sigma_3^\dagger\sigma_3\rho - \rho\sigma_3^\dagger\sigma_3\right),\)</span></p>
+<p>where <span class="math">\(\gamma_3\)</span> is the rate of decay and
+<span class="math">\(\sigma_3=|3\rangle\langle2|\)</span>.</p>
+<p>As always, the first step is to import the libraries we will use.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">QuantumOptics</span>
+<span class="k">using</span> <span class="n">PyPlot</span>
+</pre></div>
+</div>
+<p>Next, we define the parameters we need.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Parameters</span>
+<span class="n">γ₃</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">Ω</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span><span class="n">γ₃</span>
+<span class="n">Δ₂</span> <span class="o">=</span> <span class="mi">5</span><span class="n">γ₃</span>
+<span class="n">Δ₃</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">tmax</span> <span class="o">=</span> <span class="mi">800</span><span class="o">/</span><span class="n">γ₃</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">tlist</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">dt</span><span class="p">:</span><span class="n">tmax</span><span class="p">;];</span>
+</pre></div>
+</div>
+<p>In this example, we make use of the N-level basis, which we initialize
+by passing the number of levels of our atom. We then define the
+respective transition operators.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Basis and operators</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">NLevelBasis</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">σ₁</span> <span class="o">=</span> <span class="n">transition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">σ₃</span> <span class="o">=</span> <span class="n">transition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">proj₂</span> <span class="o">=</span> <span class="n">transition</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">proj₃</span> <span class="o">=</span> <span class="n">σ₃</span><span class="o">*</span><span class="n">dagger</span><span class="p">(</span><span class="n">σ₃</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This makes it easy to write down the Hamiltonian and the Jump operators.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Hamiltonian and jump operators</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">Δ₂</span><span class="o">*</span><span class="n">proj₂</span> <span class="o">+</span> <span class="n">Δ₃</span><span class="o">*</span><span class="n">proj₃</span> <span class="o">+</span> <span class="n">Ω</span><span class="o">*</span><span class="p">(</span><span class="n">σ₁</span> <span class="o">+</span> <span class="n">dagger</span><span class="p">(</span><span class="n">σ₁</span><span class="p">))</span>
+<span class="n">J</span> <span class="o">=</span> <span class="p">[</span><span class="n">sqrt</span><span class="p">(</span><span class="n">γ₃</span><span class="p">)</span><span class="o">*</span><span class="n">σ₃</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>Next, we define the initial state (in our case <span class="math">\(|1\rangle\)</span>) and
+pass it all to a master equation.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Initial state</span>
+<span class="n">ψ₀</span> <span class="o">=</span> <span class="n">nlevelstate</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c"># Time evolution</span>
+<span class="n">tout</span><span class="p">,</span> <span class="n">ρₜ</span> <span class="o">=</span> <span class="n">timeevolution</span><span class="o">.</span><span class="n">master</span><span class="p">(</span><span class="n">tlist</span><span class="p">,</span> <span class="n">ψ₀</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">J</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Now, all that is left to do is to compute the expectation values of
+interest and plot the result.</p>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Expectation values</span>
+<span class="n">p1</span> <span class="o">=</span> <span class="n">real</span><span class="p">(</span><span class="n">expect</span><span class="p">(</span><span class="n">σ₁</span><span class="o">*</span><span class="n">dagger</span><span class="p">(</span><span class="n">σ₁</span><span class="p">),</span> <span class="n">ρₜ</span><span class="p">))</span>
+<span class="n">p2</span> <span class="o">=</span> <span class="n">real</span><span class="p">(</span><span class="n">expect</span><span class="p">(</span><span class="n">proj₂</span><span class="p">,</span> <span class="n">ρₜ</span><span class="p">))</span>
+<span class="n">p3</span> <span class="o">=</span> <span class="n">real</span><span class="p">(</span><span class="n">expect</span><span class="p">(</span><span class="n">proj₃</span><span class="p">,</span> <span class="n">ρₜ</span><span class="p">));</span>
+</pre></div>
+</div>
+<div class="code python highlight-julia"><div class="highlight"><pre><span></span><span class="c"># Plots</span>
+<span class="n">clf</span><span class="p">()</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">tout</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&quot;Initial ground state&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">tout</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="s">&quot;k--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&quot;Excited state&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">tout</span><span class="p">,</span> <span class="n">p3</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&quot;Other ground state&quot;</span><span class="p">)</span>
+<span class="n">axis</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">tmax</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">legend</span><span class="p">()</span>
+<span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/raman_14_0.png" src="../_images/raman_14_0.png" />
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../bases.html" class="btn btn-neutral float-right" title="Bases" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="particle-in-harmonic-trap.html" class="btn btn-neutral" title="Particle in harmonic trap potential" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Sebastian Krämer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

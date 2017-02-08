@@ -1,0 +1,1049 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>API &mdash; QuantumOptics.jl</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="QuantumOptics.jl" href="index.html"/>
+        <link rel="prev" title="Operators" href="operators.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuantumOptics.jl
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States and Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantumsystems.html">Quantum systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeevolution.html">Time-evolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="steadystate.html">Steady state</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlations.html">Two-time correlation functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectralanalysis.html">Spectral Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="superoperators.html">Super-operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bases.html">Bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operators.html">Operators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bases">Bases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#composite-bases">Composite bases</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subspace-bases">Subspace bases</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#states">States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operators">Operators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#denseoperators">DenseOperators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sparseoperators">SparseOperators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lazyoperators">LazyOperators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#superoperators">Superoperators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#metrics">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#systems">Systems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fock">Fock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#n-level">N-level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spin">Spin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#particle">Particle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#n-particles">N-Particles</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#time-evolution">Time-evolution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#schroedinger">Schroedinger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#master">Master</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#monte-carlo-wave-function">Monte Carlo wave function</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#spectral-analysis">Spectral analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#steady-states">Steady-states</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#correlations">Correlations</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">QuantumOptics.jl</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>API</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/api.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="api">
+<span id="section-api"></span><h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="bases">
+<span id="section-api-bases"></span><h2>Bases<a class="headerlink" href="#bases" title="Permalink to this headline">¶</a></h2>
+<dl class="class"><dt id=Basis><em class="property">abstract </em><code class="descname">Basis</code><a class="headerlink" href="#Basis" title="Permalink to thisabstract">¶</a></dt><dd class="body"><p>Abstract base class for all specialized bases.</p>
+<p>The Basis class is meant to specify a basis of the Hilbert space of the
+studied system. Besides basis specific information all subclasses must
+implement a shape variable which indicates the dimension of the used
+Hilbert space. For a spin 1/2 Hilbert space this would for example be the
+vector Int[2]. A system composed of 2 spins could for example have a
+shape vector Int[2 2].</p>
+<p>Composite systems can be easily defined with help of the CompositeBasis class.</p>
+</dd></dl><dl class="class"><dt id=GenericBasis><em class="property">type </em><code class="descname">GenericBasis<: Basis</code><a class="headerlink" href="#GenericBasis" title="Permalink to thistype">¶</a></dt><dd class="body"><p>An easy and fast to use general purpose basis.</p>
+<p>Should only be used rarely since it defeats the purpose of checking that the
+bases of state vectors and operators are correct for algebraic operations.
+The cleaner way is to specify special bases for different systems, i.e.
+there are FockBasis, MomentumBasis and PositionBasis.</p>
+</dd></dl><dl class="function"><dt id="length-99803f26deb371d065d0271dfb255078"><em class="property">function </em><code class="descname">length</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#length-99803f26deb371d065d0271dfb255078" title="Permalink to this function">¶</a></dt><dd>Total dimension of the Hilbert space.</dd></dl><dl class="function"><dt id="multiplicable-20cc1cb06e938e19b58200dd5fd5a657"><em class="property">function </em><code class="descname">multiplicable</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#multiplicable-20cc1cb06e938e19b58200dd5fd5a657" title="Permalink to this function">¶</a></dt><dd><p>Check if two objects given in the specified bases are multiplicable.</p>
+<p>In the case of orthogonal bases this mostly means that the two bases have to be
+the same. For nonorthogonal bases this function can be overridden to account
+for their behavior.</p>
+</dd></dl><dl class="function"><dt id="multiplicable-4a178af8a9754dc21dc4faea257c3922"><em class="property">function </em><code class="descname">multiplicable</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#multiplicable-4a178af8a9754dc21dc4faea257c3922" title="Permalink to this function">¶</a></dt><dd></dd></dl><div class="section" id="composite-bases">
+<h3>Composite bases<a class="headerlink" href="#composite-bases" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=CompositeBasis><em class="property">type </em><code class="descname">CompositeBasis<: Basis</code><a class="headerlink" href="#CompositeBasis" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Basis for composite Hilbert spaces.</p>
+<p>Simply stores the subbases in a vector and creates the shape vector directly
+from the shape vectors of these subbases.</p>
+</dd></dl><dl class="function"><dt id="tensor-e5decb275484e5a29e6a5bd94d954ffc"><em class="property">function </em><code class="descname">tensor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tensor-e5decb275484e5a29e6a5bd94d954ffc" title="Permalink to this function">¶</a></dt><dd><p>Create composite bases.</p>
+<p>Any given CompositeBasis is expanded so that the resulting CompositeBasis never
+has another CompositeBasis as subbasis.</p>
+</dd></dl><dl class="function"><dt id="tensor-20cc1cb06e938e19b58200dd5fd5a657"><em class="property">function </em><code class="descname">tensor</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#tensor-20cc1cb06e938e19b58200dd5fd5a657" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="tensor-4a178af8a9754dc21dc4faea257c3922"><em class="property">function </em><code class="descname">tensor</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#tensor-4a178af8a9754dc21dc4faea257c3922" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="tensor-675f5c370c379ca8c95f2339f45c0d8b"><em class="property">function </em><code class="descname">tensor</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#tensor-675f5c370c379ca8c95f2339f45c0d8b" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="tensor-86ad1ccdc1e509cde509c5efddd69133"><em class="property">function </em><code class="descname">tensor</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#tensor-86ad1ccdc1e509cde509c5efddd69133" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="tensor-1b6e113bcd891e81e7b48434309e389e"><em class="property">function </em><code class="descname">tensor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tensor-1b6e113bcd891e81e7b48434309e389e" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="tensor-7705623e20d6158e86239ed51c4d672d"><em class="property">function </em><code class="descname">tensor{T}</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tensor-7705623e20d6158e86239ed51c4d672d" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="ptrace-6d3b0388630d603408f3e0af0b5b1518"><em class="property">function </em><code class="descname">ptrace</code><span class="sig-paren">(</span><em>b</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#ptrace-6d3b0388630d603408f3e0af0b5b1518" title="Permalink to this function">¶</a></dt><dd>Partial trace of a composite basis.</dd></dl><dl class="function"><dt id="permutesystems-17e5637a20cc0874e74400c3228d4702"><em class="property">function </em><code class="descname">permutesystems</code><span class="sig-paren">(</span><em>bases</em>, <em>perm</em><span class="sig-paren">)</span><a class="headerlink" href="#permutesystems-17e5637a20cc0874e74400c3228d4702" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="permutesystems-ed610977d02dbf4151b090aa43ee4d3d"><em class="property">function </em><code class="descname">permutesystems</code><span class="sig-paren">(</span><em>basis</em>, <em>perm</em><span class="sig-paren">)</span><a class="headerlink" href="#permutesystems-ed610977d02dbf4151b090aa43ee4d3d" title="Permalink to this function">¶</a></dt><dd><p>Change the ordering of the subbases in a CompositeBasis.</p>
+<p>For a permutation vector [2,1,3] and a given composite basis [b1, b2, b3]
+this function results in [b2,b1,b3].</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>basis</strong> &#8211; A composite basis.</li>
+<li><strong>perm</strong> &#8211; Vector defining the new ordering of the sub-bases.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl></div>
+<div class="section" id="subspace-bases">
+<h3>Subspace bases<a class="headerlink" href="#subspace-bases" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=SubspaceBasis><em class="property">type </em><code class="descname">SubspaceBasis<: Basis</code><a class="headerlink" href="#SubspaceBasis" title="Permalink to thistype">¶</a></dt><dd class="body"><p>A basis describing a subspace in a higher dimensional Hilbert space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>superbasis</strong> &#8211; Basis of the higher dimensional Hilbert space.</li>
+<li><strong>basisstates</strong> &#8211; States in respect to the superbasis that span the subspace.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="orthonormalize-88335c580fbbd1d45dd2761c8a39fe0d"><em class="property">function </em><code class="descname">orthonormalize</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#orthonormalize-88335c580fbbd1d45dd2761c8a39fe0d" title="Permalink to this function">¶</a></dt><dd>Orthonormalize the given SubspaceBasis using the modified Gram-Schmidt process.</dd></dl><dl class="function"><dt id="projector-ccc2af59ea4b45acfaee8f02e3ec8396"><em class="property">function </em><code class="descname">projector</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#projector-ccc2af59ea4b45acfaee8f02e3ec8396" title="Permalink to this function">¶</a></dt><dd>Operator projecting states from one subspace to another.</dd></dl><dl class="function"><dt id="projector-747761afa6a2b64aef46a67b8a960b70"><em class="property">function </em><code class="descname">projector</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#projector-747761afa6a2b64aef46a67b8a960b70" title="Permalink to this function">¶</a></dt><dd>Operator projecting states from the superspace to the subspace.</dd></dl><dl class="function"><dt id="projector-4f659fa24248a5c20c813e75dfee9a97"><em class="property">function </em><code class="descname">projector</code><span class="sig-paren">(</span><em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#projector-4f659fa24248a5c20c813e75dfee9a97" title="Permalink to this function">¶</a></dt><dd>Operator projecting states from the subspace to the superspace.</dd></dl></div>
+</div>
+<div class="section" id="states">
+<span id="section-api-states"></span><h2>States<a class="headerlink" href="#states" title="Permalink to this headline">¶</a></h2>
+<dl class="class"><dt id=StateVector><em class="property">abstract </em><code class="descname">StateVector</code><a class="headerlink" href="#StateVector" title="Permalink to thisabstract">¶</a></dt><dd class="body"><p>Abstract base class for Bra and Ket.</p>
+<p>The state vector class stores the coefficients of an abstract state
+in respect to a certain basis. These coefficients are stored in the
+<code class="docutils literal"><span class="pre">data</span></code> attribute and the basis is defined in the <code class="docutils literal"><span class="pre">basis</span></code>
+attribute.</p>
+</dd></dl><dl class="class"><dt id=Bra><em class="property">type </em><code class="descname">Bra<: StateVector</code><a class="headerlink" href="#Bra" title="Permalink to thistype">¶</a></dt><dd class="body"></dd></dl><dl class="class"><dt id=Ket><em class="property">type </em><code class="descname">Ket<: StateVector</code><a class="headerlink" href="#Ket" title="Permalink to thistype">¶</a></dt><dd class="body"></dd></dl><dl class="function"><dt id="tensor-a93043d08740db381902f6511b28f79f"><em class="property">function </em><code class="descname">tensor{T <: StateVector}</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#tensor-a93043d08740db381902f6511b28f79f" title="Permalink to this function">¶</a></dt><dd>Tensor product of given bras or kets.</dd></dl><dl class="function"><dt id="tensor-32c0e03e3e2df3db0f83a138626c9ec0"><em class="property">function </em><code class="descname">tensor</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#tensor-32c0e03e3e2df3db0f83a138626c9ec0" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="dagger-935d3b41371e2b7161b9819701069177"><em class="property">function </em><code class="descname">dagger</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#dagger-935d3b41371e2b7161b9819701069177" title="Permalink to this function">¶</a></dt><dd>Hermitian conjugate of the given state vector.</dd></dl><dl class="function"><dt id="dagger-15b16380e2a9a16d54df4efb014b67f9"><em class="property">function </em><code class="descname">dagger</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#dagger-15b16380e2a9a16d54df4efb014b67f9" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="norm-72d9ebeda4b75ca86a3a2b3aea07b512"><em class="property">function </em><code class="descname">norm</code><span class="sig-paren">(</span><em>x</em>, <em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#norm-72d9ebeda4b75ca86a3a2b3aea07b512" title="Permalink to this function">¶</a></dt><dd>Norm of the given state vector.</dd></dl><dl class="function"><dt id="normalize-72d9ebeda4b75ca86a3a2b3aea07b512"><em class="property">function </em><code class="descname">normalize</code><span class="sig-paren">(</span><em>x</em>, <em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#normalize-72d9ebeda4b75ca86a3a2b3aea07b512" title="Permalink to this function">¶</a></dt><dd>Normalized copy of the given state vector.</dd></dl><dl class="function"><dt id="normalize!-72d9ebeda4b75ca86a3a2b3aea07b512"><em class="property">function </em><code class="descname">normalize!</code><span class="sig-paren">(</span><em>x</em>, <em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#normalize!-72d9ebeda4b75ca86a3a2b3aea07b512" title="Permalink to this function">¶</a></dt><dd>Normalize the given state vector.</dd></dl><dl class="function"><dt id="basis_bra-006c4a596820ef05f71c7765b5afa1b0"><em class="property">function </em><code class="descname">basis_bra</code><span class="sig-paren">(</span><em>b</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#basis_bra-006c4a596820ef05f71c7765b5afa1b0" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="basis_bra-c6640c566885929e871afea80d832184"><em class="property">function </em><code class="descname">basis_bra</code><span class="sig-paren">(</span><em>b</em>, <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#basis_bra-c6640c566885929e871afea80d832184" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="basis_ket-006c4a596820ef05f71c7765b5afa1b0"><em class="property">function </em><code class="descname">basis_ket</code><span class="sig-paren">(</span><em>b</em>, <em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#basis_ket-006c4a596820ef05f71c7765b5afa1b0" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="basis_ket-c6640c566885929e871afea80d832184"><em class="property">function </em><code class="descname">basis_ket</code><span class="sig-paren">(</span><em>b</em>, <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#basis_ket-c6640c566885929e871afea80d832184" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+<div class="section" id="operators">
+<span id="section-api-operators"></span><h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
+<dl class="class"><dt id=Operator><em class="property">abstract </em><code class="descname">Operator</code><a class="headerlink" href="#Operator" title="Permalink to thisabstract">¶</a></dt><dd class="body"><p>Abstract base class for all operators.</p>
+<p>All deriving operator classes have to define the fields
+basis_l and basis_r defining the left and right side bases.</p>
+<p>For fast time evolution also at least the function
+gemv!(alpha, op::Operator, x::Ket, beta, result::Ket) should be
+implemented. Many other generic multiplication functions can be defined in
+terms of this function and are provided automatically.</p>
+</dd></dl><dl class="function"><dt id="dagger-cf600762013e9a6b66008987ce69816b"><em class="property">function </em><code class="descname">dagger</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#dagger-cf600762013e9a6b66008987ce69816b" title="Permalink to this function">¶</a></dt><dd>Hermitian conjugate of the given operator.</dd></dl><dl class="function"><dt id="identityoperator-98e2e19d9f11317589d758b5bb9a1c19"><em class="property">function </em><code class="descname">identityoperator{T <: Operator}</code><span class="sig-paren">(</span><em></em>, <em>b1</em>, <em>b2</em><span class="sig-paren">)</span><a class="headerlink" href="#identityoperator-98e2e19d9f11317589d758b5bb9a1c19" title="Permalink to this function">¶</a></dt><dd>Identity operator.</dd></dl><dl class="function"><dt id="identityoperator-413e46507ead31ee0f07afacb463dec0"><em class="property">function </em><code class="descname">identityoperator{T <: Operator}</code><span class="sig-paren">(</span><em></em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#identityoperator-413e46507ead31ee0f07afacb463dec0" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="identityoperator-9a5cb77043f631e036531321d8468891"><em class="property">function </em><code class="descname">identityoperator{T <: Operator}</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#identityoperator-9a5cb77043f631e036531321d8468891" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="projector-32c0e03e3e2df3db0f83a138626c9ec0"><em class="property">function </em><code class="descname">projector</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#projector-32c0e03e3e2df3db0f83a138626c9ec0" title="Permalink to this function">¶</a></dt><dd>Create a projection operator.</dd></dl><dl class="function"><dt id="projector-a143667d106c93bd782c77a08bf17751"><em class="property">function </em><code class="descname">projector</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#projector-a143667d106c93bd782c77a08bf17751" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="projector-f3bc1078c753065429c8a958fa4be65b"><em class="property">function </em><code class="descname">projector</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#projector-f3bc1078c753065429c8a958fa4be65b" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="trace-132a94e8de3235d9c6f6fdf1b5bb3797"><em class="property">function </em><code class="descname">trace</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#trace-132a94e8de3235d9c6f6fdf1b5bb3797" title="Permalink to this function">¶</a></dt><dd>Trace of given operator.</dd></dl><dl class="function"><dt id="ptrace-c24625fdaf5f48000f45fee1de33c0a9"><em class="property">function </em><code class="descname">ptrace</code><span class="sig-paren">(</span><em>a</em>, <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#ptrace-c24625fdaf5f48000f45fee1de33c0a9" title="Permalink to this function">¶</a></dt><dd>Partial trace of the given operator over the specified indices.</dd></dl><dl class="function"><dt id="ptrace-53ad0034042a17c580b764ecc20f7dac"><em class="property">function </em><code class="descname">ptrace</code><span class="sig-paren">(</span><em>a</em>, <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#ptrace-53ad0034042a17c580b764ecc20f7dac" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="normalize-365ca7afe4ecf22ad3198acd23f35d6f"><em class="property">function </em><code class="descname">normalize</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#normalize-365ca7afe4ecf22ad3198acd23f35d6f" title="Permalink to this function">¶</a></dt><dd>Normalized copy of given operator (trace is 1.).</dd></dl><dl class="function"><dt id="normalize!-365ca7afe4ecf22ad3198acd23f35d6f"><em class="property">function </em><code class="descname">normalize!</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#normalize!-365ca7afe4ecf22ad3198acd23f35d6f" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="expect-dfead0e46ca17ba5aa0e4f0ac9a613ec"><em class="property">function </em><code class="descname">expect</code><span class="sig-paren">(</span><em>op</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#expect-dfead0e46ca17ba5aa0e4f0ac9a613ec" title="Permalink to this function">¶</a></dt><dd>Expectation value of the given operator for the specified state(s).</dd></dl><dl class="function"><dt id="expect-29d31c414c9c1a2b4404bb8932751a60"><em class="property">function </em><code class="descname">expect</code><span class="sig-paren">(</span><em>op</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#expect-29d31c414c9c1a2b4404bb8932751a60" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="expect-31a42465793a5493da0483e533456fa7"><em class="property">function </em><code class="descname">expect</code><span class="sig-paren">(</span><em>op</em>, <em>states</em><span class="sig-paren">)</span><a class="headerlink" href="#expect-31a42465793a5493da0483e533456fa7" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="tensor-a74999c04e2214390655ee150fe334ed"><em class="property">function </em><code class="descname">tensor</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#tensor-a74999c04e2214390655ee150fe334ed" title="Permalink to this function">¶</a></dt><dd>Tensor product of operators.</dd></dl><dl class="function"><dt id="embed-6bb3b06f80e130ffc7a01c2204604c6e"><em class="property">function </em><code class="descname">embed{T <: Operator}</code><span class="sig-paren">(</span><em>basis_l</em>, <em>basis_r</em>, <em>indices</em>, <em>operators</em><span class="sig-paren">)</span><a class="headerlink" href="#embed-6bb3b06f80e130ffc7a01c2204604c6e" title="Permalink to this function">¶</a></dt><dd><p>Tensor product of operators where missing indices are filled up with identity operators.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>basis_l</strong> &#8211; Left hand side basis of the resulting operator.</li>
+<li><strong>basis_r</strong> &#8211; Right hand side basis of the resulting operator.</li>
+<li><strong>indices</strong> &#8211; Indices of the subsystems in which the given operators live.</li>
+<li><strong>operators</strong> &#8211; Operators defined in the subsystems.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="embed-62ef84a6e4ba512b347fcea640f3a482"><em class="property">function </em><code class="descname">embed</code><span class="sig-paren">(</span><em>basis_l</em>, <em>basis_r</em>, <em>index</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#embed-62ef84a6e4ba512b347fcea640f3a482" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="embed-80cba82457ce0038995d6ac27941e3de"><em class="property">function </em><code class="descname">embed</code><span class="sig-paren">(</span><em>basis</em>, <em>index</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#embed-80cba82457ce0038995d6ac27941e3de" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="embed-4d6dcd76e52da120b9e9a737d48a7aa1"><em class="property">function </em><code class="descname">embed{T <: Operator}</code><span class="sig-paren">(</span><em>basis</em>, <em>indices</em>, <em>operators</em><span class="sig-paren">)</span><a class="headerlink" href="#embed-4d6dcd76e52da120b9e9a737d48a7aa1" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="embed-45071df8c4ce2095ac9f1115342f4270"><em class="property">function </em><code class="descname">embed{T <: Operator}</code><span class="sig-paren">(</span><em>basis_l</em>, <em>basis_r</em>, <em>operators</em><span class="sig-paren">)</span><a class="headerlink" href="#embed-45071df8c4ce2095ac9f1115342f4270" title="Permalink to this function">¶</a></dt><dd><p>Tensor product of operators where all missing indices are identity operators.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>basis_l</strong> &#8211; Left hand side basis of the resulting operator.</li>
+<li><strong>basis_r</strong> &#8211; Right hand side basis of the resulting operator.</li>
+<li><strong>operators</strong> &#8211; Dictionary specifying to which subsystems the corresponding operator
+belongs.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="embed-4d148a5d40d3831db414acbedf422766"><em class="property">function </em><code class="descname">embed{T <: Operator}</code><span class="sig-paren">(</span><em>basis_l</em>, <em>basis_r</em>, <em>operators</em><span class="sig-paren">)</span><a class="headerlink" href="#embed-4d148a5d40d3831db414acbedf422766" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="embed-e954eb2ba5cf914df5c8b637f30a69c9"><em class="property">function </em><code class="descname">embed{T <: Operator}</code><span class="sig-paren">(</span><em>basis</em>, <em>operators</em><span class="sig-paren">)</span><a class="headerlink" href="#embed-e954eb2ba5cf914df5c8b637f30a69c9" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="embed-35734738e365391954f9da1bfdc98133"><em class="property">function </em><code class="descname">embed{T <: Operator}</code><span class="sig-paren">(</span><em>basis</em>, <em>operators</em><span class="sig-paren">)</span><a class="headerlink" href="#embed-35734738e365391954f9da1bfdc98133" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="permutesystems-e3f4c4bb3c85e7997f2343dc7b7ad34c"><em class="property">function </em><code class="descname">permutesystems</code><span class="sig-paren">(</span><em>a</em>, <em>perm</em><span class="sig-paren">)</span><a class="headerlink" href="#permutesystems-e3f4c4bb3c85e7997f2343dc7b7ad34c" title="Permalink to this function">¶</a></dt><dd><p>Change the ordering of the subsystems of the given operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>a</strong> &#8211; An operator represented in a composite basis.</li>
+<li><strong>perm</strong> &#8211; Vector defining the new ordering of the subsystems.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="gemv!-e5decb275484e5a29e6a5bd94d954ffc"><em class="property">function </em><code class="descname">gemv!</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gemv!-e5decb275484e5a29e6a5bd94d954ffc" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="gemm!-e5decb275484e5a29e6a5bd94d954ffc"><em class="property">function </em><code class="descname">gemm!</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gemm!-e5decb275484e5a29e6a5bd94d954ffc" title="Permalink to this function">¶</a></dt><dd></dd></dl><div class="section" id="denseoperators">
+<span id="section-api-denseoperators"></span><h3>DenseOperators<a class="headerlink" href="#denseoperators" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=DenseOperator><em class="property">type </em><code class="descname">DenseOperator<: Operator</code><a class="headerlink" href="#DenseOperator" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Dense array implementation of Operator.</p>
+<p>The matrix consisting of complex floats is stored in the data field.</p>
+</dd></dl><dl class="function"><dt id="full-0a1bb566b4316407b330ced726f56434"><em class="property">function </em><code class="descname">full</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#full-0a1bb566b4316407b330ced726f56434" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+<div class="section" id="sparseoperators">
+<span id="section-api-sparseoperators"></span><h3>SparseOperators<a class="headerlink" href="#sparseoperators" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=SparseOperator><em class="property">type </em><code class="descname">SparseOperator<: Operator</code><a class="headerlink" href="#SparseOperator" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Sparse array implementation of Operator.</p>
+<p>The matrix is stored as the julia built-in type SparseMatrixCSC
+in the data field.</p>
+</dd></dl><dl class="function"><dt id="sparse-cf600762013e9a6b66008987ce69816b"><em class="property">function </em><code class="descname">sparse</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#sparse-cf600762013e9a6b66008987ce69816b" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="sparse-8328f972f28eae28abd578ae98f92044"><em class="property">function </em><code class="descname">sparse</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#sparse-8328f972f28eae28abd578ae98f92044" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="sparse-e6132d44e7fda38f1ae8a3b0508ab694"><em class="property">function </em><code class="descname">sparse</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#sparse-e6132d44e7fda38f1ae8a3b0508ab694" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+<div class="section" id="lazyoperators">
+<span id="section-api-lazyoperators"></span><h3>LazyOperators<a class="headerlink" href="#lazyoperators" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=LazyOperator><em class="property">abstract </em><code class="descname">LazyOperator<: Operator</code><a class="headerlink" href="#LazyOperator" title="Permalink to thisabstract">¶</a></dt><dd class="body"><p>Abstract base class for lazy operators.</p>
+<p>Lazy means in this context that operator-operator operations are not performed
+immediately but delayed until the operator is applied to a state, e.g. instead
+of (A + B) * x it calculates (A * x) + (B * x).</p>
+<dl class="docutils">
+<dt>Lazy operations are implemented for:</dt>
+<dd><ul class="first last simple">
+<li>TensorProduct: LazyTensor</li>
+<li>Addition: LazySum</li>
+<li>Multiplication: LazyProduct</li>
+</ul>
+</dd>
+</dl>
+</dd></dl><dl class="class"><dt id=LazyTensor><em class="property">type </em><code class="descname">LazyTensor<: LazyOperator</code><a class="headerlink" href="#LazyTensor" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Lazy implementation of a tensor product of operators.</p>
+<p>The suboperators are stored as values in a dictionary where the key is
+the index of the subsystem. Additionally a complex factor is stored in the
+&#8220;factor&#8221; field which allows for fast multiplication with a number.</p>
+</dd></dl><dl class="class"><dt id=LazySum><em class="property">type </em><code class="descname">LazySum<: LazyOperator</code><a class="headerlink" href="#LazySum" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Lazy evaluation of sum of operators.</p>
+<p>All operators have to be given in respect to the same bases. The field
+factors accounts for an additional multiplicative factor for each operator.</p>
+</dd></dl><dl class="class"><dt id=LazyProduct><em class="property">type </em><code class="descname">LazyProduct<: LazyOperator</code><a class="headerlink" href="#LazyProduct" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Lazy evaluation of product of operators.</p>
+<p>The factors of the product are stored in the &#8220;operators&#8221; field. Additionally a
+complex factor is stored in the &#8220;factor&#8221; field which allows for fast
+multiplication with a number.</p>
+</dd></dl></div>
+</div>
+<div class="section" id="superoperators">
+<span id="section-api-superoperators"></span><h2>Superoperators<a class="headerlink" href="#superoperators" title="Permalink to this headline">¶</a></h2>
+<dl class="class"><dt id=SuperOperator><em class="property">abstract </em><code class="descname">SuperOperator</code><a class="headerlink" href="#SuperOperator" title="Permalink to thisabstract">¶</a></dt><dd class="body"><p>Base class for all super operator classes.</p>
+<p>Super operators are bijective mappings from operators given in one specific
+basis to operators, possibly given in respect to another, different basis.
+To embed super operators in an algebraic framework they are defined with a
+left hand basis <code class="docutils literal"><span class="pre">basis_l</span></code> and a right hand basis <code class="docutils literal"><span class="pre">basis_r</span></code> where each of
+them again consists of a left and right hand basis.</p>
+<div class="math">
+\[\begin{split}A_{bl_1,bl_2} &amp;= S_{(bl_1,bl_2)&lt;-&gt;(br_1,br_2)} B_{br_1,br_2}
+\\
+A_{br_1,br_2} &amp;= B_{bl_1,bl_2} S_{(bl_1,bl_2)&lt;-&gt;(br_1,br_2)}\end{split}\]</div>
+</dd></dl><dl class="class"><dt id=DenseSuperOperator><em class="property">type </em><code class="descname">DenseSuperOperator<: SuperOperator</code><a class="headerlink" href="#DenseSuperOperator" title="Permalink to thistype">¶</a></dt><dd class="body"></dd></dl><dl class="class"><dt id=SparseSuperOperator><em class="property">type </em><code class="descname">SparseSuperOperator<: SuperOperator</code><a class="headerlink" href="#SparseSuperOperator" title="Permalink to thistype">¶</a></dt><dd class="body"></dd></dl><dl class="function"><dt id="spre-ac8465a5d86d86b0418bf6908936ab40"><em class="property">function </em><code class="descname">spre</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#spre-ac8465a5d86d86b0418bf6908936ab40" title="Permalink to this function">¶</a></dt><dd><p>Create a super-operator equivalent for right side operator multiplication.</p>
+<p>For operators <span class="math">\(A\)</span>, <span class="math">\(B\)</span> the relation</p>
+<div class="math">
+\[\mathrm{spre}(A) B = A B\]</div>
+<p>holds.</p>
+</dd></dl><dl class="function"><dt id="spre-d3a7c5997018f4f17bd2ff6904f840ad"><em class="property">function </em><code class="descname">spre</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#spre-d3a7c5997018f4f17bd2ff6904f840ad" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="spost-ac8465a5d86d86b0418bf6908936ab40"><em class="property">function </em><code class="descname">spost</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#spost-ac8465a5d86d86b0418bf6908936ab40" title="Permalink to this function">¶</a></dt><dd><p>Create a super-operator equivalent for left side operator multiplication.</p>
+<p>For operators <span class="math">\(A\)</span>, <span class="math">\(B\)</span> the relation</p>
+<div class="math">
+\[\mathrm{spost}(A) B = B A\]</div>
+<p>holds.</p>
+</dd></dl><dl class="function"><dt id="spost-d3a7c5997018f4f17bd2ff6904f840ad"><em class="property">function </em><code class="descname">spost</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#spost-d3a7c5997018f4f17bd2ff6904f840ad" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="liouvillian-c24fc11da51d745e104e01a1c2a78ea8"><em class="property">function </em><code class="descname">liouvillian{T <: Operator}</code><span class="sig-paren">(</span><em>H</em>, <em>J</em>; <em>Gamma</em>, <em>Jdagger</em><span class="sig-paren">)</span><a class="headerlink" href="#liouvillian-c24fc11da51d745e104e01a1c2a78ea8" title="Permalink to this function">¶</a></dt><dd><p>Create a super-operator equivalent to the master equation.</p>
+<p>The  so that <span class="math">\(\dot \rho = S \rho\)</span></p>
+<p>The super-operator <span class="math">\(S\)</span> is defined by</p>
+<div class="math">
+\[\dot \rho = S \rho = -\frac{i}{\hbar} [H,\rho]
+        + 2 J \rho J^\dagger - J^\dagger J \rho - \rho J^\dagger J\]</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>H</strong> &#8211; Hamiltonian</li>
+<li><strong>J</strong> &#8211; Vector of jump operators</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><strong>Gamma (optional)</strong> &#8211; Vector or matrix specifying the coefficients for the jump operators.</li>
+<li><strong>Jdagger (optional)</strong> &#8211; Vector containing the hermitian conjugates of the jump operators. If they
+are not given they are calculated automatically.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="expm-701d37689b8ff117b0f1bf964aa68f1b"><em class="property">function </em><code class="descname">expm</code><span class="sig-paren">(</span><em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#expm-701d37689b8ff117b0f1bf964aa68f1b" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+<div class="section" id="metrics">
+<span id="section-api-metrics"></span><h2>Metrics<a class="headerlink" href="#metrics" title="Permalink to this headline">¶</a></h2>
+<dl class="function"><dt id="tracedistance-2dbd9b48af27e5cf22735d9ab70a4f6c"><em class="property">function </em><code class="descname">tracedistance</code><span class="sig-paren">(</span><em>rho</em>, <em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#tracedistance-2dbd9b48af27e5cf22735d9ab70a4f6c" title="Permalink to this function">¶</a></dt><dd><p>Trace distance between two density operators.</p>
+<p>It uses the identity</p>
+<p>where <span class="math">\(\lambda_i\)</span> are the eigenvalues of the matrix
+<span class="math">\(\rho - \sigma\)</span>. This works only if <span class="math">\(rho\)</span> and <span class="math">\(sigma\)</span>
+are density operators. For trace distances between general operators use
+<a class="reference internal" href="#tracedistance_general-2dbd9b48af27e5cf22735d9ab70a4f6c" title="tracedistance_general"><code class="xref jl jl-func docutils literal"><span class="pre">tracedistance_general</span></code></a>.</p>
+</dd></dl><dl class="function"><dt id="tracedistance-e8a8f5089763e989d530dcc1bb08570f"><em class="property">function </em><code class="descname">tracedistance{T <: Operator}</code><span class="sig-paren">(</span><em>rho</em>, <em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#tracedistance-e8a8f5089763e989d530dcc1bb08570f" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="tracedistance_general-2dbd9b48af27e5cf22735d9ab70a4f6c"><em class="property">function </em><code class="descname">tracedistance_general</code><span class="sig-paren">(</span><em>rho</em>, <em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#tracedistance_general-2dbd9b48af27e5cf22735d9ab70a4f6c" title="Permalink to this function">¶</a></dt><dd>Trace distance between two operators.</dd></dl></div>
+<div class="section" id="systems">
+<h2>Systems<a class="headerlink" href="#systems" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="fock">
+<span id="section-api-fock"></span><h3>Fock<a class="headerlink" href="#fock" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=FockBasis><em class="property">type </em><code class="descname">FockBasis<: Basis</code><a class="headerlink" href="#FockBasis" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Basis for a Fock space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Nmin</strong> &#8211; Minimal particle number included in this basis. By default it is zero, i.e.
+starting with the vacuum state.</li>
+<li><strong>Nmax</strong> &#8211; Maximal particle number included in this basis.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="FockBasis-77917e60097f57406fde5e6b8056ffdb"><em class="property">function </em><code class="descname">FockBasis</code><span class="sig-paren">(</span><em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#FockBasis-77917e60097f57406fde5e6b8056ffdb" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="number-06bd54fe704af072f501dea92f55caf5"><em class="property">function </em><code class="descname">number</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#number-06bd54fe704af072f501dea92f55caf5" title="Permalink to this function">¶</a></dt><dd><p>Number operator for the given Fock space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>b</strong> &#8211; FockBasis of this operator.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="destroy-06bd54fe704af072f501dea92f55caf5"><em class="property">function </em><code class="descname">destroy</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#destroy-06bd54fe704af072f501dea92f55caf5" title="Permalink to this function">¶</a></dt><dd><p>Annihilation operator for the given Fock space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>b</strong> &#8211; FockBasis of this operator.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="create-06bd54fe704af072f501dea92f55caf5"><em class="property">function </em><code class="descname">create</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#create-06bd54fe704af072f501dea92f55caf5" title="Permalink to this function">¶</a></dt><dd><p>Creation operator for the given Fock space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>b</strong> &#8211; FockBasis of this operator.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="fockstate-70a3900c7b18d216a5a51b853b1b77d5"><em class="property">function </em><code class="descname">fockstate</code><span class="sig-paren">(</span><em>b</em>, <em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#fockstate-70a3900c7b18d216a5a51b853b1b77d5" title="Permalink to this function">¶</a></dt><dd><p>Fock state for the given particle number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>b</strong> &#8211; FockBasis for this state.</li>
+<li><strong>n</strong> &#8211; Quantum number of the state.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="coherentstate-f36ae0fe60bbfed869d493cf4105e4d9"><em class="property">function </em><code class="descname">coherentstate</code><span class="sig-paren">(</span><em>b</em>, <em>alpha</em><span class="sig-paren">)</span><a class="headerlink" href="#coherentstate-f36ae0fe60bbfed869d493cf4105e4d9" title="Permalink to this function">¶</a></dt><dd><p>Coherent state <span class="math">\(| \alpha \rangle\)</span> for the given Fock basis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>b</strong> &#8211; FockBasis for this state.</li>
+<li><strong>alpha</strong> &#8211; Eigenvalue of annihilation operator.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="qfunc-7168a2edddde44d13490747efc579466"><em class="property">function </em><code class="descname">qfunc</code><span class="sig-paren">(</span><em>rho</em>, <em>alpha</em><span class="sig-paren">)</span><a class="headerlink" href="#qfunc-7168a2edddde44d13490747efc579466" title="Permalink to this function">¶</a></dt><dd>Husimi Q representation <span class="math">\(\frac{1}{\pi} \langle \alpha | \rho | \alpha \rangle\)</span>.</dd></dl><dl class="function"><dt id="qfunc-7551eaab838554578295d29040d00466"><em class="property">function </em><code class="descname">qfunc</code><span class="sig-paren">(</span><em>rho</em>, <em>X</em>, <em>Y</em><span class="sig-paren">)</span><a class="headerlink" href="#qfunc-7551eaab838554578295d29040d00466" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+<div class="section" id="n-level">
+<span id="section-api-nlevel"></span><h3>N-level<a class="headerlink" href="#n-level" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=NLevelBasis><em class="property">type </em><code class="descname">NLevelBasis<: Basis</code><a class="headerlink" href="#NLevelBasis" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Basis for a system consisting of N states.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>N</strong> &#8211; Number of states.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="transition-f5efe6b5774779320aee94a31eddd850"><em class="property">function </em><code class="descname">transition</code><span class="sig-paren">(</span><em>b</em>, <em>to</em>, <em>from</em><span class="sig-paren">)</span><a class="headerlink" href="#transition-f5efe6b5774779320aee94a31eddd850" title="Permalink to this function">¶</a></dt><dd><p>Transition operator <span class="math">\(|n&gt;&lt;m|\)</span>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>b</strong> &#8211; NLevelBasis</li>
+<li><strong>to</strong> &#8211; Index of ket state in <span class="math">\(|to&gt;&lt;from|\)</span></li>
+<li><strong>from</strong> &#8211; Index of bra state in <span class="math">\(|to&gt;&lt;from|\)</span></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="nlevelstate-60e2298dac48b3006e9bcbcf12dc78e7"><em class="property">function </em><code class="descname">nlevelstate</code><span class="sig-paren">(</span><em>b</em>, <em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#nlevelstate-60e2298dac48b3006e9bcbcf12dc78e7" title="Permalink to this function">¶</a></dt><dd>State where the system is completely in the n-th level.</dd></dl></div>
+<div class="section" id="spin">
+<span id="section-api-spin"></span><h3>Spin<a class="headerlink" href="#spin" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=SpinBasis><em class="property">type </em><code class="descname">SpinBasis<: Basis</code><a class="headerlink" href="#SpinBasis" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Basis for spin-n particles.</p>
+<p>The basis can be created for arbitrary spinnumbers by using a rational number,
+e.g. SpinBasis(3//2). The Pauli operators are defined for all possible
+spinnumbers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>spinnumber</strong> &#8211; Rational number specifying the spin quantum number.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="sigmax-d52f29c6ef8cdb57c6efa5d86e08a08b"><em class="property">function </em><code class="descname">sigmax</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#sigmax-d52f29c6ef8cdb57c6efa5d86e08a08b" title="Permalink to this function">¶</a></dt><dd>Pauli <span class="math">\(\sigma_x\)</span> operator for the given SpinBasis.</dd></dl><dl class="function"><dt id="sigmay-d52f29c6ef8cdb57c6efa5d86e08a08b"><em class="property">function </em><code class="descname">sigmay</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#sigmay-d52f29c6ef8cdb57c6efa5d86e08a08b" title="Permalink to this function">¶</a></dt><dd>Pauli <span class="math">\(\sigma_y\)</span> operator for the given SpinBasis.</dd></dl><dl class="function"><dt id="sigmaz-d52f29c6ef8cdb57c6efa5d86e08a08b"><em class="property">function </em><code class="descname">sigmaz</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#sigmaz-d52f29c6ef8cdb57c6efa5d86e08a08b" title="Permalink to this function">¶</a></dt><dd>Pauli <span class="math">\(\sigma_z\)</span> operator for the given SpinBasis.</dd></dl><dl class="function"><dt id="sigmap-d52f29c6ef8cdb57c6efa5d86e08a08b"><em class="property">function </em><code class="descname">sigmap</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#sigmap-d52f29c6ef8cdb57c6efa5d86e08a08b" title="Permalink to this function">¶</a></dt><dd>Raising operator <span class="math">\(\sigma_+\)</span> for the given SpinBasis.</dd></dl><dl class="function"><dt id="sigmam-d52f29c6ef8cdb57c6efa5d86e08a08b"><em class="property">function </em><code class="descname">sigmam</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#sigmam-d52f29c6ef8cdb57c6efa5d86e08a08b" title="Permalink to this function">¶</a></dt><dd>Lowering operator <span class="math">\(\sigma_-\)</span> for the given SpinBasis.</dd></dl><dl class="function"><dt id="spinup-d52f29c6ef8cdb57c6efa5d86e08a08b"><em class="property">function </em><code class="descname">spinup</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#spinup-d52f29c6ef8cdb57c6efa5d86e08a08b" title="Permalink to this function">¶</a></dt><dd>Spin up state for the given SpinBasis.</dd></dl><dl class="function"><dt id="spindown-d52f29c6ef8cdb57c6efa5d86e08a08b"><em class="property">function </em><code class="descname">spindown</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#spindown-d52f29c6ef8cdb57c6efa5d86e08a08b" title="Permalink to this function">¶</a></dt><dd>Spin down state for the given SpinBasis.</dd></dl></div>
+<div class="section" id="particle">
+<span id="section-api-particle"></span><h3>Particle<a class="headerlink" href="#particle" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=PositionBasis><em class="property">type </em><code class="descname">PositionBasis<: Basis</code><a class="headerlink" href="#PositionBasis" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Basis for a particle in real space.</p>
+<p>For simplicity periodic boundaries are assumed which means that
+the rightmost point defined by xmax is not included in the basis
+but is defined to be the same as xmin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xmin</strong> &#8211; Left boundary.</li>
+<li><strong>xmax</strong> &#8211; Right boundary.</li>
+<li><strong>N</strong> &#8211; Number of discrete points in the basis.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="class"><dt id=MomentumBasis><em class="property">type </em><code class="descname">MomentumBasis<: Basis</code><a class="headerlink" href="#MomentumBasis" title="Permalink to thistype">¶</a></dt><dd class="body"><p>Basis for a particle in momentum space.</p>
+<p>For simplicity periodic boundaries are assumed which means that
+pmax is not included in the basis but is defined to be the same as pmin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pmin</strong> &#8211; Left boundary.</li>
+<li><strong>pmax</strong> &#8211; Right boundary.</li>
+<li><strong>N</strong> &#8211; Number of discrete points in the basis.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="spacing-92d80ddc035c5985e59b1b8960636baa"><em class="property">function </em><code class="descname">spacing</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#spacing-92d80ddc035c5985e59b1b8960636baa" title="Permalink to this function">¶</a></dt><dd>Distance between two adjacent points of the real space basis.</dd></dl><dl class="function"><dt id="spacing-1078da9913a26d375677dcc9a4bf0c3c"><em class="property">function </em><code class="descname">spacing</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#spacing-1078da9913a26d375677dcc9a4bf0c3c" title="Permalink to this function">¶</a></dt><dd>Momentum difference between two adjacent points of the momentum basis.</dd></dl><dl class="function"><dt id="samplepoints-1078da9913a26d375677dcc9a4bf0c3c"><em class="property">function </em><code class="descname">samplepoints</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#samplepoints-1078da9913a26d375677dcc9a4bf0c3c" title="Permalink to this function">¶</a></dt><dd>x values of the real space basis.</dd></dl><dl class="function"><dt id="samplepoints-92d80ddc035c5985e59b1b8960636baa"><em class="property">function </em><code class="descname">samplepoints</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#samplepoints-92d80ddc035c5985e59b1b8960636baa" title="Permalink to this function">¶</a></dt><dd>p values of the momentum basis.</dd></dl><dl class="function"><dt id="positionoperator-1078da9913a26d375677dcc9a4bf0c3c"><em class="property">function </em><code class="descname">positionoperator</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#positionoperator-1078da9913a26d375677dcc9a4bf0c3c" title="Permalink to this function">¶</a></dt><dd>Position operator in real space.</dd></dl><dl class="function"><dt id="positionoperator-92d80ddc035c5985e59b1b8960636baa"><em class="property">function </em><code class="descname">positionoperator</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#positionoperator-92d80ddc035c5985e59b1b8960636baa" title="Permalink to this function">¶</a></dt><dd>Position operator in momentum space.</dd></dl><dl class="function"><dt id="momentumoperator-92d80ddc035c5985e59b1b8960636baa"><em class="property">function </em><code class="descname">momentumoperator</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#momentumoperator-92d80ddc035c5985e59b1b8960636baa" title="Permalink to this function">¶</a></dt><dd>Momentum operator in momentum space.</dd></dl><dl class="function"><dt id="momentumoperator-1078da9913a26d375677dcc9a4bf0c3c"><em class="property">function </em><code class="descname">momentumoperator</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#momentumoperator-1078da9913a26d375677dcc9a4bf0c3c" title="Permalink to this function">¶</a></dt><dd>Momentum operator in real space.</dd></dl><dl class="function"><dt id="laplace_x-1078da9913a26d375677dcc9a4bf0c3c"><em class="property">function </em><code class="descname">laplace_x</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#laplace_x-1078da9913a26d375677dcc9a4bf0c3c" title="Permalink to this function">¶</a></dt><dd>Second x-derivative in real space.</dd></dl><dl class="function"><dt id="laplace_x-92d80ddc035c5985e59b1b8960636baa"><em class="property">function </em><code class="descname">laplace_x</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#laplace_x-92d80ddc035c5985e59b1b8960636baa" title="Permalink to this function">¶</a></dt><dd>Second x-derivative in momentum space.</dd></dl><dl class="function"><dt id="laplace_p-92d80ddc035c5985e59b1b8960636baa"><em class="property">function </em><code class="descname">laplace_p</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#laplace_p-92d80ddc035c5985e59b1b8960636baa" title="Permalink to this function">¶</a></dt><dd>Second p-derivative in momentum space.</dd></dl><dl class="function"><dt id="laplace_p-1078da9913a26d375677dcc9a4bf0c3c"><em class="property">function </em><code class="descname">laplace_p</code><span class="sig-paren">(</span><em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#laplace_p-1078da9913a26d375677dcc9a4bf0c3c" title="Permalink to this function">¶</a></dt><dd>Second p-derivative in real space.</dd></dl><dl class="function"><dt id="gaussianstate-fddbd06ed4740b6d86c3d63b5aab4ee3"><em class="property">function </em><code class="descname">gaussianstate</code><span class="sig-paren">(</span><em>b</em>, <em>x0</em>, <em>p0</em>, <em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#gaussianstate-fddbd06ed4740b6d86c3d63b5aab4ee3" title="Permalink to this function">¶</a></dt><dd><p>Create a Gaussian state around x0 and p0 with width sigma in real space.</p>
+<p>This implementation is based on the definition</p>
+<div class="math">
+\[\Psi(x) = \frac{\sqrt{\Delta x}}{\pi^{1/4}\sqrt{\sigma}}
+            e^{i p_0 (x-x_0) - \frac{(x-x_0)^2}{2 \sigma^2}}\]</div>
+<p>which has the properties</p>
+<ul class="simple">
+<li><span class="math">\(|\Psi(p)|^2 = 1\)</span></li>
+<li><span class="math">\(\langle p \rangle = p_0\)</span></li>
+<li><span class="math">\(\langle x \rangle = x_0\)</span></li>
+<li><span class="math">\(\mathrm{Var}(x) = \frac{\sigma^2}{2}\)</span></li>
+<li><span class="math">\(\mathrm{Var}(p) = \frac{1}{2 \sigma^2}\)</span></li>
+</ul>
+<p>and is connected to the MomentumBasis based implementation via a
+Fourier-transformation</p>
+<div class="math">
+\[\Psi(p) = \frac{1}{\sqrt{2\pi}}
+            \int_{-\infty}^{\infty} e^{-ipx}\Psi(x) \mathrm{d}x\]</div>
+<p>Due to the numerically necessary discretization an additional scaling
+factor <span class="math">\(\sqrt{\Delta x}\)</span> is used so that
+<span class="math">\(\Psi_i = \sqrt{\Delta x} \Psi(x_i)\)</span> and the resulting state
+is normalized to</p>
+<div class="math">
+\[\sum_i |\Psi_i|^2 = 1\]</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>b</strong> &#8211; PositionBasis.</li>
+<li><strong>x0</strong> &#8211; Center of the Gaussian in position space.</li>
+<li><strong>p0</strong> &#8211; Center of the Gaussian in momentum space.</li>
+<li><strong>sigma</strong> &#8211; Width of the Gaussian.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="gaussianstate-3c1bad9ea29750d56206c18a577e50c0"><em class="property">function </em><code class="descname">gaussianstate</code><span class="sig-paren">(</span><em>b</em>, <em>x0</em>, <em>p0</em>, <em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#gaussianstate-3c1bad9ea29750d56206c18a577e50c0" title="Permalink to this function">¶</a></dt><dd><p>Create a Gaussian state around x0 and p0 with width sigma in momentum space.</p>
+<p>This implementation is based on the definition</p>
+<div class="math">
+\[\Psi(p) = \frac{\sqrt{\sigma} \sqrt{\Delta x}}{\pi^{1/4}}
+            e^{-i x_0 p - \frac{1}{2}(p-p_0)^2 \sigma^2}\]</div>
+<p>which has the properties</p>
+<ul class="simple">
+<li><span class="math">\(|\Psi(p)|^2 = 1\)</span></li>
+<li><span class="math">\(\langle p \rangle = p_0\)</span></li>
+<li><span class="math">\(\langle x \rangle = x_0\)</span></li>
+<li><span class="math">\(\mathrm{Var}(x) = \frac{\sigma^2}{2}\)</span></li>
+<li><span class="math">\(\mathrm{Var}(p) = \frac{1}{2 \sigma^2}\)</span></li>
+</ul>
+<p>and is connected to the MomentumBasis based implementation via a
+Fourier-transformation</p>
+<div class="math">
+\[\Psi(x) = \frac{1}{\sqrt{2\pi}}
+                \int_{-\infty}^{\infty} e^{ipx}\Psi(p) \mathrm{d}p\]</div>
+<p>Due to the numerically necessary discretization an additional scaling
+factor <span class="math">\(\sqrt{\Delta x}\)</span> is used so that
+<span class="math">\(\Psi_i = \sqrt{\Delta p} \Psi(p_i)\)</span> and the resulting state
+is normalized to</p>
+<div class="math">
+\[\sum_i |\Psi_i|^2 = 1\]</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>b</strong> &#8211; MomentumBasis.</li>
+<li><strong>x0</strong> &#8211; Center of the Gaussian in position space.</li>
+<li><strong>p0</strong> &#8211; Center of the Gaussian in momentum space.</li>
+<li><strong>sigma</strong> &#8211; Width of the Gaussian.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="class"><dt id=FFTOperator><em class="property">type </em><code class="descname">FFTOperator<: LazyOperator</code><a class="headerlink" href="#FFTOperator" title="Permalink to thistype">¶</a></dt><dd class="body"></dd></dl><dl class="function"><dt id="FFTOperator-33444677542e1b9bf767700d77e74243"><em class="property">function </em><code class="descname">FFTOperator</code><span class="sig-paren">(</span><em>basis_l</em>, <em>basis_r</em><span class="sig-paren">)</span><a class="headerlink" href="#FFTOperator-33444677542e1b9bf767700d77e74243" title="Permalink to this function">¶</a></dt><dd>DenseOperator performing a fast Fourier transformation of a state.</dd></dl><dl class="function"><dt id="FFTOperator-c180240ea25ececbb9a5705011fbf210"><em class="property">function </em><code class="descname">FFTOperator</code><span class="sig-paren">(</span><em>basis_l</em>, <em>basis_r</em><span class="sig-paren">)</span><a class="headerlink" href="#FFTOperator-c180240ea25ececbb9a5705011fbf210" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+<div class="section" id="n-particles">
+<span id="section-api-nparticles"></span><h3>N-Particles<a class="headerlink" href="#n-particles" title="Permalink to this headline">¶</a></h3>
+<dl class="class"><dt id=NParticleBasis><em class="property">abstract </em><code class="descname">NParticleBasis<: Basis</code><a class="headerlink" href="#NParticleBasis" title="Permalink to thisabstract">¶</a></dt><dd class="body"><p>Abstract basis for n-particle systems. (Second quantization)</p>
+<p>The inheriting bosonic and fermionic bases all have the same fields:</p>
+<dl class="docutils">
+<dt>particlenumber</dt>
+<dd>(Fixed) number of particles in the system.</dd>
+<dt>modenumber</dt>
+<dd>Number of modes in which the particles can be distributed.</dd>
+<dt>occupations</dt>
+<dd>Basis states that specify how many particles are in which modes.</dd>
+</dl>
+<p>The only difference between Fermionic and Bosonic basis is which basis states
+are included. These states are created automatically if the occupation
+states are ommited when creating a FermionicNParticleBasis or a
+BosonicNParticleBasis.</p>
+</dd></dl><dl class="class"><dt id=BosonicNParticleBasis><em class="property">type </em><code class="descname">BosonicNParticleBasis<: NParticleBasis</code><a class="headerlink" href="#BosonicNParticleBasis" title="Permalink to thistype">¶</a></dt><dd class="body"></dd></dl><dl class="class"><dt id=FermionicNParticleBasis><em class="property">type </em><code class="descname">FermionicNParticleBasis<: NParticleBasis</code><a class="headerlink" href="#FermionicNParticleBasis" title="Permalink to thistype">¶</a></dt><dd class="body"></dd></dl><dl class="function"><dt id="nparticleoperator_1-e75dd064caa15cba5ffaaf0fb435465b"><em class="property">function </em><code class="descname">nparticleoperator_1</code><span class="sig-paren">(</span><em>nparticlebasis</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#nparticleoperator_1-e75dd064caa15cba5ffaaf0fb435465b" title="Permalink to this function">¶</a></dt><dd><p>Create a N-particle operator from a single particle operator.</p>
+<p>The mathematical formalism is described by</p>
+<div class="math">
+\[X = \sum_{ij} a_i^\dagger a_j
+                \left\langle u_i \right|
+                x
+                \left| u_j \right\rangle\]</div>
+<p>where <span class="math">\(X\)</span> is the N-particle operator, <span class="math">\(x\)</span> is the single particle operator and
+<span class="math">\(\left| u \right\rangle\)</span> are the single particle states associated to the
+different modes of the N-particle basis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nparticlebasis</strong> &#8211; NParticleBasis</li>
+<li><strong>op</strong> &#8211; An operator represented in the single-particle functions associated to the
+modes of the N-particle basis. This means the dimension of this operator has to
+be equal to the modenumber of the N-particle basis.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="nparticleoperator_1-79b892ea4d06ea811c6a419a0e864d06"><em class="property">function </em><code class="descname">nparticleoperator_1</code><span class="sig-paren">(</span><em>nparticlebasis</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#nparticleoperator_1-79b892ea4d06ea811c6a419a0e864d06" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="nparticleoperator_2-e75dd064caa15cba5ffaaf0fb435465b"><em class="property">function </em><code class="descname">nparticleoperator_2</code><span class="sig-paren">(</span><em>nparticlebasis</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#nparticleoperator_2-e75dd064caa15cba5ffaaf0fb435465b" title="Permalink to this function">¶</a></dt><dd><p>Create a N-particle operator from a two-particle operator.</p>
+<p>The mathematical formalism is described by</p>
+<div class="math">
+\[X = \sum_{ijkl} a_i^\dagger a_j^\dagger a_k a_l
+        \left\langle u_i \right| \left\langle u_j \right|
+        x
+        \left| u_k \right\rangle \left| u_l \right\rangle\]</div>
+<p>where <span class="math">\(X\)</span> is the N-particle operator, <span class="math">\(x\)</span> is the two-particle operator and
+<span class="math">\(\left| u \right\rangle\)</span> are the single particle states associated to the
+different modes of the N-particle basis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nparticlebasis</strong> &#8211; NParticleBasis</li>
+<li><strong>op</strong> &#8211; A two particle operator represented in the single particle functions associated to the
+modes of the N-particle basis. This means the dimension of this operator has to
+be equal to the modenumber of the N-particle basis.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="nparticleoperator_2-79b892ea4d06ea811c6a419a0e864d06"><em class="property">function </em><code class="descname">nparticleoperator_2</code><span class="sig-paren">(</span><em>nparticlebasis</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#nparticleoperator_2-79b892ea4d06ea811c6a419a0e864d06" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+</div>
+<div class="section" id="time-evolution">
+<span id="section-api-timeevolution"></span><h2>Time-evolution<a class="headerlink" href="#time-evolution" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="schroedinger">
+<span id="section-api-schroedinger"></span><h3>Schroedinger<a class="headerlink" href="#schroedinger" title="Permalink to this headline">¶</a></h3>
+<dl class="function"><dt id="schroedinger-b72c1165931411de1b8d64ad17517104"><em class="property">function </em><code class="descname">schroedinger{T <: StateVector}</code><span class="sig-paren">(</span><em>tspan</em>, <em>psi0</em>, <em>H</em>; <em>fout</em><span class="sig-paren">)</span><a class="headerlink" href="#schroedinger-b72c1165931411de1b8d64ad17517104" title="Permalink to this function">¶</a></dt><dd><p>Integrate Schroedinger equation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tspan</strong> &#8211; Vector specifying the points of time for which output should be displayed.</li>
+<li><strong>psi0</strong> &#8211; Initial state vector (can be a bra or a ket).</li>
+<li><strong>H</strong> &#8211; Operator specifying the Hamiltonian.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last"><strong>fout (optional)</strong> &#8211; If given this function fout(t, psi) is called every time an output should
+be displayed. To limit copying to a minimum the given state psi
+is further used and therefore must not be changed.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl></div>
+<div class="section" id="master">
+<span id="section-api-master"></span><h3>Master<a class="headerlink" href="#master" title="Permalink to this headline">¶</a></h3>
+<dl class="function"><dt id="master-f31d83a59cbb151523ff15d586133bb1"><em class="property">function </em><code class="descname">master</code><span class="sig-paren">(</span><em>tspan</em>, <em>rho0</em>, <em>H</em>, <em>J</em>; <em>Gamma</em>, <em>Jdagger</em>, <em>fout</em>, <em>tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#master-f31d83a59cbb151523ff15d586133bb1" title="Permalink to this function">¶</a></dt><dd><p>Integrate the master equation with dmaster_nh as derivative function.</p>
+<p>There are two implementations for integrating the master equation:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">master_h</span></code>: Usual formulation of the master equation.</li>
+<li><code class="docutils literal"><span class="pre">master_nh</span></code>: Variant with non-hermitian Hamiltonian.</li>
+</ul>
+<p>The <code class="docutils literal"><span class="pre">master</span></code> function takes a normal Hamiltonian, calculates the
+non-hermitian Hamiltonian and then calls master_nh which is slightly faster.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tspan</strong> &#8211; Vector specifying the points of time for which output should be displayed.</li>
+<li><strong>rho0</strong> &#8211; Initial density operator (must be a dense operator). Can also be a
+state vector which is automatically converted into a density operator.</li>
+<li><strong>H</strong> &#8211; DenseOperator specifying the Hamiltonian.</li>
+<li><strong>J</strong> &#8211; Vector containing all jump operators.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><strong>Gamma (optional)</strong> &#8211; Vector or matrix specifying the coefficients for the jump operators.</li>
+<li><strong>Jdagger (optional)</strong> &#8211; Vector containing the hermitian conjugates of the jump operators. If they
+are not given they are calculated automatically.</li>
+<li><strong>fout (optional)</strong> &#8211; If given this function fout(t, rho) is called every time an output should
+be displayed. To limit copying to a minimum the given density operator rho
+is further used and therefore must not be changed.</li>
+<li><strong>kwargs</strong> &#8211; Further arguments are passed on to the ode solver.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="master-7569f90ea0aaec7d026294e6457c813e"><em class="property">function </em><code class="descname">master</code><span class="sig-paren">(</span><em>tspan</em>, <em>rho0</em>, <em>H</em>, <em>J</em>; <em>Gamma</em>, <em>Jdagger</em>, <em>fout</em>, <em>tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#master-7569f90ea0aaec7d026294e6457c813e" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="master-41a995985f1cd6406c10fa76ccf65679"><em class="property">function </em><code class="descname">master</code><span class="sig-paren">(</span><em>tspan</em>, <em>psi0</em>, <em>H</em>, <em>J</em><span class="sig-paren">)</span><a class="headerlink" href="#master-41a995985f1cd6406c10fa76ccf65679" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="master_h-f31d83a59cbb151523ff15d586133bb1"><em class="property">function </em><code class="descname">master_h</code><span class="sig-paren">(</span><em>tspan</em>, <em>rho0</em>, <em>H</em>, <em>J</em>; <em>Gamma</em>, <em>Jdagger</em>, <em>fout</em>, <em>tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#master_h-f31d83a59cbb151523ff15d586133bb1" title="Permalink to this function">¶</a></dt><dd><p>Integrate the master equation with dmaster_h as derivative function.</p>
+<p>For further information look at <a class="reference internal" href="#master-f31d83a59cbb151523ff15d586133bb1" title="master(,::DenseOperator,::Operator,)"><code class="xref jl jl-func docutils literal"><span class="pre">master(,::DenseOperator,::Operator,)</span></code></a></p>
+</dd></dl><dl class="function"><dt id="master_h-41a995985f1cd6406c10fa76ccf65679"><em class="property">function </em><code class="descname">master_h</code><span class="sig-paren">(</span><em>tspan</em>, <em>psi0</em>, <em>H</em>, <em>J</em><span class="sig-paren">)</span><a class="headerlink" href="#master_h-41a995985f1cd6406c10fa76ccf65679" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="master_nh-c062d2933ff0c4311f276bd42daf8c98"><em class="property">function </em><code class="descname">master_nh</code><span class="sig-paren">(</span><em>tspan</em>, <em>rho0</em>, <em>Hnh</em>, <em>J</em>; <em>Gamma</em>, <em>Hnhdagger</em>, <em>Jdagger</em>, <em>fout</em>, <em>tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#master_nh-c062d2933ff0c4311f276bd42daf8c98" title="Permalink to this function">¶</a></dt><dd><p>Integrate the master equation with dmaster_nh as derivative function.</p>
+<p>In this case the given Hamiltonian is assumed to be the non-hermitian version.
+For further information look at <a class="reference internal" href="#master-f31d83a59cbb151523ff15d586133bb1" title="master(,::DenseOperator,::Operator,)"><code class="xref jl jl-func docutils literal"><span class="pre">master(,::DenseOperator,::Operator,)</span></code></a></p>
+</dd></dl><dl class="function"><dt id="master_nh-955048a5997c509ffa5debaebbba6c14"><em class="property">function </em><code class="descname">master_nh</code><span class="sig-paren">(</span><em>tspan</em>, <em>psi0</em>, <em>Hnh</em>, <em>J</em><span class="sig-paren">)</span><a class="headerlink" href="#master_nh-955048a5997c509ffa5debaebbba6c14" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+<div class="section" id="monte-carlo-wave-function">
+<span id="section-api-mcwf"></span><h3>Monte Carlo wave function<a class="headerlink" href="#monte-carlo-wave-function" title="Permalink to this headline">¶</a></h3>
+<dl class="function"><dt id="mcwf-426fdd708e6d82c9d800d9416dd3e836"><em class="property">function </em><code class="descname">mcwf</code><span class="sig-paren">(</span><em>tspan</em>, <em>psi0</em>, <em>H</em>, <em>J</em>; <em>seed</em>, <em>fout</em>, <em>Jdagger</em>, <em>display_beforeevent</em>, <em>display_afterevent</em><span class="sig-paren">)</span><a class="headerlink" href="#mcwf-426fdd708e6d82c9d800d9416dd3e836" title="Permalink to this function">¶</a></dt><dd><p>Integrate the master equation using the MCWF method.</p>
+<p>There are two implementations for integrating the non-hermitian
+schroedinger equation:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">mcwf_h</span></code>: Usual formulation with Hamiltonian + jump operators separately.</li>
+<li><code class="docutils literal"><span class="pre">mcwf_nh</span></code>: Variant with non-hermitian Hamiltonian.</li>
+</ul>
+<p>The <code class="docutils literal"><span class="pre">mcwf</span></code> function takes a normal Hamiltonian, calculates the
+non-hermitian Hamiltonian and then calls mcwf_nh which is slightly faster.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tspan</strong> &#8211; Vector specifying the points of time for which output should be displayed.</li>
+<li><strong>psi0</strong> &#8211; Initial state vector.</li>
+<li><strong>H</strong> &#8211; DenseOperator specifying the Hamiltonian.</li>
+<li><strong>J</strong> &#8211; Vector containing all jump operators.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><strong>seed (optional)</strong> &#8211; Seed used for the random number generator to make trajectories repeatable.</li>
+<li><strong>fout (optional)</strong> &#8211; If given this function fout(t, psi) is called every time an output should
+be displayed. To limit copying to a minimum the given state psi
+is further used and therefore must not be changed.</li>
+<li><strong>Jdagger (optional)</strong> &#8211; Vector containing the hermitian conjugates of the jump operators. If they
+are not given they are calculated automatically.</li>
+<li><strong>display_beforeevent [false]</strong> &#8211; fout is called before every jump.</li>
+<li><strong>display_afterevent [false]</strong> &#8211; fout is called after every jump.</li>
+<li><strong>kwargs</strong> &#8211; Further arguments are passed on to the ode solver.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl></div>
+</div>
+<div class="section" id="spectral-analysis">
+<span id="section-api-spectralanalysis"></span><h2>Spectral analysis<a class="headerlink" href="#spectral-analysis" title="Permalink to this headline">¶</a></h2>
+<dl class="function"><dt id="operatorspectrum_hermitian-ffefa79edff12530ccf77b9d00c2d1f5"><em class="property">function </em><code class="descname">operatorspectrum_hermitian</code><span class="sig-paren">(</span><em>H</em>; <em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#operatorspectrum_hermitian-ffefa79edff12530ccf77b9d00c2d1f5" title="Permalink to this function">¶</a></dt><dd><p>Calculate the spectrum of a Hermitian operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>H</strong> &#8211; Sparse or dense operator.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><strong>Nmax (optional)</strong> &#8211; Number of eigenvalues that should be calculated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="operatorspectrum_hermitian-7d396eec48bce6bde963bc4028f48d9f"><em class="property">function </em><code class="descname">operatorspectrum_hermitian</code><span class="sig-paren">(</span><em>H</em>; <em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#operatorspectrum_hermitian-7d396eec48bce6bde963bc4028f48d9f" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="operatorspectrum-ffefa79edff12530ccf77b9d00c2d1f5"><em class="property">function </em><code class="descname">operatorspectrum</code><span class="sig-paren">(</span><em>H</em>; <em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#operatorspectrum-ffefa79edff12530ccf77b9d00c2d1f5" title="Permalink to this function">¶</a></dt><dd><p>Calculate the spectrum of a not necessarily Hermitian operator.</p>
+<p>If the operator is known to be Hermitian use
+<a class="reference internal" href="#operatorspectrum_hermitian-ffefa79edff12530ccf77b9d00c2d1f5" title="operatorspectrum_hermitian(::DenseOperator)"><code class="xref jl jl-func docutils literal"><span class="pre">operatorspectrum_hermitian(::DenseOperator)</span></code></a> instead.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>H</strong> &#8211; Sparse or dense operator.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><strong>Nmax (optional)</strong> &#8211; Number of eigenvalues that should be calculated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="operatorspectrum-7d396eec48bce6bde963bc4028f48d9f"><em class="property">function </em><code class="descname">operatorspectrum</code><span class="sig-paren">(</span><em>H</em>; <em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#operatorspectrum-7d396eec48bce6bde963bc4028f48d9f" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="eigenstates_hermitian-ffefa79edff12530ccf77b9d00c2d1f5"><em class="property">function </em><code class="descname">eigenstates_hermitian</code><span class="sig-paren">(</span><em>H</em>; <em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#eigenstates_hermitian-ffefa79edff12530ccf77b9d00c2d1f5" title="Permalink to this function">¶</a></dt><dd><p>Calculate the eigenstates of a Hermitian operator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>H</strong> &#8211; Sparse or dense operator.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><strong>Nmax (optional)</strong> &#8211; Number of eigenstates that should be calculated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="eigenstates_hermitian-7d396eec48bce6bde963bc4028f48d9f"><em class="property">function </em><code class="descname">eigenstates_hermitian</code><span class="sig-paren">(</span><em>H</em>; <em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#eigenstates_hermitian-7d396eec48bce6bde963bc4028f48d9f" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="eigenstates-ffefa79edff12530ccf77b9d00c2d1f5"><em class="property">function </em><code class="descname">eigenstates</code><span class="sig-paren">(</span><em>H</em>; <em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#eigenstates-ffefa79edff12530ccf77b9d00c2d1f5" title="Permalink to this function">¶</a></dt><dd><p>Calculate the eigenstates of a not necessarily Hermitian operator.</p>
+<p>If the operator is known to be Hermitian use
+<a class="reference internal" href="#eigenstates_hermitian-ffefa79edff12530ccf77b9d00c2d1f5" title="eigenstates_hermitian(::DenseOperator)"><code class="xref jl jl-func docutils literal"><span class="pre">eigenstates_hermitian(::DenseOperator)</span></code></a> instead.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>H</strong> &#8211; Sparse or dense operator.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><strong>Nmax (optional)</strong> &#8211; Number of eigenstates that should be calculated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="eigenstates-7d396eec48bce6bde963bc4028f48d9f"><em class="property">function </em><code class="descname">eigenstates</code><span class="sig-paren">(</span><em>H</em>; <em>Nmax</em><span class="sig-paren">)</span><a class="headerlink" href="#eigenstates-7d396eec48bce6bde963bc4028f48d9f" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="groundstate-781f45534b18f545a9a18b728c7f3751"><em class="property">function </em><code class="descname">groundstate</code><span class="sig-paren">(</span><em>H</em><span class="sig-paren">)</span><a class="headerlink" href="#groundstate-781f45534b18f545a9a18b728c7f3751" title="Permalink to this function">¶</a></dt><dd><p>Calculate the ground-state of a Hermitian operator.</p>
+<p>This is just a shortcut for <code class="xref jl jl-func docutils literal"><span class="pre">eigenstates_hermitian(H,</span> <span class="pre">Nmax=1)</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>H</strong> &#8211; Sparse or dense operator.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><strong>Nmax (optional)</strong> &#8211; Number of eigenstates that should be calculated.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl></div>
+<div class="section" id="steady-states">
+<span id="section-api-steadystate"></span><h2>Steady-states<a class="headerlink" href="#steady-states" title="Permalink to this headline">¶</a></h2>
+<dl class="function"><dt id="master-d365e4f8433f5bc7e38916d9f561b208"><em class="property">function </em><code class="descname">master</code><span class="sig-paren">(</span><em>H</em>, <em>J</em>; <em>rho0</em>, <em>eps</em>, <em>hmin</em>, <em>Gamma</em>, <em>Jdagger</em>, <em>fout</em>, <em>tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#master-d365e4f8433f5bc7e38916d9f561b208" title="Permalink to this function">¶</a></dt><dd><p>Calculate steady state using long time master equation evolution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>H</strong> &#8211; Operator specifying the Hamiltonian.</li>
+<li><strong>J</strong> &#8211; Vector of jump operators.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><strong>rho0</strong> &#8211; Initial density operator. If not given the <span class="math">\(|0 \rangle\langle0|\)</span>
+state in respect to the choosen basis is used.</li>
+<li><strong>eps</strong> &#8211; Tracedistance used as termination criterion.</li>
+<li><strong>hmin</strong> &#8211; Minimal time step used in the time evolution.</li>
+<li><strong>Gamma</strong> &#8211; Vector or matrix specifying the coefficients for the jump operators.</li>
+<li><strong>Jdagger (optional)</strong> &#8211; Vector containing the hermitian conjugates of the jump operators. If they
+are not given they are calculated automatically.</li>
+<li><strong>fout (optional)</strong> &#8211; If given this function fout(t, rho) is called every time an output should
+be displayed. To limit copying to a minimum the given density operator rho
+is further used and therefore must not be changed.</li>
+<li><strong>kwargs</strong> &#8211; Further arguments are passed on to the ode solver.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="eigenvector-3fd8a2c46775d70fe9ae306c10985685"><em class="property">function </em><code class="descname">eigenvector</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="headerlink" href="#eigenvector-3fd8a2c46775d70fe9ae306c10985685" title="Permalink to this function">¶</a></dt><dd><p>Find steady state by calculating the eigenstate of the Liouvillian matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>L</strong> &#8211; Dense or sparse super-operator.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="eigenvector-bd4a7fa8e154ea15d4651979f9a47613"><em class="property">function </em><code class="descname">eigenvector</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="headerlink" href="#eigenvector-bd4a7fa8e154ea15d4651979f9a47613" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="eigenvector-b698f8239809168e699db1b8132eb945"><em class="property">function </em><code class="descname">eigenvector</code><span class="sig-paren">(</span><em>H</em>, <em>J</em><span class="sig-paren">)</span><a class="headerlink" href="#eigenvector-b698f8239809168e699db1b8132eb945" title="Permalink to this function">¶</a></dt><dd><p>Find steady state by calculating the eigenstate of the Liouvillian matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>H</strong> &#8211; Operator specifying the Hamiltonian.</li>
+<li><strong>J</strong> &#8211; Vector of jump operators.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl></div>
+<div class="section" id="correlations">
+<span id="section-api-correlations"></span><h2>Correlations<a class="headerlink" href="#correlations" title="Permalink to this headline">¶</a></h2>
+<dl class="function"><dt id="correlation-8933d197bc2f8393a0a5f72f8ea977cf"><em class="property">function </em><code class="descname">correlation</code><span class="sig-paren">(</span><em>tspan</em>, <em>rho0</em>, <em>H</em>, <em>J</em>, <em>op1</em>, <em>op2</em>; <em>Gamma</em>, <em>Jdagger</em>, <em>tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#correlation-8933d197bc2f8393a0a5f72f8ea977cf" title="Permalink to this function">¶</a></dt><dd><p>Calculate two time correlation values <span class="math">\(\langle A(t) B(0) \rangle\)</span></p>
+<p>The calculation is done by multiplying the initial density operator
+with <span class="math">\(B\)</span> performing a time evolution according to a master equation
+and then calculating the expectation value <span class="math">\(\mathrm{Tr} \{ A \rho \}\)</span></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tspan</strong> &#8211; Points of time at which the correlation should be calculated.</li>
+<li><strong>rho0</strong> &#8211; Initial density operator.</li>
+<li><strong>H</strong> &#8211; Operator specifying the Hamiltonian.</li>
+<li><strong>J</strong> &#8211; Vector of jump operators.</li>
+<li><strong>op1</strong> &#8211; Operator at time t.</li>
+<li><strong>op2</strong> &#8211; Operator at time t=0.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><strong>Gamma</strong> &#8211; Vector or matrix specifying the coefficients for the jump operators.</li>
+<li><strong>Jdagger (optional)</strong> &#8211; Vector containing the hermitian conjugates of the jump operators. If they
+are not given they are calculated automatically.</li>
+<li><strong>kwargs</strong> &#8211; Further arguments are passed on to the ode solver.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="correlation-c9c320600e835e313bf9735ed12191c8"><em class="property">function </em><code class="descname">correlation</code><span class="sig-paren">(</span><em>rho0</em>, <em>H</em>, <em>J</em>, <em>op1</em>, <em>op2</em>; <em>eps</em>, <em>h0</em>, <em>Gamma</em>, <em>Jdagger</em>, <em>tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#correlation-c9c320600e835e313bf9735ed12191c8" title="Permalink to this function">¶</a></dt><dd><p>Calculate two time correlation values <span class="math">\(\langle A(t) B(0) \rangle\)</span></p>
+<p>The calculation is done by multiplying the initial density operator
+with <span class="math">\(B\)</span> performing a time evolution according to a master equation
+and then calculating the expectation value <span class="math">\(\mathrm{Tr} \{ A \rho \}\)</span>.
+The points of time are chosen automatically from the ode solver and the final
+time is determined by the steady state termination criterion specified in
+<code class="xref jl jl-func docutils literal"><span class="pre">steadystate.master</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rho0</strong> &#8211; Initial density operator.</li>
+<li><strong>H</strong> &#8211; Operator specifying the Hamiltonian.</li>
+<li><strong>J</strong> &#8211; Vector of jump operators.</li>
+<li><strong>op1</strong> &#8211; Operator at time t.</li>
+<li><strong>op2</strong> &#8211; Operator at time t=0.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><strong>eps</strong> &#8211; Tracedistance used as termination criterion.</li>
+<li><strong>h0</strong> &#8211; Initial time step used in the time evolution.</li>
+<li><strong>Gamma</strong> &#8211; Vector or matrix specifying the coefficients for the jump operators.</li>
+<li><strong>Jdagger (optional)</strong> &#8211; Vector containing the hermitian conjugates of the jump operators. If they
+are not given they are calculated automatically.</li>
+<li><strong>kwargs</strong> &#8211; Further arguments are passed on to the ode solver.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl><dl class="function"><dt id="correlationspectrum-c15417abf4192955871ad1b8ce77042b"><em class="property">function </em><code class="descname">correlationspectrum</code><span class="sig-paren">(</span><em>omega_samplepoints</em>, <em>H</em>, <em>J</em>, <em>op</em>; <em>eps</em>, <em>rho_ss</em><span class="sig-paren">)</span><a class="headerlink" href="#correlationspectrum-c15417abf4192955871ad1b8ce77042b" title="Permalink to this function">¶</a></dt><dd></dd></dl><dl class="function"><dt id="correlationspectrum-9cc42fed17fb66baac7c9f9b3aa24adb"><em class="property">function </em><code class="descname">correlationspectrum</code><span class="sig-paren">(</span><em>H</em>, <em>J</em>, <em>op</em>; <em>eps</em>, <em>h0</em>, <em>rho_ss</em><span class="sig-paren">)</span><a class="headerlink" href="#correlationspectrum-9cc42fed17fb66baac7c9f9b3aa24adb" title="Permalink to this function">¶</a></dt><dd></dd></dl></div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="operators.html" class="btn btn-neutral" title="Operators" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Sebastian Krämer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

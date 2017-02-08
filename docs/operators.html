@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Operators &mdash; QuantumOptics.jl</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="QuantumOptics.jl" href="index.html"/>
+        <link rel="next" title="API" href="api.html"/>
+        <link rel="prev" title="Bases" href="bases.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuantumOptics.jl
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States and Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantumsystems.html">Quantum systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeevolution.html">Time-evolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="steadystate.html">Steady state</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlations.html">Two-time correlation functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectralanalysis.html">Spectral Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="superoperators.html">Super-operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bases.html">Bases</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Operators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dense-operators">Dense operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sparse-operators">Sparse operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lazy-operators">Lazy operators</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">QuantumOptics.jl</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Operators</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/operators.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="operators">
+<span id="section-operators-detail"></span><h1>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h1>
+<p>Operators can be defined as linear mappings from one Hilbert space to another. However, equivalently to states, operators in <strong>QuantumOptics.jl</strong> are interpreted as coefficients of an abstract operator in respect to one or more generally two, possibly distinct <a class="reference internal" href="bases.html#section-bases"><span class="std std-ref">bases</span></a>. For a certain choice of bases <span class="math">\(\{|u_i\rangle\}_i\)</span> and <span class="math">\(\{|v_j\rangle\}_j\)</span> an abstract operator <span class="math">\(A\)</span> has the coefficients <span class="math">\(A_{ij}\)</span> which are connected by the relation</p>
+<div class="math">
+\[A =  \sum_{ij} A_{ij} | u_i \rangle \langle v_j |\]</div>
+<p>For this reason all operators  define a left hand as well as a right hand basis:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="k">type</span><span class="nc"> MyOperator</span> <span class="o">&lt;:</span> <span class="n">Operator</span>
+    <span class="n">basis_l</span><span class="p">::</span><span class="n">Basis</span>
+    <span class="n">basis_r</span><span class="p">::</span><span class="n">Basis</span>
+    <span class="o">...</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>For performance reasons there are several different implementations of operators in <strong>QuantumOptics.jl</strong>, all inheriting from the abstract <a class="reference internal" href="api.html#Operator" title="Operator"><code class="xref jl jl-abstract docutils literal"><span class="pre">Operator</span></code></a> type:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#subsection-denseoperators"><span class="std std-ref">Dense operators</span></a></li>
+<li><a class="reference internal" href="#subsection-sparseoperators"><span class="std std-ref">Sparse operators</span></a></li>
+<li><a class="reference internal" href="#subsection-lazyoperators"><span class="std std-ref">Lazy operators</span></a></li>
+</ul>
+<p>They have the same interface and can in most cases be used interchangeably, e.g. they can be combined using arithmetic functions *, /, +, -:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">SpinBasis</span><span class="p">(</span><span class="mi">1</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">sx</span> <span class="o">=</span> <span class="n">sigmax</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="n">sy</span> <span class="o">=</span> <span class="n">sigmay</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="n">sx</span> <span class="o">+</span> <span class="n">sy</span>
+<span class="n">sx</span> <span class="o">*</span> <span class="n">sy</span>
+</pre></div>
+</div>
+<p>Additionally the following functions are implemented:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>Hermitian conjugate:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">dagger(::DenseOperator)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Normalization:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">trace(::DenseOperator)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">norm(::DenseOperator,</span> <span class="pre">)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">normalize(::DenseOperator)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">normalize!(::DenseOperator)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Expectation values:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">expect(::Operator,</span> <span class="pre">::DenseOperator)</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Tensor product:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">tensor(::DenseOperator,</span> <span class="pre">::DenseOperator)</span></code>
+<a class="reference internal" href="api.html#tensor-32c0e03e3e2df3db0f83a138626c9ec0" title="tensor(::Ket, ::Bra)"><code class="xref jl jl-func docutils literal"><span class="pre">tensor(::Ket,</span> <span class="pre">::Bra)</span></code></a>
+<a class="reference internal" href="api.html#projector-32c0e03e3e2df3db0f83a138626c9ec0" title="projector(::Ket, ::Bra)"><code class="xref jl jl-func docutils literal"><span class="pre">projector(::Ket,</span> <span class="pre">::Bra)</span></code></a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Partial trace:</dt>
+<dd><p class="first last"><code class="xref jl jl-func docutils literal"><span class="pre">ptrace(::DenseOperator,</span> <span class="pre">indices)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">ptrace(::DenseOperator,</span> <span class="pre">index)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">ptrace(::Ket,</span> <span class="pre">indices)</span></code>
+<code class="xref jl jl-func docutils literal"><span class="pre">ptrace(::Bra,</span> <span class="pre">indices)</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>For creating operators of the type <span class="math">\(A = I \otimes I \otimes ... a_i ... \otimes I\)</span> the very useful embed function can be used:</p>
+<ul class="simple">
+<li><a class="reference internal" href="api.html#embed-4d6dcd76e52da120b9e9a737d48a7aa1" title="embed(basis, indices, operators)"><code class="xref jl jl-func docutils literal"><span class="pre">embed(basis,</span> <span class="pre">indices,</span> <span class="pre">operators)</span></code></a></li>
+<li><a class="reference internal" href="api.html#embed-80cba82457ce0038995d6ac27941e3de" title="embed(basis, index, op)"><code class="xref jl jl-func docutils literal"><span class="pre">embed(basis,</span> <span class="pre">index,</span> <span class="pre">op)</span></code></a></li>
+</ul>
+<p>E.g. for a system consisting of 3 spins one can define the basis with:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">b_spin</span> <span class="o">=</span> <span class="n">SpinBasis</span><span class="p">(</span><span class="mi">1</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">b_spin</span> <span class="n">⊗</span> <span class="n">b_spin</span> <span class="n">⊗</span> <span class="n">b_spin</span>
+</pre></div>
+</div>
+<p>An operator in this basis b that only acts onto the second spin could be created as:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">sigmap</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span> <span class="n">⊗</span> <span class="n">identityoperator</span><span class="p">(</span><span class="n">b_spin</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Equivalently, the embed function simplifies this to:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">embed</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sigmap</span><span class="p">(</span><span class="n">b_spin</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="section" id="dense-operators">
+<span id="subsection-denseoperators"></span><h2>Dense operators<a class="headerlink" href="#dense-operators" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="api.html#DenseOperator" title="DenseOperator"><code class="xref jl jl-type docutils literal"><span class="pre">DenseOperator</span></code></a> is implemented as:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="k">type</span><span class="nc"> DenseOperator</span> <span class="o">&lt;:</span> <span class="n">Operator</span>
+    <span class="n">basis_l</span><span class="p">::</span><span class="n">Basis</span>
+    <span class="n">basis_r</span><span class="p">::</span><span class="n">Basis</span>
+    <span class="n">data</span><span class="p">::</span><span class="n">Matrix</span><span class="p">{</span><span class="kt">Complex128</span><span class="p">}</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>where the data is stored as complex (dense) matrix in the <code class="docutils literal"><span class="pre">data</span></code> field.</p>
+<p>The <code class="xref jl jl-func docutils literal"><span class="pre">full(::Operator)</span></code> function can be used to convert other types of operators to dense operators.</p>
+</div>
+<div class="section" id="sparse-operators">
+<span id="subsection-sparseoperators"></span><h2>Sparse operators<a class="headerlink" href="#sparse-operators" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="api.html#SparseOperator" title="SparseOperator"><code class="xref jl jl-type docutils literal"><span class="pre">SparseOperator</span></code></a> is the default type used in <strong>QuantumOptics.jl</strong>. The reason is that in many quantum systems the Hamiltonians in respect to the commonly used bases are sparse. They are implemented as:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="k">type</span><span class="nc"> SparseOperator</span> <span class="o">&lt;:</span> <span class="n">Operator</span>
+    <span class="n">basis_l</span><span class="p">::</span><span class="n">Basis</span>
+    <span class="n">basis_r</span><span class="p">::</span><span class="n">Basis</span>
+    <span class="n">data</span><span class="p">::</span><span class="n">SparseMatrixCSC</span><span class="p">{</span><span class="kt">Complex128</span><span class="p">}</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>To convert other operators to sparse operators the <a class="reference internal" href="api.html#sparse-cf600762013e9a6b66008987ce69816b" title="sparse(::Operator)"><code class="xref jl jl-func docutils literal"><span class="pre">sparse(::Operator)</span></code></a> function can be used.</p>
+</div>
+<div class="section" id="lazy-operators">
+<span id="subsection-lazyoperators"></span><h2>Lazy operators<a class="headerlink" href="#lazy-operators" title="Permalink to this headline">¶</a></h2>
+<p>Lazy operators allow delayed evaluation of certain operations. This is useful when combining two operators is numerically expensive but separate multiplication with states is relatively cheap. A nice example is the <a class="reference internal" href="api.html#FFTOperator" title="FFTOperator"><code class="xref jl jl-type docutils literal"><span class="pre">FFTOperator</span></code></a> operator implemented for particles. It allows using a fast fourier transformation to convert a state from real space to momentum space, applying a diagonal operator and converting it back. Doing this in operator notation is only fast if the the order of operations is <span class="math">\(\mathrm{IFFT}*(D*(\mathrm{FFT}*\psi))\)</span>. To create a Hamiltonian that uses this calculation order, lazy evaluation is needed:</p>
+<div class="highlight-julia"><div class="highlight"><pre><span></span><span class="n">xmin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span>
+<span class="n">xmax</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">Npoints</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">b_position</span> <span class="o">=</span> <span class="n">PositionBasis</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">Npoints</span><span class="p">)</span>
+<span class="n">b_momentum</span> <span class="o">=</span> <span class="n">MomentumBasis</span><span class="p">(</span><span class="n">b_position</span><span class="p">)</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">momentumoperator</span><span class="p">(</span><span class="n">b_momentum</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">positionoperator</span><span class="p">(</span><span class="n">b_position</span><span class="p">)</span>
+
+<span class="n">fft</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">FFTOperator</span><span class="p">(</span><span class="n">b_momentum</span><span class="p">,</span> <span class="n">b_position</span><span class="p">);</span>
+
+<span class="n">H</span> <span class="o">=</span> <span class="n">LazyProduct</span><span class="p">(</span><span class="n">dagger</span><span class="p">(</span><span class="n">fft</span><span class="p">),</span> <span class="n">p</span><span class="o">^</span><span class="mi">2</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">fft</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="o">^</span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>In this case the Hamiltonian <span class="math">\(H\)</span> is a lazy sum of the kinetic term <span class="math">\(p^2/2\)</span> and the potential term <span class="math">\(x^2\)</span> where the kinetic term is the lazy product mentioned before. In the end this results in a speed up from <span class="math">\(O(N^2)\)</span> to <span class="math">\(O(N \log N)\)</span>.</p>
+<p>All lazy operators inherit from the abstract <a class="reference internal" href="api.html#LazyOperator" title="LazyOperator"><code class="xref jl jl-abstract docutils literal"><span class="pre">LazyOperator</span></code></a>. There are currently three different concrete implementations:</p>
+<ul class="simple">
+<li><a class="reference internal" href="api.html#LazyTensor" title="LazyTensor"><code class="xref jl jl-type docutils literal"><span class="pre">LazyTensor</span></code></a></li>
+<li><a class="reference internal" href="api.html#LazySum" title="LazySum"><code class="xref jl jl-type docutils literal"><span class="pre">LazySum</span></code></a></li>
+<li><a class="reference internal" href="api.html#LazyProduct" title="LazyProduct"><code class="xref jl jl-type docutils literal"><span class="pre">LazyProduct</span></code></a></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api.html" class="btn btn-neutral float-right" title="API" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="bases.html" class="btn btn-neutral" title="Bases" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Sebastian Krämer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

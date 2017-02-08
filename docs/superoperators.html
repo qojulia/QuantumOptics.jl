@@ -1,0 +1,250 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Super-operators &mdash; QuantumOptics.jl</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="QuantumOptics.jl" href="index.html"/>
+        <link rel="next" title="Examples" href="examples.html"/>
+        <link rel="prev" title="Spectral Analysis" href="spectralanalysis.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuantumOptics.jl
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States and Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantumsystems.html">Quantum systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeevolution.html">Time-evolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="steadystate.html">Steady state</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correlations.html">Two-time correlation functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spectralanalysis.html">Spectral Analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Super-operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bases.html">Bases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="operators.html">Operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">QuantumOptics.jl</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Super-operators</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/superoperators.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="super-operators">
+<h1>Super-operators<a class="headerlink" href="#super-operators" title="Permalink to this headline">¶</a></h1>
+<p>If states are defined as abstract elements of the Hilbert space <span class="math">\(\mathcal{H}\)</span> then operators are mappings from this Hilbert space to itself, <span class="math">\(\mathcal{H} \rightarrow \mathcal{H}\)</span>. However, in <strong>QuantumOptics.jl</strong> states are specified as coefficients in respect to a specific basis and therefore operators are mappings from elements of the Hilbert space in a certain basis to a elements of the same Hilbert space but possibly in a different basis. The basis free definition is</p>
+<div class="math">
+\[|\Psi\rangle = A |\Phi\rangle\]</div>
+<p>while for a basis specific version we have to choose two possibly different bases <span class="math">\(\{|u\rangle\}\)</span> and <span class="math">\(\{|v\rangle\}\)</span> and express the states <span class="math">\(|\Psi\rangle\)</span> and <span class="math">\(|\Phi\rangle\)</span> and the operator A in these bases</p>
+<div class="math">
+\[\begin{split}|\Psi\rangle &amp;= \sum_u \Psi_u \langle u |\Psi\rangle
+\\
+|\Phi\rangle &amp;= \sum_v \Phi_v \langle v |\Phi\rangle
+\\
+A =  \sum_{uv} A_{uv} | v \rangle \langle u |\end{split}\]</div>
+<p>The coefficients are then connected by the equation</p>
+<div class="math">
+\[\Psi_u = \sum_v A_{uv} \Phi_v\]</div>
+<p>As next level we now consider mappings from the space of mappings <span class="math">\(\mathcal{H} \rightarrow \mathcal{H}\)</span> to itself, i.e. <span class="math">\((\mathcal{H} \rightarrow \mathcal{H}) \rightarrow (\mathcal{H} \rightarrow \mathcal{H})\)</span>. In operator notation we also call these objects <em>super-operators</em>. With the operators <span class="math">\(A,B\)</span> and the super-operator <span class="math">\(S\)</span> the basis independent expression is denoted by</p>
+<div class="math">
+\[A = S B\]</div>
+<p>In contrast, for the basis specific version we have to choose two possibly different bases for A which we denote as <span class="math">\(\{|u\rangle\}\)</span> and <span class="math">\(\{|v\rangle\}\)</span> and additionally two, also possibly different bases for B, <span class="math">\(\{|m\rangle\}\)</span> and <span class="math">\(\{|n\rangle\}\)</span>.</p>
+<div class="math">
+\[\begin{split}A &amp;= \sum_{uv} A_{uv} |v \rangle \langle u|
+\\
+B &amp;= \sum_{mn} B_{mn} |n \rangle \langle m|
+\\
+S &amp;= \sum_{uvmn} S_{uvmn} |v \rangle \langle u| \otimes
+                          |n \rangle \langle m|\end{split}\]</div>
+<p>The coefficients are then connected by</p>
+<div class="math">
+\[A_{uv} &amp;= \sum_{mn} S_{uvmn} B_{mn}\]</div>
+<p>The implementation of super-operators in <strong>QuantumOptics.jl</strong> is based on the basis specific concept, which means it has to consider 4 possibly different bases. The two basis choices for the output are stored in the <code class="docutils literal"><span class="pre">basis_l</span></code> field and the two basis choices for the input are stored in the <code class="docutils literal"><span class="pre">basis_r</span></code> field. At the moment there are two concrete super-operator types implemented, a dense version <a class="reference internal" href="api.html#DenseSuperOperator" title="DenseSuperOperator"><code class="xref jl jl-type docutils literal"><span class="pre">DenseSuperOperator</span></code></a> and a sparse version <a class="reference internal" href="api.html#SparseSuperOperator" title="SparseSuperOperator"><code class="xref jl jl-type docutils literal"><span class="pre">SparseSuperOperator</span></code></a>, both inheriting from the abstract <a class="reference internal" href="api.html#SuperOperator" title="SuperOperator"><code class="xref jl jl-abstract docutils literal"><span class="pre">SuperOperator</span></code></a> type.</p>
+<p>Besides the expected algebraic operations there are a few additional functions that help creating and working with super-operators:</p>
+<ul class="simple">
+<li><a class="reference internal" href="api.html#spre-ac8465a5d86d86b0418bf6908936ab40" title="spre(::DenseOperator)"><code class="xref jl jl-func docutils literal"><span class="pre">spre(::DenseOperator)</span></code></a></li>
+<li><a class="reference internal" href="api.html#spost-ac8465a5d86d86b0418bf6908936ab40" title="spost(::DenseOperator)"><code class="xref jl jl-func docutils literal"><span class="pre">spost(::DenseOperator)</span></code></a></li>
+<li><a class="reference internal" href="api.html#liouvillian-c24fc11da51d745e104e01a1c2a78ea8" title="liouvillian(H, J)"><code class="xref jl jl-func docutils literal"><span class="pre">liouvillian(H,</span> <span class="pre">J)</span></code></a></li>
+<li><a class="reference internal" href="api.html#expm-701d37689b8ff117b0f1bf964aa68f1b" title="expm"><code class="xref jl jl-func docutils literal"><span class="pre">expm</span></code></a></li>
+</ul>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="spectralanalysis.html" class="btn btn-neutral" title="Spectral Analysis" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Sebastian Krämer.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
