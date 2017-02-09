@@ -9,7 +9,7 @@ Trace distance between two density operators.
 
 It uses the identity
 
-.. math:
+.. math::
 
     T(\\rho, \\sigma) = \\frac{1}{2} \\sum_i |\\lambda_i|
 
@@ -33,7 +33,7 @@ end
 """
 Trace distance between two operators.
 
-.. math:
+.. math::
 
     T(\\rho, \\sigma) = \\frac{1}{2}
             Tr\\{\\ \\sqrt{(\\rho-\\sigma)^\\dagger(\\rho-\\sigma)}\\}
@@ -53,12 +53,12 @@ Von Neumann entropy of density matrix.
 
 The VN entropy of a density operator is defined as
 
-.. math:
+.. math::
 
     S(\\rho) = -Tr(\\rho \\log(\\rho)) = -\\sum_n \\lambda_n\\log(\\lambda_n)
 
 where :math:`\\lambda_n` are the eigenvalues of the density matrix
-:math:`\\rho`, :math:`log` is the natural logarithm and :math:`\\log(0)\\equiv 0`.
+:math:`\\rho`, :math:`\\log` is the natural logarithm and :math:`\\log(0)\\equiv 0`.
 """
 entropy_vn(rho::DenseOperator) = sum([d == 0 ? 0 : -d*log(d) for d=eigvals(rho.data)])
 
