@@ -128,7 +128,7 @@ SparseOperators
 Lazy Operators
 ^^^^^^^^^^^^^^
 
-.. jl:autoabstract:: operators_lazy.jl LazyWrapper
+.. jl:autotype:: operators_lazy.jl LazyWrapper
 
 .. jl:autotype:: operators_lazytensor.jl LazyTensor
 
