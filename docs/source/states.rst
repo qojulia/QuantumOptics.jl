@@ -1,7 +1,7 @@
-.. _section-states:
+.. _section-statesandoperators:
 
 States and Operators
-======
+====================
 
 Here we will give a brief overview over the operations that are available for states and operators. All states and operators are defined on a basis, such as for example the :jl:func:`FockBasis`. For a full list of implemented bases and their predefined states and operators please refer to :ref:`Quantumsystems <section-quantumsystems>`. More details on the different types of operators can be found in :ref:`Operators <section-operators-detail>`.
 
