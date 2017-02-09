@@ -168,6 +168,8 @@ Metrics
 
 .. jl:autofunction:: metrics.jl tracedistance_general
 
+.. jl:autofunction:: metrics.jl entropy_vn
+
 
 
 Systems

@@ -20,7 +20,7 @@ The definition of the SpinBasis is very simple and is more or less given by::
         spinnumber::Rational{Int}
     end
 
-All expected operators are implemented:
+All expected operators are implemented, all of which require a single argument of the type SpinBasis :jl:func:`b::SpinBasis`.
 
 * :jl:func:`sigmax`
 * :jl:func:`sigmay`
@@ -30,5 +30,5 @@ All expected operators are implemented:
 
 Also the lowest and uppermost states are defined:
 
-* :jl:func:`spinup`
-* :jl:func:`spindown`
+* :jl:func:`spinup(b::SpinBasis)`
+* :jl:func:`spindown(b::SpinBasis)`

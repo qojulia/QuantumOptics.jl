@@ -1,7 +1,7 @@
-.. _section-states:
+.. _section-statesandoperators:
 
 States and Operators
-======
+====================
 
 Here we will give a brief overview over the operations that are available for states and operators. All states and operators are defined on a basis, such as for example the :jl:func:`FockBasis`. For a full list of implemented bases and their predefined states and operators please refer to :ref:`Quantumsystems <section-quantumsystems>`. More details on the different types of operators can be found in :ref:`Operators <section-operators-detail>`.
 
@@ -28,7 +28,7 @@ The distinction between coefficients in respect to bra or ket states is strictly
     x = Ket(basis, [1,1,1]) # Not necessarily normalized
     y = Bra(basis, [0,1,0])
 
-Many commonly used states are already implemented for various systems, like e.g. :jl:func:`fockstate` or :jl:func:`gaussianstate(::MomentumBasis, x0, p0, sigma)`.
+Many commonly used states are already implemented for various systems, like e.g. :jl:func:`fockstate(n::Int)` or :jl:func:`gaussianstate(::MomentumBasis, x0, p0, sigma)`.
 
 All expected arithmetic functions like \*, /, +, - are implemented::
 
@@ -37,11 +37,11 @@ All expected arithmetic functions like \*, /, +, - are implemented::
     2*x
     y*x # Inner product
 
-The hermitian conjugate is performed by the :jl:func:`dagger(::Ket)` function which transforms a bra in a ket and vice versa::
+The hermitian conjugate is performed by the :jl:func:`dagger(x::Ket)` function which transforms a bra in a ket and vice versa::
 
     dagger(x) # Bra(basis, [1,1,1])
 
-Composite states can be created with the :jl:func:`tensor(::Ket, ::Ket)` function or with the equivalent :math:`\otimes` operator::
+Composite states can be created with the :jl:func:`tensor(x::Ket, y::Ket)` function or with the equivalent :math:`\otimes` operator::
 
     tensor(x, x)
     x ⊗ x
@@ -55,8 +55,8 @@ The following functions are also available for states:
     :jl:func:`normalize!(x::Ket, p=2)`
 
 * Partial trace
-    :jl:func:`ptrace(x::Ket, indices)`
-    :jl:func:`ptrace(x::Bra, indices)`
+    :jl:func:`ptrace(x::Ket, indices::Vector{Int})`
+    :jl:func:`ptrace(x::Bra, indices::Vector{Int})`
 
 
 .. _section-operators:
@@ -79,7 +79,7 @@ All standard arithmetic functions for operators are defined, \*, /, +, -::
     sx * sy # Matrix product
     sx ⊗ sy
 
-Additionally the following functions are implemented (for operators A, B):
+Additionally the following functions are implemented (for :jl:func:`A::Operator`, :jl:func:`B::Operator`):
 
 * Hermitian conjugate:
     :jl:func:`dagger(A)`
@@ -98,8 +98,8 @@ Additionally the following functions are implemented (for operators A, B):
     :jl:func:`tensor(A, B)`
 
 * Partial trace:
-    :jl:func:`ptrace(A, index)`
-    :jl:func:`ptrace(A, indices)`
+    :jl:func:`ptrace(A, index::Int)`
+    :jl:func:`ptrace(A, indices::Vector{Int})`
 
 * Creating operators from states:
     :jl:func:`tensor(x::Ket, y::Bra)`
@@ -107,15 +107,15 @@ Additionally the following functions are implemented (for operators A, B):
 
 For creating operators of the type :math:`A = I \otimes I \otimes ... a_i ... \otimes I` the very useful embed function can be used:
 
-* :jl:func:`embed(basis, indices, operators)`
-* :jl:func:`embed(basis, index, op)`
+* :jl:func:`embed(b::Basis, index::Int, op::Operator)`
+* :jl:func:`embed(b::Basis, indices::Vector{Int}, ops::Vector{T <: Operator})`
 
 E.g. for a system consisting of 3 spins one can define the basis with::
 
     b_spin = SpinBasis(1//2)
     b = b_spin ⊗ b_spin ⊗ b_spin
 
-An operator in this basis b that only acts onto the second spin could be created as::
+An operator in this basis b that only acts on the second spin could be created as::
 
     identityoperator(b_spin) ⊗ sigmap(b_spin) ⊗ identityoperator(b_spin)
 

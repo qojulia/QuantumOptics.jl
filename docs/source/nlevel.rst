@@ -15,11 +15,10 @@ Essentially it is defined just as::
         N::Int
     end
 
-Defined operators:
+We can create a state :math:`|m\rangle` for the level :jl:func:`m` with
 
-* :jl:func:`transition`
+* :jl:func:`nlevelstate(b::NLevelBasis, m::Vector{Int})`
 
+With the transition operator, we can create projectors of the form :math:`|m\rangle\langle n|` describing a transition from the state :math:`|n\rangle` to :math:`|n\rangle`.
 
-States can be created with
-
-* :jl:func:`nlevelstate`
+* :jl:func:`transition(b::NLevelBasis, m::Int, n::Int)`
