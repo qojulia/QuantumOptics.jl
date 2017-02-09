@@ -169,7 +169,7 @@ function operators.gemv!(alpha, a::LazyTensor, b::Ket, beta, result::Ket)
         _lazytensor_gemv!(rank, index, Complex(1.), a.operators[op_index], b, Complex(0.), tmp)
         b = tmp
     end
-    result.data[:] = beta*result.data[:] + b.data[:]
+    result.data[:] = beta*result.data[:] + alpha*a.factor*b.data[:]
     nothing
 end
 
@@ -206,6 +206,6 @@ function operators.gemv!(alpha, a::Bra, b::LazyTensor, beta, result::Bra)
         _lazytensor_gemv!(rank, index, Complex(1.), a, b.operators[op_index], Complex(0.), tmp)
         a = tmp
     end
-    result.data[:] = beta*result.data[:] + a.data[:]
+    result.data[:] = beta*result.data[:] + alpha*b.factor*a.data[:]
     nothing
 end

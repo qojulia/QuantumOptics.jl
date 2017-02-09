@@ -4,6 +4,7 @@ import Base: ==, *, /, +, -
 import ..operators: dagger, identityoperator,
                     trace, ptrace, normalize!, tensor, permutesystems
 
+using Base.Cartesian
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
 export lazy, LazyWrapper, LazyTensor, LazySum, LazyProduct
