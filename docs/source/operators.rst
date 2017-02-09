@@ -1,4 +1,4 @@
-.. _section-operators:
+.. _section-operators-detail:
 
 Operators
 =========
@@ -133,3 +133,8 @@ Lazy operators allow delayed evaluation of certain operations. This is useful wh
 
 In this case the Hamiltonian :math:`H` is a lazy sum of the kinetic term :math:`p^2/2` and the potential term :math:`x^2` where the kinetic term is the lazy product mentioned before. In the end this results in a speed up from :math:`O(N^2)` to :math:`O(N \log N)`.
 
+All lazy operators inherit from the abstract :jl:abstract:`LazyOperator`. There are currently three different concrete implementations:
+
+* :jl:type:`LazyTensor`
+* :jl:type:`LazySum`
+* :jl:type:`LazyProduct`
