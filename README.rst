@@ -32,7 +32,7 @@ Example
 
 More involved examples created using jupyter notebooks can be found at
 
-    https://bastikr.github.io/QuantumOptics.jl/examples.html
+    https://bastikr.github.io/QuantumOptics.jl/docs/examples.html
 
 
 Documentation
@@ -40,4 +40,4 @@ Documentation
 
 The documentation written with `Sphinx <http://www.sphinx-doc.org/>`_ using the `Sphinx-Julia <https://github.com/bastikr/sphinx-julia>`_ plugin is available at
 
-    https://bastikr.github.io/QuantumOptics.jl/
+    https://bastikr.github.io/QuantumOptics.jl/docs
