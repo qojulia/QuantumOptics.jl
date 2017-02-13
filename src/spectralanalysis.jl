@@ -2,7 +2,7 @@ module spectralanalysis
 
 using ..states, ..operators, ..operators_dense, ..operators_sparse
 
-export operatorspectrum, operatorspectrum_hermitian, eigenstates, eigenstates_hermitian, groundstate
+export operatorspectrum, operatorspectrum_hermitian, eigenstates, eigenstates_hermitian, groundstate, simdiag
 
 
 """
@@ -157,5 +157,29 @@ Nmax (optional)
     Number of eigenstates that should be calculated.
 """
 groundstate(H::Union{DenseOperator, SparseOperator}) = eigenstates_hermitian(H; Nmax=1)[1]
+
+
+"""
+Simultaneously diagonalize two commuting Hermitian operators.
+
+This is done by diagonalizing a random linear combination of the operators
+and checking if both operators alone are diagonalized by the resulting
+eigenvectors.
+"""
+
+function simdiag(A::DenseOperator, B::DenseOperator; max_iter::Int=5, atol::Real=0)
+  iter = 1
+  while iter <= max_iter
+    d, v = eig(rand()*A.data + rand()*B.data)
+    diagA = v'*A.data*v
+    diagB = v'*B.data*v
+    dA = eigvals(A.data)
+    dB = eigvals(B.data)
+    if isapprox(diagm(dA), diagA; atol=atol) && isapprox(diagm(dB), diagB; atol=atol)
+      return dA, dB, v
+    end
+  throw("Simultaneous diagonalization failed")
+  end
+end
 
 end # module
