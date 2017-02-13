@@ -167,18 +167,34 @@ and checking if both operators alone are diagonalized by the resulting
 eigenvectors.
 """
 
-function simdiag(A::DenseOperator, B::DenseOperator; max_iter::Int=5, atol::Real=0)
-  iter = 1
-  while iter <= max_iter
+function simdiag(A::DenseOperator, B::DenseOperator; max_iter::Int=1, atol::Real=1e-15, rtol::Real=1e-15)
+  a, b = rand(2)
+  while a == 0 || b == 0
+    a, b = rand(2)
+  end
+
+  check = [false, false]
+  for i=1:max_iter
     d, v = eig(rand()*A.data + rand()*B.data)
-    diagA = v'*A.data*v
-    diagB = v'*B.data*v
     dA = eigvals(A.data)
     dB = eigvals(B.data)
-    if isapprox(diagm(dA), diagA; atol=atol) && isapprox(diagm(dB), diagB; atol=atol)
-      return dA, dB, v
+
+    perm_index = [1:length(dA);]
+    j = 1
+    while check[1] == false && check[2] == false && j <= length(dA)
+      v = v[:, perm_index]
+      diagA = v'*A.data*v
+      diagB = v'*B.data*v
+      check[1] = check[1] ? check[1] : isapprox(diagm(dA), diagA; atol=atol, rtol=rtol)
+      check[2] = check[2] ? check[2] : isapprox(diagm(dB), diagB; atol=atol, rtol=rtol)
+      j += 1
+      perm_index = [j:length(perm_index); 1:j-1;]
     end
-  throw("Simultaneous diagonalization failed")
+  end
+  if check[1] && check[2]
+    return dA, dB, v
+  else
+    error("Simultaneous diagonalization failed")
   end
 end
 

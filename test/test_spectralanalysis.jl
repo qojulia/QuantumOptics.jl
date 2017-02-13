@@ -70,3 +70,14 @@ b = eigenstates_hermitian(H)[1:(Ncutoff+1)]
 for i=1:length(b)
     @test 1-abs(dagger(b[i])*basisstates[i])<1e-12
 end
+
+twospinbasis = spinbasis ⊗ spinbasis
+Sx = full(sum([embed(twospinbasis, i, sx) for i=1:2]))/2.
+Sy = full(sum([embed(twospinbasis, i, sy) for i=1:2]))/2.
+Sz = full(sum([embed(twospinbasis, i, sz) for i=1:2]))/2.
+Ssq = Sx^2 + Sy^2 + Sz^2
+dz, dsq, v = simdiag(Sz, Ssq; atol=1e-1)
+@test dz == [-1.0, 0, 0, 1.0]
+@test dsq == [0.0, 2, 2, 2]
+@test issaprox(diagm(eigvals(Ssq.data)), v'*Ssq.data*v)
+@test_throws ErrorException simdiag(Sx, Sy)
