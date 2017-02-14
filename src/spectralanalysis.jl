@@ -167,35 +167,49 @@ and checking if both operators alone are diagonalized by the resulting
 eigenvectors.
 """
 
-function simdiag(A::DenseOperator, B::DenseOperator; max_iter::Int=1, atol::Real=1e-15, rtol::Real=1e-15)
+function simdiag(A::DenseOperator, B::DenseOperator; max_iter::Int=1, atol::Real=1e-15, rtol::Real=1e-15, sortby::Int=1)
+  A != dagger(A) || B != dagger(B) ? error("Non-hermitian operator given!") : nothing
+
+  sortby == 1 || sortby == 2 ? nothing : error("Require sortby::Int = 1, 2!")
+
+  comm = A.data*B.data - B.data*A.data
+  isapprox(comm, 0.0im*zeros(size(A.data)); atol=atol, rtol=rtol) ? nothing : error("Operators do not commute!")
+
   a, b = rand(2)
   while a == 0 || b == 0
     a, b = rand(2)
   end
 
-  check = [false, false]
-  for i=1:max_iter
-    d, v = eig(rand()*A.data + rand()*B.data)
-    dA = eigvals(A.data)
-    dB = eigvals(B.data)
+  d, v = eig(a*A.data + b*B.data)
 
-    perm_index = [1:length(dA);]
-    j = 1
-    while check[1] == false && check[2] == false && j <= length(dA)
-      v = v[:, perm_index]
-      diagA = v'*A.data*v
-      diagB = v'*B.data*v
-      check[1] = check[1] ? check[1] : isapprox(diagm(dA), diagA; atol=atol, rtol=rtol)
-      check[2] = check[2] ? check[2] : isapprox(diagm(dB), diagB; atol=atol, rtol=rtol)
-      j += 1
-      perm_index = [j:length(perm_index); 1:j-1;]
+  dA = Vector{Complex128}(length(d))
+  dB = Vector{Complex128}(length(d))
+  for i=1:length(d)
+    dA[i] = (v[:, i]'*A.data*v[:, i])[1]
+    dB[i] = (v[:, i]'*B.data*v[:, i])[1]
+    vA = A.data*v[:, i]
+    vB = B.data*v[:, i]
+
+    if dA[i] == 0
+      checkA = isapprox(vA, zeros(length(d)); atol=atol, rtol=rtol)
+    else
+      checkA = isapprox((vA'*v[:, i])[1]/dA[i], 1.0; atol=atol, rtol=rtol)
     end
+
+    if dB[i] == 0
+      checkB = isapprox(vB, zeros(length(d)); atol=atol, rtol=rtol)
+    else
+      checkB = isapprox((vB'*v[:, i])[1]/dB[i], 1.0; atol=atol, rtol=rtol)
+    end
+
+    checkA && checkB ? nothing : error("Simultaneous diagonalization failed!")
   end
-  if check[1] && check[2]
-    return dA, dB, v
-  else
-    error("Simultaneous diagonalization failed")
-  end
+
+  index = sortby == 1 ? sortperm(real(dA)) : sortperm(real(dB))
+
+  real(dA[index]), real(dB[index]), v[:, index]
 end
+
+simdiag(A::SparseOperator, B::SparseOperator; kwargs...) = simdiag(full(A), full(B); kwargs...)
 
 end # module
