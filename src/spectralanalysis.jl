@@ -160,14 +160,41 @@ groundstate(H::Union{DenseOperator, SparseOperator}) = eigenstates_hermitian(H; 
 
 
 """
-Simultaneously diagonalize two commuting Hermitian operators.
+Simultaneously diagonalize two commuting Hermitian operators A and B.
 
-This is done by diagonalizing a random linear combination of the operators
-and checking if both operators alone are diagonalized by the resulting
-eigenvectors.
+This is done by diagonalizing a random linear combination of the operators.
+The eigenvalues are computed by :math:`a = \\langle \\psi |A|\\psi\\rangle` and
+it is checked whether the eigenvectors fulfill the equation
+:math:`A|\\psi\\rangle = a|\\psi\\rangle`.
+
+Arguments
+---------
+
+A
+  Sparse or dense operator.
+B
+  Sparse or dense operator.
+
+Keyword arguments
+-----------------
+
+sortby (optional)
+  Integer that is either 1 or 2, specifying if the resulting common eigenvectors
+  should be sorted by the eigenvalues of A (1) or B (2) in increasing order.
+  Default is 1.
+
+atol (optional)
+  kwarg of Base.isapprox specifying the tolerance of the approximate check
+  Default is 1e-15.
+
+rtol (optional)
+  kwarg of Base.isapprox specifying the tolerance of the approximate check
+  Default is 1e-15.
 """
 
-function simdiag(A::DenseOperator, B::DenseOperator; max_iter::Int=1, atol::Real=1e-15, rtol::Real=1e-15, sortby::Int=1)
+function simdiag(A::DenseOperator, B::DenseOperator; sortby::Int=1, atol::Real=1e-15, rtol::Real=1e-15)
+
+  # Check input
   A != dagger(A) || B != dagger(B) ? error("Non-hermitian operator given!") : nothing
 
   sortby == 1 || sortby == 2 ? nothing : error("Require sortby::Int = 1, 2!")
@@ -175,6 +202,7 @@ function simdiag(A::DenseOperator, B::DenseOperator; max_iter::Int=1, atol::Real
   comm = A.data*B.data - B.data*A.data
   isapprox(comm, 0.0im*zeros(size(A.data)); atol=atol, rtol=rtol) ? nothing : error("Operators do not commute!")
 
+  # Assert that random linear combination of A and B has no zero coefficients
   a, b = rand(2)
   while a == 0 || b == 0
     a, b = rand(2)
@@ -182,6 +210,7 @@ function simdiag(A::DenseOperator, B::DenseOperator; max_iter::Int=1, atol::Real
 
   d, v = eig(a*A.data + b*B.data)
 
+  # Compute eigenvalues and check whether the eigenvectors fulfill the eigenvalue equation
   dA = Vector{Complex128}(length(d))
   dB = Vector{Complex128}(length(d))
   for i=1:length(d)
