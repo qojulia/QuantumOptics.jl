@@ -23,15 +23,22 @@ H = Δ₂*proj₂ + Δ₃*proj₃ + Ω*(σ₁ + dagger(σ₁))
 J = [sqrt(γ₃)*σ₃];
 
 # Initial state
-ψ₀ = nlevelstate(b, 1)
-
-# Time evolution
-tout, ρₜ = timeevolution.master(tlist, ψ₀, H, J);
+ψ₀ = nlevelstate(b, 1);
 
 # Expectation values
-p1 = real(expect(σ₁*dagger(σ₁), ρₜ))
-p2 = real(expect(proj₂, ρₜ))
-p3 = real(expect(proj₃, ρₜ));
+tout = Float64[]
+p1 = Float64[]
+p2 = Float64[]
+p3 = Float64[]
+function calc_pops(t, ρ)
+    push!(tout, t)
+    push!(p1, real(expect(σ₁*dagger(σ₁), ρ)))
+    push!(p2, real(expect(proj₂, ρ)))
+    push!(p3, real(expect(proj₃, ρ)))
+end;
+
+# Time evolution
+timeevolution.master(tlist, ψ₀, H, J; fout=calc_pops)
 
 # Plots
 figure(figsize=(7, 3.5))
@@ -41,5 +48,3 @@ plot(tout, p3, "r", label="Other ground state")
 axis([0, tmax, 0, 1])
 legend()
 show()
-
-
