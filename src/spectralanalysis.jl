@@ -185,24 +185,19 @@ sortby (optional)
 
 atol (optional)
   kwarg of Base.isapprox specifying the tolerance of the approximate check
-  Default is 1e-15.
+  Default is 1e-14.
 
 rtol (optional)
   kwarg of Base.isapprox specifying the tolerance of the approximate check
-  Default is 1e-15.
+  Default is 1e-14.
 """
 
-function simdiag(A::DenseOperator, B::DenseOperator; sortby::Int=1, atol::Real=1e-15, rtol::Real=1e-15)
+function simdiag(A::DenseOperator, B::DenseOperator; sortby::Int=1, atol::Real=1e-14, rtol::Real=1e-14)
 
   # Check input
-  A != dagger(A) || B != dagger(B) ? error("Non-hermitian operator given!") : nothing
-
+  A == dagger(A) && B == dagger(B) ? nothing : error("Non-hermitian operator given!")
   sortby == 1 || sortby == 2 ? nothing : error("Require sortby::Int = 1, 2!")
 
-  comm = A.data*B.data - B.data*A.data
-  isapprox(comm, 0.0im*zeros(size(A.data)); atol=atol, rtol=rtol) ? nothing : error("Operators do not commute!")
-
-  # Assert that random linear combination of A and B has no zero coefficients
   a, b = rand(2)
   while a == 0 || b == 0
     a, b = rand(2)
@@ -210,32 +205,17 @@ function simdiag(A::DenseOperator, B::DenseOperator; sortby::Int=1, atol::Real=1
 
   d, v = eig(a*A.data + b*B.data)
 
-  # Compute eigenvalues and check whether the eigenvectors fulfill the eigenvalue equation
   dA = Vector{Complex128}(length(d))
   dB = Vector{Complex128}(length(d))
   for i=1:length(d)
     dA[i] = (v[:, i]'*A.data*v[:, i])[1]
     dB[i] = (v[:, i]'*B.data*v[:, i])[1]
-    vA = A.data*v[:, i]
-    vB = B.data*v[:, i]
-
-    if dA[i] == 0
-      checkA = isapprox(vA, zeros(length(d)); atol=atol, rtol=rtol)
-    else
-      checkA = isapprox((vA'*v[:, i])[1]/dA[i], 1.0; atol=atol, rtol=rtol)
-    end
-
-    if dB[i] == 0
-      checkB = isapprox(vB, zeros(length(d)); atol=atol, rtol=rtol)
-    else
-      checkB = isapprox((vB'*v[:, i])[1]/dB[i], 1.0; atol=atol, rtol=rtol)
-    end
-
+    checkA = isapprox(A.data*v[:, i] - dA[i]*v[:, i], zeros(length(d)); atol=atol, rtol=rtol)
+    checkB = isapprox(B.data*v[:, i] - dB[i]*v[:, i], zeros(length(d)); atol=atol, rtol=rtol)
     checkA && checkB ? nothing : error("Simultaneous diagonalization failed!")
   end
 
   index = sortby == 1 ? sortperm(real(dA)) : sortperm(real(dB))
-
   real(dA[index]), real(dB[index]), v[:, index]
 end
 
