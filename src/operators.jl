@@ -156,11 +156,25 @@ function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
     end
     indices, operator_list = zip(operators...)
     operator_list = [operator_list...;]
-    indices = [indices...;]
-    complement_operators = [identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i in complement(N, indices)]
-    op = tensor([operator_list; complement_operators]...)
-    perm = sortperm([indices; complement(N, indices)])
-    permutesystems(op, perm)
+    indices_flat = [indices...;]
+    start_indices_flat = [i[1] for i in indices]
+    complement_indices_flat = complement(N, indices_flat)
+    operators_flat = T[]
+    if all([minimum(I):maximum(I);]==I for I in indices)
+        for i in 1:N
+            if i in complement_indices_flat
+                push!(operators_flat, identityoperator(T, basis_l.bases[i], basis_r.bases[i]))
+            elseif i in start_indices_flat
+                push!(operators_flat, operator_list[findfirst(start_indices_flat, i)])
+            end
+        end
+        return tensor(operators_flat...)
+    else
+        complement_operators = [identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i in complement_indices_flat]
+        op = tensor([operator_list; complement_operators]...)
+        perm = sortperm([indices_flat; complement_indices_flat])
+        return permutesystems(op, perm)
+    end
 end
 embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis, operators::Dict{Int, T}; kwargs...) = embed(basis_l, basis_r, Dict([i]=>op_i for (i, op_i) in operators); kwargs...)
 embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Int, T}; kwargs...) = embed(basis, basis, operators; kwargs...)

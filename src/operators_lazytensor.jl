@@ -14,10 +14,10 @@ type LazyTensor <: Operator
     function LazyTensor(basis_l::Basis, basis_r::Basis,
                         operators::Dict{Int,Operator}, factor::Number=1)
         if typeof(basis_l) != CompositeBasis
-            basis_l = CompositeBasis(basis_l)
+            basis_l = CompositeBasis(basis_l.shape, Basis[basis_l])
         end
         if typeof(basis_r) != CompositeBasis
-            basis_r = CompositeBasis(basis_r)
+            basis_r = CompositeBasis(basis_r.shape, Basis[basis_r])
         end
         N = length(basis_l.bases)
         @assert N==length(basis_r.bases)

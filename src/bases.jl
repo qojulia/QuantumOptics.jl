@@ -48,9 +48,9 @@ from the shape vectors of these subbases.
 type CompositeBasis <: Basis
     shape::Vector{Int}
     bases::Vector{Basis}
-    CompositeBasis(bases::Basis...) = new([prod(b.shape) for b=bases], [bases...])
 end
-
+CompositeBasis(bases::Vector{Basis}) = CompositeBasis(Int[prod(b.shape) for b in bases], bases)
+CompositeBasis(bases::Basis...) = CompositeBasis(Basis[bases...])
 
 """
 Create composite bases.
@@ -59,10 +59,10 @@ Any given CompositeBasis is expanded so that the resulting CompositeBasis never
 has another CompositeBasis as subbasis.
 """
 tensor() = error("Tensor function needs at least one argument.")
-tensor(b1::Basis, b2::Basis) = CompositeBasis(b1, b2)
-tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(b1.bases..., b2.bases...)
-tensor(b1::CompositeBasis, b2::Basis) = CompositeBasis(b1.bases..., b2)
-tensor(b1::Basis, b2::CompositeBasis) = CompositeBasis(b1, b2.bases...)
+tensor(b1::Basis, b2::Basis) = CompositeBasis(Int[prod(b1.shape); prod(b2.shape)], Basis[b1, b2])
+tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(Int[b1.shape; b2.shape], Basis[b1.bases; b2.bases])
+tensor(b1::CompositeBasis, b2::Basis) = CompositeBasis(Int[b1.shape; prod(b2.shape)], Basis[b1.bases; b2])
+tensor(b1::Basis, b2::CompositeBasis) = CompositeBasis(Int[prod(b1.shape); b2.shape], Basis[b1; b2.bases])
 tensor(bases::Basis...) = reduce(tensor, bases)
 tensor{T}(x::T...) = reduce(tensor, x)
 ⊗(a,b) = tensor(a,b)
@@ -172,27 +172,16 @@ check_multiplicable(b1::Basis, b2::Basis) = (multiplicable(b1, b2) ? true : thro
 Partial trace of a composite basis.
 """
 function ptrace(b::CompositeBasis, indices::Vector{Int})
-    reduced_basis = Basis[]
-    for (i, subbasis) in enumerate(b.bases)
-        if !(i in indices)
-            push!(reduced_basis, subbasis)
-        end
-    end
-    if length(reduced_basis)==0
+    J = [i for i in 1:length(b.bases) if i ∉ indices]
+    if length(J)==0
         error("Nothing left.")
-    elseif length(reduced_basis)==1
-        return reduced_basis[1]
+    elseif length(J)==1
+        return b.bases[J[1]]
     else
-        return CompositeBasis(reduced_basis...)
+        return CompositeBasis(b.shape[J], b.bases[J])
     end
 end
 
-
-function permutesystems(bases::Vector{Basis}, perm::Vector{Int})
-    @assert length(bases) == length(perm)
-    @assert issubset(Set(1:length(bases)), Set(perm))
-    bases[perm]
-end
 
 """
 Change the ordering of the subbases in a CompositeBasis.
@@ -208,7 +197,11 @@ basis
 perm
     Vector defining the new ordering of the sub-bases.
 """
-bases.permutesystems(basis::CompositeBasis, perm::Vector{Int}) = CompositeBasis(permutesystems(basis.bases, perm)...)
-
+function permutesystems(b::CompositeBasis, perm::Vector{Int})
+    N = length(b.bases)
+    @assert N == length(perm)
+    @assert N == length(Set(perm))
+    CompositeBasis(b.shape[perm], b.bases[perm])
+end
 
 end # module
