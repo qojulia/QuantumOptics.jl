@@ -19,12 +19,12 @@ The matrix consisting of complex floats is stored in the data field.
 type DenseOperator <: Operator
     basis_l::Basis
     basis_r::Basis
-    data::Matrix{Complex{Float64}}
+    data::Matrix{Complex128}
     DenseOperator(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
 end
 
 DenseOperator(b::Basis, data) = DenseOperator(b, b, data)
-DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(Complex, length(b1), length(b2)))
+DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(Complex128, length(b1), length(b2)))
 DenseOperator(b::Basis) = DenseOperator(b, b)
 DenseOperator(op::Operator) = full(op)
 
