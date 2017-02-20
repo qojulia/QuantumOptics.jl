@@ -184,12 +184,13 @@ rtol (optional)
   kwarg of Base.isapprox specifying the tolerance of the approximate check
   Default is 1e-14.
 """
-
 function simdiag{T <: DenseOperator}(Ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14)
 
   # Check input
   for A=Ops
-    A == dagger(A) ? nothing : error("Non-hermitian operator given!")
+    if !isapprox(A, dagger(A); atol=atol, rtol=rtol)
+      error("Non-hermitian operator given!")
+    end
   end
 
   d, v = eig(sum(Ops).data)
@@ -197,15 +198,14 @@ function simdiag{T <: DenseOperator}(Ops::Vector{T}; atol::Real=1e-14, rtol::Rea
   evals = [Vector{Complex128}(length(d)) for i=1:length(Ops)]
   for i=1:length(Ops), j=1:length(d)
     evals[i][j] = (v[:, j]'*Ops[i].data*v[:, j])[1]
-    check_eval = isapprox(Ops[i].data*v[:, j] - evals[i][j]*v[:, j], zeros(length(d)); atol=atol, rtol=rtol)
-    check_eval ? nothing : error("Simultaneous diagonalization failed!")
+    if !isapprox(Ops[i].data*v[:, j], evals[i][j]*v[:, j]; atol=atol, rtol=rtol)
+      error("Simultaneous diagonalization failed!")
+    end
   end
 
   index = sortperm(real(evals[1][:]))
   evals_sorted = [real(evals[i][index]) for i=1:length(Ops)]
   evals_sorted, v[:, index]
 end
-
-simdiag{T <: SparseOperator}(Ops::Vector{T}; kwargs...) = simdiag([full(A) for A=Ops]; kwargs...)
 
 end # module
