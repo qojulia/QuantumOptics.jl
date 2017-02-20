@@ -77,7 +77,7 @@ Sy = full(sum([embed(twospinbasis, i, sy) for i=1:2]))/2.
 Sz = full(sum([embed(twospinbasis, i, sz) for i=1:2]))/2.
 Ssq = Sx^2 + Sy^2 + Sz^2
 d, v = simdiag([Sz, Ssq])
-@test dz[1] == [-1.0, 0, 0, 1.0]
+@test d[1] == [-1.0, 0, 0, 1.0]
 @test isapprox(d[2],  [2, 0.0, 2, 2])
 @test_throws ErrorException simdiag([Sx, Sy])
 
