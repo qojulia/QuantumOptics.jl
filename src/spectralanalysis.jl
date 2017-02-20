@@ -188,7 +188,7 @@ function simdiag{T <: DenseOperator}(Ops::Vector{T}; atol::Real=1e-14, rtol::Rea
 
   # Check input
   for A=Ops
-    if !isapprox(A, dagger(A); atol=atol, rtol=rtol)
+    if !isapprox(A.data, dagger(A).data; atol=atol, rtol=rtol)
       error("Non-hermitian operator given!")
     end
   end

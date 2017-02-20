@@ -82,12 +82,12 @@ d, v = simdiag([Sz, Ssq])
 @test_throws ErrorException simdiag([Sx, Sy])
 
 threespinbasis = spinbasis ⊗ spinbasis ⊗ spinbasis
-Sx3 = sum([embed(threespinbasis, i, sx) for i=1:3])/2.
-Sy3 = sum([embed(threespinbasis, i, sy) for i=1:3])/2.
-Sz3 = sum([embed(threespinbasis, i, sz) for i=1:3])/2.
+Sx3 = full(sum([embed(threespinbasis, i, sx) for i=1:3])/2.)
+Sy3 = full(sum([embed(threespinbasis, i, sy) for i=1:3])/2.)
+Sz3 = full(sum([embed(threespinbasis, i, sz) for i=1:3])/2.)
 Ssq3 = Sx3^2 + Sy3^2 + Sz3^2
 d3, v3 = simdiag([Ssq3, Sz3])
 dsq3_std = eigvals(full(Ssq3).data)
 @test isapprox(diagm(dsq3_std), v3'*Ssq3.data*v3)
-@test_throws MethodError simdiag([Sy3, Sz3])
+@test_throws ErrorException simdiag([Sy3, Sz3])
 @test_throws ErrorException simdiag([full(destroy(fockbasis)), full(create(fockbasis))])
