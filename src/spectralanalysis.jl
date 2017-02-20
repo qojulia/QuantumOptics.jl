@@ -160,9 +160,9 @@ groundstate(H::Union{DenseOperator, SparseOperator}) = eigenstates_hermitian(H; 
 
 
 """
-Simultaneously diagonalize two commuting Hermitian operators A and B.
+Simultaneously diagonalize commuting Hermitian operators.
 
-This is done by diagonalizing a random linear combination of the operators.
+This is done by diagonalizing the sum of the operators.
 The eigenvalues are computed by :math:`a = \\langle \\psi |A|\\psi\\rangle` and
 it is checked whether the eigenvectors fulfill the equation
 :math:`A|\\psi\\rangle = a|\\psi\\rangle`.
@@ -170,18 +170,11 @@ it is checked whether the eigenvectors fulfill the equation
 Arguments
 ---------
 
-A
-  Sparse or dense operator.
-B
-  Sparse or dense operator.
+Ops
+  Vector of operators (sparse or dense).
 
 Keyword arguments
 -----------------
-
-sortby (optional)
-  Integer that is either 1 or 2, specifying if the resulting common eigenvectors
-  should be sorted by the eigenvalues of A (1) or B (2) in increasing order.
-  Default is 1.
 
 atol (optional)
   kwarg of Base.isapprox specifying the tolerance of the approximate check
@@ -192,33 +185,27 @@ rtol (optional)
   Default is 1e-14.
 """
 
-function simdiag(A::DenseOperator, B::DenseOperator; sortby::Int=1, atol::Real=1e-14, rtol::Real=1e-14)
+function simdiag{T <: DenseOperator}(Ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14)
 
   # Check input
-  A == dagger(A) && B == dagger(B) ? nothing : error("Non-hermitian operator given!")
-  sortby == 1 || sortby == 2 ? nothing : error("Require sortby::Int = 1, 2!")
-
-  a, b = rand(2)
-  while a == 0 || b == 0
-    a, b = rand(2)
+  for A=Ops
+    A == dagger(A) ? nothing : error("Non-hermitian operator given!")
   end
 
-  d, v = eig(a*A.data + b*B.data)
+  d, v = eig(sum(Ops).data)
 
-  dA = Vector{Complex128}(length(d))
-  dB = Vector{Complex128}(length(d))
-  for i=1:length(d)
-    dA[i] = (v[:, i]'*A.data*v[:, i])[1]
-    dB[i] = (v[:, i]'*B.data*v[:, i])[1]
-    checkA = isapprox(A.data*v[:, i] - dA[i]*v[:, i], zeros(length(d)); atol=atol, rtol=rtol)
-    checkB = isapprox(B.data*v[:, i] - dB[i]*v[:, i], zeros(length(d)); atol=atol, rtol=rtol)
-    checkA && checkB ? nothing : error("Simultaneous diagonalization failed!")
+  evals = [Vector{Complex128}(length(d)) for i=1:length(Ops)]
+  for i=1:length(Ops), j=1:length(d)
+    evals[i][j] = (v[:, j]'*Ops[i].data*v[:, j])[1]
+    check_eval = isapprox(Ops[i].data*v[:, j] - evals[i][j]*v[:, j], zeros(length(d)); atol=atol, rtol=rtol)
+    check_eval ? nothing : error("Simultaneous diagonalization failed!")
   end
 
-  index = sortby == 1 ? sortperm(real(dA)) : sortperm(real(dB))
-  real(dA[index]), real(dB[index]), v[:, index]
+  index = sortperm(real(evals[1][:]))
+  evals_sorted = [real(evals[i][index]) for i=1:length(Ops)]
+  evals_sorted, v[:, index]
 end
 
-simdiag(A::SparseOperator, B::SparseOperator; kwargs...) = simdiag(full(A), full(B); kwargs...)
+simdiag{T <: SparseOperator}(Ops::Vector{T}; kwargs...) = simdiag([full(A) for A=Ops]; kwargs...)
 
 end # module

@@ -76,21 +76,18 @@ Sx = full(sum([embed(twospinbasis, i, sx) for i=1:2]))/2.
 Sy = full(sum([embed(twospinbasis, i, sy) for i=1:2]))/2.
 Sz = full(sum([embed(twospinbasis, i, sz) for i=1:2]))/2.
 Ssq = Sx^2 + Sy^2 + Sz^2
-dz, dsq, v = simdiag(Sz, Ssq)
-@test dz == [-1.0, 0, 0, 1.0]
-@test isapprox(dsq,  [2, 0.0, 2, 2])
-dz2, dsq2, v2 = simdiag(Sz, Ssq; sortby=2)
-dsq2_std = eigvals(Ssq.data)
-@test isapprox(diagm(dsq2_std), (v2'*Ssq.data*v2))
-@test_throws ErrorException simdiag(Sx, Sy)
+d, v = simdiag([Sz, Ssq])
+@test dz[1] == [-1.0, 0, 0, 1.0]
+@test isapprox(d[2],  [2, 0.0, 2, 2])
+@test_throws ErrorException simdiag([Sx, Sy])
 
 threespinbasis = spinbasis ⊗ spinbasis ⊗ spinbasis
 Sx3 = sum([embed(threespinbasis, i, sx) for i=1:3])/2.
 Sy3 = sum([embed(threespinbasis, i, sy) for i=1:3])/2.
 Sz3 = sum([embed(threespinbasis, i, sz) for i=1:3])/2.
 Ssq3 = Sx3^2 + Sy3^2 + Sz3^2
-dz3, dsq3, v3 = simdiag(Sz3, Ssq3; sortby=2)
+d3, v3 = simdiag([Ssq3, Sz3])
 dsq3_std = eigvals(full(Ssq3).data)
 @test isapprox(diagm(dsq3_std), v3'*Ssq3.data*v3)
-@test_throws ErrorException simdiag(Sy3, Sz3)
-@test_throws ErrorException simdiag(destroy(fockbasis), create(fockbasis))
+@test_throws ErrorException simdiag([Sy3, Sz3])
+@test_throws ErrorException simdiag([destroy(fockbasis), create(fockbasis)])
