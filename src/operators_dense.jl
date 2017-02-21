@@ -84,12 +84,14 @@ identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1
 
 trace(op::DenseOperator) = trace(op.data)
 
+const RANKS = [zeros(Int, [0 for i=1:N]...) for N=1:20]
+
 function ptrace(a::DenseOperator, indices::Vector{Int})
     operators.check_ptrace_arguments(a, indices)
     if length(a.basis_l.shape) == length(indices)
         return trace(a)
     end
-    rank = zeros(Int, [0 for i=1:length(a.basis_l.shape)]...)
+    rank = RANKS[length(a.basis_l.shape)]
     result = _ptrace(rank, a.data, a.basis_l.shape, a.basis_r.shape, indices)
     return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
 end
