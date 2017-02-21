@@ -61,8 +61,30 @@ has another CompositeBasis as subbasis.
 tensor() = error("Tensor function needs at least one argument.")
 tensor(b1::Basis, b2::Basis) = CompositeBasis(Int[prod(b1.shape); prod(b2.shape)], Basis[b1, b2])
 tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(Int[b1.shape; b2.shape], Basis[b1.bases; b2.bases])
-tensor(b1::CompositeBasis, b2::Basis) = CompositeBasis(Int[b1.shape; prod(b2.shape)], Basis[b1.bases; b2])
-tensor(b1::Basis, b2::CompositeBasis) = CompositeBasis(Int[prod(b1.shape); b2.shape], Basis[b1; b2.bases])
+function tensor(b1::CompositeBasis, b2::Basis)
+    N = length(b1.bases)
+    shape = Vector{Int}(N+1)
+    bases = Vector{Basis}(N+1)
+    for i=1:N
+        shape[i] = b1.shape[i]
+        bases[i] = b1.bases[i]
+    end
+    shape[end] = prod(b2.shape)
+    bases[end] = b2
+    CompositeBasis(shape, bases)
+end
+function tensor(b1::Basis, b2::CompositeBasis)
+    N = length(b2.bases)
+    shape = Vector{Int}(N+1)
+    bases = Vector{Basis}(N+1)
+    for i=1:N
+        shape[i+1] = b2.shape[i]
+        bases[i+1] = b2.bases[i]
+    end
+    shape[1] = prod(b1.shape)
+    bases[1] = b1
+    CompositeBasis(shape, bases)
+end
 tensor(bases::Basis...) = reduce(tensor, bases)
 tensor{T}(x::T...) = reduce(tensor, x)
 ⊗(a,b) = tensor(a,b)
