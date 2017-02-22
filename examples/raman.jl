@@ -34,7 +34,7 @@ p2 = real(expect(proj₂, ρₜ))
 p3 = real(expect(proj₃, ρₜ));
 
 # Plots
-clf()
+figure(figsize=(7, 3.5))
 plot(tout, p1, "b", label="Initial ground state")
 plot(tout, p2, "k--", label="Excited state")
 plot(tout, p3, "r", label="Other ground state")
