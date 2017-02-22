@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+ce = correlationexpansion
+
 srand(0)
 
 b1 = FockBasis(2)
@@ -17,29 +19,26 @@ function test_op_equal(op1, op2, eps=1e-10)
 end
 
 # Test Masks
-mask = correlationexpansion.indices2mask(3, [1,2])
+mask = ce.indices2mask(3, [1,2])
 @test mask == BitArray([1, 1, 0])
-indices = correlationexpansion.mask2indices(mask)
+indices = ce.mask2indices(mask)
 @test indices == [1,2]
 
-S2 = correlationexpansion.correlationmasks(4, 2)
-S3 = correlationexpansion.correlationmasks(4, 3)
-S4 = correlationexpansion.correlationmasks(4, 4)
-@test S2 == Set(BitArray(x) for x in [
-                [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, 1],
-                [0, 1, 1, 0], [0, 1, 0, 1], [0, 0, 1, 1]])
-@test S3 == Set(BitArray(x) for x in [[0, 1, 1, 1], [1, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]])
-@test S4 == Set([BitArray([1, 1, 1, 1])])
+S2 = ce.masks(4, 2)
+S3 = ce.masks(4, 3)
+S4 = ce.masks(4, 4)
+@test S2 == Set([[1,2], [1,3], [1,4], [2,3], [2,4], [3,4]])
+@test S3 == Set([[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
+@test S4 == Set([[1,2,3,4]])
 
 # Test correlation calculation
 rho = randdo(b1⊗b2)
-@time sigma = correlationexpansion.correlation(rho, [1,2])
-@time sigma = correlationexpansion.correlation(rho, [1,2])
+sigma = ce.correlation(rho, [1,2])
 test_op_equal(sigma, rho - ptrace(rho, 2) ⊗ ptrace(rho, 1))
 
 # Test creation of ApproximateOperator
 op1 = randop(b)
-op1_ = correlationexpansion.approximate(op1, S2 ∪ S3 ∪ S4)
+op1_ = ce.approximate(op1, S2 ∪ S3 ∪ S4)
 test_op_equal(op1, op1_)
 
 # Test multiplication
@@ -67,7 +66,7 @@ test_op_equal(ptrace(full(h)*op1, [2,3,4]), ptrace(h*op1_, [2,3,4]))
 
 # Compare to standard master time evolution
 rho = randdo(b1) ⊗ randdo(b2) ⊗ randdo(b3) ⊗ randdo(b4)
-rho_ce = correlationexpansion.approximate(rho, S2 ∪ S3 ∪ S4)
+rho_ce = ce.approximate(rho, S2 ∪ S3 ∪ S4)
 
 j1 = lazy(randop(b1)) ⊗ lazy(randop(b2)) ⊗ lazy(randop(b3)) ⊗ lazy(randop(b4))
 j2 = lazy(randop(b1)) ⊗ lazy(randop(b2)) ⊗ lazy(randop(b3)) ⊗ lazy(randop(b4))
@@ -79,7 +78,7 @@ H = LazySum(h, dagger(h))
 
 
 T = [0.:0.05:0.1;]
-tout_ce, rho_ce_t = correlationexpansion.master(T, rho_ce, H, J; Gamma=Γ)
+tout_ce, rho_ce_t = ce.master(T, rho_ce, H, J; Gamma=Γ)
 
 tout, rho_t = timeevolution.master_h(T, full(rho), full(H), [full(j) for j in J]; Gamma=Γ)
 for i=1:length(rho_t)
