@@ -24,3 +24,7 @@ rho = spinup(b1) ⊗ dagger(coherentstate(b2, 0.1))
 
 rho_mix = full(identityoperator(b1))/2.
 @test entropy_vn(rho_mix)/log(2) == 1.0
+
+rho = tensor(psi1, dagger(psi1))
+@test isapprox(fidelity(rho, rho), 1)
+@test fidelity(rho, sigma) == 0

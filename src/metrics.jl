@@ -2,7 +2,7 @@ module metrics
 
 using ..operators, ..operators_dense
 
-export tracedistance, tracedistance_general, entropy_vn
+export tracedistance, tracedistance_general, entropy_vn, fidelity
 
 """
 Trace distance between two density operators.
@@ -61,5 +61,18 @@ where :math:`\\lambda_n` are the eigenvalues of the density matrix
 :math:`\\rho`, :math:`log` is the natural logarithm and :math:`\\log(0)\\equiv 0`.
 """
 entropy_vn(rho::DenseOperator) = sum([d == 0 ? 0 : -d*log(d) for d=eigvals(rho.data)])
+
+"""
+Fidelity of two density matrices
+
+The fidelity of two density operators :math:`\\rho` and :math:`\\sigma` is defined by
+
+.. math:
+
+    F(\\rho, \\sigma) = Tr\\left(\\sqrt{\\sqrt{\\rho}\\sigma\\sqrt{\\rho}}\\right),
+
+where :math:`\\sqrt{\\rho}=\\sum_n\\sqrt{\\lambda_n}|\\psi\\rangle\\langle\\psi|`.
+"""
+fidelity(rho::DenseOperator, sigma::DenseOperator) = trace(sqrtm(sqrtm(rho.data)*sigma.data*sqrtm(rho.data)))
 
 end # module
