@@ -15,7 +15,7 @@ Essentially it is defined just as::
         N::Int
     end
 
-We can create a state :math:`|m\rangle` for the level :jl:func:`m` with
+We can create a state :math:`|m\rangle` for the level :func:`m` with
 
 * :jl:func:`nlevelstate(b::NLevelBasis, m::Vector{Int})`
 

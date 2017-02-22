@@ -29,6 +29,28 @@ Both versions are implemented and are chosen automatically depending on the type
 
 * :jl:func:`schroedinger`
 
+The Schrödinger equation solver requires the arguments :func:`schroedinger(T::Vector{Int}, psi0::{Ket,Bra}, H::Operator)`, where :func:`T` is a vector containing the times, :func:`psi0` is the initial state
+and :func:`H` is the Hamiltonian.
+
+Additionally, one can pass an output function :func:`fout` as keyword argument. This can be convenient if one directly wants to compute a value that depends on the states, e.g. an expectation value, instead
+of the states themselves. Consider, for example, a time evolution according to a Schrödinger equation where for all times we want to compute the expectation value of the operator :func:`A`. We can do this by::
+
+    tout, psi_t = timeevolution.schroedinger(T, psi0, H)
+    exp_val = expect(A, psi_t)
+
+or equivalently::
+
+    tout = Float64[]
+    exp_val = Complex128[]
+    function exp(t, psi)
+      push!(tout, t)
+      push!(exp_val, expect(A, psi)
+    end
+    timeevolution.schroedinger(T, psi0, H; fout=exp)
+
+Although the method using :func:`fout` might seem more complicated, it can be very useful for large systems to save memory since instead of all the states we only store one complex number per time step. Note, that
+:func:`fout` must always be defined with the arguments :func:`(t, psi)`.
+
 
 .. _section-master:
 
@@ -46,6 +68,27 @@ The dynamics of open quantum systems are governed by a master equation in Lindbl
                         - \frac{1}{2} \rho J_i^\dagger J_i
                     \big)
 
+It is implemented by the function
+
+:func:`master(tspan, rho0::DenseOperator, H::Operator, J::Vector)`
+
+The arguments required are quite similar to the ones of :func:`schroedinger`. :func:`tspan` is a vector of times, :func:`rho0` the initial state and :func:`H` the Hamiltonian. We now also need the vector :func:`J`
+that specifies the jump operators of the system.
+
+The additional arguments available are
+
+* :func:`Gamma::{Vector{Float64}, Matrix{Float64}}`
+* :func:`Jdagger::Vector`
+* :func:`fout::Function`
+
+The first specifies the decay rates of the system with default values one. If :func:`Gamma` is a vector of length :func:`length(J)`, then the `i` th entry of :func:`Gamma` is paired with the `i` th entry of :func:`J`, such
+that :math:`J_i` decays with :math:`\gamma_i`. If, on the other hand, :func:`Gamma` is a matrix, then all entries of :func:`J` are paired with one another and matched with the corresponding entrie of :func:`Gamma`, resulting
+in a Lindblad term of the form :math:`\sum_{i,j}\gamma_{ij}J_i\rho J_j^\dagger - J_i^\dagger J_j\rho/2 - \rho J_i^\dagger J_j/2`.
+
+The second keyword argument can be used to pass a specific set of jump operators to be used in place of all :math:`J^\dagger` appearances in the Lindblad term.
+
+Finally, we can pass an output function just like the one for a Schrödinger equation. Note, though, that now the function must be defined with the arguments :func:`fout(t, rho)`. 
+
 For performance reasons the solver internally first creates the non-hermitian Hamiltonian :math:`H_\mathrm{nh} = H - \frac{i\hbar}{2} \sum_i J_i^\dagger J_i` and solves the equation
 
 .. math::
@@ -54,8 +97,6 @@ For performance reasons the solver internally first creates the non-hermitian Ha
                  + \sum_i J_i \rho J_i^\dagger
 
 If for any reason this behavior is unwanted, e.g. special operators are used that don't support addition, the function master_h (h for hermitian) can be used.
-
-* :func:`master(tspan, rho0::DenseOperator, H::Operator, J::Vector)`
 
 * :func:`master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector)`
 

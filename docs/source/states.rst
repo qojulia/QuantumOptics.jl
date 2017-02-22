@@ -3,7 +3,7 @@
 States and Operators
 ====================
 
-Here we will give a brief overview over the operations that are available for states and operators. All states and operators are defined on a basis, such as for example the :jl:func:`FockBasis`. For a full list of implemented bases and their predefined states and operators please refer to :ref:`Quantumsystems <section-quantumsystems>`. More details on the different types of operators can be found in :ref:`Operators <section-operators-detail>`.
+Here we will give a brief overview over the operations that are available for states and operators. All states and operators are defined on a basis, such as for example the :jl:type:`FockBasis`. For a full list of implemented bases and their predefined states and operators please refer to :ref:`Quantumsystems <section-quantumsystems>`. More details on the different types of operators can be found in :ref:`Operators <section-operators-detail>`.
 
 .. _section-states:
 
@@ -105,10 +105,10 @@ Additionally the following functions are implemented (for :jl:func:`A::Operator`
     :jl:func:`tensor(x::Ket, y::Bra)`
     :jl:func:`projector(x::Ket, y::Bra)`
 
-For creating operators of the type :math:`A = I \otimes I \otimes ... a_i ... \otimes I` the very useful embed function can be used:
+* For creating operators of the type :math:`A = I \otimes I \otimes ... a_i ... \otimes I` the very useful embed function can be used:
 
-* :jl:func:`embed(b::Basis, index::Int, op::Operator)`
-* :jl:func:`embed(b::Basis, indices::Vector{Int}, ops::Vector{T <: Operator})`
+    :jl:func:`embed(b::Basis, index::Int, op::Operator)`
+    :jl:func:`embed(b::Basis, indices::Vector{Int}, ops::Vector{T <: Operator})`
 
 E.g. for a system consisting of 3 spins one can define the basis with::
 

@@ -7,11 +7,11 @@ To install the latest official release, you can use Julia's internal package man
 
     julia> Pkg.clone("QuantumOptics")
 
-The source code is available on github at https://github.com/bastikr/QuantumOptics.jl (Note: this version may be unstable). You can also use Julia's package manager to clone this version.
+The source code is available on github at https://github.com/bastikr/QuantumOptics.jl (Note: this version may be unstable). You can also use Julia's package manager to checkout this version.
 
 .. code-block:: julia
 
-    julia> Pkg.clone("https://github.com/bastikr/QuantumOptics.jl.git")
+    julia> Pkg.checkout("QuantumOptics")
 
 Alternatively, you can use git to clone the repository.
 
