@@ -2,7 +2,30 @@ module metrics
 
 using ..operators, ..operators_dense
 
-export tracedistance, tracedistance_general, entropy_vn
+export tracedistance, tracedistance_general, tracenorm, tracenorm_general, entropy_vn
+
+function tracenorm(rho::DenseOperator)
+    @assert length(rho.basis_l) == length(rho.basis_r)
+    data = rho.data
+    for i=1:size(data,1)
+        data[i,i] = real(data[i,i])
+    end
+    s = eigvals(Hermitian(data))
+    return 0.5*sum(abs(s))
+end
+
+function tracenorm{T<:Operator}(rho::T)
+    throw(ArgumentError("tracenorm not implemented for $(T). Use dense operators instead."))
+end
+
+
+tracenorm_general(rho::DenseOperator) = 0.5*trace(sqrtm((dagger(rho)*rho).data))
+
+function tracenorm_general{T<:Operator}(rho::T)
+    throw(ArgumentError("tracenorm_general not implemented for $(T). Use dense operators instead."))
+end
+
+
 
 """
 Trace distance between two density operators.
@@ -18,17 +41,11 @@ where :math:`\\lambda_i` are the eigenvalues of the matrix
 are density operators. For trace distances between general operators use
 :jl:func:`tracedistance_general`.
 """
-function tracedistance(rho::DenseOperator, sigma::DenseOperator)
-    delta = (rho - sigma)
-    @assert length(delta.basis_l) == length(delta.basis_r)
-    data = delta.data
-    for i=1:size(data,1)
-        data[i,i] = real(data[i,i])
-    end
-    s = eigvals(Hermitian(data))
-    return 0.5*sum(abs(s))
-end
+tracedistance(rho::DenseOperator, sigma::DenseOperator) = tracenorm(rho - sigma)
 
+function tracedistance{T<:Operator}(rho::T, sigma::T)
+    throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
+end
 
 """
 Trace distance between two operators.
@@ -38,13 +55,10 @@ Trace distance between two operators.
     T(\\rho, \\sigma) = \\frac{1}{2}
             Tr\\{\\ \\sqrt{(\\rho-\\sigma)^\\dagger(\\rho-\\sigma)}\\}
 """
-function tracedistance_general(rho::DenseOperator, sigma::DenseOperator)
-    delta = (rho - sigma)
-    return 0.5*trace(sqrtm((dagger(delta)*delta).data))
-end
+tracedistance_general(rho::DenseOperator, sigma::DenseOperator) = tracenorm_general(rho - sigma)
 
-function tracedistance{T<:Operator}(rho::T, sigma::T)
-    throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
+function tracedistance_general{T<:Operator}(rho::T, sigma::T)
+    throw(ArgumentError("tracedistance_general not implemented for $(T). Use dense operators instead."))
 end
 
 
