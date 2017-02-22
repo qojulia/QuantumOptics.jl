@@ -35,20 +35,14 @@ mask2indices(mask::Mask) = find(mask)
 
 complement(N::Int, indices::Vector{Int}) = Int[i for i=1:N if i ∉ indices]
 
-correlationindices(N::Int, order::Int) = Set(combinations(1:N, order))
-function correlationmasks(N::Int)
-    S = Set{Mask}()
-    for n=2:N
-        S = S ∪ correlationmasks(N, n)
-    end
-    S
+as_mask(N::Int, m::Mask) = (@assert length(m)==N; m)
+function as_mask(N::Int, m)
+    m = collect(m)
+    operators.check_indices(N, m)
+    indices2mask(N, m)
 end
-function correlationmasks(N::Int, order::Int)
-    @assert N > 1
-    @assert order > 0
-    @assert N >= order
-    Set(indices2mask(N, indices) for indices in correlationindices(N, order))
-end
+masks(N::Int) = Set(combinations(1:N))
+masks(N::Int, order::Int) = Set(combinations(1:N, order))
 
 subcorrelationmasks(mask::Mask) = [indices2mask(length(mask), indices) for indices in
         chain([combinations(mask2indices(mask), k) for k=2:sum(mask)-1]...)]
@@ -72,6 +66,7 @@ function CorrelationExpansion(operators::Vector{DenseOperator},
     basis_r = CompositeBasis(Basis[op.basis_r for op in operators])
     maxorder = 1
     for (mask, op) in correlations
+        @assert length(mask) == N
         @assert sum(mask) > 1
         @assert op.basis_l == tensor(basis_l.bases[mask]...)
         @assert op.basis_r == tensor(basis_r.bases[mask]...)
@@ -88,12 +83,12 @@ end
 
 function CorrelationExpansion(basis_l::CompositeBasis, basis_r::CompositeBasis, S)
     N = length(basis_l.bases)
-    @assert length(basis_r.bases)
     operators = [DenseOperator(basis_l.bases[i], basis_r.bases[i]) for i=1:N]
     correlations = Dict{Mask, DenseOperator}()
-    for mask in S
-        @assert sum(mask) > 1
-        correlations[mask] = tensor(operators[mask...])
+    for m in S
+        m = as_mask(N, m)
+        @assert sum(m) > 1
+        correlations[m] = tensor(operators[m])
     end
     CorrelationExpansion(operators, correlations)
 end
@@ -104,11 +99,12 @@ function CorrelationExpansion(operators::Vector, S)
     for op in operators
         @assert typeof(op) == DenseOperator
     end
-    for mask in S
-        @assert sum(mask) > 1
-        b_l = CompositeBasis([op.basis_l for op in operators[mask]]...)
-        b_r = CompositeBasis([op.basis_r for op in operators[mask]]...)
-        correlations[mask] = DenseOperator(b_l, b_r)
+    for m in S
+        m = as_mask(N, m)
+        @assert sum(m) > 1
+        b_l = CompositeBasis([op.basis_l for op in operators[m]]...)
+        b_r = CompositeBasis([op.basis_r for op in operators[m]]...)
+        correlations[m] = DenseOperator(b_l, b_r)
     end
     CorrelationExpansion(operators, correlations)
 end
@@ -207,7 +203,7 @@ masks
     included. A index mask is a tuple consisting of booleans which indicate
     if the n-th subsystem is included in the correlation.
 """
-function approximate(rho::DenseOperator, masks::Set{Mask})
+function approximate(rho::DenseOperator, masks)
     @assert typeof(rho.basis_l) == CompositeBasis
     N = length(rho.basis_l.bases)
     alpha = trace(rho)
@@ -215,8 +211,9 @@ function approximate(rho::DenseOperator, masks::Set{Mask})
     operators = [ptrace(rho, complement(N, [i])) for i in 1:N]
     subcorrelations = Dict{Mask, DenseOperator}() # Dictionary to store intermediate results
     correlations = Dict{Mask, DenseOperator}()
-    for mask in masks
-        correlations[mask] = correlation(rho, mask;
+    for m in masks
+        m = as_mask(N, m)
+        correlations[m] = correlation(rho, m;
                                          operators=operators,
                                          subcorrelations=subcorrelations)
     end
@@ -227,6 +224,7 @@ function approximate(rho::DenseOperator)
     N = length(rho.basis_l.bases)
     approximate(rho, Set{Mask}())
 end
+
 
 ptrace(mask::Mask, indices::Vector{Int}) = mask[complement(length(mask), indices)]
 
