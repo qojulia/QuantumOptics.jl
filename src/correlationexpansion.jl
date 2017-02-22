@@ -41,8 +41,9 @@ function as_mask(N::Int, m)
     operators.check_indices(N, m)
     indices2mask(N, m)
 end
-masks(N::Int) = Set(combinations(1:N))
+
 masks(N::Int, order::Int) = Set(combinations(1:N, order))
+masks(N::Int) = reduce(∪, [masks(N, order) for order=2:N])
 
 subcorrelationmasks(mask::Mask) = [indices2mask(length(mask), indices) for indices in
         chain([combinations(mask2indices(mask), k) for k=2:sum(mask)-1]...)]
