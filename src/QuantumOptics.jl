@@ -21,12 +21,13 @@ export bases, Basis, GenericBasis, CompositeBasis,
                 positionoperator, momentumoperator, laplace_x, laplace_p,
         nlevel, NLevelBasis, transition, nlevelstate,
         nparticlebasis, BosonicNParticleBasis, FermionicNParticleBasis, nparticleoperator_1, nparticleoperator_2,
-        metrics, tracedistance, tracedistance_general, entropy_vn,
+        metrics, tracedistance, tracedistance_general, tracenorm, tracenorm_general, entropy_vn,
         spectralanalysis, operatorspectrum, operatorspectrum_hermitian,
                 eigenstates, eigenstates_hermitian, groundstate, simdiag,
         timeevolution_simple,
         timeevolution,
         cumulantexpansion,
+        correlationexpansion,
         steadystate,
         correlations
 
@@ -57,6 +58,7 @@ module timeevolution
     using .timeevolution_mcwf
 end
 include("cumulantexpansion.jl")
+include("correlationexpansion.jl")
 include("steadystate.jl")
 include("correlations.jl")
 include("spectralanalysis.jl")
