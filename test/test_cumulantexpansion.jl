@@ -1,6 +1,16 @@
 using Base.Test
 using QuantumOptics
 
+type ProductState
+    N::Int
+    data::Vector{Float64}
+end
+
+
+
+
+@testset "cumulantexpansion" begin
+
 T = [0.:0.1:0.5;]
 
 # Define Spin 1/2 operators
@@ -15,6 +25,33 @@ I_spin = identityoperator(spinbasis)
 
 N = 2
 b = tensor([spinbasis for i=1:N]...)
+
+ProductState(N::Int) = ProductState(N, zeros(Float64, 3*N))
+
+splitstate(N::Int, data::Vector{Float64}) = vec(data[0*N+1:1*N]), vec(data[1*N+1:2*N]), vec(data[2*N+1:3*N])
+splitstate(state::ProductState) = splitstate(state.N, state.data)
+function combinestate(sx::Vector{Float64}, sy::Vector{Float64}, sz::Vector{Float64}, state::Vector{Float64})
+    state[0*N+1:1*N] = sx
+    state[1*N+1:2*N] = sy
+    state[2*N+1:3*N] = sz
+    state
+end
+
+function ProductState_(rho::DenseOperator)
+    b = rho.basis_l
+    N = length(b.bases)
+    state = ProductState(N)
+    sx, sy, sz = splitstate(state)
+    f(ind, op) = real(expect(embed(b, ind, op), rho))
+    for k=1:N
+        sx[k] = f(k, sigmax)
+        sy[k] = f(k, sigmay)
+        sz[k] = f(k, sigmaz)
+    end
+    combinestate(sx, sy, sz, state.data)
+    return state
+end
+
 
 # psi0 = 1./sqrt(2)*(spinup(spinbasis) + spindown(spinbasis))
 psi0 = normalize(spinup(spinbasis) + 0.5*spindown(spinbasis))
@@ -42,36 +79,7 @@ J = LazyTensor[LazyTensor(b, i, sigmam, γ) for i=1:N]
 tout, rho_t = cumulantexpansion.master(T, rho0, H, J)
 tout, rho_t_full = timeevolution.master(T, full(rho0), full(H), map(full, J))
 
-type ProductState
-    N::Int
-    data::Vector{Float64}
-end
-
-ProductState(N::Int) = ProductState(N, zeros(Float64, 3*N))
-
-function ProductState(rho::DenseOperator)
-    state = ProductState(N)
-    sx, sy, sz = splitstate(state)
-    f(ind, op) = real(expect(embed(b, ind, op), rho))
-    for k=1:N
-        sx[k] = f(k, sigmax)
-        sy[k] = f(k, sigmay)
-        sz[k] = f(k, sigmaz)
-    end
-    combinestate(sx, sy, sz, state.data)
-    return state
-end
-
-splitstate(N::Int, data::Vector{Float64}) = vec(data[0*N+1:1*N]), vec(data[1*N+1:2*N]), vec(data[2*N+1:3*N])
-splitstate(state::ProductState) = splitstate(state.N, state.data)
-function combinestate(sx::Vector{Float64}, sy::Vector{Float64}, sz::Vector{Float64}, state::Vector{Float64})
-    state[0*N+1:1*N] = sx
-    state[1*N+1:2*N] = sy
-    state[2*N+1:3*N] = sz
-    state
-end
-
-function f(t, y::Vector{Float64}, dy::Vector{Float64})
+function df(t, y::Vector{Float64}, dy::Vector{Float64})
     sx, sy, sz = splitstate(N, y)
     dsx, dsy, dsz = splitstate(N, dy)
     @inbounds for k=1:N
@@ -110,9 +118,11 @@ function densityoperator(state::ProductState)
     return rho
 end
 
-state0 = ProductState(full(rho0))
-QuantumOptics.ode_dopri.ode(f, T, state0.data, fout_)
+state0 = ProductState_(full(rho0))
+QuantumOptics.ode_dopri.ode(df, T, state0.data, fout_)
 
 @test tracedistance(densityoperator(state_out[end]), full(rho_t[end])) < 1e-6
 # println(tracedistance(densityoperator(state_out[end]), full(rho_t_full[end])))
 @test tracedistance(full(rho_t[end]), full(rho_t[1])) > 0.1
+
+end # testset

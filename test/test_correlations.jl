@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "correlations" begin
+
 ωc = 1.2
 ωa = 0.9
 g = 1.0
@@ -46,3 +48,5 @@ tout, exp_values2 = correlations.correlation(ρ₀, H, J, dagger(op), op; eps=1e
 
 op = embed(basis, 1, sqrt(γ)*sm)
 omega, S = correlations.correlationspectrum(H, J, op)
+
+end # testset

@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "spectralanalysis" begin
+
 ωc = 1.2
 ωa = 0.9
 g = 1.0
@@ -78,7 +80,7 @@ Sz = full(sum([embed(twospinbasis, i, sz) for i=1:2]))/2.
 Ssq = Sx^2 + Sy^2 + Sz^2
 d, v = simdiag([Sz, Ssq])
 @test d[1] == [-1.0, 0, 0, 1.0]
-@test isapprox(d[2],  [2, 0.0, 2, 2])
+@test d[2] ≈ [2, 0.0, 2, 2]
 @test_throws ErrorException simdiag([Sx, Sy])
 
 threespinbasis = spinbasis ⊗ spinbasis ⊗ spinbasis
@@ -88,6 +90,8 @@ Sz3 = full(sum([embed(threespinbasis, i, sz) for i=1:3])/2.)
 Ssq3 = Sx3^2 + Sy3^2 + Sz3^2
 d3, v3 = simdiag([Ssq3, Sz3])
 dsq3_std = eigvals(full(Ssq3).data)
-@test isapprox(diagm(dsq3_std), v3'*Ssq3.data*v3)
+@test diagm(dsq3_std) ≈ v3'*Ssq3.data*v3
 @test_throws ErrorException simdiag([Sy3, Sz3])
 @test_throws ErrorException simdiag([full(destroy(fockbasis)), full(create(fockbasis))])
+
+end # testset

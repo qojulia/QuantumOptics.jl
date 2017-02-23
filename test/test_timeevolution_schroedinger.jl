@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "schroedinger" begin
+
 N = 3
 Ncutoff = 2
 T = [0.:0.1:1.;]
@@ -58,3 +60,5 @@ for (i, t) in enumerate(tout)
     rho_rot = psi_rot ⊗ dagger(psi_rot)
     @test tracedistance(rho_rot, full(R)*rho*dagger(full(R))) < 1e-5
 end
+
+end # testset

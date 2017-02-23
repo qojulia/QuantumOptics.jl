@@ -1,6 +1,10 @@
 using Base.Test
 using QuantumOptics
 
+@testset "fock" begin
+
+D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
+
 basis = FockBasis(2)
 
 # Test creation
@@ -23,7 +27,7 @@ basis = FockBasis(2)
 @test number(basis) == dagger(number(basis))
 @test create(basis) == dagger(destroy(basis))
 @test destroy(basis) == dagger(create(basis))
-@test_approx_eq_eps tracedistance(full(create(basis)*destroy(basis)), full(number(basis))) 0. 1e-15
+@test 1e-15 > D(create(basis)*destroy(basis), number(basis))
 
 
 # Test application onto statevectors
@@ -51,8 +55,8 @@ b1 = FockBasis(100)
 b2 = FockBasis(2, 5)
 alpha = complex(3.)
 
-@test_approx_eq_eps norm(expect(destroy(b1), coherentstate(b1, alpha)) - alpha) 0. 1e-14
-@test_approx_eq_eps norm(coherentstate(b1, alpha).data[3:6] - coherentstate(b2, alpha).data) 0. 1e-14
+@test 1e-14 > norm(expect(destroy(b1), coherentstate(b1, alpha)) - alpha)
+@test 1e-14 > norm(coherentstate(b1, alpha).data[3:6] - coherentstate(b2, alpha).data)
 
 
 # Test qfunc
@@ -64,5 +68,7 @@ rho = tensor(coherentstate(b, alpha), dagger(coherentstate(b, alpha)))
 Q = qfunc(rho, X, Y)
 for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     c = complex(x, y)
-    @test_approx_eq_eps Q[i,j] exp(-abs2(c) - abs2(alpha) + 2*real(alpha*conj(c)))/pi 1e-14
+    @test 1e-14 > Q[i,j]-exp(-abs2(c) - abs2(alpha) + 2*real(alpha*conj(c)))/pi
 end
+
+end # testset

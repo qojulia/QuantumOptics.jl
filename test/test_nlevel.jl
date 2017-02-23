@@ -1,6 +1,7 @@
 using Base.Test
 using QuantumOptics
 
+@testset "nlevel" begin
 
 N = 3
 b = NLevelBasis(N)
@@ -22,3 +23,5 @@ b = NLevelBasis(N)
 @test norm(nlevelstate(b, 1)) == 1.
 @test norm(dagger(nlevelstate(b, 1))*nlevelstate(b, 2)) == 0.
 @test norm(dagger(nlevelstate(b, 1))*transition(b, 1, 2)*nlevelstate(b, 2)) == 1.
+
+end # testset

@@ -1,14 +1,14 @@
 using Base.Test
 using QuantumOptics
 
+@testset "identityoperator" begin
+
 b1 = NLevelBasis(2)
 b2 = SpinBasis(3//2)
 b3 = FockBasis(2)
 b = b1⊗b2⊗b3
 
-function test_op_equal(op1, op2)
-    @test_approx_eq_eps 0. tracedistance_general(full(op1), full(op2)) 1e-11
-end
+D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
 
 Idense = identityoperator(DenseOperator, b)
 Isparse = identityoperator(SparseOperator, b)
@@ -34,18 +34,20 @@ identityoperator(LazyTensor, b1) ⊗ identityoperator(LazyTensor, b2) ⊗ identi
 
 op = DenseOperator(b, rand(Complex128, length(b), length(b)))
 
-test_op_equal(op, identityoperator(op)*op)
-test_op_equal(op, op*identityoperator(op))
+@test 1e-15 > D(op, identityoperator(op)*op)
+@test 1e-15 > D(op, op*identityoperator(op))
 
 op = sparse(op)
 
-test_op_equal(op, identityoperator(op)*op)
-test_op_equal(op, op*identityoperator(op))
+@test 1e-15 > D(op, identityoperator(op)*op)
+@test 1e-15 > D(op, op*identityoperator(op))
 
 op1 = DenseOperator(b1, rand(Complex128, length(b1), length(b1)))
 op2 = DenseOperator(b2, rand(Complex128, length(b2), length(b2)))
 op3 = DenseOperator(b3, rand(Complex128, length(b3), length(b3)))
 op = LazyTensor(b, Dict(1=>op1, 2=>op2, 3=>op3))
 
-test_op_equal(op, identityoperator(op)*op)
-test_op_equal(op, op*identityoperator(op))
+@test 1e-15 > D(op, identityoperator(op)*op)
+@test 1e-15 > D(op, op*identityoperator(op))
+
+end # testset

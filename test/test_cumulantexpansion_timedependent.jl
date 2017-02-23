@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "cumulantexpansion_timedependent" begin
+
 N = 3
 Ncutoff = 2
 T = [0.:0.1:1.;]
@@ -57,3 +59,5 @@ for (i, t) in enumerate(tout)
     rho = rho_t[i]
     @test tracedistance(full(rho_rot), full(R)*full(rho)*dagger(full(R))) < 1e-5
 end
+
+end # testset

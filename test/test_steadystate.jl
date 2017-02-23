@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "steadystate" begin
+
 ωc = 1.2
 ωa = 0.9
 g = 1.0
@@ -70,3 +72,5 @@ nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 
 # Test error messages
 @test_throws ErrorException steadystate.eigenvector(sx, [sm])
+
+end # testset

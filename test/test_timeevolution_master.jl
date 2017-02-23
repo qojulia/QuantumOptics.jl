@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "master" begin
+
 ωc = 1.2
 ωa = 0.9
 g = 1.0
@@ -10,7 +12,7 @@ g = 1.0
 T = Float64[0.,1.]
 
 
-fockbasis = FockBasis(10)
+fockbasis = FockBasis(5)
 spinbasis = SpinBasis(1//2)
 basis = tensor(spinbasis, fockbasis)
 
@@ -176,3 +178,5 @@ tout, Ψbra_t = timeevolution_simple.schroedinger(T, dagger(Ψ₀), Hdense; relt
 tout, Ψket_t = timeevolution.schroedinger(T, Ψ₀, Hdense; reltol=1.e-7)
 tout, Ψbra_t = timeevolution.schroedinger(T, dagger(Ψ₀), Hdense; reltol=1.e-7)
 @test tracedistance(Ψket_t[end]⊗Ψbra_t[end], ρ) < 1e-5
+
+end # testset

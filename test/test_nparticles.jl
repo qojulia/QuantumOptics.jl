@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "nparticles" begin
+
 particlenumber = 3
 modenumber = 3
 b_spin = SpinBasis(1//2)
@@ -27,3 +29,5 @@ op_ = nparticleoperator_2(b, op)
 op2_ = nparticleoperator_2(b, op2)
 
 @test tracedistance(op_, full(op2_)) < 1e-12
+
+end # testset

@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "operators" begin
+
 fockbasis = FockBasis(40)
 spinbasis = SpinBasis(1//2)
 
@@ -30,25 +32,25 @@ I = full(identityoperator(fockbasis))
 # Test creation
 @test_throws DimensionMismatch DenseOperator(spinbasis, [1 1 1; 1 1 1])
 @test_throws DimensionMismatch DenseOperator(spinbasis, FockBasis(3), [1 1; 1 1; 1 1])
-@test_approx_eq 0. maximum(abs((dagger(op1)-op2).data))
+@test 0 ≈ maximum(abs((dagger(op1)-op2).data))
 
 # Test projector
-@test_approx_eq_eps 0. norm(projector(xket)*xket - xket) 1e-13
-@test_approx_eq_eps 0. norm(xbra*projector(xket) - xbra) 1e-13
-@test_approx_eq_eps 0. norm(projector(xbra)*xket - xket) 1e-13
-@test_approx_eq_eps 0. norm(xbra*projector(xbra) - xbra) 1e-13
-@test_approx_eq_eps 0. norm(ybra*projector(yket, xbra) - xbra) 1e-13
-@test_approx_eq_eps 0. norm(projector(yket, xbra)*xket - yket) 1e-13
+@test 1e-13 > norm(projector(xket)*xket - xket)
+@test 1e-13 > norm(xbra*projector(xket) - xbra)
+@test 1e-13 > norm(projector(xbra)*xket - xket)
+@test 1e-13 > norm(xbra*projector(xbra) - xbra)
+@test 1e-13 > norm(ybra*projector(yket, xbra) - xbra)
+@test 1e-13 > norm(projector(yket, xbra)*xket - yket)
 
 # Test trace and normalize
 op = DenseOperator(GenericBasis([3]), [1 3 2;5 2 2;-1 2 5])
-@test_approx_eq 8. trace(op)
+@test 8 == trace(op)
 op_normalized = normalize(op)
-@test_approx_eq 8. trace(op)
-@test_approx_eq 1. trace(op_normalized)
+@test 8 == trace(op)
+@test 1 == trace(op_normalized)
 op_ = normalize!(op)
 @test op_ === op
-@test_approx_eq 1. trace(op)
+@test 1 == trace(op)
 
 # Test operator exponential
 b = GenericBasis([3])
@@ -59,13 +61,15 @@ v = SubspaceBasis(b, eigenstates_hermitian(op))
 P = projector(v, b)
 op_diag = P*op*dagger(P)
 op_diag_exp = DenseOperator(v, diagm(exp(diag(op_diag.data))))
-@test_approx_eq_eps 0. tracedistance(expm(op), dagger(P)*op_diag_exp*P) 1e-13
+@test 1e-13 > tracedistance(expm(op), dagger(P)*op_diag_exp*P)
 
 # Test gemv implementation
 result_ket = deepcopy(xket)
 operators.gemv!(complex(1.0), at, xket, complex(0.), result_ket)
-@test_approx_eq 0. norm(result_ket-at*xket)
+@test 0 ≈ norm(result_ket-at*xket)
 
 result_bra = deepcopy(xbra)
 operators.gemv!(complex(1.0), xbra, at, complex(0.), result_bra)
-@test_approx_eq 0. norm(result_bra-xbra*at)
+@test 0 ≈ norm(result_bra-xbra*at)
+
+end # testset

@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "subspace" begin
+
 b = FockBasis(3)
 
 u = Ket[fockstate(b, 1), fockstate(b, 2)]
@@ -29,3 +31,5 @@ state_u = Ket(bu, [-1, 1])
 u2 = Ket[1.5*fockstate(b, 1), fockstate(b, 1) + fockstate(b, 2)]
 bu2_orth = subspace.orthonormalize(SubspaceBasis(u))
 @test bu2_orth.basisstates == bu.basisstates
+
+end # testset

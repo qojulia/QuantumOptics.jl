@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "superoperators" begin
+
 ωc = 1.2
 ωa = 0.9
 g = 1.0
@@ -46,7 +48,9 @@ L = liouvillian(H, J)
 for j=J
     ρ += j*ρ₀*dagger(j) - 0.5*dagger(j)*j*ρ₀ - 0.5*ρ₀*dagger(j)*j
 end
-@test tracedistance(L*ρ₀, ρ)<1e-10
+@test tracedistance(L*ρ₀, ρ) < 1e-10
 
 tout, ρt = timeevolution.master([0.,1.], ρ₀, H, J; reltol=1e-7)
-@test tracedistance(expm(full(L))*ρ₀, ρt[end])<1e-6
+@test tracedistance(expm(full(L))*ρ₀, ρt[end]) < 1e-6
+
+end # testset

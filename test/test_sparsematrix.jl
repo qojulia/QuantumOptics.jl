@@ -4,6 +4,9 @@ using QuantumOptics.sparsematrix
 # SparseMatrix = quantumoptics.sparsematrix.SparseMatrix
 typealias SparseMatrix SparseMatrixCSC{Complex128}
 
+
+@testset "sparsematrix" begin
+
 # Set up test matrices
 A = rand(Complex128, 5, 5)
 A_sp = sparse(A)
@@ -20,11 +23,13 @@ R = A + B
 
 
 # Test arithmetic
-@test_approx_eq 0. norm(full(R_sp) - R)
-@test_approx_eq 0. norm(full(Complex128(0.5,0)*A_sp) - 0.5*A)
-@test_approx_eq 0. norm(full(A_sp/2) - A/2)
-@test_approx_eq 0. norm(full(A_sp*B_sp) - A*B)
+@test 0 ≈ norm(full(R_sp) - R)
+@test 0 ≈ norm(full(Complex128(0.5,0)*A_sp) - 0.5*A)
+@test 0 ≈ norm(full(A_sp/2) - A/2)
+@test 0 ≈ norm(full(A_sp*B_sp) - A*B)
 
 # Test kronecker product
-@test_approx_eq 0. norm(full(kron(A_sp, C_sp)) - kron(A, C))
-@test_approx_eq 0. norm(full(kron(A_sp, B_sp)) - kron(A, B))
+@test 0 ≈ norm(full(kron(A_sp, C_sp)) - kron(A, C))
+@test 0 ≈ norm(full(kron(A_sp, B_sp)) - kron(A, B))
+
+end # testset

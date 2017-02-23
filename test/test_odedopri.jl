@@ -1,14 +1,16 @@
 using Base.Test
 using QuantumOptics
 
-const ode = QuantumOptics.ode_dopri.ode
+@testset "odedopri" begin
 
-const ζ = 0.5
-const ω₀ = 10.0
+ode = QuantumOptics.ode_dopri.ode
 
-const y₀ = Float64[0., sqrt(1-ζ^2)*ω₀]
-const A = 1
-const ϕ = 0
+ζ = 0.5
+ω₀ = 10.0
+
+y₀ = Float64[0., sqrt(1-ζ^2)*ω₀]
+A = 1
+ϕ = 0
 
 
 function f(t::Float64)
@@ -82,8 +84,10 @@ function fout(t, y)
 end
 T = [0.,0.5,1.0]
 result = ode(df, T, y₀, fout)
-@test result==nothing
+@test result == nothing
 tout, yout = ode(df, T, y₀)
 
-@test tout==tout_
-@test yout==yout_
+@test tout == tout_
+@test yout == yout_
+
+end # testset

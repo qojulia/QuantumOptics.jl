@@ -1,6 +1,8 @@
 using Base.Test
 using QuantumOptics
 
+@testset "mcwf" begin
+
 # Define parameters for spin coupled to electric field mode.
 ωc = 1.2
 ωa = 0.9
@@ -135,3 +137,5 @@ for i=1:length(T)
     @test norm(Ψt_mcwf_h[i] - Ψt_schroedinger[i]) < 1e-4
     @test norm(Ψt_mcwf_nh[i] - Ψt_schroedinger[i]) < 1e-4
 end
+
+end # testset
