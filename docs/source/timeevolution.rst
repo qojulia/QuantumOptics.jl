@@ -27,10 +27,10 @@ The Schroedinger equation as one of the basic postulates of quantum mechanics de
 
 Both versions are implemented and are chosen automatically depending on the type of the provided initial state (Bra or Ket):
 
-* :jl:func:`schroedinger`
+* :func:`schroedinger(tspan::Vector{Float64}, psi0::{Ket,Bra}, H::Operator)`
 
-The Schrödinger equation solver requires the arguments :func:`schroedinger(T::Vector{Int}, psi0::{Ket,Bra}, H::Operator)`, where :func:`T` is a vector containing the times, :func:`psi0` is the initial state
-and :func:`H` is the Hamiltonian.
+The Schrödinger equation solver requires the arguments :func:`tspan`, which is a vector containing the times, the initial state :func:`psi0`
+as :func:`Ket` or :func:`Bra` and the Hamiltonian :func:`H`.
 
 Additionally, one can pass an output function :func:`fout` as keyword argument. This can be convenient if one directly wants to compute a value that depends on the states, e.g. an expectation value, instead
 of the states themselves. Consider, for example, a time evolution according to a Schrödinger equation where for all times we want to compute the expectation value of the operator :func:`A`. We can do this by::
@@ -49,8 +49,20 @@ or equivalently::
     timeevolution.schroedinger(T, psi0, H; fout=exp)
 
 Although the method using :func:`fout` might seem more complicated, it can be very useful for large systems to save memory since instead of all the states we only store one complex number per time step. Note, that
-:func:`fout` must always be defined with the arguments :func:`(t, psi)`.
+:func:`fout` must always be defined with the arguments :func:`(t, psi)`. If :func:`fout` is given, all variables are assigned within :func:`fout` and the call to :func:`schroedinger`
+returns :func:`nothing`.
 
+We can also calculate the time evolution for a Hamiltonian that is time-dependent. In that case, we need to use the function :func:`schroedinger_dynamic(tspan, psi0, f::Function)`. As you can see, this function
+requires the same arguments as :func:`schroedinger`, but a function :func:`f` instead of a Hamiltonian. As a brief example, consider a spin-1/2 particle that is coherently driven by a laser that has an amplitude that
+varies in time. We can implement this with::
+
+  basis = SpinBasis(1//2)
+  ψ₀ = spindown(basis)
+  function pump(t, psi)
+    return sin(t)*(sigmap(basis) + sigmam(basis))
+  end
+  tspan = [0:0.1:10;]
+  tout, ψₜ = timeevolution.schroedinger_dynamic(tspan, ψ₀, pump)
 
 .. _section-master:
 
@@ -70,7 +82,7 @@ The dynamics of open quantum systems are governed by a master equation in Lindbl
 
 It is implemented by the function
 
-:func:`master(tspan, rho0::DenseOperator, H::Operator, J::Vector)`
+* :func:`master(tspan, rho0::DenseOperator, H::Operator, J::Vector)`
 
 The arguments required are quite similar to the ones of :func:`schroedinger`. :func:`tspan` is a vector of times, :func:`rho0` the initial state and :func:`H` the Hamiltonian. We now also need the vector :func:`J`
 that specifies the jump operators of the system.
@@ -87,7 +99,9 @@ in a Lindblad term of the form :math:`\sum_{i,j}\gamma_{ij}J_i\rho J_j^\dagger -
 
 The second keyword argument can be used to pass a specific set of jump operators to be used in place of all :math:`J^\dagger` appearances in the Lindblad term.
 
-Finally, we can pass an output function just like the one for a Schrödinger equation. Note, though, that now the function must be defined with the arguments :func:`fout(t, rho)`. 
+We can pass an output function just like the one for a Schrödinger equation. Note, though, that now the function must be defined with the arguments :func:`fout(t, rho)`.
+
+Furthermore, a time-dependent Hamiltonian can also be implemented analogously to a Schrödinger equation using :func:`master_dynamic(tspan, rho0, f)`.
 
 For performance reasons the solver internally first creates the non-hermitian Hamiltonian :math:`H_\mathrm{nh} = H - \frac{i\hbar}{2} \sum_i J_i^\dagger J_i` and solves the equation
 
@@ -157,4 +171,16 @@ and also the stochastic average of the single trajectory expectation values is e
 
 avoiding explicit calculations of density matrices.
 
-* :func:`master(tspan, psi0::Ket, H::Operator, J::Vector)`
+The function computing a time evolution with the MCWF method can be called analogously to :func:`master`, namely with
+
+* :func:`mcwf(tspan, psi0::Ket, H::Operator, J::Vector)`
+
+Since this function only calculates state vectors (as explained above), it requires the initial state in the form of a ket.
+
+
+Advanced examples
+^^^^^^^^^^^^^^^^^
+
+This section is meant to provide a basic introduction to the implemented time evolution solvers and illustrate some simple examples.
+Most applications of the toolbox involve the simulation of a time evolution in one way or another, so please refer to :ref:`section-examples`
+for more sophisticated uses of the solvers.
