@@ -22,18 +22,18 @@ abstract StateVector
 
 type Bra <: StateVector
     basis::Basis
-    data::Vector{Complex{Float64}}
+    data::Vector{Complex128}
     Bra(b::Basis, data) = length(b) == length(data) ? new(b, data) : throw(DimensionMismatch())
 end
 
 type Ket <: StateVector
     basis::Basis
-    data::Vector{Complex{Float64}}
+    data::Vector{Complex128}
     Ket(b::Basis, data) = length(b) == length(data) ? new(b, data) : throw(DimensionMismatch())
 end
 
-Bra(b::Basis) = Bra(b, zeros(Complex, length(b)))
-Ket(b::Basis) = Ket(b, zeros(Complex, length(b)))
+Bra(b::Basis) = Bra(b, zeros(Complex128, length(b)))
+Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
 
 Base.eltype(x::StateVector) = Complex128
 Base.zero{T<:StateVector}(x::T) = T(x.basis)
