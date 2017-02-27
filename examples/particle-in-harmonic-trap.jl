@@ -35,7 +35,7 @@ op_inversefft = dagger(op_fft)
 x = positionoperator(b_position)
 p = momentumoperator(b_momentum)
 
-H = LazyProduct(op_inversefft, p^2/2m, op_fft) + ω*x^2;
+H = LazySum(LazyProduct(op_inversefft, p^2/2m, op_fft), ω*x^2);
 
 # Initial state
 x0 = 1.5
@@ -44,7 +44,7 @@ sigma0 = 0.6
 Ψ0 = gaussianstate(b_position, x0, p0, sigma0);
 
 # Time evolution
-T = [0:0.5:20;]
+T = [0:0.1:3;]
 tout, Ψt = timeevolution.schroedinger(T, Ψ0, H);
 
 # Plot dynamics of particle density
@@ -54,14 +54,13 @@ n = abs(Ψ0.data).^2
 V = ω*x_points.^2
 C = maximum(V)/maximum(n)
 
-figure(figsize=(7,3.5))
+figure(figsize=(6,3))
 xlabel(L"x")
 ylabel(L"| \Psi(t) |^2")
-plot(x_points, V/C, "k")
+plot(x_points, (V-3)/C, "k--")
 
-for Ψ=Ψt
+for i=1:length(T)
+    Ψ = Ψt[i]
     n = abs(Ψ.data).^2
-    plot(x_points, n, "r")
+    plot(x_points, n, "C0", alpha=0.9*(float(i)/length(T))^8+0.1)
 end;
-
-

@@ -41,10 +41,12 @@ end;
 timeevolution.master(tlist, ψ₀, H, J; fout=calc_pops)
 
 # Plots
-figure(figsize=(7, 3.5))
-plot(tout, p1, "b", label="Initial ground state")
-plot(tout, p2, "k--", label="Excited state")
-plot(tout, p3, "r", label="Other ground state")
+figure(figsize=(6, 3))
+plot(tout, p1, label="Initial ground state")
+plot(tout, p2, "--", label="Excited state")
+plot(tout, p3, label="Other ground state")
 axis([0, tmax, 0, 1])
 legend()
 show()
+
+

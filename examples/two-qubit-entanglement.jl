@@ -17,7 +17,7 @@ tout, ψₜ = timeevolution.schroedinger(t, ψ₀, H);
 ρ_red = [ptrace(ψ ⊗ dagger(ψ), 1) for ψ=ψₜ]
 S = [entropy_vn(ρ)/log(2) for ρ=ρ_red];
 
-figure(figsize=(7, 3.5))
+figure(figsize=(6, 3))
 plot(tout, S)
 show()
 
