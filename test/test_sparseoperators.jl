@@ -23,9 +23,17 @@ sz_dense = full(sz)
 @test typeof(sparse(sx_dense)) == SparseOperator
 @test sparse(sx_dense) == sx
 
+b = FockBasis(3) ⊗ SpinBasis(1//2)
+op = SparseOperator(b, b, sparse(rand(Complex128, length(b), length(b))))
+state = Ket(b, rand(Complex128, length(b)))
+@test expect(op, state) ≈ dagger(state)*op*state
+@test expect(op, state) ≈ dagger(state)*full(op)*state
+state = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+@test expect(op, state) ≈ trace(op*state)
+@test expect(op, state) ≈ trace(full(op)*state)
+
 b = FockBasis(3)
 I = identityoperator(b)
-
 
 a = TestOperator()
 

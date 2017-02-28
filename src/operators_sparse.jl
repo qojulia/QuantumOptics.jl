@@ -79,6 +79,16 @@ function operators.ptrace(op::SparseOperator, indices::Vector{Int})
     SparseOperator(b_l, b_r, data)
 end
 
+function operators.expect(op::SparseOperator, state::DenseOperator)
+    result = Complex128(0.)
+    @inbounds for colindex = 1:op.data.n
+        for i=op.data.colptr[colindex]:op.data.colptr[colindex+1]-1
+            result += op.data.nzval[i]*state.data[colindex, op.data.rowval[i]]
+        end
+    end
+    result
+end
+
 tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
 
 function permutesystems(rho::SparseOperator, perm::Vector{Int})

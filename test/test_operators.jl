@@ -52,6 +52,14 @@ op_ = normalize!(op)
 @test op_ === op
 @test 1 == trace(op)
 
+# Test expect
+b = FockBasis(3) ⊗ SpinBasis(1//2)
+op = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+state = Ket(b, rand(Complex128, length(b)))
+@test expect(op, state) ≈ dagger(state)*op*state
+state = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+@test expect(op, state) ≈ trace(op*state)
+
 # Test operator exponential
 b = GenericBasis([3])
 op = DenseOperator(GenericBasis([3]), [1 3 2;5 2 2;-1 2 5])

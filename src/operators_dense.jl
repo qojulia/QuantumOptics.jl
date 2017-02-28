@@ -107,6 +107,14 @@ function states.normalize!(op::DenseOperator)
     return op
 end
 
+function operators.expect(op::DenseOperator, state::Operator)
+    result = Complex128(0.)
+    @inbounds for i=1:size(op.data, 1), j=1:size(op.data,2)
+        result += op.data[i,j]*state.data[j,i]
+    end
+    result
+end
+
 tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
 tensor(a::Ket, b::Bra) = DenseOperator(a.basis, b.basis, reshape(kron(b.data, a.data), prod(a.basis.shape), prod(b.basis.shape)))
 
