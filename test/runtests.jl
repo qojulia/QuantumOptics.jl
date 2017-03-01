@@ -37,6 +37,8 @@ names = [
 
     "test_cumulantexpansion.jl",
     "test_cumulantexpansion_timedependent.jl",
+    "test_correlationexpansion.jl",
+    "test_correlationexpansion_mpc.jl",
 ]
 
 detected_tests = filter(

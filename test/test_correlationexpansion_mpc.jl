@@ -6,14 +6,17 @@ catch e
     println("CollectiveSpins.jl not found - skipping test.")
     quit()
 end
-const cs = CollectiveSpins
-const ce = correlationexpansion
+
+
+@testset "correlationexpansion_mpc" begin
+
+cs = CollectiveSpins
+ce = correlationexpansion
 
 srand(0)
 
-function test_op_equal(op1, op2, eps=1e-10)
-    @test_approx_eq_eps 0. tracedistance_general(full(op1), full(op2)) eps
-end
+D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
+
 
 N = 4
 a = 0.54
@@ -52,9 +55,9 @@ J = LazyTensor[LazyTensor(b, i, sigmam) for i=1:N]
 
 H_ = cs.quantum.Hamiltonian(system)
 Γ_, J_ = cs.quantum.JumpOperators(system)
-test_op_equal(H_, H)
+@test 1e-15 > D(H_, H)
 for i=1:N
-    test_op_equal(J_[i], J[i])
+    @test 1e-15 > D(J_[i], J[i])
 end
 
 # Master
@@ -67,7 +70,7 @@ ce0 = ce.approximate(rho0, ce.masks(N))
 tout, ce_t = ce.master(T, ce0, H, J; Gamma=Γ)
 
 for (rho, rho_ce) in zip(rho_t, ce_t)
-    test_op_equal(rho, rho_ce, 1e-5)
+    @test 1e-5 > D(rho, rho_ce)
 end
 
 
@@ -100,3 +103,4 @@ for (state_mpc, rho_ce, rho) in zip(state_mf_t, ce_t, rho_t)
     @test d2 < 2*d1
 end
 
+end # testset
