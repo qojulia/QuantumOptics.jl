@@ -61,4 +61,17 @@ x = LazyTensor(b, [2,1,3], [sparse(op2b), op1b, op3b])
 y = LazyTensor(b, 2, op2a)
 @test 1e-15 > D(op1b⊗(op2b*op2a)⊗op3b, x*y)
 
+# gemm
+op = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+h = LazyTensor(b, [1,3], [sparse(op1b), sparse(op3b)])
+
+result = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+r1 = 0.1*result + 1.5*full(h)*op
+operators.gemm!(complex(1.5), h, op, complex(0.1), result)
+@test 1e-13 > D(result, r1)
+
+r2 = 0.1*result + 1.5*op*full(h)
+operators.gemm!(complex(1.5), op, h, complex(0.1), result)
+@test 1e-13 > D(result, r2)
+
 end # testset
