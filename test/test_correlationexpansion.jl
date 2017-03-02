@@ -9,9 +9,9 @@ srand(0)
 
 D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
 
-b1 = FockBasis(2)
+b1 = FockBasis(1)
 b2 = SpinBasis(1//2)
-b3 = NLevelBasis(3)
+b3 = NLevelBasis(2)
 b4 = NLevelBasis(2)
 b = tensor(b1, b2, b3, b4)
 
@@ -49,20 +49,22 @@ h = 0.5*lazy(randop(b1)) ⊗ lazy(randop(b2)) ⊗ lazy(randop(b3)) ⊗ lazy(rand
 @test 1e-13 > D(full(h)*full(op1_)*0.3*full(h), h*(op1_*0.3)*h)
 
 # Test ptrace
-@test 1e-13 > D(ptrace(full(h)*op1, 1), ptrace(h*op1_, 1))
-@test 1e-13 > D(ptrace(full(h)*op1, 2), ptrace(h*op1_, 2))
-@test 1e-13 > D(ptrace(full(h)*op1, 3), ptrace(h*op1_, 3))
-@test 1e-13 > D(ptrace(full(h)*op1, 4), ptrace(h*op1_, 4))
-@test 1e-13 > D(ptrace(full(h)*op1, [1,2]), ptrace(h*op1_, [1,2]))
-@test 1e-13 > D(ptrace(full(h)*op1, [1,3]), ptrace(h*op1_, [1,3]))
-@test 1e-13 > D(ptrace(full(h)*op1, [1,4]), ptrace(h*op1_, [1,4]))
-@test 1e-13 > D(ptrace(full(h)*op1, [2,3]), ptrace(h*op1_, [2,3]))
-@test 1e-13 > D(ptrace(full(h)*op1, [2,4]), ptrace(h*op1_, [2,4]))
-@test 1e-13 > D(ptrace(full(h)*op1, [3,4]), ptrace(h*op1_, [3,4]))
-@test 1e-13 > D(ptrace(full(h)*op1, [1,2,3]), ptrace(h*op1_, [1,2,3]))
-@test 1e-13 > D(ptrace(full(h)*op1, [1,2,4]), ptrace(h*op1_, [1,2,4]))
-@test 1e-13 > D(ptrace(full(h)*op1, [1,3,4]), ptrace(h*op1_, [1,3,4]))
-@test 1e-13 > D(ptrace(full(h)*op1, [2,3,4]), ptrace(h*op1_, [2,3,4]))
+x_ = h*op1_
+x = full(h)*op1
+@test 1e-13 > D(ptrace(x, 1), ptrace(x_, 1))
+@test 1e-13 > D(ptrace(x, 2), ptrace(x_, 2))
+@test 1e-13 > D(ptrace(x, 3), ptrace(x_, 3))
+@test 1e-13 > D(ptrace(x, 4), ptrace(x_, 4))
+@test 1e-13 > D(ptrace(x, [1,2]), ptrace(x_, [1,2]))
+@test 1e-13 > D(ptrace(x, [1,3]), ptrace(x_, [1,3]))
+@test 1e-13 > D(ptrace(x, [1,4]), ptrace(x_, [1,4]))
+@test 1e-13 > D(ptrace(x, [2,3]), ptrace(x_, [2,3]))
+@test 1e-13 > D(ptrace(x, [2,4]), ptrace(x_, [2,4]))
+@test 1e-13 > D(ptrace(x, [3,4]), ptrace(x_, [3,4]))
+@test 1e-13 > D(ptrace(x, [1,2,3]), ptrace(x_, [1,2,3]))
+@test 1e-13 > D(ptrace(x, [1,2,4]), ptrace(x_, [1,2,4]))
+@test 1e-13 > D(ptrace(x, [1,3,4]), ptrace(x_, [1,3,4]))
+@test 1e-13 > D(ptrace(x, [2,3,4]), ptrace(x_, [2,3,4]))
 
 # Compare to standard master time evolution
 rho = randdo(b1) ⊗ randdo(b2) ⊗ randdo(b3) ⊗ randdo(b4)
@@ -77,7 +79,7 @@ v = rand(Float64, length(J))
 H = LazySum(h, dagger(h))
 
 
-T = [0.:0.05:0.1;]
+T = [0.:0.005:0.01;]
 tout_ce, rho_ce_t = ce.master(T, rho_ce, H, J; Gamma=Γ)
 
 tout, rho_t = timeevolution.master_h(T, full(rho), full(H), [full(j) for j in J]; Gamma=Γ)
