@@ -57,7 +57,7 @@ op123 = op1a ⊗ op2a ⊗ op3a
 # Case 1
 op = op1a ⊗ op2a
 op_sparse = sparse(op1a) ⊗ sparse(op2a)
-op_tensor = LazyTensor(CompositeBasis(b1a), CompositeBasis(b1b), Dict(1=>op1a)) ⊗ LazyTensor(CompositeBasis(b2a), CompositeBasis(b2b), Dict(1=>sparse(op2a)))
+op_tensor = LazyTensor(CompositeBasis(b1a), CompositeBasis(b1b), 1, op1a) ⊗ LazyTensor(CompositeBasis(b2a), CompositeBasis(b2b), 1, sparse(op2a))
 
 @test typeof(op_sparse) == SparseOperator
 @test typeof(op_tensor) == LazyTensor

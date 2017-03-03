@@ -45,7 +45,7 @@ op = sparse(op)
 op1 = DenseOperator(b1, rand(Complex128, length(b1), length(b1)))
 op2 = DenseOperator(b2, rand(Complex128, length(b2), length(b2)))
 op3 = DenseOperator(b3, rand(Complex128, length(b3), length(b3)))
-op = LazyTensor(b, Dict(1=>op1, 2=>op2, 3=>op3))
+op = LazyTensor(b, [1, 2, 3], [op1, op2, op3])
 
 @test 1e-15 > D(op, identityoperator(op)*op)
 @test 1e-15 > D(op, op*identityoperator(op))

@@ -1,6 +1,25 @@
 module sortedindices
 
 """
+6, [1, 4] => [2, 3, 5, 6]
+"""
+function complement(N::Int, indices::Vector{Int})
+    L = length(indices)
+    x = Vector{Int}(N - L)
+    i_ = 1 # Position in the x vector
+    j = 1 # Position in indices vector
+    for i=1:N
+        if j > L || indices[j]!=i
+            x[i_] = i
+            i_ += 1
+        else
+            j += 1
+        end
+    end
+    x
+end
+
+"""
 [1, 4, 5], [2, 4, 7] => [1, 2, 4, 5, 7]
 """
 function union(ind1::Vector{Int}, ind2::Vector{Int})

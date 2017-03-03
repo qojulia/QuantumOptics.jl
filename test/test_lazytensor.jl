@@ -33,11 +33,11 @@ op = 0.3*lazy(op1a) ⊗ (-lazy(op2a)) ⊗ lazy(op3a)/4
 @test 1e-15 > D(-0.3*op1a⊗op2a⊗op3a/4, full(op))
 @test 1e-15 > D(-0.3*op1a⊗op2a⊗op3a/4, sparse(op))
 
-op = LazyTensor(b, Dict(1=>sparse(op1a), 2=>op2a, 3=>sparse(op3a)))
+op = LazyTensor(b, [1, 2, 3], [sparse(op1a), op2a, sparse(op3a)])
 @test 1e-15 > D(op1a⊗op2a⊗op3a, full(op))
 @test 1e-15 > D(op1a⊗op2a⊗op3a, sparse(op))
 
-op = LazyTensor(b, Dict(1=>sparse(op1a), 3=>op3a))
+op = LazyTensor(b, [1, 3], [sparse(op1a), op3a])
 @test 1e-15 > D(op1a⊗I2⊗op3a, full(op))
 @test 1e-15 > D(op1a⊗I2⊗op3a, sparse(op))
 
@@ -64,6 +64,19 @@ y = LazyTensor(b, 2, op2a)
 # gemm
 op = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
 h = LazyTensor(b, [1,3], [sparse(op1b), sparse(op3b)])
+
+result = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+r1 = 0.1*result + 1.5*full(h)*op
+operators.gemm!(complex(1.5), h, op, complex(0.1), result)
+@test 1e-13 > D(result, r1)
+
+r2 = 0.1*result + 1.5*op*full(h)
+operators.gemm!(complex(1.5), op, h, complex(0.1), result)
+@test 1e-13 > D(result, r2)
+
+
+op = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
+h = LazyTensor(b, [1,3], [full(op1b), full(op3b)])
 
 result = DenseOperator(b, b, rand(Complex128, length(b), length(b)))
 r1 = 0.1*result + 1.5*full(h)*op

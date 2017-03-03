@@ -22,7 +22,7 @@ b_r = b1b⊗b2b⊗b3b
 op1 = DenseOperator(b1a, b1b, rand(Complex128, length(b1a), length(b1b)))
 op2 = DenseOperator(b2a, b2b, rand(Complex128, length(b2a), length(b2b)))
 op3 = DenseOperator(b3a, b3b, rand(Complex128, length(b3a), length(b3b)))
-op123 = LazyTensor(b_l, b_r, Dict(zip([1, 2, 3], [op1, op2, op3])))
+op123 = LazyTensor(b_l, b_r, [1, 2, 3], [op1, op2, op3])
 
 op132 = op1⊗op3⊗op2
 @test 1e-14 > D(permutesystems(op123, [1, 3, 2]), op132)

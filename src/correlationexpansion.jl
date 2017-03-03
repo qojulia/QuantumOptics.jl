@@ -6,6 +6,7 @@ import ..operators: dagger, identityoperator,
                     gemv!, gemm!
 
 using Combinatorics, Iterators
+using ..sortedindices
 using ..bases
 using ..operators
 using ..operators_dense
@@ -33,7 +34,8 @@ end
 
 mask2indices(mask::Mask) = find(mask)
 
-complement(N::Int, indices::Vector{Int}) = Int[i for i=1:N if i ∉ indices]
+complement = sortedindices.complement
+# complement(N::Int, indices::Vector{Int}) = Int[i for i=1:N if i ∉ indices]
 
 as_mask(N::Int, m::Mask) = (@assert length(m)==N; m)
 function as_mask(N::Int, m)
@@ -281,23 +283,26 @@ function gemm!(alpha, a::LazyTensor, b::CorrelationExpansion, beta, result::Corr
     result.factor = a.factor*alpha*b.factor
     @assert beta == complex(0.)
     alpha = complex(1.)
+    n = 1
+    Na = length(a.indices)
     for i=1:N
-        if i ∈ keys(a.operators)
-            gemm!(alpha, a.operators[i], b.operators[i], beta, result.operators[i])
+        if n <= Na && i == a.indices[n]
+            gemm!(alpha, a.operators[n], b.operators[i], beta, result.operators[i])
+            n += 1
         else
             copy!(result.operators[i].data, b.operators[i].data)
         end
     end
     for mask in keys(b.correlations)
         I = mask2indices(mask)
-        I_ = I ∩ keys(a.operators)
+        I_ = sortedindices.intersect(I, a.indices)
         op = result.correlations[mask]
         if isempty(I_)
             copy!(op.data, b.correlations[mask].data)
         else
-            indices = reduced_indices(I, I_)
-            operators = [a.operators[i] for i in I_]
-            a_ = embed(op.basis_l, op.basis_r, indices, operators)
+            operators = operators_lazy.suboperators(a, I_)
+            sortedindices.reducedindices!(I_, I)
+            a_ = LazyTensor(op.basis_l, op.basis_r, I_, operators)
             gemm!(alpha, a_, b.correlations[mask], beta, op)
         end
     end
@@ -308,23 +313,26 @@ function gemm!(alpha, a::CorrelationExpansion, b::LazyTensor, beta, result::Corr
     result.factor = a.factor*alpha*b.factor
     @assert beta == complex(0.)
     alpha = complex(1.)
+    n = 1
+    Nb = length(b.indices)
     for i=1:N
-        if i ∈ keys(b.operators)
-            gemm!(alpha, a.operators[i], b.operators[i], beta, result.operators[i])
+        if n <= Nb && i == b.indices[n]
+            gemm!(alpha, a.operators[i], b.operators[n], beta, result.operators[i])
+            n += 1
         else
             copy!(result.operators[i].data, a.operators[i].data)
         end
     end
     for mask in keys(a.correlations)
         I = mask2indices(mask)
-        I_ = I ∩ keys(b.operators)
+        I_ = sortedindices.intersect(I, b.indices)
         op = result.correlations[mask]
         if isempty(I_)
             copy!(op.data, a.correlations[mask].data)
         else
-            indices = reduced_indices(I, I_)
-            operators = [b.operators[i] for i in I_]
-            b_ = embed(op.basis_l, op.basis_r, indices, operators)
+            operators = operators_lazy.suboperators(b, I_)
+            sortedindices.reducedindices!(I_, I)
+            b_ = LazyTensor(op.basis_l, op.basis_r, I_, operators)
             gemm!(alpha, a.correlations[mask], b_, beta, op)
         end
     end

@@ -5,7 +5,7 @@ import ..operators: dagger, identityoperator,
                     trace, ptrace, normalize!, tensor, permutesystems
 
 using Base.Cartesian
-using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
+using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse, ..sortedindices
 
 export lazy, LazyWrapper, LazyTensor, LazySum, LazyProduct
 

@@ -26,36 +26,36 @@ ProductDensityOperator() = error("ProductDensityOperator needs at least one oper
 ProductDensityOperator(states::Ket...) = ProductDensityOperator(DenseOperator[tensor(state, dagger(state)) for state in states]...)
 
 *(a::ProductDensityOperator, b::ProductDensityOperator) = (check_multiplicable(a.basis_r, b.basis_l); ProductDensityOperator(a.basis_l, b.basis_r, DenseOperator[a_i*b_i for (a_i, b_i) in zip(a.operators, b.operators)]))
-function *(a::LazyTensor, b::ProductDensityOperator)
-    check_multiplicable(a.basis_r, b.basis_l);
-    operators = DenseOperator[]
-    for (alpha, b_alpha) in enumerate(b.operators)
-        if alpha in keys(a.operators)
-            push!(operators, a.operators[alpha]*b_alpha)
-        else
-            push!(operators, deepcopy(b_alpha))
-        end
-    end
-    if a.factor != 1.
-        operators[0] *= a.factor
-    end
-    ProductDensityOperator(operators...)
-end
-function *(a::ProductDensityOperator, b::LazyTensor)
-    check_multiplicable(a.basis_r, b.basis_l);
-    operators = DenseOperator[]
-    for (alpha, a_alpha) in enumerate(a.operators)
-        if alpha in keys(b.operators)
-            push!(operators, a_alpha*b.operators[alpha])
-        else
-            push!(operators, deepcopy(a_alpha))
-        end
-    end
-    if b.factor != 1.
-        operators[0] *= b.factor
-    end
-    ProductDensityOperator(operators...)
-end
+# function *(a::LazyTensor, b::ProductDensityOperator)
+#     check_multiplicable(a.basis_r, b.basis_l);
+#     operators = DenseOperator[]
+#     for (alpha, b_alpha) in enumerate(b.operators)
+#         if alpha in keys(a.operators)
+#             push!(operators, a.operators[alpha]*b_alpha)
+#         else
+#             push!(operators, deepcopy(b_alpha))
+#         end
+#     end
+#     if a.factor != 1.
+#         operators[0] *= a.factor
+#     end
+#     ProductDensityOperator(operators...)
+# end
+# function *(a::ProductDensityOperator, b::LazyTensor)
+#     check_multiplicable(a.basis_r, b.basis_l);
+#     operators = DenseOperator[]
+#     for (alpha, a_alpha) in enumerate(a.operators)
+#         if alpha in keys(b.operators)
+#             push!(operators, a_alpha*b.operators[alpha])
+#         else
+#             push!(operators, deepcopy(a_alpha))
+#         end
+#     end
+#     if b.factor != 1.
+#         operators[0] *= b.factor
+#     end
+#     ProductDensityOperator(operators...)
+# end
 
 dims(bl::CompositeBasis, br::CompositeBasis) = [length(bl_i)*length(br_i) for (bl_i, br_i) in zip(bl.bases, br.bases)]
 dims(x::ProductDensityOperator) = dims(x.basis_l, x.basis_r)
@@ -79,7 +79,9 @@ end
 # Ignores the factor in the LazyTensor
 function operators.gemm!(alpha, a::LazyTensor, b::ProductDensityOperator, beta, result::ProductDensityOperator)
     @assert abs(beta)==0.
-    for (k, a_k) in a.operators
+    for n in 1:length(a.indices)
+        k = a.indices[n]
+        a_k = a.operators[n]
         operators.gemm!(complex(1.), a_k, b.operators[k], complex(0.), result.operators[k])
     end
 end
@@ -91,9 +93,11 @@ function dmaster(rho0::ProductDensityOperator, H::LazySum,
     for h_k in H.operators
         operators.gemm!(1., h_k, rho0, 0., tmp)
         subtraces = traces(tmp)
-        for (alpha, h_k_alpha) in h_k.operators
+        for n = 1:length(h_k.indices)
+            alpha = h_k.indices[n]
+            h_k_alpha = h_k.operators[n]
             factor = h_k.factor
-            for gamma in keys(h_k.operators)
+            for gamma in h_k.indices
                 if alpha!=gamma
                     factor *= subtraces[gamma]
                 end
@@ -106,21 +110,23 @@ function dmaster(rho0::ProductDensityOperator, H::LazySum,
         operators.gemm!(1., J[k], rho0, 0., tmp)
         operators.gemm!(1., Jdagger[k], tmp, 0., tmp2)
         subtraces = traces(tmp)
-        subindices = keys(J[k].operators)
-        for alpha in subindices
+        # subindices = keys(J[k].operators)
+        for n in 1:length(J[k].indices)
+        # for alpha in subindices
+            alpha = J[k].indices[n]
             factor = Jdagger[k].factor * J[k].factor
-            for gamma in subindices
+            for gamma in J[k].indices
                 if alpha!=gamma
                     factor *= subtraces[gamma]
                 end
             end
-            operators.gemm!(complex(factor), J[k].operators[alpha], rho0.operators[alpha], complex(0.), tmp.operators[alpha])
-            operators.gemm!(complex(1.), tmp.operators[alpha], Jdagger[k].operators[alpha], complex(1.), drho.operators[alpha])
+            operators.gemm!(complex(factor), J[k].operators[n], rho0.operators[alpha], complex(0.), tmp.operators[alpha])
+            operators.gemm!(complex(1.), tmp.operators[alpha], Jdagger[k].operators[n], complex(1.), drho.operators[alpha])
 
-            operators.gemm!(complex(-0.5), Jdagger[k].operators[alpha], tmp.operators[alpha], complex(1.), drho.operators[alpha])
+            operators.gemm!(complex(-0.5), Jdagger[k].operators[n], tmp.operators[alpha], complex(1.), drho.operators[alpha])
 
-            operators.gemm!(complex(-0.5*factor), rho0.operators[alpha], Jdagger[k].operators[alpha], complex(0.), tmp.operators[alpha])
-            operators.gemm!(complex(1.), tmp.operators[alpha], J[k].operators[alpha], complex(1.), drho.operators[alpha])
+            operators.gemm!(complex(-0.5*factor), rho0.operators[alpha], Jdagger[k].operators[n], complex(0.), tmp.operators[alpha])
+            operators.gemm!(complex(1.), tmp.operators[alpha], J[k].operators[n], complex(1.), drho.operators[alpha])
         end
     end
 end

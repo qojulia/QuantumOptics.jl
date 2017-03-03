@@ -59,7 +59,7 @@ op = DenseOperator(b, rand(Complex128, length(b), length(b)))
 @test ptrace(sparse(op), [1,2,3]) == ptrace(op, [1,2,3])
 
 # LazyTensor
-op123_ = LazyTensor(b, Dict(zip([1, 2, 3], [op1, op2, op3])))
+op123_ = LazyTensor(b, [1, 2, 3], [op1, op2, op3])
 
 @test 1e-14 > D(ptrace(op123, 3), ptrace(op123_, 3))
 @test 1e-14 > D(ptrace(op123, 2), ptrace(op123_, 2))
