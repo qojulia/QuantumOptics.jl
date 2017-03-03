@@ -1,6 +1,6 @@
 module timeevolution_mcwf
 
-export mcwf, mcwf_h, mcwf_nh
+export mcwf, mcwf_h, mcwf_nh, diagonaljumps
 
 using ...bases
 using ...states
@@ -233,5 +233,25 @@ function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
                 display_afterevent=display_afterevent,
                 kwargs...)
 end
+
+"""
+Diagonal jump operators.
+
+A given matrix of decay rates is diagonalized and the corresponding set of jump
+operators is calculated.
+
+Arguments
+---------
+
+Gamma
+  Matrix of decay rates.
+J
+  Vector containing jump operators.
+"""
+function diagonaljumps(Gamma::Array{Float64}, J::Vector)
+  d, v = eig(Gamma)
+  d, [sum([v[j, i]*J[j] for j=1:length(d)]) for i=1:length(d)]
+end
+
 
 end #module

@@ -138,4 +138,19 @@ for i=1:length(T)
     @test norm(Ψt_mcwf_nh[i] - Ψt_schroedinger[i]) < 1e-4
 end
 
+
+# Test diagonal jump operators
+threespinbasis = spinbasis ⊗ spinbasis ⊗ spinbasis
+Γ, γ1, γ2, = 1.0, 1/sqrt(2), 1/sqrt(3)
+Gamma = [Γ γ1 γ2; γ1 Γ γ1; γ2 γ1 Γ]
+J3 = [embed(threespinbasis, i, sm) for i=1:3]
+H = sum(J3) + dagger(sum(J3))
+d, diagJ = diagonaljumps(Gamma, J3)
+ψ3 = spindown(spinbasis) ⊗ spindown(spinbasis) ⊗ spindown(spinbasis)
+tout, ρ3_nondiag = timeevolution.master(T, ψ3, H, J3; Gamma=Gamma)
+tout, ρ3_diag = timeevolution.master(T, ψ3, H, diagJ; Gamma=d)
+for i=1:length(tout)
+  @test tracedistance(ρ3_nondiag[i], ρ3_diag[i]) < 1e-14
+end
+
 end # testset

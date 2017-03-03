@@ -26,7 +26,7 @@ export bases, Basis, GenericBasis, CompositeBasis,
         spectralanalysis, operatorspectrum, operatorspectrum_hermitian,
                 eigenstates, eigenstates_hermitian, groundstate, simdiag,
         timeevolution_simple,
-        timeevolution,
+        timeevolution, diagonaljumps,
         cumulantexpansion,
         correlationexpansion,
         steadystate,
@@ -58,6 +58,7 @@ module timeevolution
     using .timeevolution_schroedinger
     using .timeevolution_mcwf
 end
+diagonaljumps = timeevolution.timeevolution_mcwf.diagonaljumps
 include("cumulantexpansion.jl")
 include("correlationexpansion.jl")
 include("steadystate.jl")
