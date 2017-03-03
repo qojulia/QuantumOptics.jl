@@ -33,6 +33,7 @@ export bases, Basis, GenericBasis, CompositeBasis,
         correlations
 
 
+include("sortedindices.jl")
 include("bases.jl")
 include("states.jl")
 include("operators.jl")
@@ -65,7 +66,6 @@ include("steadystate.jl")
 include("correlations.jl")
 include("spectralanalysis.jl")
 include("io.jl")
-
 
 using .bases
 using .states
