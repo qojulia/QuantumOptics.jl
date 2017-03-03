@@ -309,6 +309,7 @@ Monte Carlo wave function
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jl:autofunction:: mcwf.jl mcwf
+.. jl:autofunction:: mcwf.jl diagonaljumps
 
 
 
