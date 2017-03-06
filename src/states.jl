@@ -113,7 +113,7 @@ perm
 """
 function bases.permutesystems{T<:StateVector}(state::T, perm::Vector{Int})
     @assert length(state.basis.bases) == length(perm)
-    @assert issubset(Set(1:length(state.basis.bases)), Set(perm))
+    @assert isperm(perm)
     data = reshape(state.data, reverse(state.basis.shape)...)
     dataperm = length(perm) - reverse(perm) + 1
     data = permutedims(data, dataperm)

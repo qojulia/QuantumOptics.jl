@@ -93,7 +93,7 @@ tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, 
 
 function permutesystems(rho::SparseOperator, perm::Vector{Int})
     @assert length(rho.basis_l.bases) == length(rho.basis_r.bases) == length(perm)
-    @assert issubset(Set(1:length(rho.basis_l.bases)), Set(perm))
+    @assert isperm(perm)
     shape = [reverse(rho.basis_l.shape); reverse(rho.basis_r.shape)]
     dataperm = length(perm) - reverse(perm) + 1
     data = sparsematrix.permutedims(rho.data, shape, [dataperm; dataperm + length(perm)])
