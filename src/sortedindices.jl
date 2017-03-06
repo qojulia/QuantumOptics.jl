@@ -146,4 +146,33 @@ function reducedindices!(I_::Vector{Int}, I::Vector{Int})
     end
 end
 
+"""
+Check if all indices are unique and smaller than or equal to imax.
+"""
+function check_indices(imax::Int, indices::Vector{Int})
+    N = length(indices)
+    for n=1:N
+        i = indices[n]
+        @assert i <= imax
+        for m in n+1:N
+            @assert i != indices[m]
+        end
+    end
+end
+
+"""
+Check if the indices are sorted, unique and smaller than or equal to imax.
+"""
+function check_sortedindices(imax::Int, indices::Vector{Int})
+    N = length(indices)
+    if N == 0
+        return nothing
+    end
+    i_ = indices[1]
+    for i in indices[2:end]
+        @assert i <= imax
+        @assert i > i_
+    end
+end
+
 end # module

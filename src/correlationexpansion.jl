@@ -40,7 +40,7 @@ complement = sortedindices.complement
 as_mask(N::Int, m::Mask) = (@assert length(m)==N; m)
 function as_mask(N::Int, m)
     m = collect(m)
-    operators.check_indices(N, m)
+    sortedindices.check_indices(N, m)
     indices2mask(N, m)
 end
 
