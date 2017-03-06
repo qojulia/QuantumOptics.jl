@@ -39,7 +39,7 @@ op1I3_ = 0.3*LazyTensor(b, [1,3], [op1,op3])
 @test 1e-14 > D(op2*trace(op1)*trace(op3), ptrace(op123, [1,3]))
 @test 1e-14 > D(op3*trace(op1)*trace(op2), ptrace(op123, [1,2]))
 
-@test_approx_eq_eps 0. abs(trace(op1)*trace(op2)*trace(op3) - ptrace(op123, [1,2,3])) 1e-15
+@test 1e-14 > abs(trace(op1)*trace(op2)*trace(op3) - ptrace(op123, [1,2,3]))
 
 
 # Compare partial traces of other operators to dense operators
@@ -69,7 +69,7 @@ op123_ = LazyTensor(b, [1, 2, 3], [op1, op2, op3])
 @test 1e-14 > D(ptrace(op123, [1,3]), ptrace(op123_, [1,3]))
 @test 1e-14 > D(ptrace(op123, [1,2]), ptrace(op123_, [1,2]))
 
-@test_approx_eq_eps 0. abs(trace(op1)*trace(op2)*trace(op3) - ptrace(op123_, [1,2,3])) 1e-15
+@test 1e-14 > abs(trace(op1)*trace(op2)*trace(op3) - ptrace(op123_, [1,2,3]))
 
 I2 = identityoperator(DenseOperator, b2)
 op1I3 = 0.3*op1 ⊗ I2 ⊗ op3
@@ -83,7 +83,7 @@ op1I3_ = 0.3*LazyTensor(b, [1,3], [op1,op3])
 @test 1e-14 > D(ptrace(op1I3, [1,3]), ptrace(op1I3_, [1,3]))
 @test 1e-14 > D(ptrace(op1I3, [1,2]), ptrace(op1I3_, [1,2]))
 
-@test_approx_eq_eps 0. abs(0.3*trace(op1)*trace(I2)*trace(op3) - ptrace(op1I3_, [1,2,3])) 1e-14
+@test 1e-14 > abs(0.3*trace(op1)*trace(I2)*trace(op3) - ptrace(op1I3_, [1,2,3]))
 
 # Lazy Sum
 op1 = DenseOperator(b, rand(Complex128, length(b), length(b)))
@@ -101,7 +101,7 @@ op123_ = LazySum([0.2, 0.5, 0.7], [op1, op2, op3])
 @test 1e-14 > D(ptrace(op123, [1,3]), ptrace(op123_, [1,3]))
 @test 1e-14 > D(ptrace(op123, [1,2]), ptrace(op123_, [1,2]))
 
-@test_approx_eq_eps 0. abs(trace(op123) - ptrace(op123_, [1,2,3])) 1e-14
+@test 1e-14 > abs(trace(op123) - ptrace(op123_, [1,2,3]))
 
 end # testset
 

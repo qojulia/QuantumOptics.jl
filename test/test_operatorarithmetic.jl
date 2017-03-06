@@ -17,10 +17,6 @@ b3b = NLevelBasis(4)
 b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
-function test_state_equal(x1, x2)
-    @test_approx_eq_eps 0. norm(x1-x2) 1e-11
-end
-
 x1 = Ket(b_r, rand(Complex128, length(b_r)))
 x2 = Ket(b_r, rand(Complex128, length(b_r)))
 x3 = Ket(b_r, rand(Complex128, length(b_r)))
@@ -47,8 +43,8 @@ op3 = DenseOperator(b_l, b_r, rand(Complex128, length(b_l), length(b_r)))
 
 # Test multiplication
 @test_throws bases.IncompatibleBases op1*op2
-test_state_equal(op1*(x1 + x2), op1*x1 + op1*x2)
-test_state_equal((op1 + op2)*(x1 + x2), op1*x1 + op1*x2 + op2*x1 + op2*x2)
+@test 1e-11 > norm((op1*(x1 + x2)) - (op1*x1 + op1*x2))
+@test 1e-11 > norm(((op1+op2)*(x1+x2)) - (op1*x1+op1*x2+op2*x1+op2*x2))
 @test 1e-12 > D((op1 + op2)*dagger(op3), op1*dagger(op3) + op2*dagger(op3))
 @test 1e-12 > D(0.3*(op1*dagger(op2)), op1*(0.3*dagger(op2)))
 

@@ -11,9 +11,9 @@ bra = Bra(basis)
 ket = Ket(basis)
 
 @test_throws DimensionMismatch Bra(basis, [1, 2])
-@test_approx_eq 0. norm(bra-Bra(basis, zeros(Int, N)))
-@test_approx_eq 0. norm(ket-Ket(basis, zeros(Int, N)))
-@test_approx_eq 0. bra*ket
+@test 0 ≈ norm(bra-Bra(basis, zeros(Int, N)))
+@test 0 ≈ norm(ket-Ket(basis, zeros(Int, N)))
+@test 0 ≈ bra*ket
 @test_throws bases.IncompatibleBases bra*Ket(FockBasis(Nmin, Nmax+1))
 
 
@@ -73,6 +73,6 @@ psi213 = psi2 ⊗ psi1 ⊗ psi3
 
 c = dagger(psi213)*permutesystems(psi123, [2,1,3])
 
-@test_approx_eq_eps 1. c 1e-5
+@test 1e-5 > abs(1.-c)
 
 end # testset
