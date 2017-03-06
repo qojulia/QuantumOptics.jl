@@ -19,8 +19,8 @@ sx_dense = full(sx)
 sy_dense = full(sy)
 sz_dense = full(sz)
 
-@test typeof(sx_dense) == DenseOperator
-@test typeof(sparse(sx_dense)) == SparseOperator
+@test isa(sx_dense, DenseOperator)
+@test isa(sparse(sx_dense), SparseOperator)
 @test sparse(sx_dense) == sx
 
 b = FockBasis(3) ⊗ SpinBasis(1//2)

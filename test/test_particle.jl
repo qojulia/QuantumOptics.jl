@@ -145,8 +145,8 @@ operators.gemv!(Complex(1.), LazyProduct(Txp, I, Tpx), psix0, Complex(0.), psi_)
 # Test dense FFT operator
 Txp_dense = DenseOperator(Txp)
 Tpx_dense = DenseOperator(Tpx)
-@test typeof(Txp_dense) == DenseOperator
-@test typeof(Tpx_dense) == DenseOperator
+@test isa(Txp_dense, DenseOperator)
+@test isa(Tpx_dense, DenseOperator)
 @test 1e-5 > tracedistance(Txp_dense*rhop0p0*Tpx_dense, rhox0x0)
 
 end # testset

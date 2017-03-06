@@ -16,11 +16,11 @@ Iltensor = identityoperator(LazyTensor, b)
 Ilsum = identityoperator(LazySum, b)
 Ilprod = identityoperator(LazyProduct, b)
 
-@test typeof(Idense) == DenseOperator
-@test typeof(Isparse) == SparseOperator
-@test typeof(Iltensor) == LazyTensor
-@test typeof(Ilsum) == LazySum
-@test typeof(Ilprod) == LazyProduct
+@test isa(Idense, DenseOperator)
+@test isa(Isparse, SparseOperator)
+@test isa(Iltensor, LazyTensor)
+@test isa(Ilsum, LazySum)
+@test isa(Ilprod, LazyProduct)
 
 @test full(Isparse) == Idense
 @test full(Iltensor) == Idense

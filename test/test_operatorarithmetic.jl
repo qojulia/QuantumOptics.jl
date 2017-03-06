@@ -64,8 +64,8 @@ result = 0.1*op1 + 0.3*op2 - op3/4
 result_sparse = 0.1*sparse(op1) + 0.3*sparse(op2) - sparse(op3)/4
 result_lsum = 0.1*lazy(op1) + 0.3*lazy(op2) - lazy(op3)/4
 
-@test typeof(result_sparse) == SparseOperator
-@test typeof(result_lsum) == LazySum
+@test isa(result_sparse, SparseOperator)
+@test isa(result_lsum, LazySum)
 
 @test 1e-14 > D(result, result_sparse)
 @test 1e-14 > D(result, result_lsum)
@@ -75,8 +75,8 @@ result = 0.3*op1*dagger(op2)/7
 result_sparse = 0.3*sparse(op1)*dagger(sparse(op2))/7
 result_lprod = 0.3*lazy(op1)*dagger(lazy(op2))/7
 
-@test typeof(result_sparse) == SparseOperator
-@test typeof(result_lprod) == LazyProduct
+@test isa(result_sparse, SparseOperator)
+@test isa(result_lprod, LazyProduct)
 
 @test 1e-13 > D(result, result_sparse)
 @test 1e-13 > D(result, result_lprod)

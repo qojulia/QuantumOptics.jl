@@ -59,8 +59,8 @@ op = op1a ⊗ op2a
 op_sparse = sparse(op1a) ⊗ sparse(op2a)
 op_tensor = LazyTensor(CompositeBasis(b1a), CompositeBasis(b1b), 1, op1a) ⊗ LazyTensor(CompositeBasis(b2a), CompositeBasis(b2b), 1, sparse(op2a))
 
-@test typeof(op_sparse) == SparseOperator
-@test typeof(op_tensor) == LazyTensor
+@test isa(op_sparse, SparseOperator)
+@test isa(op_tensor, LazyTensor)
 
 @test 1e-13 > D(op_sparse, op)
 @test 1e-13 > D(op_tensor, op)
@@ -70,8 +70,8 @@ op = op1a ⊗ (op2a * dagger(op2b)) ⊗ (op3a + op3b)
 op_sparse = sparse(op1a) ⊗ (sparse(op2a) * dagger(sparse(op2b))) ⊗ (sparse(op3a) + sparse(op3b))
 op_tensor = lazy(op1a) ⊗ lazy(lazy(sparse(op2a)) * dagger(lazy(op2b))) ⊗ lazy(lazy(op3a) + lazy(sparse(op3b)))
 
-@test typeof(op_sparse) == SparseOperator
-@test typeof(op_tensor) == LazyTensor
+@test isa(op_sparse, SparseOperator)
+@test isa(op_tensor, LazyTensor)
 
 @test 1e-13 > D(op_sparse, op)
 @test 1e-13 > D(op_tensor, op)
