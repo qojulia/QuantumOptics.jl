@@ -27,7 +27,7 @@ type LazyTensor <: Operator
         end
         N = length(basis_l.bases)
         @assert N==length(basis_r.bases)
-        operators.check_indices(N, indices)
+        sortedindices.check_indices(N, indices)
         @assert length(indices) == length(ops)
         for n=1:length(indices)
             @assert isa(ops[n], Operator)
