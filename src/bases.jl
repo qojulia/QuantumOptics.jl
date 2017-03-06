@@ -220,9 +220,8 @@ perm
     Vector defining the new ordering of the sub-bases.
 """
 function permutesystems(b::CompositeBasis, perm::Vector{Int})
-    N = length(b.bases)
-    @assert N == length(perm)
-    @assert N == length(Set(perm))
+    @assert length(b.bases) == length(perm)
+    @assert isperm(perm)
     CompositeBasis(b.shape[perm], b.bases[perm])
 end
 

@@ -120,7 +120,7 @@ tensor(a::Ket, b::Bra) = DenseOperator(a.basis, b.basis, reshape(kron(b.data, a.
 
 function permutesystems(a::DenseOperator, perm::Vector{Int})
     @assert length(a.basis_l.bases) == length(a.basis_r.bases) == length(perm)
-    @assert issubset(Set(1:length(a.basis_l.bases)), Set(perm))
+    @assert isperm(perm)
     data = reshape(a.data, [reverse(a.basis_l.shape); reverse(a.basis_r.shape)]...)
     dataperm = length(perm) - reverse(perm) + 1
     data = permutedims(data, [dataperm; dataperm + length(perm)])
