@@ -4,7 +4,7 @@ import Base: trace, ==, +, -, *, /
 import ..bases: tensor, ptrace, permutesystems
 import ..states: dagger, normalize, normalize!
 
-using ..bases, ..states
+using ..sortedindices, ..bases, ..states
 
 export Operator,
        dagger, identityoperator,
@@ -126,7 +126,7 @@ function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
     N = length(basis_l.bases)
     @assert length(basis_r.bases) == N
     @assert length(indices) == length(operators)
-    check_indices(N, indices)
+    sortedindices.check_indices(N, indices)
     tensor([i ∈ indices ? operators[findfirst(indices, i)] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
 end
 embed(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Int, op::Operator) = embed(basis_l, basis_r, Int[index], [op])
@@ -184,19 +184,9 @@ gemm!() = error("Not Implemented.")
 
 
 # Helper functions to check validity of arguments
-function check_indices(imax::Int, indices::Vector{Int})
-    N = 0
-    for i=1:imax
-        n = count(x->x==i, indices)
-        N += n
-        @assert n == 1 || n == 0
-    end
-    @assert length(indices) == N
-end
-
 function check_ptrace_arguments(a::Operator, indices::Vector{Int})
     @assert length(a.basis_l.shape) == length(a.basis_r.shape)
-    check_indices(length(a.basis_l.shape), indices)
+    sortedindices.check_indices(length(a.basis_l.shape), indices)
 end
 
 function check_samebases(a::Operator, b::Operator)
