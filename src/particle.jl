@@ -8,7 +8,7 @@ using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse, ..o
 export PositionBasis, MomentumBasis,
         gaussianstate,
         spacing, samplepoints,
-        positionoperator, momentumoperator, laplace_x, laplace_p, FFTOperator
+        positionoperator, momentumoperator, potentialoperator, FFTOperator
 
 """
 Basis for a particle in real space.
@@ -233,15 +233,8 @@ positionoperator(b::PositionBasis) = SparseOperator(b, spdiagm(complex(samplepoi
 Position operator in momentum space.
 """
 function positionoperator(b::MomentumBasis)
-    p_op = DenseOperator(b)
-    u = 1im/(12*spacing(b))
-    for i=1:b.N-2
-        p_op.data[i,i+2] = -u
-        p_op.data[i,i+1] = 8*u
-        p_op.data[i+1,i] = -8*u
-        p_op.data[i+2,i] = u
-    end
-    return SparseOperator(p_op)
+    b_pos = PositionBasis(b)
+    particle.FFTOperator(b, b_pos)*full(positionoperator(b_pos))*particle.FFTOperator(b_pos, b)
 end
 
 """
@@ -253,56 +246,25 @@ momentumoperator(b::MomentumBasis) = SparseOperator(b, spdiagm(complex(samplepoi
 Momentum operator in real space.
 """
 function momentumoperator(b::PositionBasis)
-    p_op = DenseOperator(b)
-    u = -1im/(12*spacing(b))
-    for i=1:b.N-2
-        p_op.data[i,i+2] = -u
-        p_op.data[i,i+1] = 8*u
-        p_op.data[i+1,i] = -8*u
-        p_op.data[i+2,i] = u
-    end
-    return SparseOperator(p_op)
+    b_mom = MomentumBasis(b)
+    particle.FFTOperator(b, b_mom)*full(momentumoperator(b_mom))*particle.FFTOperator(b_mom, b)
 end
 
 """
-Second x-derivative in real space.
+Operator representing a potential V(x) in real space.
 """
-function laplace_x(b::PositionBasis)
-    x_op = DenseOperator(b)
-    u = 1/spacing(b)^2
-    for i=1:b.N-1
-        x_op.data[i+1,i] = u
-        x_op.data[i,i] = -2*u
-        x_op.data[i,i+1] = u
-    end
-    x_op.data[b.N,b.N] = -2*u
-    return SparseOperator(x_op)
+function potentialoperator(b::PositionBasis, V::Function)
+    x = samplepoints(b)
+    diagonaloperator(b, V.(x))
 end
 
 """
-Second x-derivative in momentum space.
+Operator representing a potential V(x) in momentum space.
 """
-laplace_x(b::MomentumBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)).^2, 0, length(b), length(b)))
-
-"""
-Second p-derivative in momentum space.
-"""
-function laplace_p(b::MomentumBasis)
-    p_op = DenseOperator(b)
-    u = 1/spacing(b)^2
-    for i=1:b.N-1
-        p_op.data[i+1,i] = u
-        p_op.data[i,i] = -2*u
-        p_op.data[i,i+1] = u
-    end
-    p_op.data[b.N,b.N] = -2*u
-    return SparseOperator(p_op)
+function potentialoperator(b::MomentumBasis, V::Function)
+    b_pos = PositionBasis(b)
+    particle.FFTOperator(b, b_pos)*full(potentialoperator(b_pos, V))*particle.FFTOperator(b_pos, b)
 end
-
-"""
-Second p-derivative in real space.
-"""
-laplace_p(b::PositionBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)).^2, 0, length(b), length(b)))
 
 
 type FFTOperator <: Operator
@@ -310,6 +272,8 @@ type FFTOperator <: Operator
     basis_r::Basis
     fft_l!
     fft_r!
+    fft_l2!
+    fft_r2!
     mul_before::Vector{Complex128}
     mul_after::Vector{Complex128}
 end
@@ -325,10 +289,11 @@ function FFTOperator(basis_l::MomentumBasis, basis_r::PositionBasis)
     if basis_l.N != basis_r.N || abs(2*pi/dp - Lx)/Lx > 1e-12
         throw(IncompatibleBases())
     end
-    x = zeros(Complex128, length(basis_r))
+    x = Vector{Complex128}(length(basis_r))
+    A = Matrix{Complex128}(length(basis_r), length(basis_r))
     mul_before = exp(-1im*basis_l.pmin*(samplepoints(basis_r)-basis_r.xmin))
     mul_after = exp(-1im*basis_r.xmin*samplepoints(basis_l))/sqrt(basis_r.N)
-    FFTOperator(basis_l, basis_r, plan_bfft!(x), plan_fft!(x), mul_before, mul_after)
+    FFTOperator(basis_l, basis_r, plan_bfft!(x), plan_fft!(x), plan_bfft!(A, 2), plan_fft!(A, 1), mul_before, mul_after)
 end
 
 function FFTOperator(basis_l::PositionBasis, basis_r::MomentumBasis)
@@ -338,10 +303,11 @@ function FFTOperator(basis_l::PositionBasis, basis_r::MomentumBasis)
     if basis_l.N != basis_r.N || abs(2*pi/dp - Lx)/Lx > 1e-12
         throw(IncompatibleBases())
     end
-    x = zeros(Complex128, length(basis_r))
+    x = Vector{Complex128}(length(basis_r))
+    A = Matrix{Complex128}(length(basis_r), length(basis_r))
     mul_before = exp(1im*basis_l.xmin*(samplepoints(basis_r)-basis_r.pmin))
     mul_after = exp(1im*basis_r.pmin*samplepoints(basis_l))/sqrt(basis_r.N)
-    FFTOperator(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), mul_before, mul_after)
+    FFTOperator(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), plan_fft!(A, 2), plan_bfft!(A, 1), mul_before, mul_after)
 end
 
 operators.full(op::FFTOperator) = op*identityoperator(DenseOperator, op.basis_r)
@@ -349,7 +315,7 @@ operators.full(op::FFTOperator) = op*identityoperator(DenseOperator, op.basis_r)
 operators.dagger(op::FFTOperator) = FFTOperator(op.basis_r, op.basis_l)
 
 
-function operators.gemv!{T<:Complex}(alpha::T, M::FFTOperator, b::Ket, beta::T, result::Ket)
+function operators.gemv!(alpha::Complex128, M::FFTOperator, b::Ket, beta::Complex128, result::Ket)
     N::Int = M.basis_r.N
     if beta==Complex(0.)
         @inbounds for i=1:N
@@ -372,7 +338,7 @@ function operators.gemv!{T<:Complex}(alpha::T, M::FFTOperator, b::Ket, beta::T, 
     nothing
 end
 
-function operators.gemv!{T<:Complex}(alpha::T, b::Bra, M::FFTOperator, beta::T, result::Bra)
+function operators.gemv!(alpha::Complex128, b::Bra, M::FFTOperator, beta::Complex128, result::Bra)
     N::Int = M.basis_l.N
     if beta==Complex(0.)
         @inbounds for i=1:N
@@ -391,6 +357,48 @@ function operators.gemv!{T<:Complex}(alpha::T, b::Bra, M::FFTOperator, beta::T, 
         @inbounds for i=1:N
             result.data[i] = beta*result.data[i] + alpha * conj(psi_.data[i]) * M.mul_before[i]
         end
+    end
+    nothing
+end
+
+function operators.gemm!(alpha::Complex128, A::DenseOperator, B::particle.FFTOperator, beta::Complex128, result::DenseOperator)
+    if beta != Complex(0.)
+        data = Matrix{Complex128}(size(result.data, 1), size(result.data, 2))
+    else
+        data = result.data
+    end
+    copy!(data, A.data)
+    scale!(data, B.mul_after)
+    conj!(data)
+    B.fft_l2! * data
+    conj!(data)
+    scale!(data, B.mul_before)
+    if alpha != Complex(1.)
+        scale!(alpha, data)
+    end
+    if beta != Complex(0.)
+        scale!(result.data, beta)
+        result.data += data
+    end
+    nothing
+end
+
+function operators.gemm!(alpha::Complex128, A::particle.FFTOperator, B::DenseOperator, beta::Complex128, result::DenseOperator)
+    if beta != Complex(0.)
+        data = Matrix{Complex128}(size(result.data, 1), size(result.data, 2))
+    else
+        data = result.data
+    end
+    copy!(data, B.data)
+    scale!(A.mul_before, data)
+    A.fft_r2! * data
+    scale!(A.mul_after, data)
+    if alpha != Complex(1.)
+        scale!(alpha, data)
+    end
+    if beta != Complex(0.)
+        scale!(result.data, beta)
+        result.data += data
     end
     nothing
 end
