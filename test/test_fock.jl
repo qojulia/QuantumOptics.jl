@@ -11,6 +11,8 @@ basis = FockBasis(2)
 @test basis.Nmin == 0
 @test basis.Nmax == 2
 @test basis.shape[1] == 3
+@test_throws DimensionMismatch FockBasis(-1, 4)
+@test_throws DimensionMismatch FockBasis(5, 4)
 
 
 # Test equality
@@ -62,8 +64,8 @@ alpha = complex(3.)
 # Test qfunc
 b = FockBasis(50)
 alpha = complex(1., 2.)
-X = [-2:0.1:2;]
-Y = [0:0.1:3;]
+X = [-2:0.5:2;]
+Y = [0:0.5:3;]
 rho = tensor(coherentstate(b, alpha), dagger(coherentstate(b, alpha)))
 Q = qfunc(rho, X, Y)
 for (i,x)=enumerate(X), (j,y)=enumerate(Y)

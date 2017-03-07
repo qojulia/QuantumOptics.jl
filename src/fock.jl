@@ -111,32 +111,46 @@ b
 alpha
     Eigenvalue of annihilation operator.
 """
-function coherentstate(b::FockBasis, alpha::Number)
+function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex128}(b.shape[1])))
     alpha = complex(alpha)
-    x = zeros(Complex128, b.Nmax - b.Nmin + 1)
+    data = result.data
     if b.Nmin == 0
-        x[1] = exp(-abs2(alpha)/2)
+        data[1] = exp(-abs2(alpha)/2)
     else
-        x[1] = exp(-abs2(alpha)/2)*alpha^b.Nmin/sqrt(factorial(b.Nmin))
+        data[1] = exp(-abs2(alpha)/2)*alpha^b.Nmin/sqrt(factorial(b.Nmin))
     end
-    for n=1:(b.Nmax-b.Nmin)
-        x[n+1] = x[n]*alpha/sqrt(b.Nmin + n)
+    @inbounds for n=1:(b.Nmax-b.Nmin)
+        data[n+1] = data[n]*alpha/sqrt(b.Nmin + n)
     end
-    return Ket(b, x)
+    return result
 end
 
 
 """
 Husimi Q representation :math:`\\frac{1}{\\pi} \\langle \\alpha | \\rho | \\alpha \\rangle`.
 """
-function qfunc(rho::Operator, alpha::Complex128)
-    psi = coherentstate(rho.basis_l, alpha)
-    return real(dagger(psi)*rho*psi)/pi
+function qfunc(rho::Operator, alpha::Complex128,
+                tmp1=Ket(rho.basis_l, Vector{Complex128}(rho.basis_l.shape[1])),
+                tmp2=Ket(rho.basis_l, Vector{Complex128}(rho.basis_l.shape[1])))
+    b = rho.basis_l
+    coherentstate(b, alpha, tmp1)
+    operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
+    a = dot(tmp1.data, tmp2.data)
+    return real(a)/pi
 end
 
 function qfunc(rho::Operator, X::Vector{Float64}, Y::Vector{Float64})
     @assert rho.basis_l == rho.basis_r
-    return Float64[qfunc(rho, complex(x,y)) for x=X, y=Y]
+    b = rho.basis_l
+    Nx = length(X)
+    Ny = length(Y)
+    tmp1 = Ket(b, Vector{Complex128}(b.shape[1]))
+    tmp2 = Ket(b, Vector{Complex128}(b.shape[1]))
+    result = Matrix{Float64}(Nx, Ny)
+    for j=1:Ny, i=1:Nx
+        result[i, j] = qfunc(rho, complex(X[i], Y[j]), tmp1, tmp2)
+    end
+    return result
 end
 
 end # module
