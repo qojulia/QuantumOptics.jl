@@ -4,14 +4,13 @@ names = [
     "test_states.jl",
 
     "test_operators.jl",
+    "test_operators_dense.jl",
     "test_sparsematrix.jl",
-    "test_sparseoperators.jl",
-    "test_lazyoperators.jl",
-    "test_lazytensor.jl",
-    "test_lazysum.jl",
-    "test_lazyproduct.jl",
+    "test_operators_sparse.jl",
+    "test_operators_lazytensor.jl",
+    "test_operators_lazysum.jl",
+    "test_operators_lazyproduct.jl",
     "test_identityoperator.jl",
-    "test_operatorarithmetic.jl",
 
     "test_fock.jl",
     "test_spin.jl",
@@ -21,9 +20,6 @@ names = [
     "test_subspace.jl",
 
     "test_metrics.jl",
-    "test_tensorproduct.jl",
-    "test_ptrace.jl",
-    "test_permutesystems.jl",
     "test_embed.jl",
     "test_spectralanalysis.jl",
 
@@ -45,10 +41,15 @@ names = [
 detected_tests = filter(
     name->startswith(name, "test_") && endswith(name, ".jl"),
     readdir("."))
-unused_tests = setdiff(detected_tests, names)
 
+unused_tests = setdiff(detected_tests, names)
 if length(unused_tests) != 0
     error("The following tests are not used:\n", join(unused_tests, "\n"))
+end
+
+unavailable_tests = setdiff(names, detected_tests)
+if length(unavailable_tests) != 0
+    error("The following tests could not be found:\n", join(unavailable_tests, "\n"))
 end
 
 for name=names

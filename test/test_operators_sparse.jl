@@ -1,0 +1,245 @@
+using Base.Test
+using QuantumOptics
+
+
+@testset "operators-sparse" begin
+
+srand(0)
+
+D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
+D(x1::StateVector, x2::StateVector) = norm(x2-x1)
+randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
+randop(b) = randop(b, b)
+sprandop(bl, br) = sparse(DenseOperator(bl, br, rand(Complex128, length(bl), length(br))))
+sprandop(b) = sprandop(b, b)
+
+b1a = GenericBasis(2)
+b1b = GenericBasis(3)
+b2a = GenericBasis(1)
+b2b = GenericBasis(4)
+b3a = GenericBasis(1)
+b3b = GenericBasis(5)
+
+b_l = b1a⊗b2a⊗b3a
+b_r = b1b⊗b2b⊗b3b
+
+# Test creation
+@test_throws DimensionMismatch DenseOperator(b1a, spzeros(Complex128, 3, 2))
+@test_throws DimensionMismatch DenseOperator(b1a, b1b, spzeros(Complex128, 3, 2))
+op1 = SparseOperator(b1a, b1b, sparse([1 1 1; 1 1 1]))
+op2 = sparse(DenseOperator(b1b, b1a, [1 1; 1 1; 1 1]))
+@test op1 == dagger(op2)
+
+# Test copy
+op1 = sparse(randop(b1a))
+op2 = deepcopy(op1)
+@test !(op1.data === op2.data)
+op2.data[1,1] = complex(10.)
+@test op1.data[1,1] != op2.data[1,1]
+
+# Arithmetic operations
+# =====================
+op_zero = SparseOperator(b_l, b_r)
+op1 = sprandop(b_l, b_r)
+op2 = sprandop(b_l, b_r)
+op3 = sprandop(b_l, b_r)
+op1_ = full(op1)
+op2_ = full(op2)
+op3_ = full(op3)
+
+x1 = Ket(b_r, rand(Complex128, length(b_r)))
+x2 = Ket(b_r, rand(Complex128, length(b_r)))
+
+# Addition
+@test_throws bases.IncompatibleBases op1 + dagger(op2)
+@test 1e-14 > D(op1+op2, op1_+op2_)
+
+# Subtraction
+@test_throws bases.IncompatibleBases op1 - dagger(op2)
+@test 1e-14 > D(op1 - op2, op1_ - op2_)
+@test 1e-14 > D(op1 + (-op2), op1_ - op2_)
+@test 1e-14 > D(op1 + (-1*op2), op1_ - op2_)
+
+# Test multiplication
+@test_throws bases.IncompatibleBases op1*op2
+@test 1e-11 > D(identityoperator(SparseOperator, b_l)*op1, op1)
+@test 1e-11 > D(op1*identityoperator(SparseOperator, b_r), op1)
+@test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
+@test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
+@test 1e-11 > D((op1+op2)*(x1+0.3*x2), (op1_+op2_)*(x1+0.3*x2))
+@test 1e-12 > D(op1*dagger(0.3*op2), op1_*dagger(0.3*op2_))
+@test 1e-12 > D(0.3*dagger(op2*dagger(op1)), 0.3*dagger(op2_*dagger(op1_)))
+@test 1e-12 > D((op1 + op2)*dagger(0.3*op3), (op1_ + op2_)*dagger(0.3*op3_))
+@test 1e-12 > D(0.3*op1*dagger(op3) + 0.3*op2*dagger(op3), 0.3*op1_*dagger(op3_) + 0.3*op2_*dagger(op3_))
+
+# Test division
+@test 1e-14 > D(op1/7, op1_/7)
+
+# Test trace and normalize
+op = sparse(DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5]))
+@test 8 == trace(op)
+op_normalized = normalize(op)
+@test 8 == trace(op)
+@test 1 == trace(op_normalized)
+# op_ = normalize!(op)
+# @test op_ === op
+# @test 1 == trace(op)
+
+# Test partial trace
+op1 = sprandop(b1a)
+op2 = sprandop(b2a)
+op3 = sprandop(b3a)
+op123 = op1 ⊗ op2 ⊗ op3
+op123_ = full(op123)
+
+@test 1e-14 > D(ptrace(op123_, 3), ptrace(op123, 3))
+@test 1e-14 > D(ptrace(op123_, 2), ptrace(op123, 2))
+@test 1e-14 > D(ptrace(op123_, 1), ptrace(op123, 1))
+
+@test 1e-14 > D(ptrace(op123_, [2,3]), ptrace(op123, [2,3]))
+@test 1e-14 > D(ptrace(op123_, [1,3]), ptrace(op123, [1,3]))
+@test 1e-14 > D(ptrace(op123_, [1,2]), ptrace(op123, [1,2]))
+
+@test 1e-14 > abs(ptrace(op123_, [1,2,3]) - ptrace(op123, [1,2,3]))
+
+# Test expect
+state = Ket(b_l, rand(Complex128, length(b_l)))
+@test expect(op123, state) ≈ expect(op123_, state)
+
+state = DenseOperator(b_l, b_l, rand(Complex128, length(b_l), length(b_l)))
+@test expect(op123, state) ≈ expect(op123_, state)
+
+
+# Tensor product
+# ==============
+op1a = sprandop(b1a, b1b)
+op1b = sprandop(b1a, b1b)
+op2a = sprandop(b2a, b2b)
+op2b = sprandop(b2a, b2b)
+op3a = sprandop(b3a, b3b)
+op1a_ = full(op1a)
+op1b_ = full(op1b)
+op2a_ = full(op2a)
+op2b_ = full(op2b)
+op3a_ = full(op3a)
+op123 = op1a ⊗ op2a ⊗ op3a
+op123_ = op1a_ ⊗ op2a_ ⊗ op3a_
+@test op123.basis_l == b_l
+@test op123.basis_r == b_r
+
+# Associativity
+@test 1e-13 > D((op1a ⊗ op2a) ⊗ op3a, (op1a_ ⊗ op2a_) ⊗ op3a_)
+@test 1e-13 > D(op1a ⊗ (op2a ⊗ op3a), op1a_ ⊗ (op2a_ ⊗ op3a_))
+
+# Linearity
+@test 1e-13 > D(op1a ⊗ (0.3*op2a), op1a_ ⊗ (0.3*op2a_))
+@test 1e-13 > D(0.3*(op1a ⊗ op2a), 0.3*(op1a_ ⊗ op2a_))
+@test 1e-13 > D((0.3*op1a) ⊗ op2a, (0.3*op1a_) ⊗ op2a_)
+@test 1e-13 > D(0.3*(op1a ⊗ op2a), 0.3*(op1a_ ⊗ op2a_))
+
+# Distributivity
+@test 1e-13 > D(op1a ⊗ (op2a + op2b), op1a_ ⊗ (op2a_ + op2b_))
+@test 1e-13 > D(op1a ⊗ op2a + op1a ⊗ op2b, op1a_ ⊗ op2a_ + op1a_ ⊗ op2b_)
+@test 1e-13 > D((op2a + op2b) ⊗ op3a, (op2a_ + op2b_) ⊗ op3a_)
+@test 1e-13 > D(op2a ⊗ op3a + op2b ⊗ op3a, op2a_ ⊗ op3a_ + op2b_ ⊗ op3a_)
+
+# Mixed-product property
+@test 1e-13 > D((op1a ⊗ op2a) * dagger(op1b ⊗ op2b), (op1a_ ⊗ op2a_) * dagger(op1b_ ⊗ op2b_))
+@test 1e-13 > D((op1a*dagger(op1b)) ⊗ (op2a*dagger(op2b)), (op1a_*dagger(op1b_)) ⊗ (op2a_*dagger(op2b_)))
+
+# Transpose
+@test 1e-13 > D(dagger(op1a ⊗ op2a), dagger(op1a_ ⊗ op2a_))
+@test 1e-13 > D(dagger(op1a) ⊗ dagger(op2a), dagger(op1a_) ⊗ dagger(op2a_))
+
+
+# Permute systems
+op1 = sprandop(b1a)
+op2 = sprandop(b2a)
+op3 = sprandop(b3a)
+op123 = op1⊗op2⊗op3
+
+op132 = op1⊗op3⊗op2
+@test 1e-14 > D(permutesystems(op123, [1, 3, 2]), op132)
+
+op213 = op2⊗op1⊗op3
+@test 1e-14 > D(permutesystems(op123, [2, 1, 3]), op213)
+
+op231 = op2⊗op3⊗op1
+@test 1e-14 > D(permutesystems(op123, [2, 3, 1]), op231)
+
+op312 = op3⊗op1⊗op2
+@test 1e-14 > D(permutesystems(op123, [3, 1, 2]), op312)
+
+op321 = op3⊗op2⊗op1
+@test 1e-14 > D(permutesystems(op123, [3, 2, 1]), op321)
+
+
+# Test gemv
+op = sprandop(b_l, b_r)
+op_ = full(op)
+xket = normalize(Ket(b_l, rand(Complex128, length(b_l))))
+xbra = dagger(xket)
+
+state = Ket(b_r, rand(Complex128, length(b_r)))
+result_ = Ket(b_l, rand(Complex128, length(b_l)))
+result = deepcopy(result_)
+operators.gemv!(complex(1.0), op, state, complex(0.), result)
+@test 1e-13 > D(result, op_*state)
+
+result = deepcopy(result_)
+alpha = complex(1.5)
+beta = complex(2.1)
+operators.gemv!(alpha, op, state, beta, result)
+@test 1e-13 > D(result, alpha*op_*state + beta*result_)
+
+state = Bra(b_l, rand(Complex128, length(b_l)))
+result_ = Bra(b_r, rand(Complex128, length(b_r)))
+result = deepcopy(result_)
+operators.gemv!(complex(1.0), state, op, complex(0.), result)
+@test 1e-13 > D(result, state*op_)
+
+result = deepcopy(result_)
+alpha = complex(1.5)
+beta = complex(2.1)
+operators.gemv!(alpha, state, op, beta, result)
+@test 1e-13 > D(result, alpha*state*op_ + beta*result_)
+
+# Test gemm
+b_r = b_l
+op = sprandop(b_l, b_r)
+op_ = full(op)
+
+state = randop(b_r, b_r)
+result_ = randop(b_l, b_r)
+result = deepcopy(result_)
+operators.gemm!(complex(1.), op, state, complex(0.), result)
+@test 1e-12 > D(result, op_*state)
+
+result = deepcopy(result_)
+alpha = complex(1.5)
+beta = complex(2.1)
+operators.gemm!(alpha, op, state, beta, result)
+@test 1e-12 > D(result, alpha*op_*state + beta*result_)
+
+state = randop(b_l, b_l)
+result_ = randop(b_l, b_r)
+result = deepcopy(result_)
+operators.gemm!(complex(1.), state, op, complex(0.), result)
+@test 1e-12 > D(result, state*op_)
+
+result = deepcopy(result_)
+alpha = complex(1.5)
+beta = complex(2.1)
+operators.gemm!(alpha, state, op, beta, result)
+@test 1e-12 > D(result, alpha*state*op_ + beta*result_)
+
+# Test diagonaloperator
+b = GenericBasis(4)
+I = identityoperator(b)
+
+@test diagonaloperator(b, [1, 1, 1, 1]) == I
+@test diagonaloperator(b, [1., 1., 1., 1.]) == I
+@test diagonaloperator(b, [1im, 1im, 1im, 1im]) == 1im*I
+@test diagonaloperator(b, [0:3;]) == sparse(DenseOperator(b, diagm([0:3;])))
+
+end # testset
