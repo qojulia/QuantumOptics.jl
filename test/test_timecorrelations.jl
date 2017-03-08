@@ -1,7 +1,7 @@
 using Base.Test
 using QuantumOptics
 
-@testset "correlations" begin
+@testset "timecorrelations" begin
 
 ωc = 1.2
 ωa = 0.9
@@ -32,21 +32,27 @@ J = [Ja, Ja2, Jc]
 Ψ₀ = basis_ket(spinbasis, 2) ⊗ fockstate(fockbasis, 5)
 ρ₀ = Ψ₀⊗dagger(Ψ₀)
 
-tspan = [0.:10.:100.;]
+tspan = [0.:10:100.;]
 
 op = embed(basis, 1, sqrt(γ)*sz)
-exp_values = correlations.correlation(tspan, ρ₀, H, J, dagger(op), op)
+exp_values = timecorrelation(tspan, ρ₀, H, J, dagger(op), op)
 
 ρ₀ = Ψ₀⊗dagger(Ψ₀)
 
-tout, exp_values2 = correlations.correlation(ρ₀, H, J, dagger(op), op; eps=1e-5)
+tout, exp_values2 = timecorrelation(ρ₀, H, J, dagger(op), op; eps=1e-5)
 
 @test length(exp_values) == length(tspan)
 @test length(exp_values2) == length(tout)
 @test norm(exp_values[1]-exp_values2[1]) < 1e-15
 @test norm(exp_values[end]-exp_values2[end]) < 1e-4
 
-op = embed(basis, 1, sqrt(γ)*sm)
-omega, S = correlations.correlationspectrum(H, J, op)
+n = length(tspan)
+omega_sample = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
+omega_sample .*= 2pi/tspan[end]
+omega, S = correlationspectrum(omega_sample, H, J, op; rho_ss=ρ₀)
+
+omegaFFT, SFFT = spectrumFFT(tspan, exp_values)
+
+@test omega_sample == omegaFFT && S == SFFT
 
 end # testset
