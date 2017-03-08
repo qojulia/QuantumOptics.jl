@@ -34,7 +34,7 @@ names = [
 
     "test_superoperators.jl",
     "test_steadystate.jl",
-    "test_correlations.jl",
+    "test_timecorrelations.jl",
 
     "test_cumulantexpansion.jl",
     "test_cumulantexpansion_timedependent.jl",

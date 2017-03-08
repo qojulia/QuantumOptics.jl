@@ -30,7 +30,7 @@ export bases, Basis, GenericBasis, CompositeBasis,
         cumulantexpansion,
         correlationexpansion,
         steadystate,
-        correlations
+        timecorrelations, timecorrelation, correlationspectrum, spectrumFFT
 
 
 include("sortedindices.jl")
@@ -63,7 +63,7 @@ diagonaljumps = timeevolution.timeevolution_mcwf.diagonaljumps
 include("cumulantexpansion.jl")
 include("correlationexpansion.jl")
 include("steadystate.jl")
-include("correlations.jl")
+include("timecorrelations.jl")
 include("spectralanalysis.jl")
 
 using .bases
@@ -81,6 +81,7 @@ using .nlevel
 using .nparticles
 using .metrics
 using .spectralanalysis
+using .timecorrelations
 
 
 end # module

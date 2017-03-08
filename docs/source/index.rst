@@ -6,16 +6,15 @@ QuantumOptics.jl
     :includehidden:
 
     introduction
-    installation    
+    installation
     states
     quantumsystems
     timeevolution
     steadystate
-    correlations
+    timecorrelations
     spectralanalysis
     superoperators
     examples
     bases
     operators
     api
-
