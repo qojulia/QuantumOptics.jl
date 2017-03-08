@@ -1,10 +1,13 @@
-module correlations
+module timecorrelations
 
 using ..operators
 using ..operators_dense
 using ..timeevolution
 using ..metrics
 using ..steadystate
+using ..states
+
+export timecorrelation, correlationspectrum, spectrumFFT
 
 
 """
@@ -42,7 +45,7 @@ Jdagger (optional)
 kwargs
     Further arguments are passed on to the ode solver.
 """
-function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
+function timecorrelation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
                      Jdagger::Vector=map(dagger, J),
@@ -98,7 +101,7 @@ Jdagger (optional)
 kwargs
     Further arguments are passed on to the ode solver.
 """
-function correlation(rho0::DenseOperator, H::Operator, J::Vector,
+function timecorrelation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      eps::Float64=1e-4, h0=10.,
                      Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
@@ -118,60 +121,145 @@ function correlation(rho0::DenseOperator, H::Operator, J::Vector,
 end
 
 
+"""
+Calculate spectrum as Fourier transform of a correlation function
+
+This is done by the use of the Wiener-Khinchin theorem
+
+:math:`S(\\omega, t) = \\int d\\tau e^{-i\\omega\\tau}\\langle A^\\dagger(t+\\tau) A(t)\\rangle`
+
+The argument :func:`omega_samplepoints` gives the list of frequencies where :math:`S(\\omega)`
+is caclulated. A corresponding list of times is calculated internally by means of a inverse
+discrete frequency fourier transform. If not given, the steady-state is computed before
+calculating the auto-correlation function.
+
+Arguments
+---------
+
+omega_samplepoints
+    List of frequency points at which the spectrum is calculated.
+H
+    Operator specifying the Hamiltonian.
+J
+    Vector of jump operators.
+op
+    Operator for which the auto-correlation function is calculated.
+
+Keyword Arguments
+-----------------
+
+rho0
+    Initial density operator.
+eps
+    Tracedistance used as termination criterion.
+h0
+    Initial time step used in the time evolution.
+Gamma
+    Vector or matrix specifying the coefficients for the jump operators.
+Jdagger (optional)
+    Vector containing the hermitian conjugates of the jump operators. If they
+    are not given they are calculated automatically.
+kwargs
+    Further arguments are passed on to the ode solver.
+"""
 function correlationspectrum(omega_samplepoints::Vector{Float64},
                 H::Operator, J::Vector, op::Operator;
+                rho0::DenseOperator=tensor(basis_ket(H.basis_l, 1), basis_bra(H.basis_r, 1)),
                 eps::Float64=1e-4,
-                rho_ss::DenseOperator=steadystate.master(H, J; eps=eps),
+                rho_ss::DenseOperator=steadystate.master(H, J; eps=eps, rho0=rho0),
                 kwargs...)
     domega = minimum(diff(omega_samplepoints))
-    dt = 2*pi/(omega_samplepoints[end] - omega_samplepoints[1])
+    dt = 2*pi/abs(omega_samplepoints[end] - omega_samplepoints[1])
     T = 2*pi/domega
     tspan = [0.:dt:T;]
-    exp_values = correlation(tspan, rho_ss, H, J, dagger(op), op, kwargs...)
-    # dtmin = minimum(diff(tspan))
-    # T = tspan[end] - tspan[1]
-    # domega = 2*pi/T
-    # omega_min = -pi/dtmin
-    # omega_max = pi/dtmin
-    # omega_samplepoints = Float64[omega_min:domega:omega_max-domega/2;]
-    S = Float64[]
-    for omega=omega_samplepoints
-        y = exp(1im*omega*tspan).*exp_values/pi
-        I = 0im
-        for j=1:length(tspan)-1
-            I += (tspan[j+1] - tspan[j])*(y[j+1] + y[j])
-        end
-        I = I/2
-        push!(S, real(I))
-    end
+    exp_values = timecorrelation(tspan, rho_ss, H, J, dagger(op), op, kwargs...)
+    S = dt.*fftshift(real(fft(exp_values)))
     return omega_samplepoints, S
 end
 
 
+"""
+Calculate spectrum as Fourier transform of a correlation function
+
+The argument :func:`omega_samplepoints` gives the list of frequencies where :math:`S(\\omega)`
+is caclulated. A corresponding list of times is calculated internally by means of a inverse
+discrete frequency fourier transform. If not given, the steady-state is computed before
+calculating the auto-correlation function.
+
+Arguments
+---------
+
+H
+    Operator specifying the Hamiltonian.
+J
+    Vector of jump operators.
+op
+    Operator for which the auot-correlation function is calculated.
+
+Keyword Arguments
+-----------------
+
+rho0
+    Initial density operator.
+eps
+    Tracedistance used as termination criterion.
+h0
+    Initial time step used in the time evolution.
+Gamma
+    Vector or matrix specifying the coefficients for the jump operators.
+Jdagger (optional)
+    Vector containing the hermitian conjugates of the jump operators. If they
+    are not given they are calculated automatically.
+kwargs
+    Further arguments are passed on to the ode solver.
+"""
 function correlationspectrum(H::Operator, J::Vector, op::Operator;
+                rho0::DenseOperator=tensor(basis_ket(H.basis_l, 1), basis_bra(H.basis_r, 1)),
                 eps::Float64=1e-4, h0=10.,
                 rho_ss::DenseOperator=steadystate.master(H, J; eps=eps),
                 kwargs...)
-    tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, eps=eps, h0=h0, kwargs...)
+    tspan, exp_values = timecorrelation(rho_ss, H, J, dagger(op), op, eps=eps, h0=h0, kwargs...)
     dtmin = minimum(diff(tspan))
     T = tspan[end] - tspan[1]
     tspan = Float64[0.:dtmin:T;]
-    return correlationspectrum(tspan, H, J, op; eps=eps, rho_ss=rho_ss, kwargs...)
-    # domega = 1./T
-    # omega_min = -pi/dtmin
-    # omega_max = pi/dtmin
-    # omega_samplepoints = Float64[omega_min:domega:omega_max;]
-    # S = Float64[]
-    # for omega=omega_samplepoints
-    #     y = exp(1im*omega*tspan).*exp_values/pi
-    #     I = 0im
-    #     for j=1:length(tspan)-1
-    #         I += (tspan[j+1] - tspan[j])*(y[j+1] + y[j])
-    #     end
-    #     I = I/2
-    #     push!(S, real(I))
-    # end
-    # return omega_samplepoints, S
+    n = length(tspan)
+    omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
+    omega .*= 2pi/tmax
+    return correlationspectrum(omega, H, J, op; eps=eps, rho_ss=rho_ss, kwargs...)
 end
+
+
+"""
+Calculate spectrum as Fourier transform of a correlation function with a given correlation function
+
+Arguments
+---------
+
+tspan
+    Time list corresponding to the correlation function.
+corr
+    Two-time correlation function.
+
+Keyword Arguments
+-----------------
+
+normalize (optional)
+    Specify whether or not to normalize the resulting spectrum to its maximum; default is :func:`false`.
+"""
+function spectrumFFT{T <: Number}(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false)
+  n = length(tspan)
+  if length(corr) != n
+    error("tspan and corr must be of same length!")
+  end
+
+  dt = tspan[2] - tspan[1]
+  tmax = tspan[end] - tspan[1]
+  omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
+  omega .*= 2pi/tmax
+  spec = dt.*fftshift(real(fft(corr)))
+
+  omega, normalize ? spec./maximum(spec) : spec
+end
+
 
 end # module
