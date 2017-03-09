@@ -77,9 +77,10 @@ op = DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5])
 op_normalized = normalize(op)
 @test 8 == trace(op)
 @test 1 == trace(op_normalized)
-op_ = normalize!(op)
-@test op_ === op
-@test 1 == trace(op)
+op_copy = deepcopy(op)
+normalize!(op_copy)
+@test trace(op) != trace(op_copy)
+@test 1 ≈ trace(op_copy)
 
 # Test partial trace
 op1 = randop(b1a)

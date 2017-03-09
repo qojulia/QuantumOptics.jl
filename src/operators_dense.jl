@@ -99,13 +99,7 @@ end
 ptrace(a::Ket, indices) = bases.ptrace(tensor(a, dagger(a)), indices)
 ptrace(a::Bra, indices) = bases.ptrace(tensor(dagger(a), a), indices)
 
-function states.normalize!(op::DenseOperator)
-    u = 1./trace(op)
-    for j=1:size(op.data,2), i=1:size(op.data,1)
-        op.data[i,j] *= u
-    end
-    return op
-end
+states.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
 
 function operators.expect(op::DenseOperator, state::Operator)
     result = Complex128(0.)
