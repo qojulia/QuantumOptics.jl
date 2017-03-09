@@ -17,7 +17,7 @@ b1a = GenericBasis(2)
 b1b = GenericBasis(3)
 b2a = GenericBasis(1)
 b2b = GenericBasis(4)
-b3a = GenericBasis(1)
+b3a = GenericBasis(6)
 b3b = GenericBasis(5)
 
 b_l = b1a⊗b2a⊗b3a
@@ -166,6 +166,8 @@ beta = complex(2.1)
 # @test 1e-13 > D(result, alpha*state*op_ + beta*result_)
 
 # # Test gemm
+b_l2 = GenericBasis(17)
+b_r2 = GenericBasis(13)
 subop1 = randop(b1a, b1b)
 subop2 = randop(b2a, b2b)
 subop3 = randop(b3a, b3b)
@@ -173,28 +175,28 @@ I2 = full(identityoperator(b2a, b2b))
 op = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)])*0.1
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
-state = randop(b_r, b_r)
-result_ = randop(b_l, b_r)
+state = randop(b_r, b_r2)
+result_ = randop(b_l, b_r2)
 result = deepcopy(result_)
-# operators.gemm!(complex(1.), op, state, complex(0.), result)
-# @test 1e-12 > D(result, op_*state)
+operators.gemm!(complex(1.), op, state, complex(0.), result)
+@test 1e-12 > D(result, op_*state)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-# operators.gemm!(alpha, op, state, beta, result)
-# @test 1e-12 > D(result, alpha*op_*state + beta*result_)
+operators.gemm!(alpha, op, state, beta, result)
+@test 1e-12 > D(result, alpha*op_*state + beta*result_)
 
-state = randop(b_l, b_l)
-result_ = randop(b_l, b_r)
+state = randop(b_l2, b_l)
+result_ = randop(b_l2, b_r)
 result = deepcopy(result_)
-# operators.gemm!(complex(1.), state, op, complex(0.), result)
-# @test 1e-12 > D(result, state*op_)
+operators.gemm!(complex(1.), state, op, complex(0.), result)
+@test 1e-12 > D(result, state*op_)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-# operators.gemm!(alpha, state, op, beta, result)
-# @test 1e-12 > D(result, alpha*state*op_ + beta*result_)
+operators.gemm!(alpha, state, op, beta, result)
+@test 1e-12 > D(result, alpha*state*op_ + beta*result_)
 
 end # testset

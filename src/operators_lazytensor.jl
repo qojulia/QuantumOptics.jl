@@ -146,14 +146,14 @@ function permutesystems(op::LazyTensor, perm::Vector{Int})
 end
 
 """
-Recursively calculate result_{IK} = \\sum_J h_{IJ} op_{JK}
+Recursively calculate result_{IK} = \\sum_J op_{IJ} h_{JK}
 """
 function _gemm_recursive_dense_lazy(i_k::Int, N_k::Int, K::Int, J::Int, val::Complex128,
                         shape::Vector{Int}, strides_k::Vector{Int}, strides_j::Vector{Int},
                         indices::Vector{Int}, h::LazyTensor,
                         op::Matrix{Complex128}, result::Matrix{Complex128})
     if i_k > N_k
-        for I=1:size(op, 2)
+        for I=1:size(op, 1)
             result[I, K] += val*op[I, J]
         end
         return nothing
@@ -162,7 +162,7 @@ function _gemm_recursive_dense_lazy(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
         h_i = operators_lazy.suboperator(h, i_k)
         if isa(h_i, SparseOperator)
             h_i_data = h_i.data::SparseMatrixCSC{Complex128,Int}
-            @inbounds for k=1:shape[i_k]
+            @inbounds for k=1:h_i_data.n
                 K_ = K + strides_k[i_k]*(k-1)
                 @inbounds for jptr=h_i_data.colptr[k]:h_i_data.colptr[k+1]-1
                     j = h_i_data.rowval[jptr]
@@ -173,14 +173,18 @@ function _gemm_recursive_dense_lazy(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
             end
         elseif isa(h_i, DenseOperator)
             h_i_data = h_i.data::Matrix{Complex128}
-            @inbounds for k=1:shape[i_k]
+            Nk = size(h_i_data, 2)
+            Nj = size(h_i_data, 1)
+            @inbounds for k=1:Nk
                 K_ = K + strides_k[i_k]*(k-1)
-                @inbounds for j=1:shape[i_k]
+                @inbounds for j=1:Nj
                     J_ = J + strides_j[i_k]*(j-1)
                     val_ = val*h_i_data[j,k]
                     _gemm_recursive_dense_lazy(i_k+1, N_k, K_, J_, val_, shape, strides_k, strides_j, indices, h, op, result)
                 end
             end
+        else
+            throw(ArgumentError("gemm! of LazyTensor is not implemented for $(typeof(h_i))"))
         end
     else
         @inbounds for k=1:shape[i_k]
@@ -208,7 +212,7 @@ function _gemm_recursive_lazy_dense(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
         h_i = operators_lazy.suboperator(h, i_k)
         if isa(h_i, SparseOperator)
             h_i_data = h_i.data::SparseMatrixCSC{Complex128,Int}
-            @inbounds for k=1:shape[i_k]
+            @inbounds for k=1:h_i_data.n
                 K_ = K + strides_k[i_k]*(k-1)
                 @inbounds for jptr=h_i_data.colptr[k]:h_i_data.colptr[k+1]-1
                     j = h_i_data.rowval[jptr]
@@ -219,14 +223,18 @@ function _gemm_recursive_lazy_dense(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
             end
         elseif isa(h_i, DenseOperator)
             h_i_data = h_i.data::Matrix{Complex128}
-            @inbounds for k=1:shape[i_k]
+            Nk = size(h_i_data, 2)
+            Nj = size(h_i_data, 1)
+            @inbounds for k=1:Nk
                 K_ = K + strides_k[i_k]*(k-1)
-                @inbounds for j=1:shape[i_k]
+                @inbounds for j=1:Nj
                     J_ = J + strides_j[i_k]*(j-1)
                     val_ = val*h_i_data[j,k]
                     _gemm_recursive_lazy_dense(i_k+1, N_k, K_, J_, val_, shape, strides_k, strides_j, indices, h, op, result)
                 end
             end
+        else
+            throw(ArgumentError("gemm! of LazyTensor is not implemented for $(typeof(h_i))"))
         end
     else
         @inbounds for k=1:shape[i_k]
@@ -244,10 +252,10 @@ function operators.gemm!(alpha::Complex128, op::DenseOperator, h::LazyTensor, be
         scale!(beta, result.data)
     end
     N_k = length(op.basis_r.bases)
-    shape = op.basis_r.shape
-    strides_k = operators_dense._strides(shape)
-    strides_j = operators_dense._strides(result.basis_r.shape)
-    _gemm_recursive_dense_lazy(1, N_k, 1, 1, alpha, shape, strides_k, strides_j, h.indices, h, op.data, result.data)
+    shape = [min(h.basis_l.shape[i], h.basis_r.shape[i]) for i=1:length(h.basis_l.shape)]
+    strides_j = operators_dense._strides(h.basis_l.shape)
+    strides_k = operators_dense._strides(h.basis_r.shape)
+    _gemm_recursive_dense_lazy(1, N_k, 1, 1, alpha*h.factor, shape, strides_k, strides_j, h.indices, h, op.data, result.data)
 end
 
 function operators.gemm!(alpha::Complex128, h::LazyTensor, op::DenseOperator, beta::Complex128, result::DenseOperator)
@@ -257,11 +265,10 @@ function operators.gemm!(alpha::Complex128, h::LazyTensor, op::DenseOperator, be
         scale!(beta, result.data)
     end
     N_k = length(op.basis_l.bases)
-    val = alpha
-    shape = op.basis_l.shape
-    strides_k = operators_dense._strides(shape)
-    strides_j = operators_dense._strides(result.basis_r.shape)
-    _gemm_recursive_lazy_dense(1, N_k, 1, 1, alpha, shape, strides_k, strides_j, h.indices, h, op.data, result.data)
+    shape = [min(h.basis_l.shape[i], h.basis_r.shape[i]) for i=1:length(h.basis_l.shape)]
+    strides_j = operators_dense._strides(h.basis_l.shape)
+    strides_k = operators_dense._strides(h.basis_r.shape)
+    _gemm_recursive_lazy_dense(1, N_k, 1, 1, alpha*h.factor, shape, strides_k, strides_j, h.indices, h, op.data, result.data)
 end
 
 @generated function _lazytensor_gemv!{RANK, INDEX}(rank::Array{Int, RANK}, index::Array{Int, INDEX},

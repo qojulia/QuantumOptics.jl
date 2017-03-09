@@ -147,7 +147,7 @@ state = randop(b_r, b_r)
 result_ = randop(b_l, b_r)
 result = deepcopy(result_)
 operators.gemm!(complex(1.), op, state, complex(0.), result)
-@test 1e-12 > D(result, op_*state)
+@test 1e-11 > D(result, op_*state)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
@@ -159,12 +159,12 @@ state = randop(b_l, b_l)
 result_ = randop(b_l, b_r)
 result = deepcopy(result_)
 operators.gemm!(complex(1.), state, op, complex(0.), result)
-@test 1e-12 > D(result, state*op_)
+@test 1e-11 > D(result, state*op_)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
 operators.gemm!(alpha, state, op, beta, result)
-@test 1e-12 > D(result, alpha*state*op_ + beta*result_)
+@test 1e-11 > D(result, alpha*state*op_ + beta*result_)
 
 end # testset
