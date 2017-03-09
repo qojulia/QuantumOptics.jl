@@ -24,11 +24,11 @@ b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
 # Test creation
-# @test_throws AssertionError LazyProduct()
+@test_throws AssertionError LazyProduct()
 @test_throws AssertionError LazyProduct(randop(b_l, b_r), randop(b_l, b_r))
 @test_throws AssertionError LazyProduct(randop(b_l, b_r), sparse(randop(b_l, b_r)))
 
-# # Test full & sparse
+# Test full & sparse
 op1 = randop(b_l, b_r)
 op2 = sparse(randop(b_r, b_l))
 @test 0.1*(op1*full(op2)) == full(LazyProduct([op1, op2], 0.1))
