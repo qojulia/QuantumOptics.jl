@@ -92,9 +92,10 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 op_normalized = normalize(op)
 @test trace(op_) ≈ trace(op)
 @test 1 ≈ trace(op_normalized)
-# op_ = normalize!(op)
-# @test op_ === op
-# @test 1 == trace(op)
+op_copy = deepcopy(op)
+normalize!(op_copy)
+@test trace(op) != trace(op_copy)
+@test 1 ≈ trace(op_copy)
 
 # Test partial trace
 subop1 = randop(b1a)
@@ -135,7 +136,7 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 @test 1e-14 > D(permutesystems(op, [3, 2, 1]), permutesystems(op_, [3, 2, 1]))
 
 
-# # Test gemv
+# Test gemv
 subop1 = randop(b1a, b1b)
 subop2 = randop(b2a, b2b)
 subop3 = randop(b3a, b3b)
@@ -167,7 +168,7 @@ beta = complex(2.1)
 operators.gemv!(alpha, state, op, beta, result)
 @test 1e-13 > D(result, alpha*state*op_ + beta*result_)
 
-# # Test gemm
+# Test gemm
 b_l2 = GenericBasis(17)
 b_r2 = GenericBasis(13)
 subop1 = randop(b1a, b1b)

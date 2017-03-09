@@ -110,6 +110,8 @@ function trace(op::LazyTensor)
     result
 end
 
+normalize!(op::LazyTensor) = (op.factor /= trace(op))
+
 _identitylength(op::LazyTensor, i::Int) = min(length(op.basis_l.bases[i]), length(op.basis_r.bases[i]))
 
 function ptrace(op::LazyTensor, indices::Vector{Int})
