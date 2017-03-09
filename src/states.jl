@@ -43,9 +43,10 @@ Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
 
 /{T<:StateVector}(a::T, b::Number) = T(a.basis, a.data/complex(b))
 
-+{T<:StateVector}(a::T, b::T) = (a.basis==b.basis ? T(a.basis, a.data+b.data) : throw(IncompatibleBases()))
++{T<:StateVector}(a::T, b::T) = (check_samebases(a, b); T(a.basis, a.data+b.data))
 
--{T<:StateVector}(a::T, b::T) = (a.basis==b.basis ? T(a.basis, a.data-b.data) : throw(IncompatibleBases()))
+-{T<:StateVector}(a::T) = T(a.basis, -a.data)
+-{T<:StateVector}(a::T, b::T) = (check_samebases(a, b); T(a.basis, a.data-b.data))
 
 """
 Tensor product of given bras or kets.
@@ -117,5 +118,18 @@ function bases.permutesystems{T<:StateVector}(state::T, perm::Vector{Int})
     T(permutesystems(state.basis, perm), data)
 end
 
+
+# Helper functions to check validity of arguments
+function bases.check_multiplicable(a::Bra, b::Ket)
+    if a.basis != b.basis
+        throw(IncompatibleBases())
+    end
+end
+
+function check_samebases{T<:StateVector}(a::T, b::T)
+    if a.basis != b.basis
+        throw(IncompatibleBases())
+    end
+end
 
 end # module

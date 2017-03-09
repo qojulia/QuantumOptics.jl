@@ -3,28 +3,54 @@ using QuantumOptics
 
 @testset "states" begin
 
-Nmin = 2
-Nmax = 4
-N = Nmax - Nmin + 1
-basis = FockBasis(Nmin, Nmax)
-bra = Bra(basis)
-ket = Ket(basis)
+srand(0)
 
-@test_throws DimensionMismatch Bra(basis, [1, 2])
-@test 0 ≈ norm(bra-Bra(basis, zeros(Int, N)))
-@test 0 ≈ norm(ket-Ket(basis, zeros(Int, N)))
+D(x1::Number, x2::Number) = abs(x2-x1)
+D(x1::StateVector, x2::StateVector) = norm(x2-x1)
+randstate(b) = Ket(b, rand(Complex128, length(b)))
+
+b1 = GenericBasis(3)
+b2 = GenericBasis(5)
+b = b1 ⊗ b2
+
+bra = Bra(b)
+ket = Ket(b)
+
+# Test creation
+@test_throws DimensionMismatch Bra(b, [1, 2])
+@test_throws DimensionMismatch Ket(b, [1, 2])
+@test 0 ≈ norm(bra)
+@test 0 ≈ norm(ket)
+@test_throws bases.IncompatibleBases bra*Ket(b1)
+
+# Arithmetic operations
+# =====================
+bra_b1 = dagger(randstate(b1))
+bra_b2 = dagger(randstate(b2))
+
+ket_b1 = randstate(b1)
+ket_b2 = randstate(b2)
+
+# Addition
+@test_throws bases.IncompatibleBases bra_b1 + bra_b2
+@test_throws bases.IncompatibleBases ket_b1 + ket_b2
+@test 1e-14 > D(bra_b1 + Bra(b1), bra_b1)
+@test 1e-14 > D(ket_b1 + Ket(b1), ket_b1)
+@test 1e-14 > D(bra_b1 + dagger(ket_b1), dagger(ket_b1) + bra_b1)
+
+# Subtraction
+@test_throws bases.IncompatibleBases bra_b1 - bra_b2
+@test_throws bases.IncompatibleBases ket_b1 - ket_b2
+@test 1e-14 > D(bra_b1 - Bra(b1), bra_b1)
+@test 1e-14 > D(ket_b1 - Ket(b1), ket_b1)
+@test 1e-14 > D(bra_b1 - dagger(ket_b1), -dagger(ket_b1) + bra_b1)
+
+# Multiplication
+@test 1e-14 > D(-3*ket_b1, 3*(-ket_b1))
+@test 1e-14 > D(0.3*(bra_b1 - dagger(ket_b1)), 0.3*bra_b1 - dagger(0.3*ket_b1))
+@test 1e-14 > D(0.3*(bra_b1 - dagger(ket_b1)), bra_b1*0.3 - dagger(ket_b1*0.3))
 @test 0 ≈ bra*ket
-@test_throws bases.IncompatibleBases bra*Ket(FockBasis(Nmin, Nmax+1))
-
-
-bra = Bra(basis, [1im, 0, 1])
-ket = Ket(basis, [0, -1im, 1])
-
-@test 0 ≈ norm(5*bra - Bra(basis, [5im, 0, 5]))
-@test 0 ≈ norm(5*ket - Ket(basis, [0, -5im, 5]))
-@test 0 ≈ norm(5*ket - ket/0.2)
-@test_throws bases.IncompatibleBases bra + Bra(FockBasis(Nmin, Nmax+1))
-@test_throws bases.IncompatibleBases ket + Ket(FockBasis(Nmin, Nmax+1))
+@test 1e-14 > D((bra_b1 ⊗ bra_b2)*(ket_b1 ⊗ ket_b2), (bra_b1*ket_b1)*(bra_b2*ket_b2))
 
 # Norm
 basis = FockBasis(0, 1)
