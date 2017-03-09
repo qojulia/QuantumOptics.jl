@@ -51,6 +51,9 @@ omega_sample = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
 omega_sample .*= 2pi/tspan[end]
 omega, S = timecorrelations.spectrum(omega_sample, H, J, op; rho_ss=ρ₀)
 
+omega2, S2 = timecorrelations.spectrum(H, J, op)
+@test length(omega2) == length(S2)
+
 omegaFFT, SFFT = timecorrelations.correlation2spectrum(tspan, exp_values)
 
 @test omega_sample == omegaFFT && S == SFFT

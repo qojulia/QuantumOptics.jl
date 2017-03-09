@@ -218,13 +218,13 @@ function spectrum(H::Operator, J::Vector, op::Operator;
                 eps::Float64=1e-4, h0=10.,
                 rho_ss::DenseOperator=steadystate.master(H, J; eps=eps),
                 kwargs...)
-    tspan, exp_values = timecorrelation(rho_ss, H, J, dagger(op), op, eps=eps, h0=h0, kwargs...)
+    tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, eps=eps, h0=h0, kwargs...)
     dtmin = minimum(diff(tspan))
     T = tspan[end] - tspan[1]
     tspan = Float64[0.:dtmin:T;]
     n = length(tspan)
     omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
-    omega .*= 2pi/tmax
+    omega .*= 2pi/T
     return spectrum(omega, H, J, op; eps=eps, rho_ss=rho_ss, kwargs...)
 end
 
