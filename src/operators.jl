@@ -43,6 +43,7 @@ addnumbererror() = throw(ArgumentError("Can't add or subtract a number and an op
 +(a::Operator, b::Number) = addnumbererror()
 
 -(a::Operator) = arithmetic_unary_error("Negation", a)
+-(a::Operator, b::Operator) = arithmetic_binary_error("Subtraction", a, b)
 -(a::Number, b::Operator) = addnumbererror()
 -(a::Operator, b::Number) = addnumbererror()
 

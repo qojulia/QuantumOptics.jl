@@ -64,7 +64,7 @@ xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
 
 # Addition
 @test_throws ArgumentError op1 + op2
-# @test_throws ArgumentError op1 - op2
+@test_throws ArgumentError op1 - op2
 @test 1e-14 > D(-op1_, -op1)
 
 # Test multiplication
