@@ -49,7 +49,7 @@ identityoperator(::Type{LazySum}, b1::Basis, b2::Basis) = LazySum(identityoperat
 
 dagger(op::LazySum) = LazySum(conj(op.factors), Operator[dagger(op_i) for op_i in op.operators])
 
-trace(op::LazySum) = dot(op.factors, [trace(x) for x in op.operators])
+trace(op::LazySum) = sum(op.factors[i]*trace(op.operators[i]) for i in 1:length(op.operators))
 
 function ptrace(op::LazySum, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)

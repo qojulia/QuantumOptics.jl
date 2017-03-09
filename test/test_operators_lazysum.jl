@@ -83,7 +83,7 @@ op3 = randop(b_l)
 op = LazySum([0.1, 0.3, 1.2], [op1, op2, op3])
 op_ = 0.1*op1 + 0.3*op2 + 1.2*op3
 
-@test trace(op) ≈ trace(op_)
+@test trace(op_) ≈ trace(op)
 op_normalized = normalize(op)
 @test trace(op_) ≈ trace(op)
 # @test 1 ≈ trace(op_normalized)
