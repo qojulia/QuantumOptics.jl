@@ -68,23 +68,18 @@ dagger(x::Ket) = Bra(x.basis, conj(x.data))
 """
 Norm of the given state vector.
 """
-Base.norm(x::StateVector, p=2) = norm(x.data, p)
+Base.norm(x::StateVector) = norm(x.data)
 
 """
 Normalized copy of the given state vector.
 """
-Base.normalize(x::StateVector, p=2) = x/norm(x, p)
+Base.normalize(x::StateVector) = x/norm(x)
 
 """
 Normalize the given state vector.
 """
-function Base.normalize!(x::StateVector, p=2)
-    u = 1./norm(x, p)
-    for i=1:length(x.data)
-        x.data[i]*=u
-    end
-    return x
-end
+Base.normalize!(x::StateVector) = scale!(x.data, 1./norm(x))
+
 
 # Creation of basis states.
 """

@@ -33,19 +33,21 @@ ket = Ket(basis, [-4im, 3])
 @test 5 ≈ norm(bra)
 @test 5 ≈ norm(ket)
 
-ubra = normalize(bra)
-uket = normalize(ket)
+bra_normalized = normalize(bra)
+ket_normalized = normalize(ket)
 @test 5 ≈ norm(bra)
 @test 5 ≈ norm(ket)
-@test 1 ≈ norm(ubra)
-@test 1 ≈ norm(uket)
+@test 1 ≈ norm(bra_normalized)
+@test 1 ≈ norm(ket_normalized)
 
-bra_ = normalize!(bra)
-ket_ = normalize!(ket)
-@test bra_ === bra
-@test ket_ === ket
-@test 1 ≈ norm(bra)
-@test 1 ≈ norm(ket)
+bra_copy = deepcopy(bra)
+ket_copy = deepcopy(ket)
+normalize!(bra_copy)
+normalize!(ket_copy)
+@test 5 ≈ norm(bra)
+@test 5 ≈ norm(ket)
+@test 1 ≈ norm(bra_copy)
+@test 1 ≈ norm(ket_copy)
 
 # Test basis state
 b1 = GenericBasis(2)
