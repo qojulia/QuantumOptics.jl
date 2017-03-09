@@ -75,6 +75,8 @@ xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
 # @test 1e-11 > D((xbra1 + 0.3*xbra2)*op1, (xbra1 + 0.3*xbra2)*op1_)
 # @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
 # @test 1e-12 > D(dagger(x1)*dagger(0.3*op2), dagger(x1)*dagger(0.3*op2_))
+@test 1e-12 > D(op1_*dagger(0.3*op2), op1_*dagger(0.3*op2_))
+@test 1e-12 > D(dagger(0.3*op2)*op1_, dagger(0.3*op2_)*op1_)
 
 # # Test division
 @test 1e-14 > D(op1/7, op1_/7)

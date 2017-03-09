@@ -76,6 +76,18 @@ function *(a::LazyTensor, b::LazyTensor)
 end
 *(a::LazyTensor, b::Number) = LazyTensor(a, a.factor*b)
 *(a::Number, b::LazyTensor) = LazyTensor(b, a*b.factor)
+function *(a::LazyTensor, b::DenseOperator)
+    operators.check_multiplicable(a.basis_r, b.basis_l)
+    result = DenseOperator(a.basis_l, b.basis_r)
+    operators.gemm!(complex(1.), a, b, complex(1.), result)
+    result
+end
+function *(a::DenseOperator, b::LazyTensor)
+    operators.check_multiplicable(a.basis_r, b.basis_l)
+    result = DenseOperator(a.basis_l, b.basis_r)
+    operators.gemm!(complex(1.), a, b, complex(1.), result)
+    result
+end
 
 /(a::LazyTensor, b::Number) = LazyTensor(a, a.factor/b)
 
