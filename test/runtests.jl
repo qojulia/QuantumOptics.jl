@@ -3,7 +3,6 @@ names = [
     "test_bases.jl",
     "test_states.jl",
 
-    "test_operators.jl",
     "test_operators_dense.jl",
     "test_sparsematrix.jl",
     "test_operators_sparse.jl",
