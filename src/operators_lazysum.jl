@@ -51,6 +51,8 @@ dagger(op::LazySum) = LazySum(conj(op.factors), Operator[dagger(op_i) for op_i i
 
 trace(op::LazySum) = sum(op.factors[i]*trace(op.operators[i]) for i in 1:length(op.operators))
 
+normalize!(op::LazySum) = (op.factors /= trace(op))
+
 function ptrace(op::LazySum, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)
     rank = length(op.basis_l.shape) - length(indices)

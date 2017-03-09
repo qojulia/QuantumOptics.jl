@@ -86,10 +86,11 @@ op_ = 0.1*op1 + 0.3*op2 + 1.2*op3
 @test trace(op_) ≈ trace(op)
 op_normalized = normalize(op)
 @test trace(op_) ≈ trace(op)
-# @test 1 ≈ trace(op_normalized)
-# op_ = normalize!(op)
-# @test op_ === op
-# @test 1 == trace(op)
+@test 1 ≈ trace(op_normalized)
+op_copy = deepcopy(op)
+normalize!(op_copy)
+@test trace(op) != trace(op_copy)
+@test 1 ≈ trace(op_copy)
 
 # Test partial trace
 op1 = randop(b_l)
