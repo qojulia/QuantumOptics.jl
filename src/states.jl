@@ -34,11 +34,7 @@ end
 Bra(b::Basis) = Bra(b, zeros(Complex128, length(b)))
 Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
 
-Base.eltype(x::StateVector) = Complex128
-Base.zero{T<:StateVector}(x::T) = T(x.basis)
-
 =={T<:StateVector}(x::T, y::T) = (x.basis == y.basis) && (x.data == y.data)
-
 
 # Arithmetic operations
 *(a::Bra, b::Ket) = (check_multiplicable(a.basis, b.basis); sum(a.data.*b.data))
