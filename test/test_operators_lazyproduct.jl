@@ -60,8 +60,6 @@ xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
 
 # Test multiplication
 @test_throws bases.IncompatibleBases op1a*op1a
-@test 1e-11 > D(identityoperator(LazyProduct, b_l)*x1, x1)
-@test 1e-11 > D(xbra1*identityoperator(LazyProduct, b_l), xbra1)
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
 @test 1e-11 > D((xbra1 + 0.3*xbra2)*op1, (xbra1 + 0.3*xbra2)*op1_)
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
@@ -69,6 +67,14 @@ xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
 
 # Test division
 @test 1e-14 > D(op1/7, op1_/7)
+
+# Test identityoperator
+Idense = identityoperator(DenseOperator, b_l)
+I = identityoperator(LazyProduct, b_l)
+@test isa(I, LazyProduct)
+@test full(I) == Idense
+@test 1e-11 > D(I*x1, x1)
+@test 1e-11 > D(xbra1*I, xbra1)
 
 # Test trace and normalize
 op1 = randop(b_l)

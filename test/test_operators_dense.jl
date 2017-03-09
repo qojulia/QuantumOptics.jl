@@ -45,6 +45,9 @@ op3 = randop(b_l, b_r)
 x1 = Ket(b_r, rand(Complex128, length(b_r)))
 x2 = Ket(b_r, rand(Complex128, length(b_r)))
 
+xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
+xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
+
 # Addition
 @test_throws bases.IncompatibleBases op1 + dagger(op2)
 @test 1e-14 > D(op1 + op_zero, op1)
@@ -60,16 +63,31 @@ x2 = Ket(b_r, rand(Complex128, length(b_r)))
 
 # Test multiplication
 @test_throws bases.IncompatibleBases op1*op2
-@test 1e-11 > D(identityoperator(DenseOperator, b_l)*op1, op1)
-@test 1e-11 > D(op1*identityoperator(DenseOperator, b_r), op1)
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1*x1 + 0.3*op1*x2)
-@test 1e-11 > D((op1+op2)*(x1+0.3x2), op1*x1+0.3*op1*x2+op2*x1+0.3*op2*x2)
+@test 1e-11 > D((op1+op2)*(x1+0.3*x2), op1*x1 + 0.3*op1*x2 + op2*x1 + 0.3*op2*x2)
+
+@test 1e-11 > D((xbra1+0.3*xbra2)*op1, xbra1*op1 + 0.3*xbra2*op1)
+@test 1e-11 > D((xbra1+0.3*xbra2)*(op1+op2), xbra1*op1 + 0.3*xbra2*op1 + xbra1*op2 + 0.3*xbra2*op2)
+
 @test 1e-12 > D(op1*dagger(0.3*op2), 0.3*dagger(op2*dagger(op1)))
 @test 1e-12 > D((op1 + op2)*dagger(0.3*op3), 0.3*op1*dagger(op3) + 0.3*op2*dagger(op3))
 @test 1e-12 > D(0.3*(op1*dagger(op2)), op1*(0.3*dagger(op2)))
 
 # Test division
 @test 1e-14 > D(op1/7, (1/7)*op1)
+
+# Test identityoperator
+I = identityoperator(DenseOperator, b_r)
+@test isa(I, DenseOperator)
+@test identityoperator(SparseOperator, b_r) == sparse(I)
+@test 1e-11 > D(I*x1, x1)
+@test I == identityoperator(DenseOperator, b1b) ⊗ identityoperator(DenseOperator, b2b) ⊗ identityoperator(DenseOperator, b3b)
+
+I = identityoperator(DenseOperator, b_l)
+@test isa(I, DenseOperator)
+@test identityoperator(SparseOperator, b_l) == sparse(I)
+@test 1e-11 > D(xbra1*I, xbra1)
+@test I == identityoperator(DenseOperator, b1a) ⊗ identityoperator(DenseOperator, b2a) ⊗ identityoperator(DenseOperator, b3a)
 
 # Test trace and normalize
 op = DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5])

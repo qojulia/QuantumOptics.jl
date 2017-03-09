@@ -66,8 +66,6 @@ xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
 
 # Test multiplication
 @test_throws ArgumentError op1*op2
-@test 1e-11 > D(identityoperator(LazySum, b_r)*x1, x1)
-@test 1e-11 > D(xbra1*identityoperator(LazySum, b_l), xbra1)
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
 @test 1e-11 > D((op1+op2)*(x1+0.3*x2), (op1_+op2_)*(x1+0.3*x2))
@@ -75,6 +73,19 @@ xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
 
 # Test division
 @test 1e-14 > D(op1/7, op1_/7)
+
+# Test identityoperator
+Idense = identityoperator(DenseOperator, b_r)
+I = identityoperator(LazySum, b_r)
+@test isa(I, LazySum)
+@test full(I) == Idense
+@test 1e-11 > D(I*x1, x1)
+
+Idense = identityoperator(DenseOperator, b_l)
+I = identityoperator(LazySum, b_l)
+@test isa(I, LazySum)
+@test full(I) == Idense
+@test 1e-11 > D(xbra1*I, xbra1)
 
 # Test trace and normalize
 op1 = randop(b_l)

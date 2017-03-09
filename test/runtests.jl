@@ -9,7 +9,6 @@ names = [
     "test_operators_lazytensor.jl",
     "test_operators_lazysum.jl",
     "test_operators_lazyproduct.jl",
-    "test_identityoperator.jl",
 
     "test_fock.jl",
     "test_spin.jl",

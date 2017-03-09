@@ -50,6 +50,9 @@ op3_ = full(op3)
 x1 = Ket(b_r, rand(Complex128, length(b_r)))
 x2 = Ket(b_r, rand(Complex128, length(b_r)))
 
+xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
+xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
+
 # Addition
 @test_throws bases.IncompatibleBases op1 + dagger(op2)
 @test 1e-14 > D(op1+op2, op1_+op2_)
@@ -62,11 +65,14 @@ x2 = Ket(b_r, rand(Complex128, length(b_r)))
 
 # Test multiplication
 @test_throws bases.IncompatibleBases op1*op2
-@test 1e-11 > D(identityoperator(SparseOperator, b_l)*op1, op1)
-@test 1e-11 > D(op1*identityoperator(SparseOperator, b_r), op1)
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
 @test 1e-11 > D((op1+op2)*(x1+0.3*x2), (op1_+op2_)*(x1+0.3*x2))
+
+@test 1e-11 > D((xbra1 + 0.3*xbra2)*op1, (xbra1 + 0.3*xbra2)*op1_)
+@test 1e-11 > D(xbra1*op1 + 0.3*xbra2*op1, xbra1*op1_ + 0.3*xbra2*op1_)
+@test 1e-11 > D((xbra1+0.3*xbra2)*(op1+op2), (xbra1+0.3*xbra2)*(op1_+op2_))
+
 @test 1e-12 > D(op1*dagger(0.3*op2), op1_*dagger(0.3*op2_))
 @test 1e-12 > D(0.3*dagger(op2*dagger(op1)), 0.3*dagger(op2_*dagger(op1_)))
 @test 1e-12 > D((op1 + op2)*dagger(0.3*op3), (op1_ + op2_)*dagger(0.3*op3_))
@@ -74,6 +80,22 @@ x2 = Ket(b_r, rand(Complex128, length(b_r)))
 
 # Test division
 @test 1e-14 > D(op1/7, op1_/7)
+
+# Test identityoperator
+Idense = identityoperator(DenseOperator, b_r)
+I = identityoperator(SparseOperator, b_r)
+@test isa(I, SparseOperator)
+@test full(I) == Idense
+@test 1e-11 > D(I*x1, x1)
+@test I == identityoperator(SparseOperator, b1b) ⊗ identityoperator(SparseOperator, b2b) ⊗ identityoperator(SparseOperator, b3b)
+
+Idense = identityoperator(DenseOperator, b_l)
+I = identityoperator(SparseOperator, b_l)
+@test isa(I, SparseOperator)
+@test full(I) == Idense
+@test 1e-11 > D(xbra1*I, xbra1)
+@test I == identityoperator(SparseOperator, b1a) ⊗ identityoperator(SparseOperator, b2a) ⊗ identityoperator(SparseOperator, b3a)
+
 
 # Test trace and normalize
 op = sparse(DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5]))
