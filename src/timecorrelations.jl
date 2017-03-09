@@ -126,7 +126,10 @@ Calculate spectrum as Fourier transform of a correlation function
 
 This is done by the use of the Wiener-Khinchin theorem
 
-:math:`S(\\omega, t) = \\int d\\tau e^{-i\\omega\\tau}\\langle A^\\dagger(t+\\tau) A(t)\\rangle`
+.. math::
+
+  S(\\omega, t) = \\int_{-\\infty}^{\\infty} d\\tau e^{-i\\omega\\tau}\\langle A^\\dagger(t+\\tau) A(t)\\rangle =
+  2\\Re\\left\\{\\int_0^{\\infty} d\\tau e^{-i\\omega\\tau}\\langle A^\\dagger(t+\\tau) A(t)\\rangle\\right\\}
 
 The argument :func:`omega_samplepoints` gives the list of frequencies where :math:`S(\\omega)`
 is caclulated. A corresponding list of times is calculated internally by means of a inverse
@@ -173,7 +176,7 @@ function spectrum(omega_samplepoints::Vector{Float64},
     T = 2*pi/domega
     tspan = [0.:dt:T;]
     exp_values = correlation(tspan, rho_ss, H, J, dagger(op), op, kwargs...)
-    S = dt.*fftshift(real(fft(exp_values)))
+    S = 2dt.*fftshift(real(fft(exp_values)))
     return omega_samplepoints, S
 end
 
@@ -256,7 +259,7 @@ function correlation2spectrum{T <: Number}(tspan::Vector{Float64}, corr::Vector{
   tmax = tspan[end] - tspan[1]
   omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
   omega .*= 2pi/tmax
-  spec = dt.*fftshift(real(fft(corr)))
+  spec = 2dt.*fftshift(real(fft(corr)))
 
   omega, normalize ? spec./maximum(spec) : spec
 end
