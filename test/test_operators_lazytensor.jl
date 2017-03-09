@@ -69,19 +69,19 @@ xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
 
 # Test multiplication
 @test_throws bases.IncompatibleBases op1*op2
-# @test 1e-11 > D(identityoperator(LazyTensor, b_r)*x1, x1)
-# @test 1e-11 > D(xbra1*identityoperator(LazyTensor, b_l), xbra1)
-# @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
-# @test 1e-11 > D((xbra1 + 0.3*xbra2)*op1, (xbra1 + 0.3*xbra2)*op1_)
-# @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
-# @test 1e-12 > D(dagger(x1)*dagger(0.3*op2), dagger(x1)*dagger(0.3*op2_))
+@test 1e-11 > D(identityoperator(LazyTensor, b_r)*x1, x1)
+@test 1e-11 > D(xbra1*identityoperator(LazyTensor, b_l), xbra1)
+@test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
+@test 1e-11 > D((xbra1 + 0.3*xbra2)*op1, (xbra1 + 0.3*xbra2)*op1_)
+@test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
+@test 1e-12 > D(dagger(x1)*dagger(0.3*op2), dagger(x1)*dagger(0.3*op2_))
 @test 1e-12 > D(op1_*dagger(0.3*op2), op1_*dagger(0.3*op2_))
 @test 1e-12 > D(dagger(0.3*op2)*op1_, dagger(0.3*op2_)*op1_)
 
-# # Test division
+# Test division
 @test 1e-14 > D(op1/7, op1_/7)
 
-# # Test trace and normalize
+# Test trace and normalize
 subop1 = randop(b1a)
 I2 = full(identityoperator(b2a))
 subop3 = randop(b3a)
@@ -96,7 +96,7 @@ op_normalized = normalize(op)
 # @test op_ === op
 # @test 1 == trace(op)
 
-# # Test partial trace
+# Test partial trace
 subop1 = randop(b1a)
 I2 = full(identityoperator(b2a))
 subop3 = randop(b3a)
@@ -113,14 +113,14 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
 @test 1e-14 > abs(ptrace(op_, [1,2,3]) - ptrace(op, [1,2,3]))
 
-# # Test expect
+# Test expect
 state = Ket(b_l, rand(Complex128, length(b_l)))
-# @test expect(op, state) ≈ expect(op_, state)
+@test expect(op, state) ≈ expect(op_, state)
 
 state = DenseOperator(b_l, b_l, rand(Complex128, length(b_l), length(b_l)))
-# @test expect(op, state) ≈ expect(op_, state)
+@test expect(op, state) ≈ expect(op_, state)
 
-# # Permute systems
+# Permute systems
 subop1 = randop(b1a, b1b)
 subop2 = randop(b2a, b2b)
 subop3 = randop(b3a, b3b)
@@ -146,26 +146,26 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 state = Ket(b_r, rand(Complex128, length(b_r)))
 result_ = Ket(b_l, rand(Complex128, length(b_l)))
 result = deepcopy(result_)
-# operators.gemv!(complex(1.), op, state, complex(0.), result)
-# @test 1e-13 > D(result, op_*state)
+operators.gemv!(complex(1.), op, state, complex(0.), result)
+@test 1e-13 > D(result, op_*state)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-# operators.gemv!(alpha, op, state, beta, result)
-# @test 1e-13 > D(result, alpha*op_*state + beta*result_)
+operators.gemv!(alpha, op, state, beta, result)
+@test 1e-13 > D(result, alpha*op_*state + beta*result_)
 
 state = Bra(b_l, rand(Complex128, length(b_l)))
 result_ = Bra(b_r, rand(Complex128, length(b_r)))
 result = deepcopy(result_)
-# operators.gemv!(complex(1.), state, op, complex(0.), result)
-# @test 1e-13 > D(result, state*op_)
+operators.gemv!(complex(1.), state, op, complex(0.), result)
+@test 1e-13 > D(result, state*op_)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-# operators.gemv!(alpha, state, op, beta, result)
-# @test 1e-13 > D(result, alpha*state*op_ + beta*result_)
+operators.gemv!(alpha, state, op, beta, result)
+@test 1e-13 > D(result, alpha*state*op_ + beta*result_)
 
 # # Test gemm
 b_l2 = GenericBasis(17)

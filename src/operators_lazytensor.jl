@@ -257,102 +257,43 @@ function _gemm_recursive_lazy_dense(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
     end
 end
 
-function operators.gemm!(alpha::Complex128, op::DenseOperator, h::LazyTensor, beta::Complex128, result::DenseOperator)
+function gemm(alpha::Complex128, op::Matrix{Complex128}, h::LazyTensor, beta::Complex128, result::Matrix{Complex128})
     if beta == Complex128(0.)
-        fill!(result.data, beta)
+        fill!(result, beta)
     elseif beta != Complex128(1.)
-        scale!(beta, result.data)
+        scale!(beta, result)
     end
-    N_k = length(op.basis_r.bases)
+    N_k = length(h.basis_r.bases)
     shape = [min(h.basis_l.shape[i], h.basis_r.shape[i]) for i=1:length(h.basis_l.shape)]
     strides_j = operators_dense._strides(h.basis_l.shape)
     strides_k = operators_dense._strides(h.basis_r.shape)
-    _gemm_recursive_dense_lazy(1, N_k, 1, 1, alpha*h.factor, shape, strides_k, strides_j, h.indices, h, op.data, result.data)
+    _gemm_recursive_dense_lazy(1, N_k, 1, 1, alpha*h.factor, shape, strides_k, strides_j, h.indices, h, op, result)
 end
 
-function operators.gemm!(alpha::Complex128, h::LazyTensor, op::DenseOperator, beta::Complex128, result::DenseOperator)
+function gemm(alpha::Complex128, h::LazyTensor, op::Matrix{Complex128}, beta::Complex128, result::Matrix{Complex128})
     if beta == Complex128(0.)
-        fill!(result.data, beta)
+        fill!(result, beta)
     elseif beta != Complex128(1.)
-        scale!(beta, result.data)
+        scale!(beta, result)
     end
-    N_k = length(op.basis_l.bases)
+    N_k = length(h.basis_l.bases)
     shape = [min(h.basis_l.shape[i], h.basis_r.shape[i]) for i=1:length(h.basis_l.shape)]
     strides_j = operators_dense._strides(h.basis_l.shape)
     strides_k = operators_dense._strides(h.basis_r.shape)
-    _gemm_recursive_lazy_dense(1, N_k, 1, 1, alpha*h.factor, shape, strides_k, strides_j, h.indices, h, op.data, result.data)
+    _gemm_recursive_lazy_dense(1, N_k, 1, 1, alpha*h.factor, shape, strides_k, strides_j, h.indices, h, op, result)
 end
 
-@generated function _lazytensor_gemv!{RANK, INDEX}(rank::Array{Int, RANK}, index::Array{Int, INDEX},
-                                        alpha, op::Operator, b::Ket, beta, result::Ket)
-    return quote
-        x = Ket(b.basis.bases[$INDEX])
-        y = Ket(result.basis.bases[$INDEX])
-        indices_others = filter(x->(x!=$INDEX), 1:$RANK)
-        shape_others = [b.basis.shape[i] for i=indices_others]
-        strides_others = [operators_dense._strides(b.basis.shape)[i] for i=indices_others]
-        stride = operators_dense._strides(b.basis.shape)[$INDEX]
-        N = b.basis.shape[$INDEX]
-        @nexprs 1 d->(I_{$(RANK-1)}=1)
-        @nloops $(RANK-1) i d->(1:shape_others[d]) d->(I_{d-1}=I_{d}) d->(I_d+=strides_others[d]) begin
-            for j=1:N
-                x.data[j] = b.data[I_0+stride*(j-1)]
-            end
-            operators.gemv!(alpha, op, x, beta, y)
-            for j=1:N
-                result.data[I_0+stride*(j-1)] = y.data[j]
-            end
-        end
-    end
-end
+operators.gemm!(alpha::Complex128, h::LazyTensor, op::DenseOperator, beta::Complex128, result::DenseOperator) = gemm(alpha, h, op.data, beta, result.data)
+operators.gemm!(alpha::Complex128, op::DenseOperator, h::LazyTensor, beta::Complex128, result::DenseOperator) = gemm(alpha, op.data, h, beta, result.data)
 
 function operators.gemv!(alpha, a::LazyTensor, b::Ket, beta, result::Ket)
-    rank = zeros(Int, [0 for i=1:length(a.basis_l.shape)]...)
-    bases = [b for b=b.basis.bases]
-    for op_index in keys(a.operators)
-        index = zeros(Int, [0 for i=1:op_index]...)
-        bases[op_index] = a.operators[op_index].basis_l
-        tmp = Ket(CompositeBasis(bases...))
-        _lazytensor_gemv!(rank, index, Complex(1.), a.operators[op_index], b, Complex(0.), tmp)
-        b = tmp
-    end
-    result.data[:] = beta*result.data[:] + alpha*a.factor*b.data[:]
-    nothing
-end
-
-@generated function _lazytensor_gemv!{RANK, INDEX}(rank::Array{Int, RANK}, index::Array{Int, INDEX},
-                                        alpha, b::Bra, op::Operator, beta, result::Bra)
-    return quote
-        x = Bra(b.basis.bases[$INDEX])
-        y = Bra(result.basis.bases[$INDEX])
-        indices_others = filter(x->(x!=$INDEX), 1:$RANK)
-        shape_others = [b.basis.shape[i] for i=indices_others]
-        strides_others = [operators_dense._strides(b.basis.shape)[i] for i=indices_others]
-        stride = operators_dense._strides(b.basis.shape)[$INDEX]
-        N = b.basis.shape[$INDEX]
-        @nexprs 1 d->(I_{$(RANK-1)}=1)
-        @nloops $(RANK-1) i d->(1:shape_others[d]) d->(I_{d-1}=I_{d}) d->(I_d+=strides_others[d]) begin
-            for j=1:N
-                x.data[j] = b.data[I_0+stride*(j-1)]
-            end
-            operators.gemv!(alpha, x, op, beta, y)
-            for j=1:N
-                result.data[I_0+stride*(j-1)] = y.data[j]
-            end
-        end
-    end
+    b_data = reshape(b.data, length(b.data), 1)
+    result_data = reshape(result.data, length(result.data), 1)
+    gemm(alpha, a, b_data, beta, result_data)
 end
 
 function operators.gemv!(alpha, a::Bra, b::LazyTensor, beta, result::Bra)
-    rank = zeros(Int, [0 for i=1:length(b.basis_r.shape)]...)
-    bases = [b for b=a.basis.bases]
-    for op_index in keys(b.operators)
-        index = zeros(Int, [0 for i=1:op_index]...)
-        bases[op_index] = b.operators[op_index].basis_r
-        tmp = Bra(CompositeBasis(bases...))
-        _lazytensor_gemv!(rank, index, Complex(1.), a, b.operators[op_index], Complex(0.), tmp)
-        a = tmp
-    end
-    result.data[:] = beta*result.data[:] + alpha*b.factor*a.data[:]
-    nothing
+    a_data = reshape(a.data, 1, length(a.data))
+    result_data = reshape(result.data, 1, length(result.data))
+    gemm(alpha, a_data, b, beta, result_data)
 end
