@@ -7,7 +7,7 @@ using ..metrics
 using ..steadystate
 using ..states
 
-export timecorrelation, correlationspectrum, spectrumFFT
+export correlation, spectrum, correlation2spectrum
 
 
 """
@@ -45,7 +45,7 @@ Jdagger (optional)
 kwargs
     Further arguments are passed on to the ode solver.
 """
-function timecorrelation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
+function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
                      Jdagger::Vector=map(dagger, J),
@@ -101,7 +101,7 @@ Jdagger (optional)
 kwargs
     Further arguments are passed on to the ode solver.
 """
-function timecorrelation(rho0::DenseOperator, H::Operator, J::Vector,
+function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      eps::Float64=1e-4, h0=10.,
                      Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
@@ -162,7 +162,7 @@ Jdagger (optional)
 kwargs
     Further arguments are passed on to the ode solver.
 """
-function correlationspectrum(omega_samplepoints::Vector{Float64},
+function spectrum(omega_samplepoints::Vector{Float64},
                 H::Operator, J::Vector, op::Operator;
                 rho0::DenseOperator=tensor(basis_ket(H.basis_l, 1), basis_bra(H.basis_r, 1)),
                 eps::Float64=1e-4,
@@ -172,7 +172,7 @@ function correlationspectrum(omega_samplepoints::Vector{Float64},
     dt = 2*pi/abs(omega_samplepoints[end] - omega_samplepoints[1])
     T = 2*pi/domega
     tspan = [0.:dt:T;]
-    exp_values = timecorrelation(tspan, rho_ss, H, J, dagger(op), op, kwargs...)
+    exp_values = correlation(tspan, rho_ss, H, J, dagger(op), op, kwargs...)
     S = dt.*fftshift(real(fft(exp_values)))
     return omega_samplepoints, S
 end
@@ -213,7 +213,7 @@ Jdagger (optional)
 kwargs
     Further arguments are passed on to the ode solver.
 """
-function correlationspectrum(H::Operator, J::Vector, op::Operator;
+function spectrum(H::Operator, J::Vector, op::Operator;
                 rho0::DenseOperator=tensor(basis_ket(H.basis_l, 1), basis_bra(H.basis_r, 1)),
                 eps::Float64=1e-4, h0=10.,
                 rho_ss::DenseOperator=steadystate.master(H, J; eps=eps),
@@ -225,7 +225,7 @@ function correlationspectrum(H::Operator, J::Vector, op::Operator;
     n = length(tspan)
     omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
     omega .*= 2pi/tmax
-    return correlationspectrum(omega, H, J, op; eps=eps, rho_ss=rho_ss, kwargs...)
+    return spectrum(omega, H, J, op; eps=eps, rho_ss=rho_ss, kwargs...)
 end
 
 
@@ -246,7 +246,7 @@ Keyword Arguments
 normalize (optional)
     Specify whether or not to normalize the resulting spectrum to its maximum; default is :func:`false`.
 """
-function spectrumFFT{T <: Number}(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false)
+function correlation2spectrum{T <: Number}(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false)
   n = length(tspan)
   if length(corr) != n
     error("tspan and corr must be of same length!")

@@ -35,11 +35,11 @@ J = [Ja, Ja2, Jc]
 tspan = [0.:10:100.;]
 
 op = embed(basis, 1, sqrt(γ)*sz)
-exp_values = timecorrelation(tspan, ρ₀, H, J, dagger(op), op)
+exp_values = timecorrelations.correlation(tspan, ρ₀, H, J, dagger(op), op)
 
 ρ₀ = Ψ₀⊗dagger(Ψ₀)
 
-tout, exp_values2 = timecorrelation(ρ₀, H, J, dagger(op), op; eps=1e-5)
+tout, exp_values2 = timecorrelations.correlation(ρ₀, H, J, dagger(op), op; eps=1e-5)
 
 @test length(exp_values) == length(tspan)
 @test length(exp_values2) == length(tout)
@@ -49,9 +49,9 @@ tout, exp_values2 = timecorrelation(ρ₀, H, J, dagger(op), op; eps=1e-5)
 n = length(tspan)
 omega_sample = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
 omega_sample .*= 2pi/tspan[end]
-omega, S = correlationspectrum(omega_sample, H, J, op; rho_ss=ρ₀)
+omega, S = timecorrelations.spectrum(omega_sample, H, J, op; rho_ss=ρ₀)
 
-omegaFFT, SFFT = spectrumFFT(tspan, exp_values)
+omegaFFT, SFFT = timecorrelations.correlation2spectrum(tspan, exp_values)
 
 @test omega_sample == omegaFFT && S == SFFT
 

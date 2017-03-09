@@ -30,7 +30,7 @@ export bases, Basis, GenericBasis, CompositeBasis,
         cumulantexpansion,
         correlationexpansion,
         steadystate,
-        timecorrelations, timecorrelation, correlationspectrum, spectrumFFT
+        timecorrelations
 
 
 include("sortedindices.jl")

@@ -3,11 +3,11 @@
 Two-time correlation functions
 ==============================
 
-.. jl:autofunction:: timecorrelations.jl timecorrelation
+.. jl:autofunction:: timecorrelations.jl correlation
 
-.. jl:autofunction:: timecorrelations.jl correlationspectrum
+.. jl:autofunction:: timecorrelations.jl spectrum
 
-.. jl:autofunction:: timecorrelations.jl spectrumFFT
+.. jl:autofunction:: timecorrelations.jl correlation2spectrum
 
 As a brief example, say we want to calculate the two-time correlation function of a cavity field, i.e. :math:`g(t) = \langle a(t) a^\dagger(0)`.
 We can do this with::
@@ -21,12 +21,12 @@ We can do this with::
 
   tspan = [0:0.1:10;]
   ρ0 = fockstate(basis, 0) ⊗ dagger(fockstate(basis, 0))
-  g = timecorrelation(tspan, ρ0, H, J, dagger(a), a)
+  g = timecorrelations.correlation(tspan, ρ0, H, J, dagger(a), a)
 
 If we omit the list of times :func:`tspan`, the function automatically calculates the correlation until steady-state is reached::
 
-  t_s, g_s = timecorrelation(ρ0, H, J, dagger(a), a)
+  t_s, g_s = timecorrelations.correlation(ρ0, H, J, dagger(a), a)
 
-To calculate the spectrum, we can either use the :func:`spectrumFFT` to calculate it from a given correlation function,
-or alternatively, one can use :func:`correlationspectrum`, which calculates the correlation function internally and returns the
+To calculate the spectrum, we can either use the :func:`timecorrelations.correlation2spectrum` to calculate it from a given correlation function,
+or alternatively, one can use :func:`timecorrelations.spectrum`, which calculates the correlation function internally and returns the
 Fourier transform.

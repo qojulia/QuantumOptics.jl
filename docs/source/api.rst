@@ -344,8 +344,8 @@ Steady-states
 Time correlations
 ------------
 
-.. jl:autofunction:: timecorrelations.jl timecorrelation
+.. jl:autofunction:: timecorrelations.jl correlation
 
-.. jl:autofunction:: timecorrelations.jl correlationspectrum
+.. jl:autofunction:: timecorrelations.jl spectrum
 
-.. jl:autofunction:: timecorrelations.jl spectrumFFT
+.. jl:autofunction:: timecorrelations.jl correlation2spectrum
