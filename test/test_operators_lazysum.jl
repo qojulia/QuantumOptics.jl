@@ -55,17 +55,17 @@ x2 = Ket(b_r, rand(Complex128, length(b_r)))
 xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
 
 # Addition
-# @test_throws bases.IncompatibleBases op1 + dagger(op2)
+@test_throws bases.IncompatibleBases op1 + dagger(op2)
 @test 1e-14 > D(op1+op2, op1_+op2_)
 
 # Subtraction
-# @test_throws bases.IncompatibleBases op1 - dagger(op2)
+@test_throws bases.IncompatibleBases op1 - dagger(op2)
 @test 1e-14 > D(op1 - op2, op1_ - op2_)
 @test 1e-14 > D(op1 + (-op2), op1_ - op2_)
 @test 1e-14 > D(op1 + (-1*op2), op1_ - op2_)
 
 # Test multiplication
-# @test_throws bases.IncompatibleBases op1*op2
+@test_throws ArgumentError op1*op2
 @test 1e-11 > D(identityoperator(LazySum, b_r)*x1, x1)
 @test 1e-11 > D(xbra1*identityoperator(LazySum, b_l), xbra1)
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
