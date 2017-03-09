@@ -58,4 +58,6 @@ omegaFFT, SFFT = timecorrelations.correlation2spectrum(tspan, exp_values)
 
 @test omega_sample == omegaFFT && S == SFFT
 
+@test_throws ErrorException timecorrelations.correlation2spectrum(tout, exp_values)
+
 end # testset
