@@ -74,7 +74,7 @@ ptrace(a::Operator, index::Int) = ptrace(a, Int[index])
 Normalized copy of given operator (trace is 1.).
 """
 normalize(op::Operator) = op/trace(op)
-normalize!(op::Operator) = throw(ArgumentError("$funcname is not defined for this type of operator: $(typeof(x)).\n You may have to fall back to the non-inplace version 'normalize()'."))
+normalize!(op::Operator) = throw(ArgumentError("normalize! is not defined for this type of operator: $(typeof(op)).\n You may have to fall back to the non-inplace version 'normalize()'."))
 
 """
 Expectation value of the given operator for the specified state(s).
