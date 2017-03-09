@@ -97,7 +97,7 @@ n
 """
 function fockstate(b::FockBasis, n::Int)
     @assert b.Nmin <= n <= b.Nmax
-    basis_ket(b, n+1-b.Nmin)
+    basisstate(b, n+1-b.Nmin)
 end
 
 """

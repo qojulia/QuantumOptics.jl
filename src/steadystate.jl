@@ -45,7 +45,7 @@ kwargs
     Further arguments are passed on to the ode solver.
 """
 function master(H::Operator, J::Vector;
-                rho0::DenseOperator=tensor(basis_ket(H.basis_l, 1), basis_bra(H.basis_r, 1)),
+                rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 eps::Float64=1e-3, hmin=1e-7,
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
                 Jdagger::Vector=map(dagger, J),

@@ -62,7 +62,7 @@ function nlevelstate(b::NLevelBasis, n::Int)
     if n < 1 || b.N < n
         throw(BoundsError("n has to be between 1 and b.N"))
     end
-    basis_ket(b, n)
+    basisstate(b, n)
 end
 
 end # module

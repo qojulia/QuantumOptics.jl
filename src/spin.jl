@@ -88,12 +88,12 @@ end
 """
 Spin up state for the given SpinBasis.
 """
-spinup(b::SpinBasis) = basis_ket(b, 1)
+spinup(b::SpinBasis) = basisstate(b, 1)
 
 """
 Spin down state for the given SpinBasis.
 """
-spindown(b::SpinBasis) = basis_ket(b, b.shape[1])
+spindown(b::SpinBasis) = basisstate(b, b.shape[1])
 
 
 end #module

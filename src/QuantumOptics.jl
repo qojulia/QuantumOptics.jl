@@ -4,7 +4,7 @@ module QuantumOptics
 
 export bases, Basis, GenericBasis, CompositeBasis,
         tensor, ⊗, permutesystems,
-        states, StateVector, Bra, Ket, basis_bra, basis_ket,
+        states, StateVector, Bra, Ket, basisstate,
                 dagger, normalize, normalize!,
         operators, Operator, expect, identityoperator, ptrace, embed,
         operators_dense, DenseOperator, projector,

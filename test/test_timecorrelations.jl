@@ -29,7 +29,7 @@ Ja2 = embed(basis, 1, sqrt(0.5*γ)*sp)
 Jc = embed(basis, 2, sqrt(κ)*destroy(fockbasis))
 J = [Ja, Ja2, Jc]
 
-Ψ₀ = basis_ket(spinbasis, 2) ⊗ fockstate(fockbasis, 5)
+Ψ₀ = basisstate(spinbasis, 2) ⊗ fockstate(fockbasis, 5)
 ρ₀ = Ψ₀⊗dagger(Ψ₀)
 
 tspan = [0.:10:100.;]

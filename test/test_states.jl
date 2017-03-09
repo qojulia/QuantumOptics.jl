@@ -47,6 +47,16 @@ ket_ = normalize!(ket)
 @test 1 ≈ norm(bra)
 @test 1 ≈ norm(ket)
 
+# Test basis state
+b1 = GenericBasis(2)
+b2 = GenericBasis(3)
+b = b1 ⊗ b2
+x1 = basisstate(b1, 2)
+x2 = basisstate(b2, 1)
+
+@test norm(x1) == 1
+@test x1.data[2] == 1
+@test basisstate(b, [2, 1]) == x1 ⊗ x2
 
 # Partial Trace
 basis = FockBasis(0, 1)

@@ -6,8 +6,7 @@ import ..bases
 using ..bases
 
 export StateVector, Bra, Ket,
-       tensor, dagger,
-       basis_bra, basis_ket, basis
+       tensor, dagger, basisstate
 
 
 """
@@ -87,19 +86,25 @@ function Base.normalize!(x::StateVector, p=2)
     return x
 end
 
-
 # Creation of basis states.
-function basis_vector(shape::Vector{Int}, indices::Vector{Int})
-    x = zeros(Complex, shape...)
-    x[indices] = Complex(1.)
-    reshape(x, prod(shape))
+"""
+Ket state where the entry specified by the indices is 1 and all others are zero.
+"""
+function basisstate(b::Basis, indices::Vector{Int})
+    @assert length(b.shape) == length(indices)
+    x = zeros(Complex128, reverse(b.shape)...)
+    x[reverse(indices)...] = Complex(1.)
+    Ket(b, reshape(x, length(b)))
 end
 
-basis_bra(b::Basis, indices::Array{Int}) = Bra(b, basis_vector(b.shape, indices))
-basis_bra(b::Basis, index::Int) = basis_bra(b, [index])
-basis_ket(b::Basis, indices::Array{Int}) = Ket(b, basis_vector(b.shape, indices))
-basis_ket(b::Basis, index::Int) = basis_ket(b, [index])
-
+"""
+Ket state where the i-th entry is 1 and all others are zero.
+"""
+function basisstate(b::Basis, index::Int)
+    data = zeros(length(b))
+    data[index] = Complex(1.)
+    Ket(b, data)
+end
 
 """
 Change the ordering of the subsystems of the given state.

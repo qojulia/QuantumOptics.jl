@@ -167,7 +167,7 @@ kwargs
 """
 function spectrum(omega_samplepoints::Vector{Float64},
                 H::Operator, J::Vector, op::Operator;
-                rho0::DenseOperator=tensor(basis_ket(H.basis_l, 1), basis_bra(H.basis_r, 1)),
+                rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 eps::Float64=1e-4,
                 rho_ss::DenseOperator=steadystate.master(H, J; eps=eps, rho0=rho0),
                 kwargs...)
@@ -217,7 +217,7 @@ kwargs
     Further arguments are passed on to the ode solver.
 """
 function spectrum(H::Operator, J::Vector, op::Operator;
-                rho0::DenseOperator=tensor(basis_ket(H.basis_l, 1), basis_bra(H.basis_r, 1)),
+                rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 eps::Float64=1e-4, h0=10.,
                 rho_ss::DenseOperator=steadystate.master(H, J; eps=eps),
                 kwargs...)

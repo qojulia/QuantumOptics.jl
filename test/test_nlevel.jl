@@ -15,7 +15,7 @@ b = NLevelBasis(N)
 @test_throws BoundsError transition(b, N+1, 1)
 @test_throws BoundsError transition(b, 1, 0)
 @test_throws BoundsError transition(b, 1, N+1)
-@test full(transition(b, 2, 1)) == basis_ket(b, 2) ⊗ basis_bra(b, 1)
+@test full(transition(b, 2, 1)) == basisstate(b, 2) ⊗ dagger(basisstate(b, 1))
 
 # Test nlevel states
 @test_throws BoundsError nlevelstate(b, 0)
