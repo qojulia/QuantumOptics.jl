@@ -1,3 +1,13 @@
+module operators_lazysum
+
+import Base: ==, *, /, +, -
+import ..operators: dagger, identityoperator,
+                    trace, ptrace, normalize!, tensor, permutesystems
+
+using ..bases, ..states, ..operators, ..operators_dense
+
+export LazySum
+
 """
 Lazy evaluation of sum of operators.
 
@@ -34,15 +44,9 @@ Base.sparse(op::LazySum) = sum(a*sparse(op_i) for (a, op_i) in zip(op.factors, o
 /(a::LazySum, b::Number) = LazySum(a.factors/b, a.operators)
 
 +(a::LazySum, b::LazySum) = (operators.check_samebases(a,b); LazySum([a.factors; b.factors], [a.operators; b.operators]))
-+(a::LazyWrapper, b::LazyWrapper) = (operators.check_samebases(a,b); LazySum([a.factor, b.factor], [a.operator, b.operator]))
-+(a::LazySum, b::LazyWrapper) = (operators.check_samebases(a,b); LazySum([a.factors; b.factor], [a.operators; b.operator]))
-+(a::LazyWrapper, b::LazySum) = (operators.check_samebases(a,b); LazySum([a.factor; b.factors], [a.operator; b.operators]))
 
 -(a::LazySum) = LazySum(-a.factors, a.operators)
 -(a::LazySum, b::LazySum) = (operators.check_samebases(a,b); LazySum([a.factors; -b.factors], [a.operators; b.operators]))
--(a::LazyWrapper, b::LazyWrapper) = (operators.check_samebases(a,b); LazySum([a.factor, -b.factor], [a.operator, b.operator]))
--(a::LazySum, b::LazyWrapper) = (operators.check_samebases(a,b); LazySum([a.factors; -b.factor], [a.operators; b.operator]))
--(a::LazyWrapper, b::LazySum) = (operators.check_samebases(a,b); LazySum([a.factor; -b.factors], [a.operator; b.operators]))
 
 
 identityoperator(::Type{LazySum}, b1::Basis, b2::Basis) = LazySum(identityoperator(b1, b2))
@@ -79,3 +83,5 @@ function operators.gemv!(alpha, a::Bra, b::LazySum, beta, result::Bra)
         operators.gemv!(alpha*b.factors[i], a, b.operators[i], Complex(1.), result)
     end
 end
+
+end # module

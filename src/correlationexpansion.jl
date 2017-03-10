@@ -10,7 +10,8 @@ using ..sortedindices
 using ..bases
 using ..operators
 using ..operators_dense
-using ..operators_lazy
+using ..operators_lazysum
+using ..operators_lazytensor
 using ..ode_dopri
 
 
@@ -300,7 +301,7 @@ function gemm!(alpha, a::LazyTensor, b::CorrelationExpansion, beta, result::Corr
         if isempty(I_)
             copy!(op.data, b.correlations[mask].data)
         else
-            operators = operators_lazy.suboperators(a, I_)
+            operators = operators_lazytensor.suboperators(a, I_)
             sortedindices.reducedindices!(I_, I)
             a_ = LazyTensor(op.basis_l, op.basis_r, I_, operators)
             gemm!(alpha, a_, b.correlations[mask], beta, op)
@@ -330,7 +331,7 @@ function gemm!(alpha, a::CorrelationExpansion, b::LazyTensor, beta, result::Corr
         if isempty(I_)
             copy!(op.data, a.correlations[mask].data)
         else
-            operators = operators_lazy.suboperators(b, I_)
+            operators = operators_lazytensor.suboperators(b, I_)
             sortedindices.reducedindices!(I_, I)
             b_ = LazyTensor(op.basis_l, op.basis_r, I_, operators)
             gemm!(alpha, a.correlations[mask], b_, beta, op)

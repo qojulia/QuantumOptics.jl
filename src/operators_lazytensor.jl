@@ -1,3 +1,14 @@
+module operators_lazytensor
+
+import Base: ==, *, /, +, -
+import ..operators: dagger, identityoperator,
+                    trace, ptrace, normalize!, tensor, permutesystems
+
+using ..sortedindices
+using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
+
+export LazyTensor
+
 """
 Lazy implementation of a tensor product of operators.
 
@@ -147,9 +158,6 @@ function ptrace(op::LazyTensor, indices::Vector{Int})
 end
 
 tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices+length(a.basis_l.bases)], Operator[a.operators; b.operators], a.factor*b.factor)
-tensor(a::LazyWrapper, b::LazyWrapper) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [1, 2], Operator[a.operator, b.operator], a.factor*b.factor)
-tensor(a::LazyTensor, b::LazyWrapper) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; length(a.basis_l.bases)+1], [a.operators; b.operator], a.factor*b.factor)
-tensor(a::LazyWrapper, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [1; b.indices], [a.operator; b.operators], a.factor*b.factor)
 
 function permutesystems(op::LazyTensor, perm::Vector{Int})
     b_l = permutesystems(op.basis_l, perm)
@@ -173,7 +181,7 @@ function _gemm_recursive_dense_lazy(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
         return nothing
     end
     if i_k in indices
-        h_i = operators_lazy.suboperator(h, i_k)
+        h_i = operators_lazytensor.suboperator(h, i_k)
         if isa(h_i, SparseOperator)
             h_i_data = h_i.data::SparseMatrixCSC{Complex128,Int}
             @inbounds for k=1:h_i_data.n
@@ -223,7 +231,7 @@ function _gemm_recursive_lazy_dense(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
         return nothing
     end
     if i_k in indices
-        h_i = operators_lazy.suboperator(h, i_k)
+        h_i = suboperator(h, i_k)
         if isa(h_i, SparseOperator)
             h_i_data = h_i.data::SparseMatrixCSC{Complex128,Int}
             @inbounds for k=1:h_i_data.n
@@ -299,3 +307,5 @@ function operators.gemv!(alpha, a::Bra, b::LazyTensor, beta, result::Bra)
     result_data = reshape(result.data, 1, length(result.data))
     gemm(alpha, a_data, b, beta, result_data)
 end
+
+end # module

@@ -9,8 +9,9 @@ export bases, Basis, GenericBasis, CompositeBasis,
         operators, Operator, expect, identityoperator, ptrace, embed,
         operators_dense, DenseOperator, projector,
         operators_sparse, SparseOperator, diagonaloperator,
-        operators_lazy, lazy, LazyWrapper,
-                LazyTensor, LazySum, LazyProduct,
+        operators_lazysum, LazySum,
+        operators_lazyproduct, LazyProduct,
+        operators_lazytensor, LazyTensor,
         super, DenseSuperOperator, SparseSuperOperator,
                 spre, spost, liouvillian,
         fock, FockBasis, number, destroy, create,
@@ -40,7 +41,9 @@ include("operators.jl")
 include("operators_dense.jl")
 include("sparsematrix.jl")
 include("operators_sparse.jl")
-include("operators_lazy.jl")
+include("operators_lazysum.jl")
+include("operators_lazyproduct.jl")
+include("operators_lazytensor.jl")
 include("superoperators.jl")
 include("spin.jl")
 include("fock.jl")
@@ -71,7 +74,9 @@ using .states
 using .operators
 using .operators_dense
 using .operators_sparse
-using .operators_lazy
+using .operators_lazysum
+using .operators_lazyproduct
+using .operators_lazytensor
 using .superoperators
 using .spin
 using .fock

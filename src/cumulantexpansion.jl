@@ -4,7 +4,8 @@ using ..bases
 using ..states
 using ..operators
 using ..operators_dense
-using ..operators_lazy
+using ..operators_lazysum
+using ..operators_lazytensor
 using ..ode_dopri
 
 import Base: *, full

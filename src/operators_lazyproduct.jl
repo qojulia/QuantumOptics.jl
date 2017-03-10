@@ -1,3 +1,13 @@
+module operators_lazyproduct
+
+import Base: ==, *, /, +, -
+import ..operators: dagger, identityoperator,
+                    trace, ptrace, normalize!, tensor, permutesystems
+
+using ..bases, ..states, ..operators, ..operators_dense
+
+export LazyProduct
+
 """
 Lazy evaluation of product of operators.
 
@@ -30,9 +40,6 @@ Base.sparse(op::LazyProduct) = op.factor*prod(sparse(op_i) for op_i in op.operat
 *(a::LazyProduct, b::LazyProduct) = LazyProduct([a.operators; b.operators], a.factor*b.factor)
 *(a::LazyProduct, b::Number) = LazyProduct(a.operators, a.factor*b)
 *(a::Number, b::LazyProduct) = LazyProduct(b.operators, a*b.factor)
-*(a::LazyWrapper, b::LazyWrapper) = LazyProduct([a.operator, b.operator], a.factor*b.factor)
-*(a::LazyWrapper, b::LazyProduct) = LazyProduct([a.operator; b.operators], a.factor*b.factor)
-*(a::LazyProduct, b::LazyWrapper) = LazyProduct([a.operators; b.operator], a.factor*b.factor)
 
 /(a::LazyProduct, b::Number) = LazyProduct(a.operators, a.factor/b)
 
@@ -69,3 +76,5 @@ function operators.gemv!(alpha, a::Bra, b::LazyProduct, beta, result::Bra)
     end
     operators.gemv!(alpha, tmp1, b.operators[end], beta, result)
 end
+
+end # module
