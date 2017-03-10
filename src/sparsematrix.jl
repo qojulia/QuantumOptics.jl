@@ -3,60 +3,139 @@ module sparsematrix
 typealias SparseMatrix SparseMatrixCSC{Complex128}
 
 
-function gemm!(alpha::Complex128, M::SparseMatrix, B::Matrix{Complex128}, beta::Complex128, result::Matrix{Complex128})
-    @inbounds for j=1:size(result,2), i=1:size(result,1)
-        result[i,j] *= beta
-    end
-    @inbounds for j=1:M.m
-        for colindex = 1:M.n
-            m2 = alpha*B[colindex, j]
-            for i=M.colptr[colindex]:M.colptr[colindex+1]-1
-                result[M.rowval[i], j] += M.nzval[i]*m2
+function gemm_sp_dense_small(alpha::Complex128, M::SparseMatrix, B::Matrix{Complex128}, result::Matrix{Complex128})
+    if alpha == Complex128(1.)
+        @inbounds for colindex = 1:M.n
+            @inbounds for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                row = M.rowval[i]
+                val = M.nzval[i]
+                @inbounds for j=1:size(B, 2)
+                    result[row, j] += val*B[colindex, j]
+                end
+            end
+        end
+    else
+        @inbounds for colindex = 1:M.n
+            @inbounds for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                row = M.rowval[i]
+                val = alpha*M.nzval[i]
+                @inbounds for j=1:size(B, 2)
+                    result[row, j] += val*B[colindex, j]
+                end
             end
         end
     end
-    nothing
+end
+
+function gemm_sp_dense_big(alpha::Complex128, M::SparseMatrix, B::Matrix{Complex128}, result::Matrix{Complex128})
+    if alpha == Complex128(1.)
+        @inbounds for j=1:size(B, 2)
+            @inbounds for colindex = 1:M.n
+                m2 = B[colindex, j]
+                @inbounds for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                    row = M.rowval[i]
+                    result[row, j] += M.nzval[i]*m2
+                end
+            end
+        end
+    else
+        @inbounds for j=1:size(B, 2)
+            @inbounds for colindex = 1:M.n
+                m2 = alpha*B[colindex, j]
+                @inbounds for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                    row = M.rowval[i]
+                    result[row, j] += M.nzval[i]*m2
+                end
+            end
+        end
+    end
+end
+
+function gemm!(alpha::Complex128, M::SparseMatrix, B::Matrix{Complex128}, beta::Complex128, result::Matrix{Complex128})
+    if beta == Complex128(0.)
+        fill!(result, beta)
+    elseif beta != Complex128(1.)
+        scale!(result, beta)
+    end
+    if nnz(M) > 1000
+        gemm_sp_dense_big(alpha, M, B, result)
+    else
+        gemm_sp_dense_small(alpha, M, B, result)
+    end
 end
 
 function gemm!(alpha::Complex128, B::Matrix{Complex128}, M::SparseMatrix, beta::Complex128, result::Matrix{Complex128})
-    @inbounds for j=1:size(result,2), i=1:size(result,1)
-        result[i,j] *= beta
+    if beta == Complex128(0.)
+        fill!(result, beta)
+    elseif beta != Complex128(1.)
+        scale!(result, beta)
     end
-    @inbounds for colindex = 1:M.n
-        for i=M.colptr[colindex]:M.colptr[colindex+1]-1
-            mi = M.nzval[i]*alpha
-            mrowvali = M.rowval[i]
-            for j=1:size(result,1)
-                result[j,colindex] += mi*B[j,mrowvali]
+    dimB = size(result,1)
+    if alpha == Complex128(1.)
+        @inbounds for colindex = 1:M.n
+            @inbounds for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                mi = M.nzval[i]
+                mrowvali = M.rowval[i]
+                @inbounds for j=1:dimB
+                    result[j, colindex] += mi*B[j, mrowvali]
+                end
+            end
+        end
+    else
+        @inbounds for colindex = 1:M.n
+            @inbounds for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                mi = M.nzval[i]*alpha
+                mrowvali = M.rowval[i]
+                @inbounds for j=1:dimB
+                    result[j, colindex] += mi*B[j, mrowvali]
+                end
             end
         end
     end
-    nothing
 end
 
 function gemv!(alpha::Complex128, M::SparseMatrix, v::Vector{Complex128}, beta::Complex128, result::Vector{Complex128})
-    @inbounds for i=1:length(result)
-        result[i] *= beta
+    if beta == Complex128(0.)
+        fill!(result, beta)
+    elseif beta != Complex128(1.)
+        scale!(result, beta)
     end
-    @inbounds for colindex = 1:M.n
-        vj = alpha*v[colindex]
-        for i=M.colptr[colindex]:M.colptr[colindex+1]-1
-            result[M.rowval[i]] += M.nzval[i]*vj
+    if alpha == Complex128(1.)
+        @inbounds for colindex = 1:M.n
+            vj = v[colindex]
+            for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                result[M.rowval[i]] += M.nzval[i]*vj
+            end
+        end
+    else
+        @inbounds for colindex = 1:M.n
+            vj = alpha*v[colindex]
+            for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                result[M.rowval[i]] += M.nzval[i]*vj
+            end
         end
     end
-    nothing
 end
 
-function gemv!(alpha::Complex128, v::Vector{Complex128}, M::SparseMatrixCSC{Complex128}, beta::Complex128, result::Vector{Complex128})
-    @inbounds for i=1:length(result)
-        result[i] *= beta
+function gemv!(alpha::Complex128, v::Vector{Complex128}, M::SparseMatrix, beta::Complex128, result::Vector{Complex128})
+    if beta == Complex128(0.)
+        fill!(result, beta)
+    elseif beta != Complex128(1.)
+        scale!(result, beta)
     end
-    @inbounds for colindex = 1:M.n
-        for i=M.colptr[colindex]:M.colptr[colindex+1]-1
-            result[colindex] += M.nzval[i]*alpha*v[M.rowval[i]]
+    if alpha == Complex128(1.)
+        @inbounds for colindex=1:M.n
+            for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                result[colindex] += M.nzval[i]*v[M.rowval[i]]
+            end
+        end
+    else
+        @inbounds for colindex=1:M.n
+            for i=M.colptr[colindex]:M.colptr[colindex+1]-1
+                result[colindex] += M.nzval[i]*alpha*v[M.rowval[i]]
+            end
         end
     end
-    nothing
 end
 
 function sub2sub{N, M}(shape1::NTuple{N, Int}, shape2::NTuple{M, Int}, I::CartesianIndex{N})

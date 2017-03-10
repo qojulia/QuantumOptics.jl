@@ -195,6 +195,14 @@ op312 = op3⊗op1⊗op2
 op321 = op3⊗op2⊗op1
 @test 1e-14 > D(permutesystems(op123, [3, 2, 1]), op321)
 
+# Test diagonaloperator
+b = GenericBasis(4)
+I = identityoperator(b)
+
+@test diagonaloperator(b, [1, 1, 1, 1]) == I
+@test diagonaloperator(b, [1., 1., 1., 1.]) == I
+@test diagonaloperator(b, [1im, 1im, 1im, 1im]) == 1im*I
+@test diagonaloperator(b, [0:3;]) == sparse(DenseOperator(b, diagm([0:3;])))
 
 # Test gemv
 op = sprandop(b_l, b_r)
@@ -226,13 +234,16 @@ beta = complex(2.1)
 operators.gemv!(alpha, state, op, beta, result)
 @test 1e-13 > D(result, alpha*state*op_ + beta*result_)
 
-# Test gemm
-b_r = b_l
-op = sprandop(b_l, b_r)
+# Test gemm small version
+b1 = GenericBasis(3)
+b2 = GenericBasis(5)
+b3 = GenericBasis(7)
+
+op = sprandop(b1, b2)
 op_ = full(op)
 
-state = randop(b_r, b_r)
-result_ = randop(b_l, b_r)
+state = randop(b2, b3)
+result_ = randop(b1, b3)
 result = deepcopy(result_)
 operators.gemm!(complex(1.), op, state, complex(0.), result)
 @test 1e-12 > D(result, op_*state)
@@ -243,8 +254,8 @@ beta = complex(2.1)
 operators.gemm!(alpha, op, state, beta, result)
 @test 1e-12 > D(result, alpha*op_*state + beta*result_)
 
-state = randop(b_l, b_l)
-result_ = randop(b_l, b_r)
+state = randop(b3, b1)
+result_ = randop(b3, b2)
 result = deepcopy(result_)
 operators.gemm!(complex(1.), state, op, complex(0.), result)
 @test 1e-12 > D(result, state*op_)
@@ -255,13 +266,36 @@ beta = complex(2.1)
 operators.gemm!(alpha, state, op, beta, result)
 @test 1e-12 > D(result, alpha*state*op_ + beta*result_)
 
-# Test diagonaloperator
-b = GenericBasis(4)
-I = identityoperator(b)
+# Test gemm big version
+b1 = GenericBasis(50)
+b2 = GenericBasis(60)
+b3 = GenericBasis(55)
 
-@test diagonaloperator(b, [1, 1, 1, 1]) == I
-@test diagonaloperator(b, [1., 1., 1., 1.]) == I
-@test diagonaloperator(b, [1im, 1im, 1im, 1im]) == 1im*I
-@test diagonaloperator(b, [0:3;]) == sparse(DenseOperator(b, diagm([0:3;])))
+op = sprandop(b1, b2)
+op_ = full(op)
+
+state = randop(b2, b3)
+result_ = randop(b1, b3)
+result = deepcopy(result_)
+operators.gemm!(complex(1.), op, state, complex(0.), result)
+@test 1e-11 > D(result, op_*state)
+
+result = deepcopy(result_)
+alpha = complex(1.5)
+beta = complex(2.1)
+operators.gemm!(alpha, op, state, beta, result)
+@test 1e-11 > D(result, alpha*op_*state + beta*result_)
+
+state = randop(b3, b1)
+result_ = randop(b3, b2)
+result = deepcopy(result_)
+operators.gemm!(complex(1.), state, op, complex(0.), result)
+@test 1e-11 > D(result, state*op_)
+
+result = deepcopy(result_)
+alpha = complex(1.5)
+beta = complex(2.1)
+operators.gemm!(alpha, state, op, beta, result)
+@test 1e-11 > D(result, alpha*state*op_ + beta*result_)
 
 end # testset
