@@ -143,8 +143,6 @@ function _check_input(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vect
         @assert size(Gamma, 1) == size(Gamma, 2) == length(J)
     elseif typeof(Gamma) == Vector{Float64}
         @assert length(Gamma) == length(J)
-    else
-        error()
     end
 end
 
@@ -258,8 +256,6 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
         for i=1:length(J)
             Hnh -= 0.5im*Gamma[i]*Jdagger[i]*J[i]
         end
-    else
-        error()
     end
     Hnhdagger = dagger(Hnh)
     Gamma = complex(Gamma)
