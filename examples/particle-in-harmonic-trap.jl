@@ -13,29 +13,31 @@ Npoints = 100
 b_position = PositionBasis(xmin, xmax, Npoints)
 
 # Hamiltonian in real space basis
-p = momentumoperator(b_position)
-x = positionoperator(b_position)
+p = momentumoperator(b_position) # Dense operator
+x = positionoperator(b_position) # Sparse operator
 
-H = p^2/2m + 1/2*m*ω^2*x^2;
+H = p^2/2m + 1/2*m*ω^2*full(x^2);
 
 b_momentum = MomentumBasis(b_position);
 
 # Hamiltonian
-p = momentumoperator(b_momentum)
-x = positionoperator(b_momentum)
+p = momentumoperator(b_momentum) # Sparse operator
+x = positionoperator(b_momentum) # Dense operator
 
-H = p^2/2m + 1/2*m*ω^2*x^2;
+H = full(p^2)/2m + 1/2*m*ω^2*x^2;
 
 # Transforms a state multiplied from the right side from real space
 # to momentum space.
-op_fft = particle.FFTOperator(b_momentum, b_position);
+T_px = particle.FFTOperator(b_momentum, b_position);
 
-op_inversefft = dagger(op_fft)
+T_xp = dagger(T_px)
 
 x = positionoperator(b_position)
 p = momentumoperator(b_momentum)
 
-H = LazySum(LazyProduct(op_inversefft, p^2/2m, op_fft), ω*x^2);
+H_kin = LazyProduct(T_xp, p^2/2m, T_px)
+V = ω*x^2
+H = LazySum(H_kin, V);
 
 # Initial state
 x0 = 1.5
@@ -64,3 +66,5 @@ for i=1:length(T)
     n = abs(Ψ.data).^2
     plot(x_points, n, "C0", alpha=0.9*(float(i)/length(T))^8+0.1)
 end;
+
+
