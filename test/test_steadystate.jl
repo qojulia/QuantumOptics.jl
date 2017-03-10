@@ -72,5 +72,9 @@ nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 
 # Test error messages
 @test_throws ErrorException steadystate.eigenvector(sx, [sm])
+function fout_wrong(t, x)
+  @assert x == t
+end
+@test_throws AssertionError steadystate.master(Hdense, Jdense; fout=fout_wrong)
 
 end # testset
