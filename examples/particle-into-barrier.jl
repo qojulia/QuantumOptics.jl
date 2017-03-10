@@ -43,7 +43,7 @@ for i_p in 1:length(p0vec)
     T = collect(linspace(0., tmax, timecuts))
     tout, Ψt = timeevolution.schroedinger(T, Ψ₀, H);
 
-    offset = expect(Hkin, Ψ₀)
+    offset = real(expect(Hkin, Ψ₀))
     plot(xpoints, n0+offset, "C$i_p--")
     for i=1:length(T)
         Ψ = Ψt[i]
