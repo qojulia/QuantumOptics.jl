@@ -88,16 +88,6 @@ x2 = basisstate(b2, 1)
 @test x1.data[2] == 1
 @test basisstate(b, [2, 1]) == x1 ⊗ x2
 
-# Partial Trace
-basis = FockBasis(0, 1)
-a = normalize(Bra(basis, [1im, 0]))
-b = normalize(Bra(basis, [1, 2]))
-c = normalize(Bra(CompositeBasis(basis, basis), [1im, 2im, 0, 0]))
-@test 0 ≈ norm(tensor(a, b) - c)
-@test 0 ≈ tracedistance(operators.ptrace(c, 1), tensor(dagger(b), b))
-@test 1e-16 > tracedistance(operators.ptrace(c, 2), tensor(dagger(a), a))
-
-
 # Test permutating systems
 b1 = GenericBasis(2)
 b2 = GenericBasis(5)

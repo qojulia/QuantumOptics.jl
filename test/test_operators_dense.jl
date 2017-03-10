@@ -7,6 +7,7 @@ srand(0)
 
 D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
+randstate(b) = normalize(Ket(b, rand(Complex128, length(b))))
 randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
 randop(b) = randop(b, b)
 
@@ -100,7 +101,24 @@ normalize!(op_copy)
 @test trace(op) != trace(op_copy)
 @test 1 ≈ trace(op_copy)
 
-# Test partial trace
+# Test partial trace of state vectors
+psi1 = 0.1*randstate(b1a)
+psi2 = 0.3*randstate(b2a)
+psi3 = 0.7*randstate(b3a)
+psi12 = psi1 ⊗ psi2
+psi13 = psi1 ⊗ psi3
+psi23 = psi2 ⊗ psi3
+psi123 = psi1 ⊗ psi2 ⊗ psi3
+
+@test 1e-14 > D(0.1^2*0.3^2*psi3 ⊗ dagger(psi3), ptrace(psi123, [1, 2]))
+@test 1e-14 > D(0.1^2*0.7^2*psi2 ⊗ dagger(psi2), ptrace(psi123, [1, 3]))
+@test 1e-14 > D(0.3^2*0.7^2*psi1 ⊗ dagger(psi1), ptrace(psi123, [2, 3]))
+
+@test 1e-14 > D(0.1^2*psi23 ⊗ dagger(psi23), ptrace(psi123, 1))
+@test 1e-14 > D(0.3^2*psi13 ⊗ dagger(psi13), ptrace(psi123, 2))
+@test 1e-14 > D(0.7^2*psi12 ⊗ dagger(psi12), ptrace(psi123, 3))
+
+# Test partial trace of operators
 op1 = randop(b1a)
 op2 = randop(b2a)
 op3 = randop(b3a)
