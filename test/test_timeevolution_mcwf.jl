@@ -52,6 +52,15 @@ tout, Ψt = timeevolution.mcwf(T, Ψ₀, H, J; seed=UInt(1), reltol=1e-6)
 tout, Ψt = timeevolution.mcwf(T, Ψ₀, H, J; seed=UInt(2), reltol=1e-6)
 @test norm(Ψt[end]-Ψ) > 0.1
 
+t_fout = Float64[]
+Ψ_fout = []
+function fout(t, x)
+  push!(t_fout, t)
+  push!(Ψ_fout, x)
+end
+timeevolution.mcwf(T, Ψ₀, H, J; seed=UInt(2), reltol=1e-6, fout=fout)
+@test tout == t_fout && Ψt == Ψ_fout
+
 
 # Test mcwf_h
 tout, Ψt = timeevolution.mcwf_h(T, Ψ₀, H, J; seed=UInt(1), reltol=1e-6)
