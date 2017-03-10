@@ -22,6 +22,8 @@ ket = Ket(b)
 @test 0 ≈ norm(bra)
 @test 0 ≈ norm(ket)
 @test_throws bases.IncompatibleBases bra*Ket(b1)
+@test bra == bra
+@test bra != basisstate(b, 1)
 
 # Arithmetic operations
 # =====================
@@ -97,20 +99,31 @@ c = normalize(Bra(CompositeBasis(basis, basis), [1im, 2im, 0, 0]))
 
 
 # Test permutating systems
-b1 = NLevelBasis(2)
-b2 = SpinBasis(1//2)
-b3 = FockBasis(2)
+b1 = GenericBasis(2)
+b2 = GenericBasis(5)
+b3 = GenericBasis(3)
 
-srand(0)
-psi1 = normalize(Ket(b1, rand(Complex128, length(b1))))
-psi2 = normalize(Ket(b2, rand(Complex128, length(b2))))
-psi3 = normalize(Ket(b3, rand(Complex128, length(b3))))
+psi1 = randstate(b1)
+psi2 = randstate(b2)
+psi3 = randstate(b3)
 
 psi123 = psi1 ⊗ psi2 ⊗ psi3
+psi132 = psi1 ⊗ psi3 ⊗ psi2
 psi213 = psi2 ⊗ psi1 ⊗ psi3
+psi231 = psi2 ⊗ psi3 ⊗ psi1
+psi312 = psi3 ⊗ psi1 ⊗ psi2
+psi321 = psi3 ⊗ psi2 ⊗ psi1
 
-c = dagger(psi213)*permutesystems(psi123, [2,1,3])
+@test 1e-14 > D(psi132, permutesystems(psi123, [1, 3, 2]))
+@test 1e-14 > D(psi213, permutesystems(psi123, [2, 1, 3]))
+@test 1e-14 > D(psi231, permutesystems(psi123, [2, 3, 1]))
+@test 1e-14 > D(psi312, permutesystems(psi123, [3, 1, 2]))
+@test 1e-14 > D(psi321, permutesystems(psi123, [3, 2, 1]))
 
-@test 1e-5 > abs(1.-c)
+@test 1e-14 > D(dagger(psi132), permutesystems(dagger(psi123), [1, 3, 2]))
+@test 1e-14 > D(dagger(psi213), permutesystems(dagger(psi123), [2, 1, 3]))
+@test 1e-14 > D(dagger(psi231), permutesystems(dagger(psi123), [2, 3, 1]))
+@test 1e-14 > D(dagger(psi312), permutesystems(dagger(psi123), [3, 1, 2]))
+@test 1e-14 > D(dagger(psi321), permutesystems(dagger(psi123), [3, 2, 1]))
 
 end # testset
