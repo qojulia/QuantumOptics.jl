@@ -53,4 +53,20 @@ end
 tout, ρt = timeevolution.master([0.,1.], ρ₀, H, J; reltol=1e-7)
 @test tracedistance(expm(full(L))*ρ₀, ρt[end]) < 1e-6
 
+@test_throws DimensionMismatch DenseSuperOperator(L.basis_l, L.basis_r, full(L).data[1:end-1, 1:end-1])
+@test_throws DimensionMismatch SparseSuperOperator(L.basis_l, L.basis_r, L.data[1:end-1, 1:end-1])
+
+@test full(spre(op1)) == spre(op1)
+
+@test_throws DimensionMismatch L*op1
+@test_throws DimensionMismatch L*spre(sm)
+
+@test L/2.0 == 0.5*L == L*0.5
+@test -L == SparseSuperOperator(L.basis_l, L.basis_r, -L.data)
+
+@test_throws AssertionError liouvillian(H, J; Gamma=zeros(4, 4))
+
+Gamma = diagm([1.0, 1.0])
+@test liouvillian(H, J; Gamma=Gamma) == L
+
 end # testset

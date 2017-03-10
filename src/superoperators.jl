@@ -73,6 +73,8 @@ function *{T<:SuperOperator}(a::T, b::T)
 end
 
 /{T<:SuperOperator}(a::T, b::Number) = T(a.basis_l, a.basis_r, a.data/complex(b))
+*{T<:SuperOperator}(a::T, b::Number) = T(a.basis_l, a.basis_r, a.data*complex(b))
+*{T<:SuperOperator}(b::Number, a::T) = *(a, b)
 
 +{T<:SuperOperator}(a::T, b::T) = (operators.check_samebases(a, b); T(a.basis_l, a.basis_r, a.data+b.data))
 
@@ -122,8 +124,6 @@ function _check_input(H::Operator, J::Vector, Jdagger::Vector, Gamma::Union{Vect
         @assert size(Gamma, 1) == size(Gamma, 2) == length(J)
     elseif typeof(Gamma) == Vector{Float64}
         @assert length(Gamma) == length(J)
-    else
-        error()
     end
 end
 
@@ -172,8 +172,6 @@ function liouvillian{T<:Operator}(H::T, J::Vector{T};
             L -= spre(jdagger_j) + spost(jdagger_j)
             L += spre(Gamma[i]*J[i]) * spost(Jdagger[i])
         end
-    else
-        error()
     end
     return L
 end
