@@ -2,11 +2,11 @@ using Base.Test
 using QuantumOptics
 
 
-type TestOperator <: Operator
+type test_operators <: Operator
   basis_l::Basis
   basis_r::Basis
   data::Matrix{Complex128}
-  TestOperator(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
+  test_operators(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
 end
 
 @testset "operators" begin
@@ -15,7 +15,7 @@ b = GenericBasis(5)
 b_comp = b ⊗ b
 dat = rand(5, 5) + 1.0im*rand(5, 5)
 op_dense = DenseOperator(b, b, dat)
-op_test = TestOperator(b, b, dat)
+op_test = test_operators(b, b, dat)
 ψ = Ket(b, rand(5))
 ρ = ψ ⊗ dagger(ψ)
 
@@ -28,7 +28,7 @@ op_test = TestOperator(b, b, dat)
 @test_throws ArgumentError op_test - 1
 
 @test_throws ArgumentError dagger(op_test)
-@test_throws ArgumentError identityoperator(TestOperator, b, b)
+@test_throws ArgumentError identityoperator(test_operators, b, b)
 @test_throws ArgumentError trace(op_test)
 @test_throws ArgumentError ptrace(op_test, [1, 2])
 
