@@ -78,9 +78,11 @@ function *(a::LazyTensor, b::LazyTensor)
         if in_a && in_b
             ops[n] = suboperator(a, i)*suboperator(b, i)
         elseif in_a
-            ops[n] = suboperator(a, i)
+            a_i = suboperator(a, i)
+            ops[n] = a_i*identityoperator(typeof(a_i), b.basis_l.bases[i], b.basis_r.bases[i])
         elseif in_b
-            ops[n] = suboperator(b, i)
+            b_i = suboperator(b, i)
+            ops[n] = identityoperator(typeof(b_i), a.basis_l.bases[i], a.basis_r.bases[i])*b_i
         end
     end
     return LazyTensor(a.basis_l, b.basis_r, indices, ops, a.factor*b.factor)
