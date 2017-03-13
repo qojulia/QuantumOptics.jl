@@ -58,7 +58,6 @@ Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.da
 
 dagger(x::SparseOperator) = SparseOperator(x.basis_r, x.basis_l, x.data')
 
-identityoperator(::Type{Operator}, b1::Basis, b2::Basis) = SparseOperator(b1, b2, speye(Complex128, length(b1), length(b2)))
 identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = SparseOperator(b1, b2, speye(Complex128, length(b1), length(b2)))
 identityoperator(b1::Basis, b2::Basis) = identityoperator(SparseOperator, b1, b2)
 identityoperator(b::Basis) = identityoperator(b, b)
