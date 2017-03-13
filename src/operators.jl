@@ -25,10 +25,6 @@ terms of this function and are provided automatically.
 """
 abstract Operator
 
-Base.eltype(x::Operator) = Complex128
-Base.zero{T<:Operator}(x::T) = T(x.basis_l, x.basis_r)
-
-
 # Common error messages
 arithmetic_unary_error(funcname, x::Operator) = throw(ArgumentError("$funcname is not defined for this type of operator: $(typeof(x)).\nTry to convert to another operator type first with e.g. full() or sparse()."))
 arithmetic_binary_error(funcname, a::Operator, b::Operator) = throw(ArgumentError("$funcname is not defined for this combination of types of operators: $(typeof(a)), $(typeof(b)).\nTry to convert to a common operator type first with e.g. full() or sparse()."))
