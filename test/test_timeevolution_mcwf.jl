@@ -44,6 +44,8 @@ Jdense = map(full, J)
 
 # Test mcwf
 tout, Ψt = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7)
+tout2, Ψt2 = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7)
+@test Ψt == Ψt2
 Ψ = Ψt[end]
 
 tout, Ψt = timeevolution.mcwf(T, Ψ₀, H, J; seed=UInt(1), reltol=1e-6)
