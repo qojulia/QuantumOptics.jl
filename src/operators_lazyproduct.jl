@@ -29,7 +29,7 @@ type LazyProduct <: Operator
         new(operators[1].basis_l, operators[end].basis_r, factor, operators)
     end
 end
-LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(Operator[op for op in operators], factor)
+LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(convert(Vector{Operator}, operators), factor)
 LazyProduct(operators::Operator...) = LazyProduct(Operator[operators...])
 
 Base.full(op::LazyProduct) = op.factor*prod(full(op_i) for op_i in op.operators)

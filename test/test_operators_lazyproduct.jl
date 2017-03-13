@@ -30,9 +30,9 @@ b_r = b1b⊗b2b⊗b3b
 
 # Test full & sparse
 op1 = randop(b_l, b_r)
-op2 = sparse(randop(b_r, b_l))
-@test 0.1*(op1*full(op2)) == full(LazyProduct([op1, op2], 0.1))
-@test 0.1*(sparse(op1)*op2) == sparse(LazyProduct([op1, op2], 0.1))
+op2 = randop(b_r, b_l)
+@test 0.1*(op1*op2) == full(LazyProduct([sparse(op1), sparse(op2)], 0.1))
+@test 0.1*(sparse(op1)*sparse(op2)) == sparse(LazyProduct([op1, op2], 0.1))
 
 
 # Arithmetic operations
@@ -64,6 +64,8 @@ xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
 @test 1e-11 > D((xbra1 + 0.3*xbra2)*op1, (xbra1 + 0.3*xbra2)*op1_)
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
 @test 1e-12 > D(dagger(x1)*dagger(0.3*op2), dagger(x1)*dagger(0.3*op2_))
+@test 0.3*LazyProduct(op1, sparse(op2)) == LazyProduct([op1, sparse(op2)], 0.3)
+@test 0.3*LazyProduct(op1)*LazyProduct(sparse(op2)) == LazyProduct([op1, sparse(op2)], 0.3)
 
 # Test division
 @test 1e-14 > D(op1/7, op1_/7)
