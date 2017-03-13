@@ -298,4 +298,19 @@ beta = complex(2.1)
 operators.gemm!(alpha, state, op, beta, result)
 @test 1e-11 > D(result, alpha*state*op_ + beta*result_)
 
+# Test remaining uncovered code
+@test_throws DimensionMismatch SparseOperator(b1, b2, zeros(10, 10))
+dat = sprandop(b1, b1).data
+@test SparseOperator(b1, dat) == SparseOperator(b1, Matrix{Complex128}(dat))
+
+type TestOperator <: Operator
+  data::Matrix{Complex128}
+  TestOperator(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
+end
+@test_throws ArgumentError sparse(TestOperator(b1, b1, dat))
+
+@test 2*SparseOperator(b1, dat) == SparseOperator(b1, dat)*2
+@test identityoperator(DenseOperator(b1, dat)) == full(identityoperator(b1))
+
+
 end # testset

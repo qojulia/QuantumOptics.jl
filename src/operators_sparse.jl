@@ -115,6 +115,5 @@ function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
   SparseOperator(b, spdiagm(complex(float(diag))))
 end
 
-operators.norm(op::SparseOperator, p) = norm(op.data, p)
 
 end # module
