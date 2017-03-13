@@ -1,6 +1,6 @@
 module operators_dense
 
-import Base: trace, ==, +, -, *, /
+import Base: trace, ==, +, -, *, /, ishermitian
 import ..operators: dagger, identityoperator,
                     trace, ptrace, normalize!, tensor, permutesystems,
                     gemv!, gemm!
@@ -9,7 +9,7 @@ using Base.LinAlg
 using Base.Cartesian
 using ..bases, ..states, ..operators
 
-export DenseOperator, projector
+export DenseOperator, projector, ishermitian
 
 """
 Dense array implementation of Operator.
@@ -219,6 +219,12 @@ function gemm!(alpha, b::DenseOperator, M::Operator, beta, result::DenseOperator
         result.data[i,:] = resultbra.data
     end
 end
+
+
+"""
+Check if an operator is Hermitian.
+"""
+ishermitian(A::DenseOperator) = ishermitian(A.data)
 
 
 end # module

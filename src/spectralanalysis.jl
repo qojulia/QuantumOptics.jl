@@ -1,162 +1,93 @@
 module spectralanalysis
 
+import Base.eig, Base.eigs, Base.eigvals, Base.eigvals!
 using ..states, ..operators, ..operators_dense, ..operators_sparse
 
-export operatorspectrum, operatorspectrum_hermitian, eigenstates, eigenstates_hermitian, groundstate, simdiag
+export eig, eigvals, eigvals!, simdiag
 
 
 """
-Calculate the spectrum of a Hermitian operator.
+Diagonalize an operator.
 
 Arguments
 ---------
 
-H
+A
     Sparse or dense operator.
 
 Keyword arguments
 -----------------
 
-Nmax (optional)
-    Number of eigenvalues that should be calculated.
+args (optional)
+  Aditional arguments of Julia's eig function. Have to be given in the following order.
+
+  irange (requires Hermitian)
+    UnitRange that specifies a range of indices for which the eigenvalues and eigenvectors
+    of a Hermitian operator are calculated.
+
+  vl (requires Hermitian)
+    Lower boundary for calculation of eigenvalues.
+
+  vu (requires Hermitian)
+    Upper boundary for calculation of eigenvalues. Only eigenvalues :math:`\\lambda`
+    (and their corresponding eigenvectors) for which :math:`vl \\leq \\lambda \\leq vu`
+    are computed.
+
+  permute
+    Boolean (default is :func:`true`), that if true allows permutation of the matrix so
+    it becomes closer to a upper diagonal matrix
+
+  scale
+    Boolean (default is :func:`true`), that if true scales the matrix by its diagonal
+    so they are closer in norm.
+
+
 """
-function operatorspectrum_hermitian(H::DenseOperator; Nmax::Union{Int, Void}=nothing)
-    h = Hermitian(H.data)
-    return Nmax == nothing ? eigvals(h) : eigvals(h, 1:Nmax)
-end
+eig(A::DenseOperator, args...) = ishermitian(A) ? eig(Hermitian(A.data), args...) : eig(A.data, args...)
+eigs(A::SparseOperator, args...) = ishermitian(A) ? eigs(Hermitian(A.data), args...) : eigs(A.data, args...)
 
-operatorspectrum_hermitian(H::SparseOperator; Nmax::Union{Int, Void}=nothing) = real(operatorspectrum(H; Nmax=Nmax))
+arithmetic_unary_error = operators.arithmetic_unary_error
+eig(A::Operator, args...) = arithmetic_unary_error(eig, A)
+eigs(A::Operator, args...) = arithmetic_unary_error(eig, A)
 
 
 """
-Calculate the spectrum of a not necessarily Hermitian operator.
+Compute eigenvalues of an operator.
 
-If the operator is known to be Hermitian use
-:func:`operatorspectrum_hermitian(::DenseOperator)` instead.
+The in-place calculation can be used with :func:`eigenvalues!`.
 
 Arguments
 ---------
 
-H
+A
     Sparse or dense operator.
 
 Keyword arguments
 -----------------
 
-Nmax (optional)
-    Number of eigenvalues that should be calculated.
-"""
-function operatorspectrum(H::DenseOperator; Nmax::Union{Int, Void}=nothing)
-    if ishermitian(H.data)
-        return operatorspectrum_hermitian(H; Nmax=Nmax)
-    end
-    s = eigvals(H.data)
-    return Nmax == nothing ? s : s[1:Nmax]
-end
+args (optional)
+  Aditional arguments of Julia's eig function. Have to be given in the following order.
 
-function operatorspectrum(H::SparseOperator; Nmax::Union{Int, Void}=nothing)
-    if Nmax == nothing
-        Nmax = size(H.data, 2) - 2
-    end
-    d, nconv, niter, nmult, resid = eigs(H.data; nev=Nmax, which=:SR, ritzvec=false)
-    return d
-end
+  irange (requires Hermitian)
+    UnitRange that specifies a range of indices for which the eigenvalues and eigenvectors
+    of a Hermitian operator are calculated.
 
+  vl (requires Hermitian)
+    Lower boundary for calculation of eigenvalues.
+
+  vu (requires Hermitian)
+    Upper boundary for calculation of eigenvalues. Only eigenvalues :math:`\\lambda`
+    (and their corresponding eigenvectors) for which :math:`vl \\leq \\lambda \\leq vu`
+    are computed.
 
 """
-Calculate the eigenstates of a Hermitian operator.
+eigvals(A::DenseOperator, args...) = ishermitian(A) ? eigvals(Hermitian(A.data), args...) : eigvals(A.data)
+eigvals(A::SparseOperator, args...) = eigvals(full(A), args...)
+eigvals!(A::DenseOperator, args...) = ishermitian(A) ? eigvals!(Hermitian(A.data), args...) : eigvals!(A.data)
+eigvals!(A::SparseOperator, args...) = eigvals!(full(A))
 
-Arguments
----------
-
-H
-    Sparse or dense operator.
-
-Keyword arguments
------------------
-
-Nmax (optional)
-    Number of eigenstates that should be calculated.
-"""
-function eigenstates_hermitian(H::DenseOperator; Nmax::Union{Int, Void}=nothing)
-    # h = Hermitian(H.data) -- In Julia v0.5 function eigfact does not support Hermitians
-    h = H.data
-    M = Nmax == nothing ? eigvecs(h) : eigvecs(h, 1:Nmax)
-    b = Ket[]
-    for k=1:size(M,2)
-        push!(b, Ket(H.basis_r, M[:,k]))
-    end
-    return b
-end
-
-
-"""
-Calculate the eigenstates of a not necessarily Hermitian operator.
-
-If the operator is known to be Hermitian use
-:func:`eigenstates_hermitian(::DenseOperator)` instead.
-
-Arguments
----------
-
-H
-    Sparse or dense operator.
-
-Keyword arguments
------------------
-
-Nmax (optional)
-    Number of eigenstates that should be calculated.
-"""
-function eigenstates(H::DenseOperator; Nmax::Union{Int, Void}=nothing)
-    if ishermitian(H.data)
-        return eigenstates_hermitian(H; Nmax=Nmax)
-    end
-    M = eigvecs(H.data)
-    b = Ket[]
-    for k=1:size(M,2)
-        if Nmax!=nothing && k>Nmax
-            break
-        end
-        push!(b, Ket(H.basis_r, M[:,k]))
-    end
-    return b
-end
-
-eigenstates_hermitian(H::SparseOperator; Nmax::Union{Int, Void}=nothing) = eigenstates(H; Nmax=Nmax)
-
-
-function eigenstates(H::SparseOperator; Nmax::Union{Int, Void}=nothing)
-    if Nmax == nothing
-        Nmax = size(H.data, 2) - 2
-    end
-    d, M, nconv, niter, nmult, resid = eigs(H.data; nev=Nmax, which=:SR, ritzvec=true)
-    b = Ket[]
-    for k=1:size(M,2)
-        push!(b, Ket(H.basis_r, M[:,k]))
-    end
-    return b
-end
-
-
-"""
-Calculate the ground-state of a Hermitian operator.
-
-This is just a shortcut for :func:`eigenstates_hermitian(H, Nmax=1)`
-
-Arguments
----------
-
-H
-    Sparse or dense operator.
-
-Keyword arguments
------------------
-
-Nmax (optional)
-    Number of eigenstates that should be calculated.
-"""
-groundstate(H::Union{DenseOperator, SparseOperator}) = eigenstates_hermitian(H; Nmax=1)[1]
+eigvals(A::Operator, args...) = arithmetic_unary_error(eigvals, A)
+eigvals!(A::Operator, args...) = arithmetic_unary_error(eigvals!, A)
 
 
 """
@@ -188,7 +119,7 @@ function simdiag{T <: DenseOperator}(Ops::Vector{T}; atol::Real=1e-14, rtol::Rea
 
   # Check input
   for A=Ops
-    if !isapprox(A.data, dagger(A).data; atol=atol, rtol=rtol)
+    if !ishermitian(A)
       error("Non-hermitian operator given!")
     end
   end
@@ -197,8 +128,9 @@ function simdiag{T <: DenseOperator}(Ops::Vector{T}; atol::Real=1e-14, rtol::Rea
 
   evals = [Vector{Complex128}(length(d)) for i=1:length(Ops)]
   for i=1:length(Ops), j=1:length(d)
-    evals[i][j] = (v[:, j]'*Ops[i].data*v[:, j])[1]
-    if !isapprox(Ops[i].data*v[:, j], evals[i][j]*v[:, j]; atol=atol, rtol=rtol)
+    vec = Ops[i].data*v[:, j]
+    evals[i][j] = (v[:, j]'*vec)[1]
+    if !isapprox(vec, evals[i][j]*v[:, j]; atol=atol, rtol=rtol)
       error("Simultaneous diagonalization failed!")
     end
   end

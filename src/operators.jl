@@ -1,6 +1,6 @@
 module operators
 
-import Base: trace, ==, +, -, *, /
+import Base: trace, ==, +, -, *, /, ishermitian
 import ..bases: tensor, ptrace, permutesystems
 import ..states: dagger, normalize, normalize!
 
@@ -195,6 +195,12 @@ function check_samebases(a::Operator, b::Operator)
         throw(IncompatibleBases())
     end
 end
+
+
+"""
+Check if an operator is Hermitian.
+"""
+ishermitian(A::Operator) = arithmetic_unary_error(ishermitian, A)
 
 
 end # module
