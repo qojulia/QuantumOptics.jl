@@ -63,9 +63,7 @@ States
 
 .. jl:autofunction:: states.jl normalize!
 
-.. jl:autofunction:: states.jl basis_bra
-
-.. jl:autofunction:: states.jl basis_ket
+.. jl:autofunction:: states.jl basisstate
 
 
 
@@ -318,15 +316,13 @@ Monte Carlo wave function
 Spectral analysis
 -----------------
 
-.. jl:autofunction:: spectralanalysis.jl operatorspectrum_hermitian
+.. jl:autofunction:: spectralanalysis.jl eig
 
-.. jl:autofunction:: spectralanalysis.jl operatorspectrum
+.. jl:autofunction:: spectralanalysis.jl eigs
 
-.. jl:autofunction:: spectralanalysis.jl eigenstates_hermitian
+.. jl:autofunction:: spectralanalysis.jl eigvals
 
-.. jl:autofunction:: spectralanalysis.jl eigenstates
-
-.. jl:autofunction:: spectralanalysis.jl groundstate
+.. jl:autofunction:: spectralanalysis.jl simdiag
 
 
 .. _section-api-steadystate:
