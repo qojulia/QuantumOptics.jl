@@ -44,6 +44,11 @@ x_bp = positionoperator(basis_momentum)
 @test p0 ≈ expect(p_bp, psi0_bp)
 @test 0.1 > abs(x0 - expect(x_bp, psi0_bp))
 
+@test 1e-13 > abs(variance(x_bx, psi0_bx) - sigma^2/2)
+@test 1e-13 > abs(variance(x_bp, psi0_bp) - sigma^2/2)
+@test 1e-13 > abs(variance(p_bx, psi0_bx) - 1/(2*sigma^2))
+@test 1e-13 > abs(variance(p_bp, psi0_bp) - 1/(2*sigma^2))
+
 # Test potentialoperator
 V(x) = x^2
 V_bx = potentialoperator(basis_position, V)

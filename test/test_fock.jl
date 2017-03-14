@@ -56,10 +56,16 @@ b2 = FockBasis(5)
 b1 = FockBasis(100)
 b2 = FockBasis(2, 5)
 alpha = complex(3.)
+a = destroy(b1)
+n = number(b1)
+psi = coherentstate(b1, alpha)
+rho = psi ⊗ dagger(psi)
 
-@test 1e-14 > norm(expect(destroy(b1), coherentstate(b1, alpha)) - alpha)
+@test 1e-14 > norm(expect(a, psi) - alpha)
+@test 1e-14 > norm(expect(a, rho) - alpha)
 @test 1e-14 > norm(coherentstate(b1, alpha).data[3:6] - coherentstate(b2, alpha).data)
-
+@test 1e-13 > abs(variance(n, psi) - abs(alpha)^2)
+@test 1e-13 > abs(variance(n, rho) - abs(alpha)^2)
 
 # Test qfunc
 b = FockBasis(50)

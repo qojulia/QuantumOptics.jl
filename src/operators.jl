@@ -8,7 +8,7 @@ using ..sortedindices, ..bases, ..states
 
 export Operator,
        dagger, identityoperator,
-       trace, ptrace, normalize, normalize!, expect,
+       trace, ptrace, normalize, normalize!, expect, variance,
        tensor, permutesystems, embed
 
 
@@ -80,6 +80,18 @@ expect(op::Operator, state::Ket) = dagger(state)*(op*state)
 expect(op::Operator, state::Operator) = trace(op*state)
 expect(op::Operator, states::Vector) = [expect(op, state) for state=states]
 
+"""
+Variance of the given operator for the specified state(s).
+"""
+function variance(op::Operator, state::Ket)
+    x = op*state
+    stateT = dagger(state)
+    stateT*op*x - (stateT*x)^2
+end
+function variance(op::Operator, state::Operator)
+    expect(op*op, state) - expect(op, state)^2
+end
+variance(op::Operator, states::Vector) = [variance(op, state) for state=states]
 
 """
 Tensor product of operators.

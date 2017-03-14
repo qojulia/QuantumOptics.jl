@@ -92,6 +92,8 @@ Operators
 
 .. jl:autofunction:: operators.jl expect
 
+.. jl:autofunction:: operators.jl variance
+
 .. jl:autofunction:: operators.jl tensor
 
 .. jl:autofunction:: operators.jl embed

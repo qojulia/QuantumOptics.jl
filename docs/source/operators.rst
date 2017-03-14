@@ -44,7 +44,7 @@ Additionally the following functions are implemented:
 
 * Expectation values:
     :jl:func:`expect(::Operator, ::DenseOperator)`
-
+    :jl:func:`variance(::Operator, ::DenseOperator)`
 
 * Tensor product:
     :jl:func:`tensor(::DenseOperator, ::DenseOperator)`
