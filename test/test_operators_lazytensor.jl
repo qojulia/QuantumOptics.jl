@@ -8,10 +8,6 @@ srand(0)
 
 D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
-randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
-randop(b) = randop(b, b)
-sprandop(bl, br) = sparse(DenseOperator(bl, br, rand(Complex128, length(bl), length(br))))
-sprandop(b) = sprandop(b, b)
 
 b1a = GenericBasis(2)
 b1b = GenericBasis(3)
@@ -23,15 +19,15 @@ b3b = GenericBasis(5)
 b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
-op1 = randop(b1a, b1b)
-op2 = randop(b2a, b2b)
-op3 = randop(b3a, b3b)
+op1 = randoperator(b1a, b1b)
+op2 = randoperator(b2a, b2b)
+op3 = randoperator(b3a, b3b)
 
 # Test creation
-@test_throws AssertionError LazyTensor(b_l, b_r, [1], [randop(b1a)])
+@test_throws AssertionError LazyTensor(b_l, b_r, [1], [randoperator(b1a)])
 @test_throws AssertionError LazyTensor(b_l, b_r, [1, 2], [op1])
-@test_throws AssertionError LazyTensor(b_l, b_r, [1, 2], [op1, sparse(randop(b_l, b_l))])
-@test_throws AssertionError LazyTensor(b_l, b_r, [1, 2], [randop(b_r, b_r), sparse(op2)])
+@test_throws AssertionError LazyTensor(b_l, b_r, [1, 2], [op1, sparse(randoperator(b_l, b_l))])
+@test_throws AssertionError LazyTensor(b_l, b_r, [1, 2], [randoperator(b_r, b_r), sparse(op2)])
 
 @test LazyTensor(b_l, b_r, [2, 1], [op2, op1]) == LazyTensor(b_l, b_r, [1, 2], [op1, op2])
 
@@ -44,9 +40,9 @@ x = LazyTensor(b_l, b_r, [1, 3], [op1, sparse(op3)], 0.3)
 
 # Arithmetic operations
 # =====================
-subop1 = randop(b1a, b1b)
-subop2 = randop(b2a, b2b)
-subop3 = randop(b3a, b3b)
+subop1 = randoperator(b1a, b1b)
+subop2 = randoperator(b2a, b2b)
+subop3 = randoperator(b3a, b3b)
 I1 = full(identityoperator(b1a, b1b))
 I2 = full(identityoperator(b2a, b2b))
 I3 = full(identityoperator(b3a, b3b))
@@ -98,9 +94,9 @@ I = identityoperator(LazyTensor, b_l)
 
 
 # Test trace and normalize
-subop1 = randop(b1a)
+subop1 = randoperator(b1a)
 I2 = full(identityoperator(b2a))
-subop3 = randop(b3a)
+subop3 = randoperator(b3a)
 op = LazyTensor(b_l, b_l, [1, 3], [subop1, sparse(subop3)], 0.1)
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
@@ -114,9 +110,9 @@ normalize!(op_copy)
 @test 1 ≈ trace(op_copy)
 
 # Test partial trace
-subop1 = randop(b1a)
+subop1 = randoperator(b1a)
 I2 = full(identityoperator(b2a))
-subop3 = randop(b3a)
+subop3 = randoperator(b3a)
 op = LazyTensor(b_l, b_l, [1, 3], [subop1, sparse(subop3)], 0.1)
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
@@ -138,9 +134,9 @@ state = DenseOperator(b_l, b_l, rand(Complex128, length(b_l), length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
 # Permute systems
-subop1 = randop(b1a, b1b)
-subop2 = randop(b2a, b2b)
-subop3 = randop(b3a, b3b)
+subop1 = randoperator(b1a, b1b)
+subop2 = randoperator(b2a, b2b)
+subop3 = randoperator(b3a, b3b)
 I2 = full(identityoperator(b2a, b2b))
 op = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)])*0.1
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
@@ -153,9 +149,9 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
 
 # Test gemv
-subop1 = randop(b1a, b1b)
-subop2 = randop(b2a, b2b)
-subop3 = randop(b3a, b3b)
+subop1 = randoperator(b1a, b1b)
+subop2 = randoperator(b2a, b2b)
+subop3 = randoperator(b3a, b3b)
 I2 = full(identityoperator(b2a, b2b))
 op = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)])*0.1
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
@@ -187,15 +183,15 @@ operators.gemv!(alpha, state, op, beta, result)
 # Test gemm
 b_l2 = GenericBasis(17)
 b_r2 = GenericBasis(13)
-subop1 = randop(b1a, b1b)
-subop2 = randop(b2a, b2b)
-subop3 = randop(b3a, b3b)
+subop1 = randoperator(b1a, b1b)
+subop2 = randoperator(b2a, b2b)
+subop3 = randoperator(b3a, b3b)
 I2 = full(identityoperator(b2a, b2b))
 op = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)])*0.1
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
-state = randop(b_r, b_r2)
-result_ = randop(b_l, b_r2)
+state = randoperator(b_r, b_r2)
+result_ = randoperator(b_l, b_r2)
 result = deepcopy(result_)
 operators.gemm!(complex(1.), op, state, complex(0.), result)
 @test 1e-12 > D(result, op_*state)
@@ -206,8 +202,8 @@ beta = complex(2.1)
 operators.gemm!(alpha, op, state, beta, result)
 @test 1e-12 > D(result, alpha*op_*state + beta*result_)
 
-state = randop(b_l2, b_l)
-result_ = randop(b_l2, b_r)
+state = randoperator(b_l2, b_l)
+result_ = randoperator(b_l2, b_r)
 result = deepcopy(result_)
 operators.gemm!(complex(1.), state, op, complex(0.), result)
 @test 1e-12 > D(result, state*op_)

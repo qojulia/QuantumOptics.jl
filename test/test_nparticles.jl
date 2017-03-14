@@ -7,9 +7,6 @@ srand(0)
 
 D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
-randstate(b) = Ket(b, rand(Complex128, length(b)))
-randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
-randop(b) = randop(b, b)
 
 Bosons = BosonicNParticleBasis
 Fermions = FermionicNParticleBasis
@@ -42,8 +39,8 @@ b_fermions = FermionicNParticleBasis(Nmodes, Nparticles)
 # ======================
 # Calculate single particle operator in second quantization
 b_single = GenericBasis(Nmodes)
-x = randop(b_single)
-y = randop(b_single)
+x = randoperator(b_single)
+y = randoperator(b_single)
 
 # Bosons
 X = nparticleoperator(b_bosons, x)
@@ -71,8 +68,8 @@ y_ = sparse(y)
 
 
 # Calculate particle-particle interaction operator in second quantization
-x = randop(b_single ⊗ b_single)
-y = randop(b_single ⊗ b_single)
+x = randoperator(b_single ⊗ b_single)
+y = randoperator(b_single ⊗ b_single)
 
 # Bosons
 X = nparticleoperator(b_bosons, x)
@@ -100,8 +97,8 @@ y_ = sparse(y)
 
 # Test expect_firstquantization
 # =============================
-x = randop(b_single)
-y = randop(b_single)
+x = randoperator(b_single)
+y = randoperator(b_single)
 X = nparticleoperator(b_bosons, x)
 Y = nparticleoperator(b_bosons, y)
 

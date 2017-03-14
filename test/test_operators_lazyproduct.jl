@@ -8,10 +8,6 @@ srand(0)
 
 D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
-randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
-randop(b) = randop(b, b)
-sprandop(bl, br) = sparse(DenseOperator(bl, br, rand(Complex128, length(bl), length(br))))
-sprandop(b) = sprandop(b, b)
 
 b1a = GenericBasis(2)
 b1b = GenericBasis(3)
@@ -25,23 +21,23 @@ b_r = b1b⊗b2b⊗b3b
 
 # Test creation
 @test_throws AssertionError LazyProduct()
-@test_throws AssertionError LazyProduct(randop(b_l, b_r), randop(b_l, b_r))
-@test_throws AssertionError LazyProduct(randop(b_l, b_r), sparse(randop(b_l, b_r)))
+@test_throws AssertionError LazyProduct(randoperator(b_l, b_r), randoperator(b_l, b_r))
+@test_throws AssertionError LazyProduct(randoperator(b_l, b_r), sparse(randoperator(b_l, b_r)))
 
 # Test full & sparse
-op1 = randop(b_l, b_r)
-op2 = randop(b_r, b_l)
+op1 = randoperator(b_l, b_r)
+op2 = randoperator(b_r, b_l)
 @test 0.1*(op1*op2) == full(LazyProduct([sparse(op1), sparse(op2)], 0.1))
 @test 0.1*(sparse(op1)*sparse(op2)) == sparse(LazyProduct([op1, op2], 0.1))
 
 
 # Arithmetic operations
 # =====================
-op1a = randop(b_l, b_r)
-op1b = randop(b_r, b_l)
-op2a = randop(b_l, b_r)
-op2b = randop(b_r, b_l)
-op3a = randop(b_l, b_l)
+op1a = randoperator(b_l, b_r)
+op1b = randoperator(b_r, b_l)
+op2a = randoperator(b_l, b_r)
+op2b = randoperator(b_r, b_l)
+op3a = randoperator(b_l, b_l)
 op1 = LazyProduct([op1a, sparse(op1b)])*0.1
 op1_ = 0.1*(op1a*op1b)
 op2 = LazyProduct([sparse(op2a), op2b], 0.3)
@@ -79,8 +75,8 @@ I = identityoperator(LazyProduct, b_l)
 @test 1e-11 > D(xbra1*I, xbra1)
 
 # Test trace and normalize
-op1 = randop(b_l)
-op2 = randop(b_l)
+op1 = randoperator(b_l)
+op2 = randoperator(b_l)
 op = LazyProduct(op1, op2)
 @test_throws ArgumentError trace(op)
 @test_throws ArgumentError ptrace(op, [1, 2])
@@ -88,8 +84,8 @@ op = LazyProduct(op1, op2)
 @test_throws ArgumentError normalize!(op)
 
 # Test expect
-op1 = randop(b_l)
-op2 = randop(b_l)
+op1 = randoperator(b_l)
+op2 = randoperator(b_l)
 op = 0.3*LazyProduct(op1, sparse(op2))
 op_ = 0.3*op1*op2
 
@@ -100,9 +96,9 @@ state = DenseOperator(b_l, b_l, rand(Complex128, length(b_l), length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
 # Permute systems
-op1 = randop(b_l)
-op2 = randop(b_l)
-op3 = randop(b_l)
+op1 = randoperator(b_l)
+op2 = randoperator(b_l)
+op3 = randoperator(b_l)
 op = 0.3*LazyProduct(op1, op2, sparse(op3))
 op_ = 0.3*op1*op2*op3
 
@@ -114,9 +110,9 @@ op_ = 0.3*op1*op2*op3
 
 
 # Test gemv
-op1 = randop(b_l, b_r)
-op2 = randop(b_r, b_l)
-op3 = randop(b_l, b_r)
+op1 = randoperator(b_l, b_r)
+op2 = randoperator(b_r, b_l)
+op3 = randoperator(b_l, b_r)
 op = LazyProduct([op1, sparse(op2), op3], 0.2)
 op_ = 0.2*op1*op2*op3
 
@@ -145,14 +141,14 @@ operators.gemv!(alpha, state, op, beta, result)
 @test 1e-13 > D(result, alpha*state*op_ + beta*result_)
 
 # Test gemm
-op1 = randop(b_l, b_r)
-op2 = randop(b_r, b_l)
-op3 = randop(b_l, b_r)
+op1 = randoperator(b_l, b_r)
+op2 = randoperator(b_r, b_l)
+op3 = randoperator(b_l, b_r)
 op = LazyProduct([op1, sparse(op2), op3], 0.2)
 op_ = 0.2*op1*op2*op3
 
-state = randop(b_r, b_r)
-result_ = randop(b_l, b_r)
+state = randoperator(b_r, b_r)
+result_ = randoperator(b_l, b_r)
 result = deepcopy(result_)
 operators.gemm!(complex(1.), op, state, complex(0.), result)
 @test 1e-11 > D(result, op_*state)
@@ -163,8 +159,8 @@ beta = complex(2.1)
 operators.gemm!(alpha, op, state, beta, result)
 @test 1e-11 > D(result, alpha*op_*state + beta*result_)
 
-state = randop(b_l, b_l)
-result_ = randop(b_l, b_r)
+state = randoperator(b_l, b_l)
+result_ = randoperator(b_l, b_r)
 result = deepcopy(result_)
 operators.gemm!(complex(1.), state, op, complex(0.), result)
 @test 1e-11 > D(result, state*op_)

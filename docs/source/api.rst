@@ -158,6 +158,15 @@ Superoperators
 .. jl:autofunction:: superoperators.jl expm
 
 
+.. _section-api-random:
+
+Random operators
+----------------
+
+.. jl:autofunction:: random.jl randomstate
+
+.. jl:autofunction:: random.jl randomoperator
+
 
 .. _section-api-metrics:
 

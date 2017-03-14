@@ -11,12 +11,13 @@ end
 
 @testset "operators" begin
 
+srand(0)
+
 b = GenericBasis(5)
 b_comp = b ⊗ b
-dat = rand(5, 5) + 1.0im*rand(5, 5)
-op_dense = DenseOperator(b, b, dat)
-op_test = test_operators(b, b, dat)
-ψ = Ket(b, rand(5))
+op_dense = randoperator(b, b)
+op_test = test_operators(b, b, op_dense.data)
+ψ = randstate(b)
 ρ = ψ ⊗ dagger(ψ)
 
 @test_throws ArgumentError op_test*op_test

@@ -7,9 +7,6 @@ srand(0)
 
 D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
-randstate(b) = normalize(Ket(b, rand(Complex128, length(b))))
-randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
-randop(b) = randop(b, b)
 
 b1a = GenericBasis(2)
 b1b = GenericBasis(3)
@@ -29,7 +26,7 @@ op2 = DenseOperator(b1b, b1a, [1 1; 1 1; 1 1])
 @test op1 == dagger(op2)
 
 # Test copy
-op1 = randop(b1a)
+op1 = randoperator(b1a)
 op2 = copy(op1)
 @test !(op1.data === op2.data)
 op2.data[1,1] = complex(10.)
@@ -39,9 +36,9 @@ op2.data[1,1] = complex(10.)
 # Arithmetic operations
 # =====================
 op_zero = DenseOperator(b_l, b_r)
-op1 = randop(b_l, b_r)
-op2 = randop(b_l, b_r)
-op3 = randop(b_l, b_r)
+op1 = randoperator(b_l, b_r)
+op2 = randoperator(b_l, b_r)
+op3 = randoperator(b_l, b_r)
 
 x1 = Ket(b_r, rand(Complex128, length(b_r)))
 x2 = Ket(b_r, rand(Complex128, length(b_r)))
@@ -119,9 +116,9 @@ psi123 = psi1 ⊗ psi2 ⊗ psi3
 @test 1e-14 > D(0.7^2*psi12 ⊗ dagger(psi12), ptrace(psi123, 3))
 
 # Test partial trace of operators
-op1 = randop(b1a)
-op2 = randop(b2a)
-op3 = randop(b3a)
+op1 = randoperator(b1a)
+op2 = randoperator(b2a)
+op3 = randoperator(b3a)
 op123 = op1 ⊗ op2 ⊗ op3
 
 @test 1e-14 > D(op1⊗op2*trace(op3), ptrace(op123, 3))
@@ -144,11 +141,11 @@ state = DenseOperator(b_l, b_l, rand(Complex128, length(b_l), length(b_l)))
 
 # Tensor product
 # ==============
-op1a = randop(b1a, b1b)
-op1b = randop(b1a, b1b)
-op2a = randop(b2a, b2b)
-op2b = randop(b2a, b2b)
-op3a = randop(b3a, b3b)
+op1a = randoperator(b1a, b1b)
+op1b = randoperator(b1a, b1b)
+op2a = randoperator(b2a, b2b)
+op2b = randoperator(b2a, b2b)
+op3a = randoperator(b3a, b3b)
 op123 = op1a ⊗ op2a ⊗ op3a
 @test op123.basis_l == b_l
 @test op123.basis_r == b_r
@@ -172,9 +169,9 @@ op123 = op1a ⊗ op2a ⊗ op3a
 
 
 # Permute systems
-op1 = randop(b1a)
-op2 = randop(b2a)
-op3 = randop(b3a)
+op1 = randoperator(b1a)
+op2 = randoperator(b2a)
+op3 = randoperator(b3a)
 op123 = op1⊗op2⊗op3
 
 op132 = op1⊗op3⊗op2
@@ -207,13 +204,13 @@ ybra = dagger(yket)
 @test 1e-13 > D(projector(yket, xbra)*xket, yket)
 
 # Test operator exponential
-op = randop(b1a)
+op = randoperator(b1a)
 @test 1e-13 > D(op^2, op*op)
 @test 1e-13 > D(op^3, op*op*op)
 @test 1e-13 > D(op^4, op*op*op*op)
 
 # Test gemv
-op = randop(b_l)
+op = randoperator(b_l)
 xket = normalize(Ket(b_l, rand(Complex128, length(b_l))))
 xbra = dagger(xket)
 
@@ -238,8 +235,8 @@ operators.gemv!(alpha, xbra, op, beta, result_bra)
 @test 1e-15 > D(result_bra, alpha*xbra*op + beta*xbra)
 
 # Test gemm
-op1 = randop(b_l)
-op2 = randop(b_l)
+op1 = randoperator(b_l)
+op2 = randoperator(b_l)
 
 result = copy(op1)
 operators.gemm!(complex(1.0), op1, op2, complex(0.), result)
