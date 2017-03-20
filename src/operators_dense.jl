@@ -102,6 +102,8 @@ ptrace(a::Bra, indices::Vector{Int}) = bases.ptrace(tensor(dagger(a), a), indice
 states.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
 
 function operators.expect(op::DenseOperator, state::Operator)
+    bases.check_equal(op.basis_r, state.basis_l)
+    bases.check_equal(op.basis_l, state.basis_r)
     result = Complex128(0.)
     @inbounds for i=1:size(op.data, 1), j=1:size(op.data,2)
         result += op.data[i,j]*state.data[j,i]

@@ -79,6 +79,8 @@ function operators.ptrace(op::SparseOperator, indices::Vector{Int})
 end
 
 function operators.expect(op::SparseOperator, state::DenseOperator)
+    bases.check_equal(op.basis_r, state.basis_l)
+    bases.check_equal(op.basis_l, state.basis_r)
     result = Complex128(0.)
     @inbounds for colindex = 1:op.data.n
         for i=op.data.colptr[colindex]:op.data.colptr[colindex+1]-1
