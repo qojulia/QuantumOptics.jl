@@ -3,7 +3,12 @@ using QuantumOptics
 
 @testset "fock" begin
 
+srand(0)
+
 D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
+randstate(b) = normalize(Ket(b, rand(Complex128, length(b))))
+randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
+randop(b) = randop(b, b)
 
 basis = FockBasis(2)
 
@@ -70,13 +75,39 @@ rho = psi ⊗ dagger(psi)
 # Test qfunc
 b = FockBasis(50)
 alpha = complex(1., 2.)
-X = [-2:0.5:2;]
-Y = [0:0.5:3;]
-rho = tensor(coherentstate(b, alpha), dagger(coherentstate(b, alpha)))
-Q = qfunc(rho, X, Y)
+X = [-2.1:1.5:2;]
+Y = [0.13:1.4:3;]
+psi = coherentstate(b, alpha)
+rho = tensor(psi, dagger(psi))
+
+Qpsi = qfunc(psi, X, Y)
+Qrho = qfunc(rho, X, Y)
 for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     c = complex(x, y)
-    @test 1e-14 > Q[i,j]-exp(-abs2(c) - abs2(alpha) + 2*real(alpha*conj(c)))/pi
+    q = exp(-abs2(c) - abs2(alpha) + 2*real(alpha*conj(c)))/pi
+    @test 1e-14 > abs(Qpsi[i,j] - q)
+    @test 1e-14 > abs(Qrho[i,j] - q)
+    @test 1e-14 > abs(qfunc(psi, c) - q)
+    @test 1e-14 > abs(qfunc(rho, c) - q)
+end
+
+b = FockBasis(50)
+psi = randstate(b)
+rho = randop(b)
+X = [-2.1:1.5:2;]
+Y = [0.13:1.4:3;]
+
+Qpsi = qfunc(psi, X, Y)
+Qrho = qfunc(rho, X, Y)
+for (i,x)=enumerate(X), (j,y)=enumerate(Y)
+    c = complex(x, y)
+    state = coherentstate(b, c)
+    q_rho = dagger(state) * rho * state/pi
+    q_psi = abs2(dagger(state) *psi)/pi
+    @test 1e-14 > abs(Qpsi[i,j] - q_psi)
+    @test 1e-14 > abs(Qrho[i,j] - q_rho)
+    @test 1e-14 > abs(qfunc(psi, c) - q_psi)
+    @test 1e-14 > abs(qfunc(rho, c) - q_rho)
 end
 
 end # testset

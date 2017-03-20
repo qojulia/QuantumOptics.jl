@@ -2,7 +2,7 @@ module fock
 
 import Base.==
 
-using ..bases, ..states, ..operators, ..operators_sparse
+using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
 export FockBasis, number, destroy, create, fockstate, coherentstate, qfunc
 
@@ -125,18 +125,16 @@ function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex
     return result
 end
 
-
 """
 Husimi Q representation :math:`\\frac{1}{\\pi} \\langle \\alpha | \\rho | \\alpha \\rangle`.
 """
 function qfunc(rho::Operator, alpha::Complex128,
                 tmp1=Ket(rho.basis_l, Vector{Complex128}(rho.basis_l.shape[1])),
                 tmp2=Ket(rho.basis_l, Vector{Complex128}(rho.basis_l.shape[1])))
-    b = rho.basis_l
-    coherentstate(b, alpha, tmp1)
+    coherentstate(rho.basis_l, alpha, tmp1)
     operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
     a = dot(tmp1.data, tmp2.data)
-    return real(a)/pi
+    return a/pi
 end
 
 function qfunc(rho::Operator, X::Vector{Float64}, Y::Vector{Float64})
@@ -146,9 +144,47 @@ function qfunc(rho::Operator, X::Vector{Float64}, Y::Vector{Float64})
     Ny = length(Y)
     tmp1 = Ket(b, Vector{Complex128}(b.shape[1]))
     tmp2 = Ket(b, Vector{Complex128}(b.shape[1]))
-    result = Matrix{Float64}(Nx, Ny)
+    result = Matrix{Complex128}(Nx, Ny)
     for j=1:Ny, i=1:Nx
         result[i, j] = qfunc(rho, complex(X[i], Y[j]), tmp1, tmp2)
+    end
+    return result
+end
+
+function qfunc(psi::Ket, alpha::Complex128)
+    a = conj(alpha)
+    N = length(psi.data)
+    s = psi.data[N]/sqrt(N-1)
+    @inbounds for i=1:N-2
+        s = (psi.data[N-i] + s*a)/sqrt(N-i-1)
+    end
+    s = psi.data[1] + s*a
+    return abs2(s)*exp(-abs2(alpha))/pi
+end
+
+function _qfunc_ket(x::Vector{Complex128}, a::Complex128)
+    s = x[1]
+    @inbounds for i=2:length(x)
+        s = x[i] + s*a
+    end
+    abs2(s)*exp(-abs2(a))/pi
+end
+
+function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
+    Nx = length(X)
+    Ny = length(Y)
+    N = length(psi.data)
+    n = 1.
+    x = Vector{Complex128}(N)
+    x[N] = psi.data[1]
+    for i in 1:N-1
+        x[N-i] = psi.data[i+1]/n
+        n *= sqrt(i+1)
+    end
+    result = Matrix{Float64}(Nx, Ny)
+    for j=1:Ny, i=1:Nx
+        a = complex(X[i], -Y[j])
+        result[i, j] = _qfunc_ket(x, a)
     end
     return result
 end
