@@ -77,7 +77,19 @@ Expectation value of the given operator for the specified state(s).
 """
 expect(op::Operator, state::Ket) = dagger(state)*(op*state)
 expect(op::Operator, state::Operator) = trace(op*state)
+function expect(indices::Vector{Int}, op::Operator, state::Operator)
+    N = length(state.basis_l.shape)
+    indices_ = sortedindices.complement(N, indices)
+    expect(op, ptrace(state, indices_))
+end
+function expect(indices::Vector{Int}, op::Operator, state::Ket)
+    N = length(state.basis.shape)
+    indices_ = sortedindices.complement(N, indices)
+    expect(op, ptrace(state, indices_))
+end
+expect(index::Int, op::Operator, state) = expect([index], op, state)
 expect(op::Operator, states::Vector) = [expect(op, state) for state=states]
+expect(indices::Vector{Int}, op::Operator, states::Vector) = [expect(indices, op, state) for state=states]
 
 """
 Variance of the given operator for the specified state(s).

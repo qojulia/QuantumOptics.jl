@@ -13,12 +13,14 @@ end
 
 srand(0)
 
-b = GenericBasis(5)
-b_comp = b ⊗ b
-op_dense = randoperator(b, b)
-op_test = test_operators(b, b, op_dense.data)
+b1 = GenericBasis(5)
+b2 = GenericBasis(3)
+b = b1 ⊗ b2
+op1 = randoperator(b1)
+op = randoperator(b, b)
+op_test = test_operators(b, b, op.data)
 ψ = randstate(b)
-ρ = ψ ⊗ dagger(ψ)
+ρ = randoperator(b)
 
 @test_throws ArgumentError op_test*op_test
 @test_throws ArgumentError -op_test
@@ -33,14 +35,19 @@ op_test = test_operators(b, b, op_dense.data)
 @test_throws ArgumentError trace(op_test)
 @test_throws ArgumentError ptrace(op_test, [1, 2])
 
-@test expect(op_dense, [ρ, ρ]) == [expect(op_dense, ρ) for i=1:2]
-@test variance(op_dense, [ρ, ρ]) == [variance(op_dense, ρ) for i=1:2]
+@test expect(1, op1, ρ) ≈ expect(embed(b, 1, op1), ρ)
+@test expect(1, op1, ψ) ≈ expect(embed(b, 1, op1), ψ)
+@test expect(op, [ρ, ρ]) == [expect(op, ρ) for i=1:2]
+@test expect(1, op1, [ρ, ψ]) == [expect(1, op1, ρ), expect(1, op1, ψ)]
+
+@test variance(op, [ρ, ρ]) == [variance(op, ρ) for i=1:2]
+
 
 @test_throws ArgumentError tensor(op_test, op_test)
 @test_throws ArgumentError permutesystems(op_test, [1, 2])
 
-@test embed(b_comp, b_comp, 1, op_dense) == embed(b_comp, 1, op_dense)
-@test embed(b_comp, Dict{Vector{Int}, SparseOperator}()) == identityoperator(b_comp)
+@test embed(b, b, 1, op) == embed(b, 1, op)
+@test embed(b, Dict{Vector{Int}, SparseOperator}()) == identityoperator(b)
 
 @test_throws ErrorException QuantumOptics.operators.gemm!()
 @test_throws ErrorException QuantumOptics.operators.gemv!()
