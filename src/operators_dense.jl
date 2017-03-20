@@ -96,8 +96,8 @@ function ptrace(a::DenseOperator, indices::Vector{Int})
     return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
 end
 
-ptrace(a::Ket, indices) = bases.ptrace(tensor(a, dagger(a)), indices)
-ptrace(a::Bra, indices) = bases.ptrace(tensor(dagger(a), a), indices)
+ptrace(a::Ket, indices::Vector{Int}) = bases.ptrace(tensor(a, dagger(a)), indices)
+ptrace(a::Bra, indices::Vector{Int}) = bases.ptrace(tensor(dagger(a), a), indices)
 
 states.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
 

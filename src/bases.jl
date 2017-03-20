@@ -203,6 +203,7 @@ function ptrace(b::CompositeBasis, indices::Vector{Int})
         return CompositeBasis(b.shape[J], b.bases[J])
     end
 end
+ptrace(a, index::Int) = ptrace(a, Int[index])
 
 
 """

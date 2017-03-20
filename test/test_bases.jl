@@ -28,7 +28,7 @@ comp_b1_b2 = tensor(comp_b1, comp_b2)
 @test comp_b2.shape == tensor(b1, comp_b1).shape
 @test comp_b2 == tensor(b1, comp_b1)
 
-@test ptrace(comp_b2, [1]) == ptrace(comp_b2, [2]) == comp_b1
+@test ptrace(comp_b2, [1]) == ptrace(comp_b2, [2]) == comp_b1 == ptrace(comp_b2, 1)
 @test ptrace(comp_b2, [1, 2]) == ptrace(comp_b1, [1])
 @test ptrace(comp_b2, [2, 3]) == ptrace(comp_b1, [2])
 

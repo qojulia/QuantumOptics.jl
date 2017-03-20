@@ -65,7 +65,6 @@ trace(x::Operator) = arithmetic_unary_error("Trace", x)
 Partial trace of the given operator over the specified indices.
 """
 ptrace(a::Operator, index::Vector{Int}) = arithmetic_unary_error("Partial trace", a)
-ptrace(a::Operator, index::Int) = ptrace(a, Int[index])
 
 """
 Normalized copy of given operator (trace is 1.).
