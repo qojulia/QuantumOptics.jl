@@ -22,8 +22,8 @@ export bases, Basis, GenericBasis, CompositeBasis,
         particle, PositionBasis, MomentumBasis, samplepoints, gaussianstate,
                 positionoperator, momentumoperator, potentialoperator, FFTOperator,
         nlevel, NLevelBasis, transition, nlevelstate,
-        nparticlebasis, BosonicNParticleBasis, FermionicNParticleBasis,
-                nparticleoperator, expect_firstquantization,
+        manybody, ManyBodyBasis, fermionstates, bosonstates,
+                manybodyoperator, onebodyexpect, occupation,
         metrics, tracenorm, tracenorm_general, tracedistance, tracedistance_general,
                 entropy_vn, fidelity,
         spectralanalysis, simdiag,
@@ -52,7 +52,7 @@ include("fock.jl")
 include("subspace.jl")
 include("particle.jl")
 include("nlevel.jl")
-include("nparticles.jl")
+include("manybody.jl")
 include("metrics.jl")
 include("ode_dopri.jl")
 include("timeevolution_simple.jl")
@@ -86,7 +86,7 @@ using .fock
 using .subspace
 using .particle
 using .nlevel
-using .nparticles
+using .manybody
 using .metrics
 using .spectralanalysis
 using .timecorrelations

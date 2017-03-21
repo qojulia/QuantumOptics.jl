@@ -14,7 +14,7 @@ names = [
     "test_fock.jl",
     "test_spin.jl",
     "test_particle.jl",
-    "test_nparticles.jl",
+    "test_manybody.jl",
     "test_nlevel.jl",
     "test_subspace.jl",
 
