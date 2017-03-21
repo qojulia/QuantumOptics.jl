@@ -6,7 +6,7 @@ import ..operators: dagger, identityoperator,
 
 using ..bases, ..states, ..operators, ..operators_dense, ..sparsematrix
 
-export SparseOperator, diagonaloperator, ishermitian
+export SparseOperator, diagonaloperator
 
 
 """

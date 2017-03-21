@@ -9,7 +9,7 @@ using Base.LinAlg
 using Base.Cartesian
 using ..bases, ..states, ..operators
 
-export DenseOperator, projector, ishermitian
+export DenseOperator, projector
 
 """
 Dense array implementation of Operator.

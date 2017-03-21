@@ -3,7 +3,7 @@ module spectralanalysis
 import Base.eig, Base.eigs, Base.eigvals, Base.eigvals!
 using ..states, ..operators, ..operators_dense, ..operators_sparse
 
-export eig, eigvals, eigvals!, simdiag
+export simdiag
 
 
 """
