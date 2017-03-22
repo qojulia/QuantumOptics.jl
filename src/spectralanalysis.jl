@@ -17,48 +17,52 @@ A
 
 Keyword arguments
 -----------------
+See http://docs.julialang.org/en/stable/stdlib/linalg/
 
 args (optional)
-  Aditional arguments of Julia's eig function. Have to be given in the following order.
+  Aditional arguments of Julia's eig function.
 
-  irange (requires Hermitian)
-    UnitRange that specifies a range of indices for which the eigenvalues and eigenvectors
-    of a Hermitian operator are calculated.
+kwargs (optional)
+  Additional kwargs of Julia's eigs function used for sparse operators.
 
-  vl (requires Hermitian)
-    Lower boundary for calculation of eigenvalues.
+Returns
+-------
 
-  vu (requires Hermitian)
-    Upper boundary for calculation of eigenvalues. Only eigenvalues :math:`\\lambda`
-    (and their corresponding eigenvectors) for which :math:`vl \\leq \\lambda \\leq vu`
-    are computed.
-
-  permute
-    Boolean (default is :func:`true`), that if true allows permutation of the matrix so
-    it becomes closer to a upper diagonal matrix
-
-  scale
-    Boolean (default is :func:`true`), that if true scales the matrix by its diagonal
-    so they are closer in norm.
-
-
+D
+  Vector of eigenvalues sorted from smalles (abs) to largest.
+V
+  Vector of Kets in the basis of A sorted by D.
 """
 function eig(A::DenseOperator, args...)
   @assert A.basis_l == A.basis_r
   b = A.basis_l
   if ishermitian(A)
     D, V = eig(Hermitian(A.data), args...)
-    states = Ket[Ket(A.basis_l, V[:, k]) for k=1:length(b)]
+    states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]
   else
     D, V = eig(A.data, args...)
-    states = Ket[Ket(A.basis_l, V[:, k]) for k=1:length(b)]
-    perm = sortperm(D, by=x->abs(x))
+    states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]
+    perm = sortperm(D, by=abs)
     permute!(D, perm)
     permute!(states, perm)
   end
   return D, states
 end
-eigs(A::SparseOperator, args...) = ishermitian(A) ? eigs(Hermitian(A.data), args...) : eigs(A.data, args...)
+
+function eigs(A::SparseOperator, args...; kwargs...)
+  @assert A.basis_l == A.basis_r
+  b = A.basis_l
+  if ishermitian(A)
+    D, V = eigs(Hermitian(A.data), args...; kwargs...)
+  else
+    D, V = eigs(A.data, args...; kwargs...)
+    states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]
+    perm = sortperm(D, by=abs)
+    permute!(D, perm)
+    permute!(states, perm)
+  end
+  return D, states
+end
 
 arithmetic_unary_error = operators.arithmetic_unary_error
 eig(A::Operator, args...) = arithmetic_unary_error(eig, A)
@@ -78,27 +82,17 @@ A
 
 Keyword arguments
 -----------------
+See http://docs.julialang.org/en/stable/stdlib/linalg/
 
 args (optional)
-  Aditional arguments of Julia's eig function. Have to be given in the following order.
+  Aditional arguments of Julia's eigvals function.
 
-  irange (requires Hermitian)
-    UnitRange that specifies a range of indices for which the eigenvalues and eigenvectors
-    of a Hermitian operator are calculated.
-
-  vl (requires Hermitian)
-    Lower boundary for calculation of eigenvalues.
-
-  vu (requires Hermitian)
-    Upper boundary for calculation of eigenvalues. Only eigenvalues :math:`\\lambda`
-    (and their corresponding eigenvectors) for which :math:`vl \\leq \\lambda \\leq vu`
-    are computed.
-
+Returns
+-------
+Vector containing eigenvalues sorted from smallest to largest absolute value.
 """
-eigvals(A::DenseOperator, args...) = ishermitian(A) ? eigvals(Hermitian(A.data), args...) : eigvals(A.data)
-eigvals(A::SparseOperator, args...) = eigvals(full(A), args...)
-eigvals!(A::DenseOperator, args...) = ishermitian(A) ? eigvals!(Hermitian(A.data), args...) : eigvals!(A.data)
-eigvals!(A::SparseOperator, args...) = eigvals!(full(A))
+eigvals(A::DenseOperator, args...) = ishermitian(A) ? eigvals(Hermitian(A.data), args...) : sort(eigvals(A.data), by=abs)
+eigvals!(A::DenseOperator, args...) = ishermitian(A) ? eigvals!(Hermitian(A.data), args...) : sort(eigvals!(A.data), by=abs)
 
 eigvals(A::Operator, args...) = arithmetic_unary_error(eigvals, A)
 eigvals!(A::Operator, args...) = arithmetic_unary_error(eigvals!, A)
@@ -128,6 +122,15 @@ atol (optional)
 rtol (optional)
   kwarg of Base.isapprox specifying the tolerance of the approximate check
   Default is 1e-14.
+
+Returns
+-------
+
+evals_sorted
+  Vector containing all vectors of the eigenvalues sorted by the eigenvalues
+  of the first operator.
+v
+  Common eigenvectors.
 """
 function simdiag{T <: DenseOperator}(Ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14)
 
@@ -151,7 +154,7 @@ function simdiag{T <: DenseOperator}(Ops::Vector{T}; atol::Real=1e-14, rtol::Rea
 
   index = sortperm(real(evals[1][:]))
   evals_sorted = [real(evals[i][index]) for i=1:length(Ops)]
-  evals_sorted, v[:, index]
+  return evals_sorted, v[:, index]
 end
 
 end # module

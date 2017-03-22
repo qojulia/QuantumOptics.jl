@@ -17,13 +17,14 @@ op2 = DenseOperator(b, Hermitian(rand(5, 5)))
 op3 = sprandop(b)
 @test eig(op1)[1] == eigvals!(op1)
 @test eigvals(op2) ≈ eig(op2)[1]
-@test eigvals(op3) ≈ eigvals!(full(op3).data)
 @test eig(op2, 1:3) == eig(op2, 1:3)
+@test eigs(op3; nev=3)[1] ≈ sort(eigs(op3.data; nev=3)[1], by=abs)
 
 @test_throws ArgumentError eig(test_spectralanalysis())
 @test_throws ArgumentError eigs(test_spectralanalysis())
 @test_throws ArgumentError eigvals(test_spectralanalysis())
 @test_throws ArgumentError eigvals!(test_spectralanalysis())
+@test_throws ArgumentError eigvals(op3)
 
 # Test simdiag
 spinbasis = SpinBasis(1//2)
