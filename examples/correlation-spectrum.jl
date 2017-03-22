@@ -28,7 +28,6 @@ corr_an = n.*exp(-1.0im*Δ.*τ).*exp(-κ.*τ)
 spec_an = 2n*κ./((Δ + ω).^2 + κ^2)
 spec_an ./= maximum(spec_an);
 
-clf()
 figure(figsize=(9, 3))
 subplot(121)
 plot(ω, spec, label="numerical")
