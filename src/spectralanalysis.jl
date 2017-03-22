@@ -43,7 +43,21 @@ args (optional)
 
 
 """
-eig(A::DenseOperator, args...) = ishermitian(A) ? eig(Hermitian(A.data), args...) : eig(A.data, args...)
+function eig(A::DenseOperator, args...)
+  @assert A.basis_l == A.basis_r
+  b = A.basis_l
+  if ishermitian(A)
+    D, V = eig(Hermitian(A.data), args...)
+    states = Ket[Ket(A.basis_l, V[:, k]) for k=1:length(b)]
+  else
+    D, V = eig(A.data, args...)
+    states = Ket[Ket(A.basis_l, V[:, k]) for k=1:length(b)]
+    perm = sortperm(D, by=x->abs(x))
+    permute!(D, perm)
+    permute!(states, perm)
+  end
+  return D, states
+end
 eigs(A::SparseOperator, args...) = ishermitian(A) ? eigs(Hermitian(A.data), args...) : eigs(A.data, args...)
 
 arithmetic_unary_error = operators.arithmetic_unary_error
