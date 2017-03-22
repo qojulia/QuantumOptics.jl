@@ -39,8 +39,8 @@ T = [0:0.1:20;]
 # Schroedinger time evolution
 tout, Ψt = timeevolution.schroedinger(T, Ψ0, H);
 
-exp_n = expect(n ⊗ identityoperator(b_spin), Ψt)
-exp_sz = expect(identityoperator(b_fock) ⊗ sz, Ψt);
+exp_n = real(expect(n ⊗ identityoperator(b_spin), Ψt))
+exp_sz = real(expect(identityoperator(b_fock) ⊗ sz, Ψt));
 
 figure(figsize=(9,3))
 subplot(1,2,1)
@@ -62,8 +62,8 @@ J = [sqrt(γ)*identityoperator(b_fock) ⊗ sm];
 
 # Master
 tout, ρt = timeevolution.master(T, Ψ0, H, J)
-exp_n_master = expect(n ⊗ identityoperator(b_spin), ρt)
-exp_sz_master = expect(identityoperator(b_fock) ⊗ sz, ρt)
+exp_n_master = real(expect(n ⊗ identityoperator(b_spin), ρt))
+exp_sz_master = real(expect(identityoperator(b_fock) ⊗ sz, ρt))
 
 figure(figsize=(9,3))
 subplot(1,2,1)
@@ -84,8 +84,8 @@ tight_layout();
 tout, Ψt = timeevolution.mcwf(T, Ψ0, H, J; seed=2,
                                 display_beforeevent=true,
                                 display_afterevent=true)
-exp_n_mcwf = expect(n ⊗ identityoperator(b_spin), Ψt)
-exp_sz_mcwf = expect(identityoperator(b_fock) ⊗ sz, Ψt)
+exp_n_mcwf = real(expect(n ⊗ identityoperator(b_spin), Ψt))
+exp_sz_mcwf = real(expect(identityoperator(b_fock) ⊗ sz, Ψt))
 
 figure(figsize=(9,3))
 subplot(1,2,1)
@@ -108,8 +108,8 @@ exp_sz_average = zeros(Float64, length(T))
 
 for i = 1:Ntrajectories
     tout, Ψt = timeevolution.mcwf(T, Ψ0, H, J; seed=i)
-    exp_n_average += expect(n ⊗ identityoperator(b_spin), Ψt)
-    exp_sz_average += expect(identityoperator(b_fock) ⊗ sz, Ψt)
+    exp_n_average += real(expect(n ⊗ identityoperator(b_spin), Ψt))
+    exp_sz_average += real(expect(identityoperator(b_fock) ⊗ sz, Ψt))
 end
 
 exp_n_average /= Ntrajectories
