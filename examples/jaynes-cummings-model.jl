@@ -130,6 +130,7 @@ plot(T, exp_sz_average)
 xlabel(L"T")
 ylabel(L"\langle \sigma_z \rangle");
 
-tight_layout();
+tight_layout()
+show()
 
 

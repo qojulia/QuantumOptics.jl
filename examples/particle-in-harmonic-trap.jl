@@ -65,6 +65,7 @@ for i=1:length(T)
     Ψ = Ψt[i]
     n = abs(Ψ.data).^2
     plot(x_points, n, "C0", alpha=0.9*(float(i)/length(T))^8+0.1)
-end;
+end
+show()
 
 

@@ -55,6 +55,7 @@ for i_p in 1:length(p0vec)
 end
 y = V_barrier.(xpoints)
 plot(xpoints, y, "k")
-fill_between(xpoints, 0, y, color="k", alpha=0.5);
+fill_between(xpoints, 0, y, color="k", alpha=0.5)
+show()
 
 

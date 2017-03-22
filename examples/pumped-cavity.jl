@@ -55,6 +55,7 @@ plot(tout_example3, real(expect(n, Ψt_example3)), "C1--", alpha=0.5)
 xlim(0, 10)
 ylim(0, 10)
 xlabel("\$\\mathrm\{Time\} \$")
-ylabel("\$\\mathrm{Photon number}\$");
+ylabel("\$\\mathrm{Photon number}\$")
+show()
 
 
