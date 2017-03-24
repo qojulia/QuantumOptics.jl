@@ -2,7 +2,7 @@ module bases
 
 import Base.==
 
-export Basis, GenericBasis, CompositeBasis,
+export Basis, GenericBasis, CompositeBasis, basis,
        tensor, ⊗, ptrace, permutesystems,
        IncompatibleBases,
        samebases, multiplicable,
@@ -185,6 +185,11 @@ function check_multiplicable(b1, b2)
         throw(IncompatibleBases())
     end
 end
+
+"""
+Return the basis of an object. If it's ambiguous an error is thrown.
+"""
+function basis end
 
 
 """

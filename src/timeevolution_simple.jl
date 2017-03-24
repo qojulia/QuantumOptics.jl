@@ -51,10 +51,9 @@ function master(T::Vector, rho0::DenseOperator, H::Operator, J::Vector;
     if typeof(gamma)<:Real
         gamma = ones(typeof(gamma), length(J))*gamma
     end
-    nl = prod(rho0.basis_l.shape)
-    nr = prod(rho0.basis_r.shape)
-    N = nl*nr
-    as_operator(x::Vector{Complex128}) = DenseOperator(rho0.basis_l, rho0.basis_r, reshape(x, nl, nr))
+    n = length(basis(rho0))
+    N = n^2
+    as_operator(x::Vector{Complex128}) = DenseOperator(rho0.basis_l, rho0.basis_r, reshape(x, n, n))
     as_vector(rho::DenseOperator) = reshape(rho.data, N)
     f(t::Float64, x::Vector{Complex128}) = as_vector(dmaster(as_operator(x), H, gamma, J, Jdagger))
     tout, x_t = ode45(f, as_vector(rho0), T; kwargs...)

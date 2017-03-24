@@ -162,23 +162,23 @@ rho0_pp = tensor(psi0_bp, dagger(psi0_bp))
 
 rho_ = DenseOperator(basis_momentum, basis_position)
 operators.gemm!(Complex(1.), Tpx, rho0_xx, Complex(0.), rho_)
-@test 1e-12 > tracedistance(rho_, rho0_px)
-@test 1e-12 > tracedistance(Tpx*rho0_xx, rho0_px)
+@test 1e-12 > D(rho_, rho0_px)
+@test 1e-12 > D(Tpx*rho0_xx, rho0_px)
 
 rho_ = DenseOperator(basis_position, basis_momentum)
 operators.gemm!(Complex(1.), rho0_xx, Txp, Complex(0.), rho_)
-@test 1e-12 > tracedistance(rho_, rho0_xp)
-@test 1e-12 > tracedistance(rho0_xx*Txp, rho0_xp)
+@test 1e-12 > D(rho_, rho0_xp)
+@test 1e-12 > D(rho0_xx*Txp, rho0_xp)
 
 rho_ = DenseOperator(basis_momentum, basis_momentum)
 operators.gemm!(Complex(1.), Tpx, rho0_xp, Complex(0.), rho_)
-@test 1e-12 > tracedistance(rho_, rho0_pp)
-@test 1e-12 > tracedistance(Tpx*rho0_xx*Txp, rho0_pp)
+@test 1e-12 > D(rho_, rho0_pp)
+@test 1e-12 > D(Tpx*rho0_xx*Txp, rho0_pp)
 
 rho_ = DenseOperator(basis_momentum, basis_momentum)
 operators.gemm!(Complex(1.), rho0_px, Txp, Complex(0.), rho_)
-@test 1e-12 > tracedistance(rho_, rho0_pp)
-@test 1e-12 > tracedistance(Txp*rho0_pp*Tpx, rho0_xx)
+@test 1e-12 > D(rho_, rho0_pp)
+@test 1e-12 > D(Txp*rho0_pp*Tpx, rho0_xx)
 
 
 alpha = complex(3.2)
@@ -190,23 +190,23 @@ op = DenseOperator(basis_position, basis_position, randdata1)
 result_ = DenseOperator(basis_momentum, basis_position, copy(randdata2))
 result0 = alpha*full(Tpx)*op + beta*result_
 operators.gemm!(alpha, Tpx, op, beta, result_)
-@test 1e-11 > tracedistance(result0, result_)
+@test 1e-11 > D(result0, result_)
 
 result_ = DenseOperator(basis_position, basis_momentum, copy(randdata2))
 result0 = alpha*op*full(Txp) + beta*result_
 operators.gemm!(alpha, op, Txp, beta, result_)
-@test 1e-11 > tracedistance(result0, result_)
+@test 1e-11 > D(result0, result_)
 
 op = DenseOperator(basis_momentum, basis_momentum, randdata1)
 result_ = DenseOperator(basis_position, basis_momentum, copy(randdata2))
 result0 = alpha*full(Txp)*op + beta*result_
 operators.gemm!(alpha, Txp, op, beta, result_)
-@test 1e-11 > tracedistance(result0, result_)
+@test 1e-11 > D(result0, result_)
 
 result_ = DenseOperator(basis_momentum, basis_position, copy(randdata2))
 result0 = alpha*op*full(Tpx) + beta*result_
 operators.gemm!(alpha, op, Tpx, beta, result_)
-@test 1e-11 > tracedistance(result0, result_)
+@test 1e-11 > D(result0, result_)
 
 
 
@@ -227,6 +227,6 @@ Txp_dense = DenseOperator(Txp)
 Tpx_dense = DenseOperator(Tpx)
 @test isa(Txp_dense, DenseOperator)
 @test isa(Tpx_dense, DenseOperator)
-@test 1e-5 > tracedistance(Txp_dense*rho0_pp*Tpx_dense, rho0_xx)
+@test 1e-5 > D(Txp_dense*rho0_pp*Tpx_dense, rho0_xx)
 
 end # testset

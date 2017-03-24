@@ -1,7 +1,7 @@
 module spectralanalysis
 
 import Base.eig, Base.eigs, Base.eigvals, Base.eigvals!
-using ..states, ..operators, ..operators_dense, ..operators_sparse
+using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
 export simdiag
 
@@ -34,7 +34,7 @@ V
   Vector of Kets in the basis of A sorted by D.
 """
 function eig(A::DenseOperator, args...)
-  @assert A.basis_l == A.basis_r
+  check_samebases(A)
   b = A.basis_l
   if ishermitian(A)
     D, V = eig(Hermitian(A.data), args...)
@@ -50,7 +50,7 @@ function eig(A::DenseOperator, args...)
 end
 
 function eigs(A::SparseOperator, args...; kwargs...)
-  @assert A.basis_l == A.basis_r
+  check_samebases(A)
   b = A.basis_l
   if ishermitian(A)
     D, V = eigs(Hermitian(A.data), args...; kwargs...)

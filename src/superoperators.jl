@@ -57,19 +57,17 @@ Base.full(a::DenseSuperOperator) = deepcopy(a)
 
 bases.samebases(a::SuperOperator, b::SuperOperator) = samebases(a.basis_l[1], b.basis_l[1]) && samebases(a.basis_l[2], b.basis_l[2]) &&
                                                       samebases(a.basis_r[1], b.basis_r[1]) && samebases(a.basis_r[2], b.basis_r[2])
+bases.multiplicable(a::SuperOperator, b::SuperOperator) = multiplicable(a.basis_r[1], b.basis_l[1]) && multiplicable(a.basis_r[2], b.basis_l[2])
 
 function *{T<:SuperOperator}(a::T, b::DenseOperator)
-    if a.basis_r[1] != b.basis_l || a.basis_r[2] != b.basis_r
-        throw(DimensionMismatch())
-    end
+    check_samebases(a.basis_r[1], b.basis_l)
+    check_samebases(a.basis_r[2], b.basis_r)
     data = a.data*reshape(b.data, length(b.data))
     return DenseOperator(a.basis_l[1], a.basis_l[2], reshape(data, length(a.basis_l[1]), length(a.basis_l[2])))
 end
 
 function *{T<:SuperOperator}(a::T, b::T)
-    if a.basis_r != b.basis_l
-        throw(DimensionMismatch())
-    end
+    check_multiplicable(a, b)
     return T(a.basis_l, b.basis_r, a.data*b.data)
 end
 

@@ -62,7 +62,7 @@ identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = SparseOperator(
 identityoperator(b1::Basis, b2::Basis) = identityoperator(SparseOperator, b1, b2)
 identityoperator(b::Basis) = identityoperator(b, b)
 
-trace(op::SparseOperator) = trace(op.data)
+trace(op::SparseOperator) = (check_samebases(op); trace(op.data))
 
 function operators.ptrace(op::SparseOperator, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)

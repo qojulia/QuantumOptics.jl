@@ -32,7 +32,7 @@ sigma = tensor(psi2, dagger(psi2))
 @test tracedistance_general(sigma, sigma) == 0.
 
 rho = spinup(b1) ⊗ dagger(coherentstate(b2, 0.1))
-@test_throws AssertionError tracedistance(rho, rho)
+@test_throws bases.IncompatibleBases tracedistance(rho, rho)
 @test tracedistance_general(rho, rho) == 0.
 @test_throws ArgumentError tracedistance_general(sparse(rho), sparse(rho))
 

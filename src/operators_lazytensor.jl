@@ -112,12 +112,13 @@ identityoperator(::Type{LazyTensor}, b1::Basis, b2::Basis) = LazyTensor(b1, b2, 
 dagger(op::LazyTensor) = LazyTensor(op.basis_r, op.basis_l, op.indices, Operator[dagger(x) for x in op.operators], conj(op.factor))
 
 function trace(op::LazyTensor)
+    b = basis(op)
     result = op.factor
-    for i in 1:length(op.basis_l.bases)
+    for i in 1:length(b.bases)
         if i in op.indices
             result *= trace(suboperator(op, i))
         else
-            result *= _identitylength(op, i)
+            result *= length(b.bases[i])
         end
     end
     result

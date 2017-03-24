@@ -36,6 +36,8 @@ Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
 
 =={T<:StateVector}(x::T, y::T) = (x.basis == y.basis) && (x.data == y.data)
 
+bases.basis(a::StateVector) = a.basis
+
 # Arithmetic operations
 *(a::Bra, b::Ket) = (check_multiplicable(a, b); sum(a.data.*b.data))
 *{T<:StateVector}(a::Number, b::T) = T(b.basis, complex(a)*b.data)

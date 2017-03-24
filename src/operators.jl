@@ -43,6 +43,7 @@ addnumbererror() = throw(ArgumentError("Can't add or subtract a number and an op
 -(a::Number, b::Operator) = addnumbererror()
 -(a::Operator, b::Number) = addnumbererror()
 
+bases.basis(a::Operator) = (check_samebases(a); a.basis_l)
 
 """
 Hermitian conjugate of the given operator.

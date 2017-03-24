@@ -105,10 +105,9 @@ kwargs
     Further arguments are passed on to the ode solver.
 """
 function integrate_master(dmaster::Function, tspan, rho0::DenseOperator; fout=nothing, kwargs...)
-    nl = prod(rho0.basis_l.shape)
-    nr = prod(rho0.basis_r.shape)
-    N = nl*nr
-    as_operator(x::Vector{Complex128}) = DenseOperator(rho0.basis_l, rho0.basis_r, reshape(x, nl, nr))
+    n = length(basis(rho0))
+    N = n^2
+    as_operator(x::Vector{Complex128}) = DenseOperator(rho0.basis_l, rho0.basis_r, reshape(x, n, n))
     as_vector(rho::DenseOperator) = reshape(rho.data, N)
     f = (x->x)
     if fout==nothing

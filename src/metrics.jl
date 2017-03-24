@@ -1,12 +1,12 @@
 module metrics
 
-using ..operators, ..operators_dense
+using ..bases, ..operators, ..operators_dense
 
 export tracedistance, tracedistance_general, tracenorm, tracenorm_general,
-	entropy_vn, fidelity
+        entropy_vn, fidelity
 
 function tracenorm(rho::DenseOperator)
-    @assert length(rho.basis_l) == length(rho.basis_r)
+    check_samebases(rho)
     data = rho.data
     for i=1:size(data,1)
         data[i,i] = real(data[i,i])

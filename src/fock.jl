@@ -111,7 +111,7 @@ b
 alpha
     Eigenvalue of annihilation operator.
 """
-function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex128}(b.shape[1])))
+function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex128}(length(b))))
     alpha = complex(alpha)
     data = result.data
     if b.Nmin == 0
@@ -129,21 +129,20 @@ end
 Husimi Q representation :math:`\\frac{1}{\\pi} \\langle \\alpha | \\rho | \\alpha \\rangle`.
 """
 function qfunc(rho::Operator, alpha::Complex128,
-                tmp1=Ket(rho.basis_l, Vector{Complex128}(rho.basis_l.shape[1])),
-                tmp2=Ket(rho.basis_l, Vector{Complex128}(rho.basis_l.shape[1])))
-    coherentstate(rho.basis_l, alpha, tmp1)
+                tmp1=Ket(basis(rho), Vector{Complex128}(length(basis(rho)))),
+                tmp2=Ket(basis(rho), Vector{Complex128}(length(basis(rho)))))
+    coherentstate(basis(rho), alpha, tmp1)
     operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
     a = dot(tmp1.data, tmp2.data)
     return a/pi
 end
 
 function qfunc(rho::Operator, X::Vector{Float64}, Y::Vector{Float64})
-    @assert rho.basis_l == rho.basis_r
-    b = rho.basis_l
+    b = basis(rho)
     Nx = length(X)
     Ny = length(Y)
-    tmp1 = Ket(b, Vector{Complex128}(b.shape[1]))
-    tmp2 = Ket(b, Vector{Complex128}(b.shape[1]))
+    tmp1 = Ket(b, Vector{Complex128}(length(b)))
+    tmp2 = Ket(b, Vector{Complex128}(length(b)))
     result = Matrix{Complex128}(Nx, Ny)
     for j=1:Ny, i=1:Nx
         result[i, j] = qfunc(rho, complex(X[i], Y[j]), tmp1, tmp2)
@@ -153,7 +152,7 @@ end
 
 function qfunc(psi::Ket, alpha::Complex128)
     a = conj(alpha)
-    N = length(psi.data)
+    N = length(psi.basis)
     s = psi.data[N]/sqrt(N-1)
     @inbounds for i=1:N-2
         s = (psi.data[N-i] + s*a)/sqrt(N-i-1)
@@ -173,7 +172,7 @@ end
 function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
     Nx = length(X)
     Ny = length(Y)
-    N = length(psi.data)
+    N = length(psi.basis)
     n = 1.
     x = Vector{Complex128}(N)
     x[N] = psi.data[1]

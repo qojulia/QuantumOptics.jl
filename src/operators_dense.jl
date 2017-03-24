@@ -82,7 +82,7 @@ dagger(x::DenseOperator) = DenseOperator(x.basis_r, x.basis_l, x.data')
 
 identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(Complex128, length(b1), length(b2)))
 
-trace(op::DenseOperator) = trace(op.data)
+trace(op::DenseOperator) = (check_samebases(op); trace(op.data))
 
 const RANKS = [zeros(Int, [0 for i=1:N]...) for N=1:20]
 
@@ -96,8 +96,8 @@ function ptrace(a::DenseOperator, indices::Vector{Int})
     return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
 end
 
-ptrace(a::Ket, indices::Vector{Int}) = bases.ptrace(tensor(a, dagger(a)), indices)
-ptrace(a::Bra, indices::Vector{Int}) = bases.ptrace(tensor(dagger(a), a), indices)
+ptrace(a::Ket, indices::Vector{Int}) = ptrace(tensor(a, dagger(a)), indices)
+ptrace(a::Bra, indices::Vector{Int}) = ptrace(tensor(dagger(a), a), indices)
 
 states.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
 
