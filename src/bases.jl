@@ -3,7 +3,7 @@ module bases
 import Base.==
 
 export Basis, GenericBasis, CompositeBasis,
-       tensor, ⊗, dualbasis, ptrace, permutesystems,
+       tensor, ⊗, ptrace, permutesystems,
        equal_shape, equal_bases, multiplicable,
        IncompatibleBases,
        check_equal, check_multiplicable
@@ -90,13 +90,6 @@ tensor{T}(x::T...) = reduce(tensor, x)
 ⊗(a,b) = tensor(a,b)
 
 """
-Return the dual basis to the given basis.
-
-If the basis is orthogonal the dual basis and the basis itself are identitcal.
-"""
-dualbasis(b::Basis) = b
-
-"""
 Total dimension of the Hilbert space.
 """
 Base.length(b::Basis) = prod(b.shape)
@@ -154,7 +147,7 @@ In the case of orthogonal bases this mostly means that the two bases have to be
 the same. For nonorthogonal bases this function can be overridden to account
 for their behavior.
 """
-multiplicable(b1::Basis, b2::Basis) = b1==dualbasis(b2)
+multiplicable(b1::Basis, b2::Basis) = b1==b2
 
 function multiplicable(b1::CompositeBasis, b2::CompositeBasis)
     if !equal_shape(b1.shape,b2.shape)
