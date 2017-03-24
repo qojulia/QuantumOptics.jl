@@ -43,10 +43,10 @@ Base.sparse(op::LazySum) = sum(a*sparse(op_i) for (a, op_i) in zip(op.factors, o
 
 /(a::LazySum, b::Number) = LazySum(a.factors/b, a.operators)
 
-+(a::LazySum, b::LazySum) = (operators.check_samebases(a,b); LazySum([a.factors; b.factors], [a.operators; b.operators]))
++(a::LazySum, b::LazySum) = (check_samebases(a,b); LazySum([a.factors; b.factors], [a.operators; b.operators]))
 
 -(a::LazySum) = LazySum(-a.factors, a.operators)
--(a::LazySum, b::LazySum) = (operators.check_samebases(a,b); LazySum([a.factors; -b.factors], [a.operators; b.operators]))
+-(a::LazySum, b::LazySum) = (check_samebases(a,b); LazySum([a.factors; -b.factors], [a.operators; b.operators]))
 
 
 identityoperator(::Type{LazySum}, b1::Basis, b2::Basis) = LazySum(identityoperator(b1, b2))

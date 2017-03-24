@@ -261,13 +261,13 @@ function Base.full(rho::CorrelationExpansion)
 end
 
 function *(op1::CorrelationExpansion, op2::LazyTensor)
-    check_multiplicable(op1.basis_r, op2.basis_l)
+    check_multiplicable(op1, op2)
     result = deepcopy(op1)
     gemm!(Complex(1.), op1, op2, Complex(0.), result)
     return result
 end
 function *(op1::LazyTensor, op2::CorrelationExpansion)
-    check_multiplicable(op1.basis_r, op2.basis_l)
+    check_multiplicable(op1, op2)
     result = deepcopy(op2)
     gemm!(Complex(1.), op1, op2, Complex(0.), result)
     return result

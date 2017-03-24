@@ -1,7 +1,7 @@
 module superoperators
 
 import Base: ==, *, /, +, -
-import ..operators.check_samebases
+import ..bases
 
 using ..bases, ..operators, ..operators_dense, ..operators_sparse
 
@@ -55,7 +55,8 @@ Base.full(a::DenseSuperOperator) = deepcopy(a)
 
 =={T<:SuperOperator}(a::T, b::T) = (a.basis_l == b.basis_l) && (a.basis_r == b.basis_r) && (a.data == b.data)
 
-operators.check_samebases(a::SuperOperator, b::SuperOperator) = ((a.basis_l!=b.basis_l) || (a.basis_r!=b.basis_r) ? throw(IncompatibleBases()) : nothing)
+bases.samebases(a::SuperOperator, b::SuperOperator) = samebases(a.basis_l[1], b.basis_l[1]) && samebases(a.basis_l[2], b.basis_l[2]) &&
+                                                      samebases(a.basis_r[1], b.basis_r[1]) && samebases(a.basis_r[2], b.basis_r[2])
 
 function *{T<:SuperOperator}(a::T, b::DenseOperator)
     if a.basis_r[1] != b.basis_l || a.basis_r[2] != b.basis_r
@@ -76,9 +77,9 @@ end
 *{T<:SuperOperator}(a::T, b::Number) = T(a.basis_l, a.basis_r, a.data*complex(b))
 *{T<:SuperOperator}(b::Number, a::T) = *(a, b)
 
-+{T<:SuperOperator}(a::T, b::T) = (operators.check_samebases(a, b); T(a.basis_l, a.basis_r, a.data+b.data))
++{T<:SuperOperator}(a::T, b::T) = (check_samebases(a, b); T(a.basis_l, a.basis_r, a.data+b.data))
 
--{T<:SuperOperator}(a::T, b::T) = (operators.check_samebases(a, b); T(a.basis_l, a.basis_r, a.data-b.data))
+-{T<:SuperOperator}(a::T, b::T) = (check_samebases(a, b); T(a.basis_l, a.basis_r, a.data-b.data))
 -{T<:SuperOperator}(a::T) = T(a.basis_l, a.basis_r, -a.data)
 
 """
@@ -113,11 +114,11 @@ spost(op::SparseOperator) = SparseSuperOperator((op.basis_l, op.basis_r), (op.ba
 function _check_input(H::Operator, J::Vector, Jdagger::Vector, Gamma::Union{Vector{Float64}, Matrix{Float64}})
     for j=J
         @assert typeof(j) <: Operator
-        operators.check_samebases(H, j)
+        check_samebases(H, j)
     end
     for j=Jdagger
         @assert typeof(j) <: Operator
-        operators.check_samebases(H, j)
+        check_samebases(H, j)
     end
     @assert length(J)==length(Jdagger)
     if typeof(Gamma) == Matrix{Float64}

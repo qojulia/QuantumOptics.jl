@@ -20,9 +20,9 @@ b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
 # Test creation
-@test_throws AssertionError LazyProduct()
-@test_throws AssertionError LazyProduct(randoperator(b_l, b_r), randoperator(b_l, b_r))
-@test_throws AssertionError LazyProduct(randoperator(b_l, b_r), sparse(randoperator(b_l, b_r)))
+@test_throws ArgumentError LazyProduct()
+@test_throws bases.IncompatibleBases LazyProduct(randoperator(b_l, b_r), randoperator(b_l, b_r))
+@test_throws bases.IncompatibleBases LazyProduct(randoperator(b_l, b_r), sparse(randoperator(b_l, b_r)))
 
 # Test full & sparse
 op1 = randoperator(b_l, b_r)

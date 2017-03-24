@@ -47,13 +47,13 @@ function dschroedinger_timedependent{T<:StateVector}(t::Float64, psi0::T, f::Fun
 end
 
 function _check_input(psi::Ket, H::Operator)
-    @assert psi.basis==H.basis_l
-    @assert multiplicable(H.basis_r, psi.basis)
+    check_multiplicable(H, psi)
+    check_samebases(H)
 end
 
 function _check_input(psi::Bra, H::Operator)
-    @assert psi.basis==H.basis_r
-    @assert multiplicable(psi.basis, H.basis_l)
+    check_multiplicable(psi, H)
+    check_samebases(H)
 end
 
 """

@@ -26,9 +26,9 @@ end
 ProductDensityOperator() = error("ProductDensityOperator needs at least one operator.")
 ProductDensityOperator(states::Ket...) = ProductDensityOperator(DenseOperator[tensor(state, dagger(state)) for state in states]...)
 
-*(a::ProductDensityOperator, b::ProductDensityOperator) = (check_multiplicable(a.basis_r, b.basis_l); ProductDensityOperator(a.basis_l, b.basis_r, DenseOperator[a_i*b_i for (a_i, b_i) in zip(a.operators, b.operators)]))
+*(a::ProductDensityOperator, b::ProductDensityOperator) = (check_multiplicable(a, b); ProductDensityOperator(a.basis_l, b.basis_r, DenseOperator[a_i*b_i for (a_i, b_i) in zip(a.operators, b.operators)]))
 # function *(a::LazyTensor, b::ProductDensityOperator)
-#     check_multiplicable(a.basis_r, b.basis_l);
+#     check_multiplicable(a, b);
 #     operators = DenseOperator[]
 #     for (alpha, b_alpha) in enumerate(b.operators)
 #         if alpha in keys(a.operators)
@@ -43,7 +43,7 @@ ProductDensityOperator(states::Ket...) = ProductDensityOperator(DenseOperator[te
 #     ProductDensityOperator(operators...)
 # end
 # function *(a::ProductDensityOperator, b::LazyTensor)
-#     check_multiplicable(a.basis_r, b.basis_l);
+#     check_multiplicable(a, b);
 #     operators = DenseOperator[]
 #     for (alpha, a_alpha) in enumerate(a.operators)
 #         if alpha in keys(b.operators)

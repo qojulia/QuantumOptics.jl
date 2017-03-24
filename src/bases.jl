@@ -4,9 +4,9 @@ import Base.==
 
 export Basis, GenericBasis, CompositeBasis,
        tensor, ⊗, ptrace, permutesystems,
-       equal_shape, equal_bases, multiplicable,
        IncompatibleBases,
-       check_equal, check_multiplicable
+       samebases, multiplicable,
+       check_samebases, check_multiplicable
 
 
 """
@@ -141,11 +141,27 @@ end
 
 
 """
-Check if two objects given in the specified bases are multiplicable.
+Exception that should be raised for an illegal algebraic operation.
+"""
+type IncompatibleBases <: Exception end
 
-In the case of orthogonal bases this mostly means that the two bases have to be
-the same. For nonorthogonal bases this function can be overridden to account
-for their behavior.
+"""
+Test if two objects have the same bases.
+"""
+samebases(b1::Basis, b2::Basis) = b1==b2
+
+"""
+Throw an IncompatibleBases error if the bases are not equal.
+"""
+function check_samebases(b1, b2)
+    if !samebases(b1, b2)
+        throw(IncompatibleBases())
+    end
+end
+
+
+"""
+Check if two objects given in the specified bases are multiplicable.
 """
 multiplicable(b1::Basis, b2::Basis) = b1==b2
 
@@ -161,26 +177,14 @@ function multiplicable(b1::CompositeBasis, b2::CompositeBasis)
     return true
 end
 
-
 """
-Exception that should be raised for an illegal algebraic operation.
+Throw an IncompatibleBases error if the objects are not multiplicable.
 """
-type IncompatibleBases <: Exception end
-
-
-"""
-Error throwing version of equality checking.
-
-For a boolean version use the equality operator ==
-"""
-check_equal(b1::Basis, b2::Basis) = (b1==b2 ? true : throw(IncompatibleBases()))
-
-"""
-Error throwing version of multiplicativity checking.
-
-For a boolean version use the function multiplicable.
-"""
-check_multiplicable(b1::Basis, b2::Basis) = (multiplicable(b1, b2) ? true : throw(IncompatibleBases()))
+function check_multiplicable(b1, b2)
+    if !multiplicable(b1, b2)
+        throw(IncompatibleBases())
+    end
+end
 
 
 """

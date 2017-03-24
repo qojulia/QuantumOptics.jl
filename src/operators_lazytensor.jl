@@ -68,7 +68,7 @@ Base.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices
 
 
 function *(a::LazyTensor, b::LazyTensor)
-    check_multiplicable(a.basis_r, b.basis_l)
+    check_multiplicable(a, b)
     indices = sortedindices.union(a.indices, b.indices)
     ops = Vector{Operator}(length(indices))
     for n in 1:length(indices)
@@ -90,13 +90,13 @@ end
 *(a::LazyTensor, b::Number) = LazyTensor(a, a.factor*b)
 *(a::Number, b::LazyTensor) = LazyTensor(b, a*b.factor)
 function *(a::LazyTensor, b::DenseOperator)
-    operators.check_multiplicable(a.basis_r, b.basis_l)
+    check_multiplicable(a, b)
     result = DenseOperator(a.basis_l, b.basis_r)
     operators.gemm!(complex(1.), a, b, complex(1.), result)
     result
 end
 function *(a::DenseOperator, b::LazyTensor)
-    operators.check_multiplicable(a.basis_r, b.basis_l)
+    check_multiplicable(a, b)
     result = DenseOperator(a.basis_l, b.basis_r)
     operators.gemm!(complex(1.), a, b, complex(1.), result)
     result

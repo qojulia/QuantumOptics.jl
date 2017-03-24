@@ -37,7 +37,7 @@ Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
 =={T<:StateVector}(x::T, y::T) = (x.basis == y.basis) && (x.data == y.data)
 
 # Arithmetic operations
-*(a::Bra, b::Ket) = (check_multiplicable(a.basis, b.basis); sum(a.data.*b.data))
+*(a::Bra, b::Ket) = (check_multiplicable(a, b); sum(a.data.*b.data))
 *{T<:StateVector}(a::Number, b::T) = T(b.basis, complex(a)*b.data)
 *{T<:StateVector}(a::T, b::Number) = T(a.basis, complex(b)*a.data)
 
@@ -126,10 +126,6 @@ function bases.check_multiplicable(a::Bra, b::Ket)
     end
 end
 
-function check_samebases{T<:StateVector}(a::T, b::T)
-    if a.basis != b.basis
-        throw(IncompatibleBases())
-    end
-end
+bases.samebases{T<:StateVector}(a::T, b::T) = samebases(a.basis, b.basis)
 
 end # module

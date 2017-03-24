@@ -44,16 +44,16 @@ Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.da
 
 
 # Arithmetic operations
-*(a::SparseOperator, b::SparseOperator) = (check_multiplicable(a.basis_r, b.basis_l); SparseOperator(a.basis_l, b.basis_r, a.data*b.data))
+*(a::SparseOperator, b::SparseOperator) = (check_multiplicable(a, b); SparseOperator(a.basis_l, b.basis_r, a.data*b.data))
 *(a::SparseOperator, b::Number) = SparseOperator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::SparseOperator) = SparseOperator(b.basis_l, b.basis_r, complex(a)*b.data)
 
 /(a::SparseOperator, b::Number) = SparseOperator(a.basis_l, a.basis_r, a.data/complex(b))
 
-+(a::SparseOperator, b::SparseOperator) = (operators.check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data+b.data))
++(a::SparseOperator, b::SparseOperator) = (check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data+b.data))
 
 -(a::SparseOperator) = SparseOperator(a.basis_l, a.basis_r, -a.data)
--(a::SparseOperator, b::SparseOperator) = (operators.check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data-b.data))
+-(a::SparseOperator, b::SparseOperator) = (check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data-b.data))
 
 
 dagger(x::SparseOperator) = SparseOperator(x.basis_r, x.basis_l, x.data')
@@ -79,8 +79,8 @@ function operators.ptrace(op::SparseOperator, indices::Vector{Int})
 end
 
 function operators.expect(op::SparseOperator, state::DenseOperator)
-    bases.check_equal(op.basis_r, state.basis_l)
-    bases.check_equal(op.basis_l, state.basis_r)
+    check_samebases(op.basis_r, state.basis_l)
+    check_samebases(op.basis_l, state.basis_r)
     result = Complex128(0.)
     @inbounds for colindex = 1:op.data.n
         for i=op.data.colptr[colindex]:op.data.colptr[colindex+1]-1

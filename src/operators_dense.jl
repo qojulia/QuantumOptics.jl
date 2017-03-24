@@ -38,34 +38,34 @@ Base.full(x::DenseOperator) = deepcopy(x)
 
 
 # Arithmetic operations
-*(a::DenseOperator, b::Ket) = (check_multiplicable(a.basis_r, b.basis); Ket(a.basis_l, a.data*b.data))
-*(a::Bra, b::DenseOperator) = (check_multiplicable(a.basis, b.basis_l); Bra(b.basis_r, b.data.'*a.data))
-*(a::DenseOperator, b::DenseOperator) = (check_multiplicable(a.basis_r, b.basis_l); DenseOperator(a.basis_l, b.basis_r, a.data*b.data))
+*(a::DenseOperator, b::Ket) = (check_multiplicable(a, b); Ket(a.basis_l, a.data*b.data))
+*(a::Bra, b::DenseOperator) = (check_multiplicable(a, b); Bra(b.basis_r, b.data.'*a.data))
+*(a::DenseOperator, b::DenseOperator) = (check_multiplicable(a, b); DenseOperator(a.basis_l, b.basis_r, a.data*b.data))
 *(a::DenseOperator, b::Number) = DenseOperator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::DenseOperator) = DenseOperator(b.basis_l, b.basis_r, complex(a)*b.data)
 function *(op1::Operator, op2::DenseOperator)
-    check_multiplicable(op1.basis_r, op2.basis_l)
+    check_multiplicable(op1, op2)
     result = DenseOperator(op1.basis_l, op2.basis_r)
     gemm!(Complex(1.), op1, op2, Complex(0.), result)
     return result
 end
 
 function *(op1::DenseOperator, op2::Operator)
-    check_multiplicable(op1.basis_r, op2.basis_l)
+    check_multiplicable(op1, op2)
     result = DenseOperator(op1.basis_l, op2.basis_r)
     gemm!(Complex(1.), op1, op2, Complex(0.), result)
     return result
 end
 
 function *(op::Operator, psi::Ket)
-    check_multiplicable(op.basis_r, psi.basis)
+    check_multiplicable(op, psi)
     result = Ket(op.basis_l)
     gemv!(Complex(1.), op, psi, Complex(0.), result)
     return result
 end
 
 function *(psi::Bra, op::Operator)
-    check_multiplicable(psi.basis, op.basis_l)
+    check_multiplicable(psi, op)
     result = Bra(op.basis_r)
     gemv!(Complex(1.), psi, op, Complex(0.), result)
     return result
@@ -73,10 +73,10 @@ end
 
 /(a::DenseOperator, b::Number) = DenseOperator(a.basis_l, a.basis_r, a.data/complex(b))
 
-+(a::DenseOperator, b::DenseOperator) = (operators.check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data+b.data))
++(a::DenseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data+b.data))
 
 -(a::DenseOperator) = DenseOperator(a.basis_l, a.basis_r, -a.data)
--(a::DenseOperator, b::DenseOperator) = (operators.check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
+-(a::DenseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
 
 dagger(x::DenseOperator) = DenseOperator(x.basis_r, x.basis_l, x.data')
 
@@ -102,8 +102,8 @@ ptrace(a::Bra, indices::Vector{Int}) = bases.ptrace(tensor(dagger(a), a), indice
 states.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
 
 function operators.expect(op::DenseOperator, state::Operator)
-    bases.check_equal(op.basis_r, state.basis_l)
-    bases.check_equal(op.basis_l, state.basis_r)
+    check_samebases(op.basis_r, state.basis_l)
+    check_samebases(op.basis_l, state.basis_r)
     result = Complex128(0.)
     @inbounds for i=1:size(op.data, 1), j=1:size(op.data,2)
         result += op.data[i,j]*state.data[j,i]
@@ -135,9 +135,7 @@ projector(a::Bra) = tensor(dagger(a), a)
 Operator exponential.
 """
 function Base.expm(op::DenseOperator)
-    if !multiplicable(op.basis_r, op.basis_l)
-        throw(ArgumentError("Operator has to be multiplicable with itself."))
-    end
+    check_samebases(op)
     return DenseOperator(op.basis_l, op.basis_r, expm(op.data))
 end
 

@@ -22,9 +22,11 @@ type LazyProduct <: Operator
     operators::Vector{Operator}
 
     function LazyProduct(operators::Vector{Operator}, factor::Number=1)
-        @assert length(operators) > 0
+        if length(operators) < 1
+            throw(ArgumentError("LazyProduct needs at least one operator."))
+        end
         for i = 2:length(operators)
-            @assert multiplicable(operators[i-1].basis_r, operators[i].basis_l)
+            check_multiplicable(operators[i-1], operators[i])
         end
         new(operators[1].basis_l, operators[end].basis_r, factor, operators)
     end
@@ -37,7 +39,7 @@ Base.sparse(op::LazyProduct) = op.factor*prod(sparse(op_i) for op_i in op.operat
 
 ==(x::LazyProduct, y::LazyProduct) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor == y.factor
 
-*(a::LazyProduct, b::LazyProduct) = LazyProduct([a.operators; b.operators], a.factor*b.factor)
+*(a::LazyProduct, b::LazyProduct) = (check_multiplicable(a, b); LazyProduct([a.operators; b.operators], a.factor*b.factor))
 *(a::LazyProduct, b::Number) = LazyProduct(a.operators, a.factor*b)
 *(a::Number, b::LazyProduct) = LazyProduct(b.operators, a*b.factor)
 

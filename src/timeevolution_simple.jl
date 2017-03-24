@@ -1,5 +1,6 @@
 module timeevolution_simple
 
+using ..bases
 using ..states
 using ..operators
 using ..operators_dense
@@ -37,14 +38,14 @@ function master(T::Vector, rho0::DenseOperator, H::Operator, J::Vector;
                     Jdagger=map(dagger,J),
                     gamma::Union{Real, Vector, Matrix}=ones(Int, length(J)),
                     kwargs...)
-    operators.check_samebases(rho0, H)
+    check_samebases(rho0, H)
     for j=J
         @assert typeof(j) <: Operator
-        operators.check_samebases(rho0, j)
+        check_samebases(rho0, j)
     end
     for j=Jdagger
         @assert typeof(j) <: Operator
-        operators.check_samebases(rho0, j)
+        check_samebases(rho0, j)
     end
     @assert length(J)==length(Jdagger)
     if typeof(gamma)<:Real

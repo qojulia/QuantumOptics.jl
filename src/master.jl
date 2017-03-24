@@ -129,14 +129,14 @@ function integrate_master(dmaster::Function, tspan, rho0::DenseOperator; fout=no
 end
 
 function _check_input(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vector, Gamma::Union{Vector{Float64}, Matrix{Float64}})
-    operators.check_samebases(rho0, H)
+    check_samebases(rho0, H)
     for j=J
         @assert typeof(j) <: Operator
-        operators.check_samebases(rho0, j)
+        check_samebases(rho0, j)
     end
     for j=Jdagger
         @assert typeof(j) <: Operator
-        operators.check_samebases(rho0, j)
+        check_samebases(rho0, j)
     end
     @assert length(J)==length(Jdagger)
     if typeof(Gamma) == Matrix{Float64}

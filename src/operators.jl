@@ -209,12 +209,13 @@ function check_ptrace_arguments(a::Operator, indices::Vector{Int})
     sortedindices.check_indices(length(a.basis_l.shape), indices)
 end
 
-function check_samebases(a::Operator, b::Operator)
-    if (a.basis_l!=b.basis_l) || (a.basis_r!=b.basis_r)
-        throw(IncompatibleBases())
-    end
-end
+bases.samebases(a::Operator) = samebases(a.basis_l, a.basis_r)
+bases.samebases(a::Operator, b::Operator) = samebases(a.basis_l, b.basis_l) && samebases(a.basis_r, b.basis_r)
+bases.check_samebases(a::Operator) = check_samebases(a.basis_l, a.basis_r)
 
+bases.multiplicable(a::Operator, b::Ket) = multiplicable(a.basis_r, b.basis)
+bases.multiplicable(a::Bra, b::Operator) = multiplicable(a.basis, b.basis_l)
+bases.multiplicable(a::Operator, b::Operator) = multiplicable(a.basis_r, b.basis_l)
 
 """
 Check if an operator is Hermitian.
