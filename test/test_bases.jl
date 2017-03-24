@@ -14,6 +14,7 @@ b3 = GenericBasis(shape3)
 @test b1.shape == shape1
 @test b2.shape == shape2
 @test b1 != b2
+@test b1 != FockBasis(2)
 @test b1 == b1
 
 comp_b1 = tensor(b1, b2)
