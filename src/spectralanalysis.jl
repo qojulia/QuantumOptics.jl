@@ -54,6 +54,7 @@ function eigs(A::SparseOperator, args...; kwargs...)
   b = A.basis_l
   if ishermitian(A)
     D, V = eigs(Hermitian(A.data), args...; kwargs...)
+    states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]
   else
     D, V = eigs(A.data, args...; kwargs...)
     states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]

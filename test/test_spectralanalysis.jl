@@ -15,10 +15,12 @@ b = GenericBasis(5)
 op1 = randop(b)
 op2 = DenseOperator(b, Hermitian(rand(5, 5)))
 op3 = sprandop(b)
+op4 = 0.5*(op3 + dagger(op3))
 @test eig(op1)[1] == eigvals!(op1)
 @test eigvals(op2) ≈ eig(op2)[1]
 @test eig(op2, 1:3) == eig(op2, 1:3)
 @test eigs(op3; nev=3)[1] ≈ sort(eigs(op3.data; nev=3)[1], by=abs)
+@test eigs(op4; nev=3)[1] ≈ eigs(Hermitian(op4.data); nev=3)[1]
 
 @test_throws ArgumentError eig(test_spectralanalysis())
 @test_throws ArgumentError eigs(test_spectralanalysis())
