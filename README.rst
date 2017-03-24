@@ -7,13 +7,17 @@ QuantumOptics.jl
    :alt: Travis build status
    :target: https://travis-ci.org/bastikr/QuantumOptics.jl
 
-.. image:: https://coveralls.io/repos/github/bastikr/QuantumOptics.jl/badge.svg?branch=master
-   :alt: Test coverage status
-   :target: https://coveralls.io/github/bastikr/QuantumOptics.jl?branch=master
-
 .. image:: https://ci.appveyor.com/api/projects/status/t83f2bqfpumn6d96/branch/master?svg=true
    :alt: Windows build status
    :target: https://ci.appveyor.com/project/bastikr/quantumoptics-jl/branch/master
+
+.. image:: https://coveralls.io/repos/github/bastikr/QuantumOptics.jl/badge.svg?branch=master
+   :alt: Test coverage status on coveralls
+   :target: https://coveralls.io/github/bastikr/QuantumOptics.jl?branch=master
+
+.. image:: https://codecov.io/gh/bastikr/QuantumOptics.jl/branch/master/graph/badge.svg
+   :alt: Test coverage status on codecov
+   :target: https://codecov.io/gh/bastikr/QuantumOptics.jl
 
 
 Example
