@@ -35,6 +35,4 @@ Fock states and coherent states can be created using the functions:
 
 Additional functions:
 
-.. epigraph::
-
-    .. jl:autofunction:: fock.jl qfunc(rho, alpha)
+* :jl:func:`qfunc`

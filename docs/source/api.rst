@@ -128,8 +128,6 @@ SparseOperators
 Lazy Operators
 ^^^^^^^^^^^^^^
 
-.. jl:autotype:: operators_lazy.jl LazyWrapper
-
 .. jl:autotype:: operators_lazytensor.jl LazyTensor
 
 .. jl:autotype:: operators_lazysum.jl LazySum
@@ -163,9 +161,9 @@ Superoperators
 Random operators
 ----------------
 
-.. jl:autofunction:: random.jl randomstate
+.. jl:autofunction:: random.jl randstate
 
-.. jl:autofunction:: random.jl randomoperator
+.. jl:autofunction:: random.jl randoperator
 
 
 .. _section-api-metrics:
@@ -258,10 +256,6 @@ Particle
 
 .. jl:autofunction:: particle.jl momentumoperator
 
-.. jl:autofunction:: particle.jl laplace_x
-
-.. jl:autofunction:: particle.jl laplace_p
-
 .. jl:autofunction:: particle.jl gaussianstate
 
 .. jl:autotype:: particle.jl FFTOperator
@@ -269,20 +263,18 @@ Particle
 .. jl:autofunction:: particle.jl FFTOperator
 
 
-.. _section-api-nparticles:
+.. _section-api-manybody:
 
-N-Particles
-^^^^^^^^^^^
+Many-body
+^^^^^^^^^
 
-.. jl:autoabstract:: nparticles.jl NParticleBasis
+.. jl:autotype:: manybody.jl ManyBodyBasis
 
-.. jl:autotype:: nparticles.jl BosonicNParticleBasis
+.. jl:autofunction:: manybody.jl fermionstates
 
-.. jl:autotype:: nparticles.jl FermionicNParticleBasis
+.. jl:autofunction:: manybody.jl bosonstates
 
-.. jl:autofunction:: nparticles.jl nparticleoperator_1
-
-.. jl:autofunction:: nparticles.jl nparticleoperator_2
+.. jl:autofunction:: manybody.jl manybodyoperator
 
 
 
