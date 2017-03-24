@@ -140,9 +140,9 @@ function Base.expm(op::DenseOperator)
 end
 
 """
-p-norm of given operator.
+Norm of given operator.
 """
-Base.norm(op::DenseOperator, p) = norm(op.data, p)
+Base.norm(op::DenseOperator) = norm(op.data)
 
 
 # Partial trace for dense operators.
