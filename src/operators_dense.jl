@@ -180,13 +180,6 @@ end
 
 
 # Fast in-place multiplication with dense operators
-gem_error(funcname, x::Operator) = throw(ArgumentError("$funcname is not defined for this type of operator: $(typeof(x))."))
-
-# gemm!(alpha, a::Operator, b::DenseOperator, beta, result::DenseOperator) = gem_error("gemm!", a)
-# gemm!(alpha, a::DenseOperator, b::Operator, beta, result::DenseOperator) = gem_error("gemm!", b)
-gemv!(alpha, a::Operator, b::Ket, beta, result::Ket) = gem_error("gemv!", a)
-gemv!(alpha, a::Bra, b::Operator, beta, result::Bra) = gem_error("gemv!", b)
-
 gemm!{T<:Complex}(alpha::T, a::Matrix{T}, b::Matrix{T}, beta::T, result::Matrix{T}) = BLAS.gemm!('N', 'N', alpha, a, b, beta, result)
 gemv!{T<:Complex}(alpha::T, a::Matrix{T}, b::Vector{T}, beta::T, result::Vector{T}) = BLAS.gemv!('N', alpha, a, b, beta, result)
 gemv!{T<:Complex}(alpha::T, a::Vector{T}, b::Matrix{T}, beta::T, result::Vector{T}) = BLAS.gemv!('T', alpha, b, a, beta, result)
