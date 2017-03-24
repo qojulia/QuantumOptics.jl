@@ -139,11 +139,6 @@ function Base.expm(op::DenseOperator)
     return DenseOperator(op.basis_l, op.basis_r, expm(op.data))
 end
 
-"""
-Norm of given operator.
-"""
-Base.norm(op::DenseOperator) = norm(op.data)
-
 
 # Partial trace for dense operators.
 function _strides(shape::Vector{Int})
