@@ -115,6 +115,9 @@ psi123 = psi1 ⊗ psi2 ⊗ psi3
 @test 1e-14 > D(0.3^2*psi13 ⊗ dagger(psi13), ptrace(psi123, 2))
 @test 1e-14 > D(0.7^2*psi12 ⊗ dagger(psi12), ptrace(psi123, 3))
 
+@test 1e-14 > D(ptrace(psi123, [1, 2]), dagger(ptrace(dagger(psi123), [1, 2])))
+@test 1e-14 > D(ptrace(psi123, 3), dagger(ptrace(dagger(psi123), 3)))
+
 # Test partial trace of operators
 op1 = randoperator(b1a)
 op2 = randoperator(b2a)
