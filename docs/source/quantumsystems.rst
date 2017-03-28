@@ -11,4 +11,4 @@ Quantum systems in **QuantumOptics.jl** primarily define one or more appropriate
     fock
     nlevel
     particle
-    nparticles
+    manybody

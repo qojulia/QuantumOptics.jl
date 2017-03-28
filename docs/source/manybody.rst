@@ -1,6 +1,6 @@
-.. _section-nparticles:
+.. _section-manybody:
 
-N-Particles Basis
+Many-body systems
 =================
 
 Describing systems consisting of many identical particles in a tensor product space created out of single particle Hilbert spaces leads to the problem that not all states in this space correspond to real physical states. In this picture one would have to restrict the Hilbert space to a subspace that is invariant under permutation of particles. However, it is also possible to find a valid description that doesn't first introduce redundant states that later on have to be eliminated. The general idea is to choose an arbitrary basis :math:`\{\left|u_i\right\rangle\}_i` of the single particle Hilbert space and create the N-particle Hilbert space from states that count how many particles are in each of these states - which will in the following be denoted as :math:`\left|\{n\}\right\rangle`. Of course the sum of these occupation numbers has to be identical to the number of particles. For fermionic particles an additional restriction is that there can't be more than one particle in one state.
