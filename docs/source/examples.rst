@@ -1,4 +1,4 @@
-.. _section-examples:
+.. _examples:
 
 Examples
 ========
@@ -6,7 +6,7 @@ Examples
 .. toctree::
 
     examples/pumped-cavity
-    examples/jaynes-cummings-model
+    examples/jaynes-cummings
     examples/particle-in-harmonic-trap
     examples/particle-into-barrier
     examples/raman

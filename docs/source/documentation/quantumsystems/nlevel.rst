@@ -12,10 +12,6 @@ N-Level system
 
 N-Level systems are mostly used as idealized model when the relevant physics can be captured even in a very small subspace of the complete Hilbert space. For example an atom often can be represented by a few relevant levels.
 
-
-Bases
------
-
 For these kind of systems the :jl:type:`NLevelBasis` can be used. Essentially it is defined just as::
 
     type NLevelBasis <: Basis

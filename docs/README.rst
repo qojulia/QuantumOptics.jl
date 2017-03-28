@@ -24,7 +24,7 @@ Jupyter notebooks have to be converted to restructuredText
 
 #. Examples:
 
-    >> ./convertexamples.sh
+    >> python convertexamples.py
 
 #. Images for tutorial:
 

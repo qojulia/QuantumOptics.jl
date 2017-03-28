@@ -1,3 +1,5 @@
+.. _introduction:
+
 Introduction
 ============
 
@@ -8,3 +10,5 @@ One of the core concepts of **QuantumOptics.jl** is that all quantum objects, i.
 After choosing a basis **QuantumOptics.jl** provides many useful functions to create common :ref:`section-operators` and :ref:`section-states` which can be combined in all the expected ways. Consequently, constructing arbitrary Hamiltonians and Liouvillians and specifying initial states is straight forward. These objects can be used to perform time evolutions according to :ref:`Schroedinger <section-schroedinger>`, :ref:`Master <section-master>` and :ref:`Monte Carlo wave function <section-mcwf>` equations.
 
 Although the main focus is on simulating dynamics of (open) quantum systems, there are nevertheless many additional features available to calculate :ref:`steadystates <section-steadystate>`, the :ref:`energy spectrum, eigenstates <section-spectralanalysis>`, and :ref:`correlation functions <section-correlationfunctions>`.
+
+For a very quick introduction it is probably best to start reading the :ref:`tutorial`. It shows a typical approach to study a quantum system and provides links to the :ref:`documentation` and to the :ref:`examples` to provide a more exhaustive explanation.

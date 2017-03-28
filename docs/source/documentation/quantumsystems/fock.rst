@@ -3,18 +3,17 @@
 Fock Basis
 ==========
 
-To create a basis of a Fock space **QuantumOptics.jl** provides the :jl:type:`FockBasis` class which has to be supplied with an upper cutoff and optionally with a lower cutoff::
+.. code-block:: julia
 
-    Nmax = 10
-    b1 = FockBasis(Nmax)
+    N = 10
+    b = FockBasis(N)
+    alpha = 0.4
+    psi = coherentstate(b, alpha)
+    a = destroy(b)
 
-    Nmin = 2
-    Nmax = 12
-    b2 = FockBasis(Nmin, Nmax)
+A fock space describes the situation of variable particle number. I.e. the system can have zero particles, one particle, two particles and so on.
 
-In this example even though the dimensions of the Hilbert spaces described by these bases are the same ``b1`` and ``b2`` are not and mixing operators in one bases with operators in the other basis will result in an explicit error.
-
-The definition of :jl:type:`FockBasis` is essentially::
+To create a basis of a Fock space **QuantumOptics.jl** provides the :jl:type:`FockBasis` class which has to be supplied with an integer specifying the maximum number of photons. It is defined as::
 
     type FockBasis <: Basis
         shape::Vector{Int}
@@ -22,17 +21,31 @@ The definition of :jl:type:`FockBasis` is essentially::
         Nmax::Int
     end
 
-Many common operators are already defined:
+
+States
+------
+
+* :jl:func:`fockstate`
+* :jl:func:`coherentstate`
+
+
+Operators
+---------
 
 * :jl:func:`number`
 * :jl:func:`destroy`
 * :jl:func:`create`
 
-Fock states and coherent states can be created using the functions:
 
-* :jl:func:`fockstate`
-* :jl:func:`coherentstate`
-
-Additional functions:
+Additional functions
+--------------------
 
 * :jl:func:`qfunc`
+
+
+Examples
+--------
+
+* :ref:`example-pumped-cavity`
+* :ref:`example-jaynes-cummings`
+* :ref:`example-correlation-spectrum`
