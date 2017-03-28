@@ -341,7 +341,7 @@ Steady-states
 .. _section-api-timecorrelations:
 
 Time correlations
-------------
+-----------------
 
 .. jl:autofunction:: timecorrelations.jl correlation
 

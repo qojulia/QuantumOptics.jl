@@ -7,7 +7,7 @@ QuantumOptics.jl
 
     introduction
     installation
-    tutorial
-    documentation
+    tutorial/tutorial
+    documentation/documentation
     examples
     api

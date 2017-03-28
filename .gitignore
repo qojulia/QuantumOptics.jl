@@ -1,5 +1,5 @@
 docs/build
 docs/source/examples/
-docs/source/_tutorial.rst
+docs/source/tutorial/_tutorial.rst
 .ipynb_checkpoints
 *_files/

@@ -1,2 +1,2 @@
 #!/bin/bash
-jupyter-nbconvert --to=rst --FilesWriter.build_directory=source --execute source/_tutorial.ipynb
+jupyter-nbconvert --to=rst --FilesWriter.build_directory=source/tutorial --execute source/tutorial/_tutorial.ipynb

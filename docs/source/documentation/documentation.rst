@@ -5,7 +5,7 @@ Documentation
     :includehidden:
 
     states
-    quantumsystems
+    quantumsystems/quantumsystems
     timeevolution
     steadystate
     timecorrelations
