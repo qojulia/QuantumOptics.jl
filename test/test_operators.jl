@@ -54,4 +54,7 @@ op_test = test_operators(b, b, op.data)
 
 @test_throws ArgumentError expm(sparse(op1))
 
+@test one(b1).data == diagm(ones(b1.shape[1]))
+@test one(op1).data == diagm(ones(b1.shape[1]))
+
 end # testset

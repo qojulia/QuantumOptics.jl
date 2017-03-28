@@ -57,6 +57,9 @@ identityoperator{T<:Operator}(::Type{T}, b1::Basis, b2::Basis) = throw(ArgumentE
 identityoperator{T<:Operator}(::Type{T}, b::Basis) = identityoperator(T, b, b)
 identityoperator{T<:Operator}(op::T) = identityoperator(T, op.basis_l, op.basis_r)
 
+Base.one(b::Basis) = identityoperator(b)
+Base.one(op::Operator) = identityoperator(op)
+
 """
 Trace of given operator.
 """
