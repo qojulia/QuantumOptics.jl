@@ -52,4 +52,6 @@ op_test = test_operators(b, b, op.data)
 @test_throws ErrorException QuantumOptics.operators.gemm!()
 @test_throws ErrorException QuantumOptics.operators.gemv!()
 
+@test_throws ArgumentError expm(sparse(op1))
+
 end # testset

@@ -223,5 +223,9 @@ Check if an operator is Hermitian.
 """
 ishermitian(A::Operator) = arithmetic_unary_error(ishermitian, A)
 
+"""
+Operator exponential.
+"""
+Base.expm(op::Operator) = throw(ArgumentError("expm() is not defined for this type of operator: $(typeof(op)).\nTry to convert to dense operator first with full()."))
 
 end # module
