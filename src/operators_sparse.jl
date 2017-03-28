@@ -34,6 +34,7 @@ SparseOperator(op::DenseOperator) = SparseOperator(op.basis_l, op.basis_r, spars
 SparseOperator(b1::Basis, b2::Basis) = SparseOperator(b1, b2, spzeros(Complex128, length(b1), length(b2)))
 SparseOperator(b::Basis) = SparseOperator(b, b)
 
+Base.copy(x::SparseOperator) = deepcopy(x)
 Base.full(a::SparseOperator) = DenseOperator(a.basis_l, a.basis_r, full(a.data))
 
 Base.sparse(a::Operator) = throw(ArgumentError("Direct conversion from $(typeof(a)) not implemented. Use sparse(full(op)) instead."))

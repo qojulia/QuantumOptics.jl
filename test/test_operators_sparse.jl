@@ -308,6 +308,7 @@ dat = sprandop(b1, b1).data
 @test_throws ArgumentError sparse(TestOperator())
 
 @test 2*SparseOperator(b1, dat) == SparseOperator(b1, dat)*2
+@test copy(op1) == deepcopy(op1)
 
 
 end # testset
