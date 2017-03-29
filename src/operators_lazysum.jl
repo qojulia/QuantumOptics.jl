@@ -36,7 +36,7 @@ LazySum(operators::Operator...) = LazySum(ones(Complex128, length(operators)), O
 Base.full(op::LazySum) = sum(a*full(op_i) for (a, op_i) in zip(op.factors, op.operators))
 Base.sparse(op::LazySum) = sum(a*sparse(op_i) for (a, op_i) in zip(op.factors, op.operators))
 
-==(x::LazySum, y::LazySum) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operator && all(x.factors.==y.factors)
+==(x::LazySum, y::LazySum) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factors==y.factors
 
 *(a::LazySum, b::Number) = LazySum(b*a.factors, a.operators)
 *(a::Number, b::LazySum) = LazySum(a*b.factors, b.operators)

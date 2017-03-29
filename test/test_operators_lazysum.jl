@@ -62,6 +62,8 @@ xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
 
 # Test multiplication
 @test_throws ArgumentError op1*op2
+@test LazySum([0.1, 0.1], [op1a, op2a]) == LazySum(op1a, op2a)*0.1
+@test LazySum([0.1, 0.1], [op1a, op2a]) == 0.1*LazySum(op1a, op2a)
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
 @test 1e-11 > D((op1+op2)*(x1+0.3*x2), (op1_+op2_)*(x1+0.3*x2))
