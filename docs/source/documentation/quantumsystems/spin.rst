@@ -9,8 +9,6 @@ Spin
     psi = spinup(b)
     sx = sigmax(b)
 
-In quantum mechanics particles posses an additional intrinsic property which behaves analogous to classical angular momentum.
-
 Spin systems of arbitrary spin number can be modeled with the :jl:type:`SpinBasis` which is defined as::
 
     type SpinBasis <: Basis
@@ -31,7 +29,7 @@ The lowest and uppermost states are defined:
 Operators
 ---------
 
-All expected operators are implemented, all of which require a single argument of the type SpinBasis :jl:type:`SpinBasis`.
+All expected operators are implemented, all of which require a single argument of the type :jl:type:`SpinBasis`.
 
 * :jl:func:`sigmax`
 * :jl:func:`sigmay`

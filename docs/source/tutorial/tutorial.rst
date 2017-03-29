@@ -43,7 +43,7 @@ Most of the typical operators and states in these bases are defined.
     alpha = 1.5
     psi = coherentstate(b, alpha)
 
-These objects can be combined in all the expected ways.
+These objects can be combined using standard arithmetic operations.
 
 .. code-block:: julia
 
@@ -140,7 +140,7 @@ All of them share a very similar interface so that changing from one to another 
 .. code-block:: julia
 
     schroedinger(T, psi0, H)
-    master(T, psi0/rho0, H, J)
+    master(T, rho0, H, J)
     mcwf(T, psi0, H, J)
 
 Let's now simulate the dynamics of the system according to the Schrödinger equation.

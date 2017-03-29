@@ -14,7 +14,7 @@ Subspace
     x_prime = P*x
     y = dagger(P)*x_prime # Not equal to x
 
-Often times it is possible to restrict a large Hilbert to a small subspace while still retaining the most important physical effects. This reduction can be done with the :jl:type:`SubspaceBasis` which is implemented as::
+Oftentimes it is possible to restrict a large Hilbert to a small subspace while still retaining the most important physical effects. This reduction can be done with the :jl:type:`SubspaceBasis` which is implemented as::
 
     type SubspaceBasis <: Basis
         shape::Vector{Int}

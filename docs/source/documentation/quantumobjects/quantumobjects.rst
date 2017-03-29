@@ -12,9 +12,9 @@ Mathematically, quantum states are abstract vectors in a Hilbert space and opera
     |\psi\rangle = \sum_i |u_i\rangle\langle u_i |\psi \rangle
                  = \sum_i \psi_i |u_i\rangle
 
-In **QuantumOptics.jl** all states therefore contain two types of information. The choice of basis and the coordinates of the state in respect to this basis.
+In **QuantumOptics.jl** all states therefore contain two types of information. The choice of basis and the coefficients of the state with respect to this basis.
 
-Operators are implemented in a very similar fashion. The only thing that makes it more complicated is that in principle it is possible to choose different bases for the left and right hand side, which sometimes is quite useful. Assuming that the states :math:`\{|u_i\rangle\}_{i=1}^{N_u}` form a basis of one Hilbert space :math:`\mathcal{H}_u` and the states :math:`\{|v_i\rangle\}_{i=1}^{N_v}` form a basis of another Hilbert space :math:`\mathcal{H}_v`, every operator defined as map from :math:`\mathcal{H}_v \rightarrow \mathcal{H}_u` can be expressed as coordinates :math:`A_{ij}` in respect to these two bases:
+Operators are implemented in a very similar fashion. The only thing that makes it more complicated is that in principle it is possible to choose different bases for the left and right hand side, which sometimes is quite useful. Assuming that the states :math:`\{|u_i\rangle\}_{i=1}^{N_u}` form a basis of one Hilbert space :math:`\mathcal{H}_u` and the states :math:`\{|v_i\rangle\}_{i=1}^{N_v}` form a basis of another Hilbert space :math:`\mathcal{H}_v`, every operator defined as map from :math:`\mathcal{H}_v \rightarrow \mathcal{H}_u` can be expressed as coefficients :math:`A_{ij}` in respect to these two bases:
 
 .. math::
 

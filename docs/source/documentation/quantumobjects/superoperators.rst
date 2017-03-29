@@ -24,7 +24,7 @@ The coefficients are then connected by
 
 .. math::
 
-    A_{uv} &= \sum_{mn} S_{uvmn} B_{mn}
+    A_{uv} = \sum_{mn} S_{uvmn} B_{mn}
 
 The implementation of super-operators in **QuantumOptics.jl** therefore has to know about four, possibly different, bases. The two basis choices for the codomain (output) are stored in the ``basis_l`` field and the two basis choices for the domain (input) are stored in the ``basis_r`` field. At the moment there are two concrete super-operator types implemented, a dense version :jl:type:`DenseSuperOperator` and a sparse version :jl:type:`SparseSuperOperator`, both inheriting from the abstract :jl:abstract:`SuperOperator` type.
 

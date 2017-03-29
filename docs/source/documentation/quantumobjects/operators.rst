@@ -88,7 +88,7 @@ To convert other operators to sparse operators the :jl:func:`sparse(::Operator)`
 Lazy operators
 ^^^^^^^^^^^^^^
 
-Lazy operators allow delayed evaluation of certain operations. This is useful when combining two operators is numerically expensive but separate multiplication with states is relatively cheap. A nice example is the :jl:type:`FFTOperator` operator implemented for particles. It allows using a fast fourier transformation to convert a state from real space to momentum space, applying a diagonal operator and converting it back. Doing this in operator notation is only fast if the the order of operations is :math:`\mathrm{IFFT}*(D*(\mathrm{FFT}*\psi))`. To create a Hamiltonian that uses this calculation order, lazy evaluation is needed::
+Lazy operators allow delayed evaluation of certain operations. This is useful when combining two operators is numerically expensive but separate multiplication with states is relatively cheap. A nice example is the :jl:type:`FFTOperator` implemented for particles. It allows using a fast fourier transformation to convert a state from real space to momentum space, applying a diagonal operator and converting it back. Doing this in operator notation is only fast if the the order of operations is :math:`\mathrm{IFFT}*(D*(\mathrm{FFT}*\psi))`. To create a Hamiltonian that uses this calculation order, lazy evaluation is needed::
 
     xmin = -5
     xmax = 5
