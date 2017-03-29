@@ -22,6 +22,8 @@ ket = Ket(b)
 @test 0 ≈ norm(ket)
 @test_throws bases.IncompatibleBases bra*Ket(b1)
 @test bra == bra
+@test bases.basis(ket) == b
+@test bases.basis(bra) == b
 @test bra != basisstate(b, 1)
 
 # Arithmetic operations
