@@ -11,10 +11,6 @@ Spin
 
 In quantum mechanics particles posses an additional intrinsic property which behaves analogous to classical angular momentum.
 
-
-Bases
------
-
 Spin systems of arbitrary spin number can be modeled with the :jl:type:`SpinBasis` which is defined as::
 
     type SpinBasis <: Basis
@@ -28,8 +24,8 @@ States
 
 The lowest and uppermost states are defined:
 
-* :jl:func:`spinup(b::SpinBasis)`
-* :jl:func:`spindown(b::SpinBasis)`
+* :jl:func:`spinup`
+* :jl:func:`spindown`
 
 
 Operators

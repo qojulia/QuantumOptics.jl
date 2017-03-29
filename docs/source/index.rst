@@ -4,6 +4,7 @@ QuantumOptics.jl
 
 .. toctree::
     :includehidden:
+    :maxdepth: 3
 
     introduction
     installation
