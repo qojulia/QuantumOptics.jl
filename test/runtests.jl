@@ -31,6 +31,8 @@ names = [
     "test_steadystate.jl",
     "test_timecorrelations.jl",
 
+    "test_printing.jl",
+
     "test_cumulantexpansion.jl",
     "test_cumulantexpansion_timedependent.jl",
     "test_correlationexpansion.jl",
