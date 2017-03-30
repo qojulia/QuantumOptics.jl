@@ -251,4 +251,9 @@ beta = complex(2.1)
 operators.gemm!(alpha, op1, op2, beta, result)
 @test 1e-15 > D(result, alpha*op1*op2 + beta*op1)
 
+dat = rand(prod(b_r.shape))
+x = Ket(b_r, dat)
+y = Bra(b_r, dat)
+@test dm(x) == dm(y)
+
 end # testset

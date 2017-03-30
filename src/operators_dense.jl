@@ -9,7 +9,7 @@ using Base.LinAlg
 using Base.Cartesian
 using ..bases, ..states, ..operators
 
-export DenseOperator, projector
+export DenseOperator, projector, dm
 
 """
 Dense array implementation of Operator.
@@ -213,6 +213,13 @@ end
 Check if an operator is Hermitian.
 """
 ishermitian(A::DenseOperator) = ishermitian(A.data)
+
+
+"""
+Create density matrix from Ket or Bra.
+"""
+dm(x::Ket) = tensor(x, dagger(x))
+dm(x::Bra) = tensor(dagger(x), x)
 
 
 end # module
