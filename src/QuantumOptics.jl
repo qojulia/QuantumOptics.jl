@@ -29,8 +29,6 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         spectralanalysis, simdiag,
         timeevolution_simple,
         timeevolution, diagonaljumps,
-        cumulantexpansion,
-        correlationexpansion,
         steadystate,
         timecorrelations
 
@@ -65,8 +63,6 @@ module timeevolution
     using .timeevolution_mcwf
 end
 diagonaljumps = timeevolution.timeevolution_mcwf.diagonaljumps
-include("cumulantexpansion.jl")
-include("correlationexpansion.jl")
 include("steadystate.jl")
 include("timecorrelations.jl")
 include("spectralanalysis.jl")
