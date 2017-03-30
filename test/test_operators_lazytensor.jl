@@ -30,12 +30,19 @@ op3 = randoperator(b3a, b3b)
 @test_throws AssertionError LazyTensor(b_l, b_r, [1, 2], [randoperator(b_r, b_r), sparse(op2)])
 
 @test LazyTensor(b_l, b_r, [2, 1], [op2, op1]) == LazyTensor(b_l, b_r, [1, 2], [op1, op2])
+x = randoperator(b2a)
+@test LazyTensor(b_l, 2, x) == LazyTensor(b_l, b_l, [2], [x])
 
 # Test full & sparse
 I2 = identityoperator(b2a, b2b)
 x = LazyTensor(b_l, b_r, [1, 3], [op1, sparse(op3)], 0.3)
 @test 1e-12 > D(0.3*op1⊗full(I2)⊗op3, full(x))
 @test 1e-12 > D(0.3*sparse(op1)⊗I2⊗sparse(op3), sparse(x))
+
+# Test suboperators
+@test operators_lazytensor.suboperator(x, 1) == op1
+@test operators_lazytensor.suboperator(x, 3) == sparse(op3)
+@test operators_lazytensor.suboperators(x, [1, 3]) == [op1, sparse(op3)]
 
 
 # Arithmetic operations
