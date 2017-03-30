@@ -110,4 +110,6 @@ for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     @test 1e-14 > abs(qfunc(rho, c) - q_rho)
 end
 
+@test norm(coherentstate(b, 0.1 + 1.1im) - displace(b, 0.1 + 1.1im)*fockstate(b, 0)) < 1e-15
+
 end # testset

@@ -4,7 +4,7 @@ import Base.==
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
-export FockBasis, number, destroy, create, fockstate, coherentstate, qfunc
+export FockBasis, number, destroy, create, fockstate, coherentstate, qfunc, displace
 
 
 """
@@ -187,5 +187,10 @@ function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
     end
     return result
 end
+
+"""
+Construct displacement operator.
+"""
+displace(b::FockBasis, α::Complex128) = expm(full(α*create(b) - conj(α)*destroy(b)))
 
 end # module
