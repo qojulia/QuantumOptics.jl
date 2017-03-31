@@ -91,7 +91,7 @@ b = FockBasis(50)
 psi = randstate(b)
 rho = randop(b)
 X = [-2.1:1.5:2;]
-Y = [0.13:1.4:3;]
+Y = [-0.5:.8:3;]
 
 Qpsi = qfunc(psi, X, Y)
 Qrho = qfunc(rho, X, Y)
@@ -105,5 +105,10 @@ for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     @test 1e-14 > abs(qfunc(psi, c) - q_psi)
     @test 1e-14 > abs(qfunc(rho, c) - q_rho)
 end
+
+Wpsi = wigner(psi, X, Y)
+Wpsi2 = wigner(dagger(psi), X, Y)
+Wrho = wigner(dm(psi), X, Y)
+@test Wpsi ≈ Wrho && Wpsi == Wpsi2
 
 end # testset

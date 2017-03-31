@@ -4,7 +4,7 @@ import Base.==
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
-export FockBasis, number, destroy, create, fockstate, coherentstate, qfunc, displace
+export FockBasis, number, destroy, create, fockstate, coherentstate, qfunc, displace, wigner
 
 
 """
@@ -159,5 +159,54 @@ function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
     end
     return result
 end
+
+"""
+Wigner function of a state.
+
+This implementation uses the series representation in a Fock basis :math:`W(α)=\\frac{1}{\\pi}\\sum_{k=0}^\infty (-1)^k \\langle k| D(\\alpha)^\\dagger \\rho D(\\alpha)|k\\rangle`,
+where :math:`D(\alpha)` is the displacement operator.
+"""
+function wigner(rho::DenseOperator, x::Vector{Float64}, y::Vector{Float64})
+  b = basis(rho)
+  @assert typeof(b) == FockBasis
+
+  X = x./sqrt(2) # Normalization of alpha
+  Y = y./sqrt(2)
+  if abs2(maximum(abs(x)) + 1.0im*maximum(abs(y))) > 0.75b.Nmax
+    warn("x and y range close to cut-off!")
+  end
+
+  W = zeros(Float64, length(x), length(y))
+  @inbounds for i=1:length(x), j=1:length(y)
+    alpha = (X[i] + 1.0im*Y[j])
+    D = displace(b, alpha)
+    op = dagger(D)*rho*D
+    W[i, j] = real(sum([(-1)^k*op.data[k+1, k+1] for k=0:b.Nmax]))
+  end
+
+  return W./pi
+end
+
+function wigner(psi::Ket, x::Vector{Float64}, y::Vector{Float64})
+  b = basis(psi)
+  @assert typeof(b) == FockBasis
+
+  X = x./sqrt(2)
+  Y = y./sqrt(2)
+  if abs2(maximum(abs(x)) + 1.0im*maximum(abs(y))) > 0.75b.Nmax
+    warn("x and y range close to cut-off!")
+  end
+
+  W = zeros(Float64, length(x), length(y))
+  for i=1:length(x), j=1:length(y)
+    alpha = (X[i] + 1.0im*Y[j])
+    Dpsi = displace(b, -alpha)*psi
+    W[i, j] = sum([(-1)^k*abs2(Dpsi.data[k+1]) for k=0:b.Nmax])
+  end
+
+  return W./pi
+end
+
+wigner(psi::Bra, x::Vector{Float64}, y::Vector{Float64}) = wigner(dagger(psi), x, y)
 
 end # module
