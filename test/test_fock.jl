@@ -36,7 +36,6 @@ basis = FockBasis(2)
 @test destroy(basis) == dagger(create(basis))
 @test 1e-15 > D(create(basis)*destroy(basis), number(basis))
 
-
 # Test application onto statevectors
 @test create(basis)*fockstate(basis, 0) == fockstate(basis, 1)
 @test create(basis)*fockstate(basis, 1) == sqrt(2)*fockstate(basis, 2)
@@ -47,6 +46,16 @@ basis = FockBasis(2)
 @test destroy(basis)*fockstate(basis, 2) == sqrt(2)*fockstate(basis, 1)
 @test dagger(fockstate(basis, 1))*create(basis) == dagger(fockstate(basis, 0))
 @test dagger(fockstate(basis, 2))*create(basis) == sqrt(2)*dagger(fockstate(basis, 1))
+
+# Test displacement operator
+b = FockBasis(30)
+alpha = complex(0.5, 0.3)
+d = displace(b, alpha)
+a = destroy(b)
+@test 1e-12 > D(d*dagger(d), identityoperator(b))
+@test 1e-12 > D(dagger(d)*d, identityoperator(b))
+@test 1e-12 > D(dagger(d), displace(b, -alpha))
+@test 1e-15 > norm(coherentstate(b, alpha) - displace(b, alpha)*fockstate(b, 0))
 
 
 # Test Fock states
@@ -109,7 +118,5 @@ for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     @test 1e-14 > abs(qfunc(psi, c) - q_psi)
     @test 1e-14 > abs(qfunc(rho, c) - q_rho)
 end
-
-@test norm(coherentstate(b, 0.1 + 1.1im) - displace(b, 0.1 + 1.1im)*fockstate(b, 0)) < 1e-15
 
 end # testset

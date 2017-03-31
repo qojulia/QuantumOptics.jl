@@ -85,6 +85,11 @@ function create(b::FockBasis)
 end
 
 """
+Construct displacement operator.
+"""
+displace(b::FockBasis, α::Number) = expm(full(α*create(b) - conj(α)*destroy(b)))
+
+"""
 Fock state for the given particle number.
 
 Arguments
@@ -187,10 +192,5 @@ function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
     end
     return result
 end
-
-"""
-Construct displacement operator.
-"""
-displace(b::FockBasis, α::Complex128) = expm(full(α*create(b) - conj(α)*destroy(b)))
 
 end # module
