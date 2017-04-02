@@ -12,8 +12,8 @@ E0 = 20
 b_position = PositionBasis(xmin, xmax, Nsteps)
 xpoints = samplepoints(b_position)
 
-x = positionoperator(b_position)
-p = momentumoperator(b_position)
+x = position(b_position)
+p = momentum(b_position)
 
 potential = x -> E0 + x^4 - 8*x^2
 V = potentialoperator(b_position, potential)

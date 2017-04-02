@@ -96,8 +96,8 @@ Lazy operators allow delayed evaluation of certain operations. This is useful wh
     b_position = PositionBasis(xmin, xmax, Npoints)
     b_momentum = MomentumBasis(b_position)
 
-    p = momentumoperator(b_momentum)
-    x = positionoperator(b_position)
+    p = momentum(b_momentum)
+    x = position(b_position)
 
     Tpx = particle.FFTOperator(b_momentum, b_position);
 

@@ -31,13 +31,13 @@ psi0_bp = gaussianstate(basis_momentum, x0, p0, sigma)
 @test 1 ≈ norm(psi0_bx)
 @test 1 ≈ norm(psi0_bp)
 
-p_bx = momentumoperator(basis_position)
-x_bx = positionoperator(basis_position)
+p_bx = momentum(basis_position)
+x_bx = position(basis_position)
 
-@test 1e-10 > D(p_bx, particle.FFTOperator(basis_position, basis_momentum)*full(momentumoperator(basis_momentum))*particle.FFTOperator(basis_momentum, basis_position))
+@test 1e-10 > D(p_bx, particle.FFTOperator(basis_position, basis_momentum)*full(momentum(basis_momentum))*particle.FFTOperator(basis_momentum, basis_position))
 
-p_bp = momentumoperator(basis_momentum)
-x_bp = positionoperator(basis_momentum)
+p_bp = momentum(basis_momentum)
+x_bp = position(basis_momentum)
 
 @test x0 ≈ expect(x_bx, psi0_bx)
 @test 0.1 > abs(p0 - expect(p_bx, psi0_bx))

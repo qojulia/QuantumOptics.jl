@@ -22,7 +22,7 @@ V = potentialoperator(b_position, V_barrier);
 
 Txp = FFTOperator(b_position, b_momentum)
 Tpx = FFTOperator(b_momentum, b_position)
-Hkin = LazyProduct(Txp, momentumoperator(b_momentum)^2/2, Tpx);
+Hkin = LazyProduct(Txp, momentum(b_momentum)^2/2, Tpx);
 
 H = LazySum(Hkin, V);
 

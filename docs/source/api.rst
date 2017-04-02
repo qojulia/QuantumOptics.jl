@@ -252,9 +252,9 @@ Particle
 
 .. jl:autofunction:: particle.jl samplepoints
 
-.. jl:autofunction:: particle.jl positionoperator
+.. jl:autofunction:: particle.jl position
 
-.. jl:autofunction:: particle.jl momentumoperator
+.. jl:autofunction:: particle.jl momentum
 
 .. jl:autofunction:: particle.jl gaussianstate
 

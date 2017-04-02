@@ -13,16 +13,16 @@ Npoints = 100
 b_position = PositionBasis(xmin, xmax, Npoints)
 
 # Hamiltonian in real space basis
-p = momentumoperator(b_position) # Dense operator
-x = positionoperator(b_position) # Sparse operator
+p = momentum(b_position) # Dense operator
+x = position(b_position) # Sparse operator
 
 H = p^2/2m + 1/2*m*ω^2*full(x^2);
 
 b_momentum = MomentumBasis(b_position);
 
 # Hamiltonian
-p = momentumoperator(b_momentum) # Sparse operator
-x = positionoperator(b_momentum) # Dense operator
+p = momentum(b_momentum) # Sparse operator
+x = position(b_momentum) # Dense operator
 
 H = full(p^2)/2m + 1/2*m*ω^2*x^2;
 
@@ -32,8 +32,8 @@ T_px = particle.FFTOperator(b_momentum, b_position);
 
 T_xp = dagger(T_px)
 
-x = positionoperator(b_position)
-p = momentumoperator(b_momentum)
+x = position(b_position)
+p = momentum(b_momentum)
 
 H_kin = LazyProduct(T_xp, p^2/2m, T_px)
 V = ω*x^2

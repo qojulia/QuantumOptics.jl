@@ -1,6 +1,6 @@
 module particle
 
-import Base.==
+import Base: ==, position
 import ..operators
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
@@ -8,7 +8,7 @@ using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 export PositionBasis, MomentumBasis,
         gaussianstate,
         spacing, samplepoints,
-        positionoperator, momentumoperator, potentialoperator, FFTOperator
+        position, momentum, potentialoperator, FFTOperator
 
 """
 Basis for a particle in real space.
@@ -226,28 +226,28 @@ samplepoints(b::MomentumBasis) = (dp = spacing(b); Float64[b.pmin + i*dp for i=0
 """
 Position operator in real space.
 """
-positionoperator(b::PositionBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)), 0, length(b), length(b)))
+position(b::PositionBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)), 0, length(b), length(b)))
 
 
 """
 Position operator in momentum space.
 """
-function positionoperator(b::MomentumBasis)
+function position(b::MomentumBasis)
     b_pos = PositionBasis(b)
-    particle.FFTOperator(b, b_pos)*full(positionoperator(b_pos))*particle.FFTOperator(b_pos, b)
+    particle.FFTOperator(b, b_pos)*full(position(b_pos))*particle.FFTOperator(b_pos, b)
 end
 
 """
 Momentum operator in momentum space.
 """
-momentumoperator(b::MomentumBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)), 0, length(b), length(b)))
+momentum(b::MomentumBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)), 0, length(b), length(b)))
 
 """
 Momentum operator in real space.
 """
-function momentumoperator(b::PositionBasis)
+function momentum(b::PositionBasis)
     b_mom = MomentumBasis(b)
-    particle.FFTOperator(b, b_mom)*full(momentumoperator(b_mom))*particle.FFTOperator(b_mom, b)
+    particle.FFTOperator(b, b_mom)*full(momentum(b_mom))*particle.FFTOperator(b_mom, b)
 end
 
 """

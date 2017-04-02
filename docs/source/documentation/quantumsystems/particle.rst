@@ -16,8 +16,8 @@ Particle
     sigma = 0.2
     psi = gaussianstate(b_position, x0, p0, sigma)
 
-    x = positionoperator(b_position)
-    p = momentumoperator(b_position)
+    x = position(b_position)
+    p = momentum(b_position)
 
 
 For particles **QuantumOptics.jl** provides two different choices - either the calculations can be done in real space or they can be done in momentum space by using :jl:type:`PositionBasis` or :jl:type:`MomentumBasis` respectively. The definition of these two bases types is very simple::
@@ -55,8 +55,8 @@ Operators
 
 All operators are defined for the position basis as well as for the momentum basis.
 
-* :jl:func:`momentumoperator`
-* :jl:func:`positionoperator`
+* :jl:func:`momentum`
+* :jl:func:`position`
 
 Transforming a state from one basis into another can be done efficiently using the :jl:type:`FFTOperator`::
 

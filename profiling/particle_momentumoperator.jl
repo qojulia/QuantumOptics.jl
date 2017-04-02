@@ -1,13 +1,13 @@
 using BenchmarkTools
 using QuantumOptics
 
-function momentumoperator1(b::PositionBasis)
+function momentum1(b::PositionBasis)
     b_mom = MomentumBasis(b)
-    particle.FFTOperator(b, b_mom)*full(momentumoperator(b_mom))*particle.FFTOperator(b_mom, b)
+    particle.FFTOperator(b, b_mom)*full(momentum(b_mom))*particle.FFTOperator(b_mom, b)
 end
 
 
-# function momentumoperator2(b::PositionBasis)
+# function momentum2(b::PositionBasis)
 #     x = particle.samplepoints(b)
 #     dx = particle.spacing(b)
 #     p = particle.samplepoints(MomentumBasis(b))
@@ -23,7 +23,7 @@ end
 #     return DenseOperator(b, data)
 # end
 
-# function momentumoperator3(b::PositionBasis)
+# function momentum3(b::PositionBasis)
 #     dx = particle.spacing(b)
 #     dp = 2pi/(dx*b.N)
 #     data = Matrix{Complex128}(b.N, b.N)
@@ -39,7 +39,7 @@ end
 #     return DenseOperator(b, data)
 # end
 
-function momentumoperator4(b::PositionBasis)
+function momentum4(b::PositionBasis)
     x = particle.samplepoints(b)
     dx = particle.spacing(b)
     b_mom = MomentumBasis(b)
@@ -61,18 +61,18 @@ Npoints = 100
 b_pos = PositionBasis(xmin, xmax, Npoints)
 b_mom = MomentumBasis(b_pos)
 
-p1 = momentumoperator1(b_pos)
-p2 = momentumoperator2(b_pos)
-p3 = momentumoperator3(b_pos)
-p4 = momentumoperator4(b_pos)
+p1 = momentum1(b_pos)
+p2 = momentum2(b_pos)
+p3 = momentum3(b_pos)
+p4 = momentum4(b_pos)
 
 println(sum(abs(p1.data-p2.data)))
 println(sum(abs(p1.data-p3.data)))
 println(sum(abs(p1.data-p4.data)))
 
-# r1 = @benchmark momentumoperator1($b_pos)
-# r2 = @benchmark momentumoperator2($b_pos)
-# r3 = @benchmark momentumoperator3($b_pos)
+# r1 = @benchmark momentum1($b_pos)
+# r2 = @benchmark momentum2($b_pos)
+# r3 = @benchmark momentum3($b_pos)
 
 # println(r1)
 # println(r2)

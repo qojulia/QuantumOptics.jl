@@ -1,12 +1,12 @@
 using BenchmarkTools
 using QuantumOptics
 
-function positionoperator1(b::MomentumBasis)
+function position1(b::MomentumBasis)
     b_pos = PositionBasis(b)
-    particle.FFTOperator(b, b_pos)*full(positionoperator(b_pos))*particle.FFTOperator(b_pos, b)
+    particle.FFTOperator(b, b_pos)*full(position(b_pos))*particle.FFTOperator(b_pos, b)
 end
 
-function positionoperator2(b::MomentumBasis)
+function position2(b::MomentumBasis)
     p = particle.samplepoints(b)
     dp = particle.spacing(b)
     b_pos = PositionBasis(b)
@@ -23,7 +23,7 @@ function positionoperator2(b::MomentumBasis)
     return DenseOperator(b, data)
 end
 
-function positionoperator3(b::MomentumBasis)
+function position3(b::MomentumBasis)
     dp = particle.spacing(b)
     dx = 2pi/(dp*b.N)
     data = Matrix{Complex128}(b.N, b.N)
@@ -39,7 +39,7 @@ function positionoperator3(b::MomentumBasis)
     return DenseOperator(b, data)
 end
 
-function positionoperator4(b::MomentumBasis)
+function position4(b::MomentumBasis)
     p = particle.samplepoints(b)
     dp = particle.spacing(b)
     b_pos = PositionBasis(b)
@@ -61,10 +61,10 @@ Npoints = 300
 b_pos = PositionBasis(xmin, xmax, Npoints)
 b_mom = MomentumBasis(b_pos)
 
-p1 = positionoperator1(b_mom)
-p2 = positionoperator2(b_mom)
-p3 = positionoperator3(b_mom)
-p4 = positionoperator4(b_mom)
+p1 = position1(b_mom)
+p2 = position2(b_mom)
+p3 = position3(b_mom)
+p4 = position4(b_mom)
 
 println(sum(abs(p1.data-p2.data)))
 println(sum(abs(p1.data-p3.data)))
@@ -72,7 +72,7 @@ println(sum(abs(p1.data-p4.data)))
 
 function run_f4(N, b_mom)
     for i=1:N
-        positionoperator4(b_mom)
+        position4(b_mom)
     end
 end
 
@@ -80,10 +80,10 @@ end
 # @profile run_f4(1000, b_mom)
 
 
-r1 = @benchmark positionoperator1($b_mom)
-r2 = @benchmark positionoperator2($b_mom)
-r3 = @benchmark positionoperator3($b_mom)
-r4 = @benchmark positionoperator4($b_mom)
+r1 = @benchmark position1($b_mom)
+r2 = @benchmark position2($b_mom)
+r3 = @benchmark position3($b_mom)
+r4 = @benchmark position4($b_mom)
 
 println(r1)
 println(r2)
