@@ -17,8 +17,7 @@ To create a basis of a Fock space **QuantumOptics.jl** provides the :jl:type:`Fo
 
     type FockBasis <: Basis
         shape::Vector{Int}
-        Nmin::Int
-        Nmax::Int
+        N::Int
     end
 
 

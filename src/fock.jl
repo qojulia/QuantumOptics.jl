@@ -13,28 +13,23 @@ Basis for a Fock space.
 Arguments
 ---------
 
-Nmin
-    Minimal particle number included in this basis. By default it is zero, i.e.
-    starting with the vacuum state.
-Nmax
-    Maximal particle number included in this basis.
+N
+    Maximal particle number included in this basis. Note that the dimension of
+    this basis is N+1.
 """
 type FockBasis <: Basis
     shape::Vector{Int}
-    Nmin::Int
-    Nmax::Int
-    function FockBasis(Nmin::Int, Nmax::Int)
-        if Nmin < 0 || Nmax <= Nmin
+    N::Int
+    function FockBasis(N::Int)
+        if N < 0
             throw(DimensionMismatch())
         end
-        new([Nmax-Nmin+1], Nmin, Nmax)
+        new([N+1], N)
     end
 end
 
-FockBasis(Nmax::Int) = FockBasis(0, Nmax)
 
-
-==(b1::FockBasis, b2::FockBasis) = b1.Nmin==b2.Nmin && b1.Nmax==b2.Nmax
+==(b1::FockBasis, b2::FockBasis) = b1.N==b2.N
 
 """
 Number operator for the given Fock space.
@@ -46,9 +41,8 @@ b
     FockBasis of this operator.
 """
 function number(b::FockBasis)
-    N = b.Nmax-b.Nmin+1
-    diag = Complex128[complex(x) for x=b.Nmin:b.Nmax]
-    data = spdiagm(diag, 0, N, N)
+    diag = Complex128[complex(x) for x=0:b.N]
+    data = spdiagm(diag, 0, b.N+1, b.N+1)
     SparseOperator(b, data)
 end
 
@@ -62,9 +56,8 @@ b
     FockBasis of this operator.
 """
 function destroy(b::FockBasis)
-    N = b.Nmax-b.Nmin+1
-    diag = Complex128[complex(sqrt(x)) for x=b.Nmin+1:b.Nmax]
-    data = spdiagm(diag, 1, N, N)
+    diag = Complex128[complex(sqrt(x)) for x=1:b.N]
+    data = spdiagm(diag, 1, b.N+1, b.N+1)
     SparseOperator(b, data)
 end
 
@@ -78,9 +71,8 @@ b
     FockBasis of this operator.
 """
 function create(b::FockBasis)
-    N = b.Nmax-b.Nmin+1
-    diag = Complex128[complex(sqrt(x)) for x=b.Nmin+1:b.Nmax]
-    data = spdiagm(diag, -1, N, N)
+    diag = Complex128[complex(sqrt(x)) for x=1:b.N]
+    data = spdiagm(diag, -1, b.N+1, b.N+1)
     SparseOperator(b, data)
 end
 
@@ -101,8 +93,8 @@ n
     Quantum number of the state.
 """
 function fockstate(b::FockBasis, n::Int)
-    @assert b.Nmin <= n <= b.Nmax
-    basisstate(b, n+1-b.Nmin)
+    @assert n <= b.N
+    basisstate(b, n+1)
 end
 
 """
@@ -119,13 +111,9 @@ alpha
 function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex128}(length(b))))
     alpha = complex(alpha)
     data = result.data
-    if b.Nmin == 0
-        data[1] = exp(-abs2(alpha)/2)
-    else
-        data[1] = exp(-abs2(alpha)/2)*alpha^b.Nmin/sqrt(factorial(b.Nmin))
-    end
-    @inbounds for n=1:(b.Nmax-b.Nmin)
-        data[n+1] = data[n]*alpha/sqrt(b.Nmin + n)
+    data[1] = exp(-abs2(alpha)/2)
+    @inbounds for n=1:b.N
+        data[n+1] = data[n]*alpha/sqrt(n)
     end
     return result
 end

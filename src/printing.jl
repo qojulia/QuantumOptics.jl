@@ -36,7 +36,7 @@ function show(stream::IO, x::SpinBasis)
 end
 
 function show(stream::IO, x::FockBasis)
-    write(stream, "Fock(cutoff=$(x.Nmax))")
+    write(stream, "Fock(cutoff=$(x.N))")
 end
 
 function show(stream::IO, x::NLevelBasis)

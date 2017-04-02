@@ -56,7 +56,7 @@ ket_b2 = randstate(b2)
 @test 1e-14 > D((bra_b1 ⊗ bra_b2)*(ket_b1 ⊗ ket_b2), (bra_b1*ket_b1)*(bra_b2*ket_b2))
 
 # Norm
-basis = FockBasis(0, 1)
+basis = FockBasis(1)
 bra = Bra(basis, [3im, -4])
 ket = Ket(basis, [-4im, 3])
 @test 5 ≈ norm(bra)
