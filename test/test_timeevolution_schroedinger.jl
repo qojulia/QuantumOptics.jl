@@ -49,7 +49,7 @@ function f(t, psi)
 end
 
 tout, psi_rot_t = timeevolution.schroedinger(T, psi0, Hrot)
-tout, psi_t = timeevolution.schroedinger_timedependent(T, psi0, f)
+tout, psi_t = timeevolution.schroedinger_dynamic(T, psi0, f)
 
 for (i, t) in enumerate(tout)
     R = prod([embed(basis, i, expm(1im*ω[i]*t*full(at*a))) for i=1:N])

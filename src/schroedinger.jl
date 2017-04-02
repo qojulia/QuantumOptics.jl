@@ -1,6 +1,6 @@
 module timeevolution_schroedinger
 
-export schroedinger, schroedinger_timedependent
+export schroedinger, schroedinger_dynamic
 
 using ...bases
 using ...states
@@ -40,7 +40,7 @@ function dschroedinger(psi::Bra, H::Operator, dpsi::Bra)
     return dpsi
 end
 
-function dschroedinger_timedependent{T<:StateVector}(t::Float64, psi0::T, f::Function, dpsi::T)
+function dschroedinger_dynamic{T<:StateVector}(t::Float64, psi0::T, f::Function, dpsi::T)
     H = f(t, psi0)
     _check_input(psi0, H)
     dschroedinger(psi0, H, dpsi)
@@ -105,10 +105,10 @@ fout (optional)
     ATTENTION: The state psi is neither normalized nor permanent! It is still
     in use by the ode solver and therefor must not be changed.
 """
-function schroedinger_timedependent{T<:StateVector}(tspan, psi0::T, f::Function;
+function schroedinger_dynamic{T<:StateVector}(tspan, psi0::T, f::Function;
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    dschroedinger_(t, psi::T, dpsi::T) = dschroedinger_timedependent(t, psi, f, dpsi)
+    dschroedinger_(t, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, f, dpsi)
     integrate_schroedinger(dschroedinger_, tspan, psi0; fout=fout, kwargs...)
 end
 

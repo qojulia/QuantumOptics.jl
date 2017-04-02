@@ -47,7 +47,7 @@ timeevolution.master_nh(T, psi0, Hint, []; fout=f_test)
 # No decay, rotating
 f_test_td(t, psi::Ket) = @test 1e-5 > D(psi, coherentstate(b, α(t, α0, δc, 0)*exp(-1im*ω*t)))
 f_H(t, psi) = ωc*n + η*(a*exp(1im*ω*t) + at*exp(-1im*ω*t))
-timeevolution.schroedinger_timedependent(T, psi0, f_H; fout=f_test_td)
+timeevolution.schroedinger_dynamic(T, psi0, f_H; fout=f_test_td)
 
 # Decay
 Hint_nh = Hint - 0.5im*κ*n
