@@ -56,8 +56,8 @@ for (i, t) in enumerate(tout)
     psi_rot = psi_rot_t[i]
     psi = psi_t[i]
     # @test abs(dagger(psi_rot)*R*psi) < 1e-5
-    rho = psi ⊗ dagger(psi)
-    rho_rot = psi_rot ⊗ dagger(psi_rot)
+    rho = dm(psi)
+    rho_rot = dm(psi_rot)
     @test tracedistance(rho_rot, full(R)*rho*dagger(full(R))) < 1e-5
 end
 

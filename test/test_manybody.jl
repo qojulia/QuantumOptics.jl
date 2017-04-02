@@ -23,7 +23,7 @@ b = GenericBasis(Nmodes)
 # Test basisstate
 b_mb = ManyBodyBasis(b, bosonstates(b, 2))
 psi_mb = basisstate(b_mb, [2, 0, 0, 0, 0])
-op = basisstate(b, 1) ⊗ dagger(basisstate(b, 1))
+op = dm(basisstate(b, 1))
 @test onebodyexpect(op, psi_mb) ≈ 2
 psi_mb = basisstate(b_mb, [1, 0, 1, 0, 0])
 @test onebodyexpect(op, psi_mb) ≈ 1
@@ -82,9 +82,9 @@ n3 = number(b_mb, 3)
 psi = randstate(b_mb)
 rho = randoperator(b_mb)
 
-n1_ = basisstate(b, 1) ⊗ dagger(basisstate(b, 1))
-n2_ = basisstate(b, 2) ⊗ dagger(basisstate(b, 2))
-n3_ = basisstate(b, 3) ⊗ dagger(basisstate(b, 3))
+n1_ = dm(basisstate(b, 1))
+n2_ = dm(basisstate(b, 2))
+n3_ = dm(basisstate(b, 3))
 
 @test expect(n1, psi) ≈ onebodyexpect(n1_, psi)
 @test expect(n2, psi) ≈ onebodyexpect(n2_, psi)
@@ -145,9 +145,9 @@ Y = manybodyoperator(b, y)
 
 psi = randstate(b)
 
-@test onebodyexpect(x, psi) ≈ expect(X, psi⊗dagger(psi))
+@test onebodyexpect(x, psi) ≈ expect(X, dm(psi))
 @test onebodyexpect(x, Y) ≈ expect(X, Y)
-@test onebodyexpect(sparse(x), psi) ≈ expect(X, psi⊗dagger(psi))
+@test onebodyexpect(sparse(x), psi) ≈ expect(X, dm(psi))
 @test onebodyexpect(sparse(x), Y) ≈ expect(X, Y)
 @test onebodyexpect(x, [psi, Y]) == [onebodyexpect(x, psi), onebodyexpect(x, Y)]
 

@@ -30,14 +30,14 @@ Jc = embed(basis, 2, sqrt(κ)*destroy(fockbasis))
 J = [Ja, Ja2, Jc]
 
 Ψ₀ = basisstate(spinbasis, 2) ⊗ fockstate(fockbasis, 5)
-ρ₀ = Ψ₀⊗dagger(Ψ₀)
+ρ₀ = dm(Ψ₀)
 
 tspan = [0.:10:100.;]
 
 op = embed(basis, 1, sqrt(γ)*sz)
 exp_values = timecorrelations.correlation(tspan, ρ₀, H, J, dagger(op), op)
 
-ρ₀ = Ψ₀⊗dagger(Ψ₀)
+ρ₀ = dm(Ψ₀)
 
 tout, exp_values2 = timecorrelations.correlation(ρ₀, H, J, dagger(op), op; eps=1e-5)
 

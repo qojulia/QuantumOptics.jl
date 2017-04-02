@@ -32,7 +32,7 @@ Jc = embed(basis, 2, sqrt(κ)*destroy(fockbasis))
 J = [Ja, Jc]
 
 Ψ₀ = spinup(spinbasis) ⊗ fockstate(fockbasis, 5)
-ρ₀ = Ψ₀⊗dagger(Ψ₀)
+ρ₀ = dm(Ψ₀)
 
 
 op1 = DenseOperator(spinbasis, [1.2+0.3im 0.7+1.2im;0.3+0.1im 0.8+3.2im])

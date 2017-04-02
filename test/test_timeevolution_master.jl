@@ -43,7 +43,7 @@ Junscaled_dense = map(full, Junscaled)
 Jdense = map(full, J)
 
 Ψ₀ = spinup(spinbasis) ⊗ fockstate(fockbasis, 5)
-ρ₀ = Ψ₀⊗dagger(Ψ₀)
+ρ₀ = dm(Ψ₀)
 
 
 # Test master

@@ -36,9 +36,9 @@ J = [Ja, Jc]
 Jdense = map(full, J)
 
 Ψ₀ = spinup(spinbasis) ⊗ fockstate(fockbasis, 2)
-ρ₀ = Ψ₀⊗dagger(Ψ₀)
+ρ₀ = dm(Ψ₀)
 ψ0_p = fockstate(fockbasis, 0)
-ρ0_p = ψ0_p ⊗ dagger(ψ0_p)
+ρ0_p = dm(ψ0_p)
 
 tout, ρt = timeevolution.master([0,100], ρ₀, Hdense, Jdense; reltol=1e-7)
 
