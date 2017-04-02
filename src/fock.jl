@@ -87,7 +87,7 @@ end
 """
 Construct displacement operator.
 """
-displace(b::FockBasis, α::Number) = expm(full(α*create(b) - conj(α)*destroy(b)))
+displace(b::FockBasis, alpha::Number) = expm(full(alpha*create(b) - conj(alpha)*destroy(b)))
 
 """
 Fock state for the given particle number.
