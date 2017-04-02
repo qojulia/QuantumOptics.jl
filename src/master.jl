@@ -1,6 +1,6 @@
 module timeevolution_master
 
-export master, master_nh, master_h
+export master, master_nh, master_h, master_dynamic, master_nh_dynamic
 
 using ...bases
 using ...states
@@ -49,6 +49,21 @@ function dmaster_h(rho::DenseOperator, H::Operator,
 end
 
 """
+Evaluate master equation for dynamic operators.
+"""
+function dmaster_h_dynamic(t::Float64, rho::DenseOperator, f::Function,
+                    Gamma::Union{Vector{Float64}, Matrix{Float64}, Void},
+                    drho::DenseOperator, tmp::DenseOperator)
+      H, J, Jdagger = f(t, rho)
+      if isa(Gamma, Void)
+        Gamma = ones(Float64, length(J))
+      end
+      _check_input(rho, H, J, Jdagger, Gamma)
+      Gamma_ = complex(Gamma)
+      dmaster_h(rho, H, Gamma_, J, Jdagger, drho, tmp)
+end
+
+"""
 Evaluate master equation for non-hermitian Hamiltonian and diagonal jump operators.
 """
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
@@ -76,6 +91,21 @@ function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
         operators.gemm!(complex(1.), tmp, Jdagger[j], complex(1.), drho)
     end
     return drho
+end
+
+"""
+Evaluate master equation for dynamic operators.
+"""
+function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
+                    Gamma::Union{Vector{Float64}, Matrix{Float64}, Void},
+                    drho::DenseOperator, tmp::DenseOperator)
+      Hnh, Hnh_dagger, J, Jdagger = f(t, rho)
+      if isa(Gamma, Void)
+        Gamma = ones(Float64, length(J))
+      end
+      _check_input(rho, Hnh, J, Jdagger, Gamma)
+      Gamma_ = complex(Gamma)
+      dmaster_nh(rho, Hnh, Hnh_dagger, Gamma_, J, Jdagger, drho, tmp)
 end
 
 """
@@ -162,7 +192,7 @@ function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
     return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
 end
 
-master_h(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master_h(tspan, tensor(psi0, dagger(psi0)), H, J; kwargs...)
+master_h(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master_h(tspan, dm(psi0), H, J; kwargs...)
 
 
 """
@@ -184,18 +214,18 @@ function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
     return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
 end
 
-master_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector; kwargs...) = master_nh(tspan, tensor(psi0, dagger(psi0)), Hnh, J; kwargs...)
+master_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector; kwargs...) = master_nh(tspan, dm(psi0), Hnh, J; kwargs...)
 
 
 """
-Integrate the master equation with dmaster_nh as derivative function.
+Time-evolution according to a master equation.
 
 There are two implementations for integrating the master equation:
 
 * ``master_h``: Usual formulation of the master equation.
 * ``master_nh``: Variant with non-hermitian Hamiltonian.
 
-The ``master`` function takes a normal Hamiltonian, calculates the
+For dense arguments the ``master`` function calculates the
 non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 
 Arguments
@@ -204,7 +234,7 @@ Arguments
 tspan
     Vector specifying the points of time for which output should be displayed.
 rho0
-    Initial density operator (must be a dense operator). Can also be a
+    Initial density operator (must be a dense operator or ket). Can also be a
     state vector which is automatically converted into a density operator.
 H
     DenseOperator specifying the Hamiltonian.
@@ -263,6 +293,75 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
     return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
 end
 
-master(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(tspan, tensor(psi0, dagger(psi0)), H, J; kwargs...)
+master(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(tspan, dm(psi0), H, J; kwargs...)
+
+
+"""
+Time-evolution according to a master equation with a dynamic non-hermitian Hamiltonian and J.
+
+In this case the given Hamiltonian is assumed to be the non-hermitian version.
+For further information look at :func:`master(,::DenseOperator,::Operator,)`
+"""
+function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
+                Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                fout::Union{Function,Void}=nothing,
+                tmp::DenseOperator=deepcopy(rho0),
+                kwargs...)
+    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, Gamma, drho, tmp)
+    return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
+end
+
+master_nh_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_nh_dynamic(tspan, dm(psi0), f; kwargs...)
+
+
+
+"""
+Time-evolution according to a master equation with a dynamic Hamiltonian and J.
+
+There are two implementations for integrating the master equation with dynamic
+operators:
+
+* ``master_dynamic``: Usual formulation of the master equation.
+* ``master_nh``: Variant with non-hermitian Hamiltonian.
+
+Arguments
+---------
+
+tspan
+    Vector specifying the points of time for which output should be displayed.
+rho0
+    Initial density operator (must be a dense operator or ket). Can also be a
+    state vector which is automatically converted into a density operator.
+f
+    Function f(t, rho) -> (H, J, Jdagger) returning the time and/or state dependent
+    Hamiltonian and Jump operators.
+
+
+Keyword Arguments
+-----------------
+
+Gamma (optional)
+    Vector or matrix specifying the coefficients for the jump operators.
+Jdagger (optional)
+    Vector containing the hermitian conjugates of the jump operators. If they
+    are not given they are calculated automatically.
+fout (optional)
+    If given, this function fout(t, rho) is called every time an output should
+    be displayed.
+    ATTENTION: The state rho is not permanent! It is still in use by the ode
+    solver and therefor must not be changed.
+kwargs
+    Further arguments are passed on to the ode solver.
+"""
+function master_dynamic(tspan, rho0::DenseOperator, f::Function;
+                Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                fout::Union{Function,Void}=nothing,
+                tmp::DenseOperator=deepcopy(rho0),
+                kwargs...)
+    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, Gamma, drho, tmp)
+    return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
+end
+
+master_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_dynamic(tspan, dm(psi0), f; kwargs...)
 
 end #module
