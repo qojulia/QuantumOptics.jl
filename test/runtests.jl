@@ -27,6 +27,9 @@ names = [
     "test_timeevolution_master.jl",
     "test_timeevolution_mcwf.jl",
 
+    "test_timeevolution_twolevel.jl",
+    "test_timeevolution_pumpedcavity.jl",
+
     "test_superoperators.jl",
     "test_steadystate.jl",
     "test_timecorrelations.jl",
