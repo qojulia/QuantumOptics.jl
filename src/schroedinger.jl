@@ -74,7 +74,7 @@ fout (optional)
     If given, this function fout(t, psi) is called every time an output should
     be displayed.
     ATTENTION: The state psi is neither normalized nor permanent! It is still
-    in use by the ode solver and therefor must not be changed.
+    in use by the ode solver and therefore must not be changed.
 """
 function schroedinger{T<:StateVector}(tspan, psi0::T, H::Operator;
                 fout::Union{Function,Void}=nothing,
@@ -103,7 +103,7 @@ fout (optional)
     If given, this function fout(t, psi) is called every time an output should
     be displayed.
     ATTENTION: The state psi is neither normalized nor permanent! It is still
-    in use by the ode solver and therefor must not be changed.
+    in use by the ode solver and therefore must not be changed.
 """
 function schroedinger_timedependent{T<:StateVector}(tspan, psi0::T, f::Function;
                 fout::Union{Function,Void}=nothing,

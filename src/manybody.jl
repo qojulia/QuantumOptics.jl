@@ -10,7 +10,13 @@ import ..nlevel: transition
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
+"""
+Basis for a many body system.
 
+The basis has to know the associated one-body basis and which occupation states
+should be included. The occupations_hash is used to speed up checking if two
+many-body bases are equal.
+"""
 type ManyBodyBasis <: Basis
     shape::Vector{Int}
     onebodybasis::Basis
@@ -22,10 +28,16 @@ type ManyBodyBasis <: Basis
     end
 end
 
+"""
+Generate all fermionic occupation states for N-particles in M-modes.
+"""
 fermionstates(Nmodes::Int, Nparticles::Int) = _distribute_fermions(Nparticles, Nmodes, 1, zeros(Int, Nmodes), Vector{Int}[])
 fermionstates(Nmodes::Int, Nparticles::Vector{Int}) = vcat([fermionstates(Nmodes, N) for N in Nparticles]...)
 fermionstates(onebodybasis::Basis, Nparticles) = fermionstates(length(onebodybasis), Nparticles)
 
+"""
+Generate all bosonic occupation states for N-particles in M-modes.
+"""
 bosonstates(Nmodes::Int, Nparticles::Int) = _distribute_bosons(Nparticles, Nmodes, 1, zeros(Int, Nmodes), Vector{Int}[])
 bosonstates(Nmodes::Int, Nparticles::Vector{Int}) = vcat([bosonstates(Nmodes, N) for N in Nparticles]...)
 bosonstates(onebodybasis::Basis, Nparticles) = bosonstates(length(onebodybasis), Nparticles)
@@ -55,6 +67,9 @@ function isnonzero(occ1, occ2, index)
     true
 end
 
+"""
+Creation operator for the i-th mode.
+"""
 function create(b::ManyBodyBasis, index::Int)
     result = SparseOperator(b)
     # <{m}_i| at |{m}_j>
@@ -72,6 +87,9 @@ function create(b::ManyBodyBasis, index::Int)
     result
 end
 
+"""
+Annihilation operator for the i-th mode.
+"""
 function destroy(b::ManyBodyBasis, index::Int)
     result = SparseOperator(b)
     # <{m}_j| a |{m}_i>
@@ -89,6 +107,9 @@ function destroy(b::ManyBodyBasis, index::Int)
     result
 end
 
+"""
+Particle number operator for the i-th mode.
+"""
 function number(b::ManyBodyBasis, index::Int)
     result = SparseOperator(b)
     for i=1:length(b)
@@ -97,6 +118,9 @@ function number(b::ManyBodyBasis, index::Int)
     result
 end
 
+"""
+Total particle number operator.
+"""
 function number(b::ManyBodyBasis)
     result = SparseOperator(b)
     for i=1:length(b)
@@ -128,6 +152,9 @@ function isnonzero(occ1, occ2, index1::Int, index2::Int)
     true
 end
 
+"""
+Transition operator from particles in one mode into another mode.
+"""
 function transition(b::ManyBodyBasis, to::Int, from::Int)
     result = SparseOperator(b)
     # <{m}_j| at_to a_from |{m}_i>

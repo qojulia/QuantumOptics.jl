@@ -34,7 +34,7 @@ fout (optional)
     If given, this function fout(t, psi) is called every time an output should
     be displayed.
     ATTENTION: The state psi is neither normalized nor permanent! It is still
-    in use by the ode solver and therefor must not be changed.
+    in use by the ode solver and therefore must not be changed.
 
 kwargs
     Further arguments are passed on to the ode solver.
@@ -208,7 +208,7 @@ fout (optional)
     If given, this function fout(t, psi) is called every time an output should
     be displayed.
     ATTENTION: The state psi is neither normalized nor permanent! It is still
-    in use by the ode solver and therefor must not be changed.
+    in use by the ode solver and therefore must not be changed.
 Jdagger (optional)
     Vector containing the hermitian conjugates of the jump operators. If they
     are not given they are calculated automatically.

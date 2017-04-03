@@ -12,9 +12,10 @@ export LazyTensor
 """
 Lazy implementation of a tensor product of operators.
 
-The suboperators are stored as values in a dictionary where the key is
-the index of the subsystem. Additionally a complex factor is stored in the
-"factor" field which allows for fast multiplication with a number.
+The suboperators are stored in the "operators" field. The "indices" field
+specifies to which subsystem the corresponding operator lives. Additionally,
+a complex factor is stored in the "factor" field which allows for fast
+multiplication with a number.
 """
 type LazyTensor <: Operator
     basis_l::CompositeBasis

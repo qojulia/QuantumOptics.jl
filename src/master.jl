@@ -99,7 +99,7 @@ fout (optional)
     If given, this function fout(t, rho) is called every time an output should
     be displayed.
     ATTENTION: The state rho is not permanent! It is still in use by the ode
-    solver and therefor must not be changed.
+    solver and therefore must not be changed.
 
 kwargs
     Further arguments are passed on to the ode solver.
@@ -224,7 +224,7 @@ fout (optional)
     If given, this function fout(t, rho) is called every time an output should
     be displayed.
     ATTENTION: The state rho is not permanent! It is still in use by the ode
-    solver and therefor must not be changed.
+    solver and therefore must not be changed.
 kwargs
     Further arguments are passed on to the ode solver.
 """
