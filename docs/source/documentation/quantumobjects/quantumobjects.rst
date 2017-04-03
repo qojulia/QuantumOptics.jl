@@ -21,7 +21,7 @@ Operators are implemented in a very similar fashion. The only thing that makes i
     \hat{A} = \sum_{ij} |u_i\rangle\langle u_i| \hat{A} |v_j\rangle\langle v_j|
             = \sum_{ij} A_{ij} |u_i\rangle \langle v_j|
 
-Since for operators two different Hilbert spaces are involved every operator in **QuantumOptics.jl** has to store information about the left-hand basis, the right-hand basis as well as the coefficients of the operator in respect to these two bases.
+Since for operators two different Hilbert spaces are involved, every operator in **QuantumOptics.jl** has to store information about the left-hand basis, the right-hand basis as well as the coefficients of the operator in respect to these two bases.
 
 For super-operators the number of involved bases further doubles. In general, they map operators defined in :math:`\mathcal{H}_v \rightarrow \mathcal{H}_u` to operators defined in :math:`\mathcal{H}_m \rightarrow \mathcal{H}_n`.
 

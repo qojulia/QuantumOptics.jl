@@ -3,17 +3,17 @@
 States
 ^^^^^^
 
-State vectors in **QuantumOptics.jl** are interpreted as coefficients in respect to a certain :ref:`basis <section-bases>`. For example the particle state :math:`|\Psi\rangle` can be represented in a (discrete) real space basis :math:`\{|x_i\rangle\}_i` as :math:`\Psi(x_i)`. These quantities are connected by
+State vectors in **QuantumOptics.jl** are interpreted as coefficients in respect to a certain :ref:`basis <section-bases>`. For example the state :math:`|\psi\rangle` can be represented in the basis :math:`\{|u_i\rangle\}_i` as :math:`\psi_i`. These quantities are connected by
 
 .. math::
 
-    |\Psi\rangle = \sum_i \Psi(x_i) |x_i\rangle
+    |\psi\rangle = \sum_i \psi_i |u_i\rangle
 
 and the conjugate equation
 
 .. math::
 
-    \langle\Psi| = \sum_i \Psi(x_i)^* \langle x_i|
+    \langle\Psi| = \sum_i \psi_i^* \langle u_i|
 
 The distinction between coefficients in respect to bra or ket states is strictly enforced which guarantees that algebraic mistakes raise an explicit error::
 
@@ -22,7 +22,7 @@ The distinction between coefficients in respect to bra or ket states is strictly
     y = Bra(basis, [0,1,0])
     x + y # Error!
 
-Many of the often used states are already implemented in the various specific quantum systems, e.g. :jl:func:`spinup` for spins. :jl:func:`basisstate` is defined for every basis.
+Many of the commonly used states are already implemented in the specific quantum systems, e.g. :jl:func:`spinup` for spins or :jl:func:`coherentstate` for systems described by a fock basis. The :jl:func:`basisstate` function is defined for every basis and is used to generate the i-th basis-state of this basis.
 
 All expected arithmetic functions like \*, /, +, - are implemented::
 
@@ -41,15 +41,14 @@ Composite states can be created with the :jl:func:`tensor` function or with the 
     x ⊗ x
     tensor(x, x, x)
 
+Alternatively, one can use the tensor function to create a density operator by combining a ket with a bra::
+
+    tensor(x, dagger(x))
+
 The following functions are also available for states:
 
-* Normalization functions
     :jl:func:`norm`
     :jl:func:`normalize`
     :jl:func:`normalize!`
-
-* Partial trace
     :jl:func:`ptrace`
-
-* Permutation of subsystems
     :jl:func:`permutesystems`

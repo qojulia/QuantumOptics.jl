@@ -3,7 +3,7 @@
 Tutorial
 ========
 
-In this tutorial we will step through the common tasks necessary to simulate a quantum system. At each step links to documentation and examples will be provided that explain the topic at hand in more detail.
+In this tutorial we will step through the common tasks necessary to simulate a quantum system. At each step links to the corresponding documentation and to similar examples, that explain the topic at hand in more detail, will be provided.
 
 In order to use the **QuantumOptics.jl** library it has to be loaded into the current workspace.
 
@@ -95,7 +95,7 @@ Most interesting quantum systems consist of several different parts, for example
 
     H_field = ω_field*n
 
-Combining operators from those two systems can be done with the :jl:func:`tensor()` function or with the equivalent :math:`\otimes` operator.
+Combining operators from those two systems can be done with the :jl:func:`tensor()` function. Since julia supports unicode operators one can equivalently use the :math:`\otimes` operator (``\otimes``). For this it is advantageous to use an editor that provides support for unicode input.
 
 .. code-block:: julia
 
@@ -158,7 +158,7 @@ Adding photon loss to the cavity by introducing a jump operator :math:`a` means 
     J = [embed(b, 1, a)]
     tout, ρt = timeevolution.master(T, ψ0, H, J; Gamma=[κ])
 
-Alternatively, one can use the MCWF method to analyze the time evolution of the system. Physically, it can be interpreted as an experimental setup where every photon leaving the cavity is meassured by a photon counter, thereby projecting the system onto the state :math:`| \psi\rangle \rightarrow a |\psi\rangle`. This leads to a coherent time evolution according to a Schrödinger equation interrupted by jumps at certain random points in time.
+Alternatively, one can use the MCWF method to analyze the time evolution of the system. Physically, it can be interpreted as an experimental setup where every photon leaving the cavity is measured by a photon counter, thereby projecting the system onto the state :math:`| \psi\rangle \rightarrow a |\psi\rangle`. This leads to a coherent time evolution according to a Schrödinger equation interrupted by jumps at certain random points in time.
 
 .. code-block:: julia
 

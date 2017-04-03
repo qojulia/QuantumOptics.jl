@@ -11,4 +11,4 @@ After choosing a basis **QuantumOptics.jl** provides many useful functions to cr
 
 Although the main focus is on simulating dynamics of (open) quantum systems, there are nevertheless many additional features available to calculate :ref:`steadystates <section-steadystate>`, the :ref:`energy spectrum, eigenstates <section-spectralanalysis>`, and :ref:`correlation functions <section-correlationfunctions>`.
 
-For a very quick introduction it is probably best to start reading the :ref:`tutorial`. It shows a typical approach to study a quantum system and provides links to the :ref:`documentation` and to the :ref:`examples` to provide a more exhaustive explanation.
+For a quick introduction it is probably best to start reading the :ref:`tutorial`. It shows a typical approach to study a quantum system and provides links to the :ref:`documentation` and to the :ref:`examples` which give a more detailed explanation.

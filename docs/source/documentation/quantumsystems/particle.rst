@@ -20,7 +20,7 @@ Particle
     p = momentum(b_position)
 
 
-For particles **QuantumOptics.jl** provides two different choices - either the calculations can be done in real space or they can be done in momentum space by using :jl:type:`PositionBasis` or :jl:type:`MomentumBasis` respectively. The definition of these two bases types is very simple::
+For particles **QuantumOptics.jl** provides two different choices - either the calculations can be done in real space or they can be done in momentum space by using :jl:type:`PositionBasis` or :jl:type:`MomentumBasis` respectively. The definition of these two bases types is::
 
     type PositionBasis <: Basis
         shape::Vector{Int}
@@ -36,7 +36,7 @@ For particles **QuantumOptics.jl** provides two different choices - either the c
         N::Int
     end
 
-Since real space and momentum space are connected via a Fourier transformation the bases are connected. The numerically inevitable cutoff implies that the functions :math:`\Psi(x)` and :math:`\Psi(p)` can be interpreted to continue periodically over the whole real axis. The specific choice of the cutoff points is therefore irrelevant as long as the interval length stays the same. This free choice of cutoff points allows to easily create a corresponding :jl:type:`MomentumBasis` from a :jl:type:`PositionBasis` and vice versa::
+Since real space and momentum space are connected via a Fourier transformation the bases themselfes are connected. The numerically inevitable cutoff implies that the functions :math:`\Psi(x)` and :math:`\Psi(p)` can be interpreted to continue periodically over the whole real axis. The specific choice of the cutoff points is therefore irrelevant as long as the interval length stays the same. This free choice of cutoff points allows to easily create a corresponding :jl:type:`MomentumBasis` from a :jl:type:`PositionBasis` and vice versa::
 
     b_momentum = MomentumBasis(b_position)
     b_position = PositionBasis(b_momentum)

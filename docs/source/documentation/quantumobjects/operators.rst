@@ -3,13 +3,13 @@
 Operators
 =========
 
-Operators can be defined as linear mappings from one Hilbert space to another. However, equivalently to states, operators in **QuantumOptics.jl** are interpreted as coefficients of an abstract operator in respect to one or more generally two, possibly distinct :ref:`bases <section-bases>`. For a certain choice of bases :math:`\{|u_i\rangle\}_i` and :math:`\{|v_j\rangle\}_j` an abstract operator :math:`A` has the coefficients :math:`A_{ij}` which are connected by the relation
+Operators can be defined as linear maps from one Hilbert space to another. However, equivalently to states, operators in **QuantumOptics.jl** are interpreted as coefficients of an abstract operator in respect to one or more generally two, possibly distinct :ref:`bases <section-bases>`. For a certain choice of bases :math:`\{|u_i\rangle\}_i` and :math:`\{|v_j\rangle\}_j` an abstract operator :math:`A` has the coefficients :math:`A_{ij}` which are connected by the relation
 
 .. math::
 
     A =  \sum_{ij} A_{ij} | u_i \rangle \langle v_j |
 
-For this reason all operators  define a left hand as well as a right hand basis::
+For this reason all operators define a left hand as well as a right hand basis::
 
     type MyOperator <: Operator
         basis_l::Basis
@@ -44,9 +44,9 @@ Additionally, the following functions are implemented for all types of operators
 * :jl:func:`permutesystems`
 * :jl:func:`embed`
 * :jl:func:`ptrace`
+* :jl:func:`expm`
 
-Conversion from one type of operator to another is also provided. I.e. to obtain a :jl:type:`DenseOperators` or :jl:type:`SparseOperator` use :jl:func:`full` and :jl:func:`sparse`, respectively.
-
+Conversion from one type of operator to another is also provided. I.e. to obtain a :jl:type:`DenseOperators` or :jl:type:`SparseOperator` use the :jl:func:`full` and :jl:func:`sparse` functions, respectively.
 
 
 .. _subsection-denseoperators:
@@ -54,7 +54,7 @@ Conversion from one type of operator to another is also provided. I.e. to obtain
 Dense operators
 ^^^^^^^^^^^^^^^
 
-:jl:type:`DenseOperator` is implemented as::
+:jl:type:`DenseOperator` is the default type used for density operators. I.e. creating an operator by using the tensor product of a ket and a bra state results in a :jl:type:`DenseOperator`. It is implemented as::
 
     type DenseOperator <: Operator
         basis_l::Basis
@@ -72,7 +72,7 @@ The :jl:func:`full(::Operator)` function can be used to convert other types of o
 Sparse operators
 ^^^^^^^^^^^^^^^^
 
-:jl:type:`SparseOperator` is the default type used in **QuantumOptics.jl**. The reason is that in many quantum systems the Hamiltonians in respect to the commonly used bases are sparse. They are implemented as::
+:jl:type:`SparseOperator` is the default type used in **QuantumOptics.jl**. The reason is that in many quantum systems the Hamiltonians and jump operators in respect to the commonly used bases are sparse. They are implemented as::
 
     type SparseOperator <: Operator
         basis_l::Basis

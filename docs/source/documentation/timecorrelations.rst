@@ -23,10 +23,9 @@ We can do this with::
   ρ0 = fockstate(basis, 0) ⊗ dagger(fockstate(basis, 0))
   g = timecorrelations.correlation(tspan, ρ0, H, J, dagger(a), a)
 
-If we omit the list of times :func:`tspan`, the function automatically calculates the correlation until steady-state is reached::
+If we omit the list of times ``tspan``, the function automatically calculates the correlation until steady-state is reached::
 
   t_s, g_s = timecorrelations.correlation(ρ0, H, J, dagger(a), a)
 
-To calculate the spectrum, we can either use the :func:`timecorrelations.correlation2spectrum` to calculate it from a given correlation function,
-or alternatively, one can use :func:`timecorrelations.spectrum`, which calculates the correlation function internally and returns the
+To calculate the spectrum, we can either use the :jl:func:`timecorrelations.correlation2spectrum` to calculate it from a given correlation function, or alternatively, one can use :jl:func:`timecorrelations.spectrum`, which calculates the correlation function internally and returns the
 Fourier transform.

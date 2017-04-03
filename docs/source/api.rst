@@ -98,6 +98,8 @@ Operators
 
 .. jl:autofunction:: operators.jl permutesystems
 
+.. jl:autofunction:: operators.jl expm
+
 .. jl:autofunction:: operators.jl gemv!
 
 .. jl:autofunction:: operators.jl gemm!
@@ -189,8 +191,6 @@ Fock
 ^^^^
 
 .. jl:autotype:: fock.jl FockBasis
-
-.. jl:autofunction:: fock.jl FockBasis
 
 .. jl:autofunction:: fock.jl number
 

@@ -9,7 +9,7 @@ Documentation
 
     quantumobjects/quantumobjects
     quantumsystems/quantumsystems
-    timeevolution
+    timeevolution/timeevolution
     steadystate
     timecorrelations
     spectralanalysis

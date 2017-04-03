@@ -90,7 +90,8 @@ args (optional)
 
 Returns
 -------
-Vector containing eigenvalues sorted from smallest to largest absolute value.
+evals_sorted
+  Vector containing eigenvalues sorted from smallest to largest absolute value.
 """
 eigvals(A::DenseOperator, args...) = ishermitian(A) ? eigvals(Hermitian(A.data), args...) : sort(eigvals(A.data), by=abs)
 eigvals!(A::DenseOperator, args...) = ishermitian(A) ? eigvals!(Hermitian(A.data), args...) : sort(eigvals!(A.data), by=abs)
