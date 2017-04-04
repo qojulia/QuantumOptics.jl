@@ -3,7 +3,9 @@ using QuantumOptics
 
 @testset "odedopri" begin
 
-ode = QuantumOptics.ode_dopri.ode
+ode_dopri = QuantumOptics.ode_dopri
+ode_event = ode_dopri.ode_event
+ode = ode_dopri.ode
 
 ζ = 0.5
 ω₀ = 10.0
@@ -89,5 +91,22 @@ tout, yout = ode(df, T, y₀)
 
 @test tout == tout_
 @test yout == yout_
+
+
+# Test ode_event
+T = [0, 0.4, 0.8, 1]
+event_locator(t, y) = t - 0.5
+
+tout, yout = ode_event(df, T, y₀,
+            (t, y) -> t-0.5,
+            (t, y) -> ode_dopri.stop)
+@test tout[end] == 0.4
+@test 1e-5 > norm(f(0.4) - yout[end])
+
+tout, yout = ode_event(df, T, y₀,
+            (t, y) -> t-0.5,
+            (t, y) -> ode_dopri.nojump)
+@test tout[end] == 1.
+@test 1e-5 > norm(f(1.)-yout[end])
 
 end # testset

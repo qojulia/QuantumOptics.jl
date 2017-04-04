@@ -44,7 +44,7 @@ function substep{T}(x::Vector{T}, x0::Vector{T}, h::Float64, coeffs::Vector{Floa
     @inbounds for m=1:length(x0)
         dx::T = 0.
         @inbounds for i=1:length(coeffs)
-            dx += coeffs[i]::Float64 * k[i][m]
+            dx += coeffs[i] * k[i][m]
         end
         x[m] = x0[m] + h*dx
     end
