@@ -3,7 +3,7 @@
 Steady state
 ============
 
-**QuantumOptics.jl** implements two different ways to calculate steady states. The first one is to perform a time evolution according to a master equation until a adequate accuracy is reached:
+**QuantumOptics.jl** implements two different ways to calculate steady states. The first one is to perform a time evolution according to a master equation until an adequate accuracy is reached:
 
 .. epigraph::
 

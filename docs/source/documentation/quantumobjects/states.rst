@@ -13,7 +13,7 @@ and the conjugate equation
 
 .. math::
 
-    \langle\Psi| = \sum_i \psi_i^* \langle u_i|
+    \langle\psi| = \sum_i \psi_i^* \langle u_i|.
 
 The distinction between coefficients in respect to bra or ket states is strictly enforced which guarantees that algebraic mistakes raise an explicit error::
 

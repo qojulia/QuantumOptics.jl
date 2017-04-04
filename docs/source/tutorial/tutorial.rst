@@ -3,7 +3,7 @@
 Tutorial
 ========
 
-In this tutorial we will step through the common tasks necessary to simulate a quantum system. At each step links to the corresponding documentation and to similar examples, that explain the topic at hand in more detail, will be provided.
+In this tutorial we will step through the common tasks necessary to simulate a quantum system. At each step links to the corresponding documentation and to similar examples explaining the topic at hand in more detail, will be provided.
 
 In order to use the **QuantumOptics.jl** library it has to be loaded into the current workspace.
 
