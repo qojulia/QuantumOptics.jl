@@ -125,10 +125,16 @@ function permutesystems(a::DenseOperator, perm::Vector{Int})
 end
 
 """
-Create a projection operator.
+Projection operator ``|a⟩⟨b|``.
 """
 projector(a::Ket, b::Bra) = tensor(a, b)
+"""
+Projection operator ``|a⟩⟨a|``.
+"""
 projector(a::Ket) = tensor(a, dagger(a))
+"""
+Projection operator ``|a⟩⟨a|``.
+"""
 projector(a::Bra) = tensor(dagger(a), a)
 
 """

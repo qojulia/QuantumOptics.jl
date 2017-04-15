@@ -14,17 +14,23 @@ Abstract base class for Bra and Ket.
 
 The state vector class stores the coefficients of an abstract state
 in respect to a certain basis. These coefficients are stored in the
-``data`` attribute and the basis is defined in the ``basis``
-attribute.
+`data` field and the basis is defined in the `basis`
+field.
 """
 abstract StateVector
 
+"""
+Bra state defined by coefficients in respect to a basis.
+"""
 type Bra <: StateVector
     basis::Basis
     data::Vector{Complex128}
     Bra(b::Basis, data) = length(b) == length(data) ? new(b, data) : throw(DimensionMismatch())
 end
 
+"""
+Ket state defined by coefficients in respect to a basis.
+"""
 type Ket <: StateVector
     basis::Basis
     data::Vector{Complex128}
@@ -57,9 +63,12 @@ bases.tensor{T<:StateVector}(a::T, b::T) = T(tensor(a.basis, b.basis), kron(a.da
 
 
 """
-Hermitian conjugate of the given state vector.
+Hermitian conjugate of the given Bra state.
 """
 dagger(x::Bra) = Ket(x.basis, conj(x.data))
+"""
+Hermitian conjugate of the given Ket state.
+"""
 dagger(x::Ket) = Bra(x.basis, conj(x.data))
 
 

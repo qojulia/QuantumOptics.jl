@@ -74,6 +74,10 @@ ptrace(a::Operator, index::Vector{Int}) = arithmetic_unary_error("Partial trace"
 Normalized copy of given operator (trace is 1.).
 """
 normalize(op::Operator) = op/trace(op)
+
+"""
+Normalize the given operator in-place (trace is 1.).
+"""
 normalize!(op::Operator) = throw(ArgumentError("normalize! is not defined for this type of operator: $(typeof(op)).\n You may have to fall back to the non-inplace version 'normalize()'."))
 
 """
@@ -203,7 +207,14 @@ embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis, operators::
 embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Int, T}; kwargs...) = embed(basis, basis, operators; kwargs...)
 embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Vector{Int}, T}; kwargs...) = embed(basis, basis, operators; kwargs...)
 
+"""
+Fast multiplication of operators with states.
+"""
 gemv!() = error("Not Implemented.")
+
+"""
+Fast multiplication of operators with DenseOperators.
+"""
 gemm!() = error("Not Implemented.")
 
 

@@ -5,7 +5,8 @@ import ..bases
 
 using ..bases, ..operators, ..operators_dense, ..operators_sparse
 
-export DenseSuperOperator, SparseSuperOperator, spre, spost, liouvillian
+export SuperOperator, DenseSuperOperator, SparseSuperOperator,
+        spre, spost, liouvillian
 
 """
 Base class for all super operator classes.
@@ -24,7 +25,9 @@ them again consists of a left and right hand basis.
 """
 abstract SuperOperator
 
-
+"""
+SuperOperator stored as dense matrix.
+"""
 type DenseSuperOperator <: SuperOperator
     basis_l::Tuple{Basis, Basis}
     basis_r::Tuple{Basis, Basis}
@@ -38,6 +41,9 @@ type DenseSuperOperator <: SuperOperator
 end
 
 
+"""
+SuperOperator stored as sparse matrix.
+"""
 type SparseSuperOperator <: SuperOperator
     basis_l::Tuple{Basis, Basis}
     basis_r::Tuple{Basis, Basis}
@@ -175,6 +181,9 @@ function liouvillian{T<:Operator}(H::T, J::Vector{T};
     return L
 end
 
+"""
+Operator exponential which can for example used to calculate time evolutions.
+"""
 Base.expm(op::DenseSuperOperator) = DenseSuperOperator(op.basis_l, op.basis_r, expm(op.data))
 
 end # module
