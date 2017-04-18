@@ -4,9 +4,14 @@ using QuantumOptics
 @testset "spin" begin
 
 D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
-# D(a::SparseOperator, b::SparseOperator) = traceD(full(a), full(b))
 
-for spinnumber=1//2:1//2:5//2
+# Test creation
+@test_throws AssertionError SpinBasis(1//3)
+@test_throws AssertionError SpinBasis(-1//2)
+@test_throws AssertionError SpinBasis(0)
+
+
+for spinnumber=[1//2, 1, 3//2, 4//2]
     spinbasis = SpinBasis(spinnumber)
     I = operators.identityoperator(spinbasis)
     Zero = SparseOperator(spinbasis)

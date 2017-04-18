@@ -25,10 +25,11 @@ type SpinBasis <: Basis
     spinnumber::Rational{Int}
     function SpinBasis(spinnumber::Rational{Int})
         @assert den(spinnumber) == 2 || den(spinnumber) == 1
-        @assert den(spinnumber) > 0
+        @assert num(spinnumber) > 0
         new([num(spinnumber*2 + 1)], spinnumber)
     end
 end
+SpinBasis(spinnumber::Int) = SpinBasis(convert(Rational{Int}, spinnumber))
 
 ==(b1::SpinBasis, b2::SpinBasis) = b1.spinnumber==b2.spinnumber
 
