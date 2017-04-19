@@ -11,21 +11,19 @@ export PositionBasis, MomentumBasis,
         position, momentum, potentialoperator, FFTOperator
 
 """
+    PositionBasis(xmin, xmax, Npoints)
+    PositionBasis(b::MomentumBasis)
+
 Basis for a particle in real space.
 
 For simplicity periodic boundaries are assumed which means that
-the rightmost point defined by xmax is not included in the basis
-but is defined to be the same as xmin.
+the rightmost point defined by `xmax` is not included in the basis
+but is defined to be the same as `xmin`.
 
-Arguments
----------
-
-xmin
-    Left boundary.
-xmax
-    Right boundary.
-N
-    Number of discrete points in the basis.
+When a [`MomentumBasis`](@ref) is given as argument the exact values
+of ``x_{min}`` and ``x_{max}`` are due to the periodic boundary conditions
+more or less arbitrary and are chosen to be
+``-\\pi/dp`` and ``\\pi/dp`` with ``dp=(p_{max}-p_{min})/N``.
 """
 type PositionBasis <: Basis
     shape::Vector{Int}
@@ -35,22 +33,19 @@ type PositionBasis <: Basis
     PositionBasis(xmin::Real, xmax::Real, N::Int) = new([N], xmin, xmax, N)
 end
 
-
 """
+    MomentumBasis(pmin, pmax, Npoints)
+    MomentumBasis(b::PositionBasis)
+
 Basis for a particle in momentum space.
 
 For simplicity periodic boundaries are assumed which means that
-pmax is not included in the basis but is defined to be the same as pmin.
+`pmax` is not included in the basis but is defined to be the same as `pmin`.
 
-Arguments
----------
-
-pmin
-    Left boundary.
-pmax
-    Right boundary.
-N
-    Number of discrete points in the basis.
+When a [`PositionBasis`](@ref) is given as argument the exact values
+of ``p_{min}`` and ``p_{max}`` are due to the periodic boundary conditions
+more or less arbitrary and are chosen to be
+``-\\pi/dx`` and ``\\pi/dx`` with ``dx=(x_{max}-x_{min})/N``.
 """
 type MomentumBasis <: Basis
     shape::Vector{Int}
@@ -60,23 +55,7 @@ type MomentumBasis <: Basis
     MomentumBasis(pmin::Real, pmax::Real, N::Int) = new([N], pmin, pmax, N)
 end
 
-
-"""
-Create a PositionBasis from a MomentumBasis.
-
-Since periodic boundary conditions are assumed the values for :math:`x_{min}`
-and :math:`x_{max}` are more or less arbitrary and are chosen to be
-:math:`-\\pi/dp` and :math:`\\pi/dp` with :math:`dp=(p_{max}-p_{min})/N`.
-"""
 PositionBasis(b::MomentumBasis) = (dp = (b.pmax - b.pmin)/b.N; PositionBasis(-pi/dp, pi/dp, b.N))
-
-"""
-Create a MomentumBasis from a PositionBasis.
-
-Since periodic boundary conditions are assumed the values for :math:`p_{min}`
-and :math:`p_{max}` are more or less arbitrary and are chosen to be
-:math:`-\\pi/dx` and :math:`\\pi/dx` with :math:`dx=(x_{max}-x_{min})/N`.
-"""
 MomentumBasis(b::PositionBasis) = (dx = (b.xmax - b.xmin)/b.N; MomentumBasis(-pi/dx, pi/dx, b.N))
 
 ==(b1::PositionBasis, b2::PositionBasis) = b1.xmin==b2.xmin && b1.xmax==b2.xmax && b1.N==b2.N
@@ -84,51 +63,43 @@ MomentumBasis(b::PositionBasis) = (dx = (b.xmax - b.xmin)/b.N; MomentumBasis(-pi
 
 
 """
-Create a Gaussian state around x0 and p0 with width sigma in real space.
+    gaussianstate(b::PositionBasis, x0, p0, sigma)
+    gaussianstate(b::MomentumBasis, x0, p0, sigma)
 
-This implementation is based on the definition
+Create a Gaussian state around `x0` and` p0` with width `sigma`.
 
-.. math::
+In real space the gaussian state is defined as
 
-    \\Psi(x) = \\frac{\\sqrt{\\Delta x}}{\\pi^{1/4}\\sqrt{\\sigma}}
+```math
+\\Psi(x) = \\frac{\\sqrt{\\Delta x}}{\\pi^{1/4}\\sqrt{\\sigma}}
                 e^{i p_0 (x-x_0) - \\frac{(x-x_0)^2}{2 \\sigma^2}}
+```
 
-which has the properties
+and is connected to the momentum space definition
 
-* :math:`|\\Psi(p)|^2 = 1`
-* :math:`\\langle p \\rangle = p_0`
-* :math:`\\langle x \\rangle = x_0`
-* :math:`\\mathrm{Var}(x) = \\frac{\\sigma^2}{2}`
-* :math:`\\mathrm{Var}(p) = \\frac{1}{2 \\sigma^2}`
+```math
+\\Psi(p) = \\frac{\\sqrt{\\sigma} \\sqrt{\\Delta x}}{\\pi^{1/4}}
+            e^{-i x_0 p - \\frac{1}{2}(p-p_0)^2 \\sigma^2}
+```
 
-and is connected to the MomentumBasis based implementation via a
-Fourier-transformation
+via a Fourier-transformation
 
-.. math::
+```math
+\\Psi(p) = \\frac{1}{\\sqrt{2\\pi}}
+            \\int_{-\\infty}^{\\infty} e^{-ipx}\\Psi(x) \\mathrm{d}x
+```
 
-    \\Psi(p) = \\frac{1}{\\sqrt{2\\pi}}
-                \\int_{-\\infty}^{\\infty} e^{-ipx}\\Psi(x) \\mathrm{d}x
+The state has the properties
 
-Due to the numerically necessary discretization an additional scaling
-factor :math:`\\sqrt{\\Delta x}` is used so that
-:math:`\\Psi_i = \\sqrt{\\Delta x} \\Psi(x_i)` and the resulting state
-is normalized to
+* ``⟨p⟩ = p_0``
+* ``⟨x⟩ = x_0``
+* ``\\mathrm{Var}(x) = \\frac{σ^2}{2}``
+* ``\\mathrm{Var}(p) = \\frac{1}{2 σ^2}``
 
-.. math::
-
-    \\sum_i |\\Psi_i|^2 = 1
-
-
-Arguments
----------
-b
-    PositionBasis.
-x0
-    Center of the Gaussian in position space.
-p0
-    Center of the Gaussian in momentum space.
-sigma
-    Width of the Gaussian.
+Due to the numerically necessary discretization additional scaling
+factora ``\\sqrt{Δx}`` and ``\\sqrt{Δp}`` are used so that
+``Ψx_i = \\sqrt{Δ x} Ψ(x_i)`` and ``Ψp_i = \\sqrt{Δ x} Ψ(p_i)`` so
+that the resulting Ket state is normalized.
 """
 function gaussianstate(b::PositionBasis, x0::Real, p0::Real, sigma::Real)
     psi = Ket(b)
@@ -142,55 +113,6 @@ function gaussianstate(b::PositionBasis, x0::Real, p0::Real, sigma::Real)
     return psi
 end
 
-
-"""
-Create a Gaussian state around x0 and p0 with width sigma in momentum space.
-
-This implementation is based on the definition
-
-.. math::
-
-    \\Psi(p) = \\frac{\\sqrt{\\sigma} \\sqrt{\\Delta x}}{\\pi^{1/4}}
-                e^{-i x_0 p - \\frac{1}{2}(p-p_0)^2 \\sigma^2}
-
-which has the properties
-
-* :math:`|\\Psi(p)|^2 = 1`
-* :math:`\\langle p \\rangle = p_0`
-* :math:`\\langle x \\rangle = x_0`
-* :math:`\\mathrm{Var}(x) = \\frac{\\sigma^2}{2}`
-* :math:`\\mathrm{Var}(p) = \\frac{1}{2 \\sigma^2}`
-
-and is connected to the MomentumBasis based implementation via a
-Fourier-transformation
-
-.. math::
-
-    \\Psi(x) = \\frac{1}{\\sqrt{2\\pi}}
-                    \\int_{-\\infty}^{\\infty} e^{ipx}\\Psi(p) \\mathrm{d}p
-
-Due to the numerically necessary discretization an additional scaling
-factor :math:`\\sqrt{\\Delta x}` is used so that
-:math:`\\Psi_i = \\sqrt{\\Delta p} \\Psi(p_i)` and the resulting state
-is normalized to
-
-.. math::
-
-    \\sum_i |\\Psi_i|^2 = 1
-
-
-
-Arguments
----------
-b
-    MomentumBasis.
-x0
-    Center of the Gaussian in position space.
-p0
-    Center of the Gaussian in momentum space.
-sigma
-    Width of the Gaussian.
-"""
 function gaussianstate(b::MomentumBasis, x0::Real, p0::Real, sigma::Real)
     psi = Ket(b)
     dp = spacing(b)
@@ -203,33 +125,44 @@ function gaussianstate(b::MomentumBasis, x0::Real, p0::Real, sigma::Real)
     return psi
 end
 
+
 """
-Distance between two adjacent points of the real space basis.
+    spacing(b::PositionBasis)
+
+Difference between two adjacent points of the real space basis.
+"""
+spacing(b::PositionBasis) = (b.xmax - b.xmin)/b.N
+"""
+    spacing(b::MomentumBasis)
+
+Momentum difference between two adjacent points of the momentum basis.
 """
 spacing(b::MomentumBasis) = (b.pmax - b.pmin)/b.N
 
 """
-Momentum difference between two adjacent points of the momentum basis.
-"""
-spacing(b::PositionBasis) = (b.xmax - b.xmin)/b.N
+    samplepoints(b::PositionBasis)
 
-"""
 x values of the real space basis.
 """
 samplepoints(b::PositionBasis) = (dx = spacing(b); Float64[b.xmin + i*dx for i=0:b.N-1])
-
 """
+    samplepoints(b::MomentumBasis)
+
 p values of the momentum basis.
 """
 samplepoints(b::MomentumBasis) = (dp = spacing(b); Float64[b.pmin + i*dp for i=0:b.N-1])
 
 """
+    position(b::PositionBasis)
+
 Position operator in real space.
 """
 position(b::PositionBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)), 0, length(b), length(b)))
 
 
 """
+    position(b:MomentumBasis)
+
 Position operator in momentum space.
 """
 function position(b::MomentumBasis)
@@ -238,11 +171,15 @@ function position(b::MomentumBasis)
 end
 
 """
+    momentum(b:MomentumBasis)
+
 Momentum operator in momentum space.
 """
 momentum(b::MomentumBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)), 0, length(b), length(b)))
 
 """
+    momentum(b::PositionBasis)
+
 Momentum operator in real space.
 """
 function momentum(b::PositionBasis)
@@ -251,7 +188,9 @@ function momentum(b::PositionBasis)
 end
 
 """
-Operator representing a potential V(x) in real space.
+    potentialoperator(b::PositionBasis, V(x))
+
+Operator representing a potential ``V(x)`` in real space.
 """
 function potentialoperator(b::PositionBasis, V::Function)
     x = samplepoints(b)
@@ -259,14 +198,22 @@ function potentialoperator(b::PositionBasis, V::Function)
 end
 
 """
-Operator representing a potential V(x) in momentum space.
+    potentialoperator(b::MomentumBasis, V(x))
+
+Operator representing a potential ``V(x)`` in momentum space.
 """
 function potentialoperator(b::MomentumBasis, V::Function)
     b_pos = PositionBasis(b)
     particle.FFTOperator(b, b_pos)*full(potentialoperator(b_pos, V))*particle.FFTOperator(b_pos, b)
 end
 
+"""
+    FFTOperator(basis_l, basis_r)
 
+Operator performing a fast fourier transformation when multiplied with a state.
+
+One of both bases has to be a [`PositionBasis`](@ref), the other a [`MomentumBasis`](@ref).
+"""
 type FFTOperator <: Operator
     basis_l::Basis
     basis_r::Basis
@@ -278,10 +225,6 @@ type FFTOperator <: Operator
     mul_after::Vector{Complex128}
 end
 
-
-"""
-DenseOperator performing a fast Fourier transformation of a state.
-"""
 function FFTOperator(basis_l::MomentumBasis, basis_r::PositionBasis)
     Lx = (basis_r.xmax - basis_r.xmin)
     dp = spacing(basis_l)

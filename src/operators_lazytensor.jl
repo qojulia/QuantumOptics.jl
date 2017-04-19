@@ -10,6 +10,8 @@ using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 export LazyTensor
 
 """
+    LazyTensor(b1[, b2], indices, operators[, factor=1])
+
 Lazy implementation of a tensor product of operators.
 
 The suboperators are stored in the "operators" field. The "indices" field
@@ -59,7 +61,19 @@ LazyTensor(basis::Basis, indices::Vector{Int}, ops::Vector, factor::Number=1) = 
 LazyTensor(basis_l::Basis, basis_r::Basis, index::Int, operator::Operator, factor::Number=1) = LazyTensor(basis_l, basis_r, [index], Operator[operator], factor)
 LazyTensor(basis::Basis, index::Int, operators::Operator, factor::Number=1.) = LazyTensor(basis, basis, index, operators, factor)
 
-suboperator(op::LazyTensor, i::Int) = op.operators[findfirst(op.indices, i)]
+"""
+    suboperator(op::LazyTensor, index)
+
+Return the suboperator corresponding to the subsystem specified by `index`. Fails
+if there is no corresponding operator (i.e. it would be an identity operater).
+"""
+suboperator(op::LazyTensor, index::Int) = op.operators[findfirst(op.indices, index)]
+"""
+    suboperators(op::LazyTensor, index)
+
+Return the suboperators corresponding to the subsystems specified by `indices`. Fails
+if there is no corresponding operator (i.e. it would be an identity operater).
+"""
 suboperators(op::LazyTensor, indices::Vector{Int}) = op.operators[[findfirst(op.indices, i) for i in indices]]
 
 Base.full(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, DenseOperator[full(x) for x in op.operators])
@@ -171,9 +185,8 @@ function permutesystems(op::LazyTensor, perm::Vector{Int})
     LazyTensor(b_l, b_r, indices[perm_], op.operators[perm_], op.factor)
 end
 
-"""
-Recursively calculate result_{IK} = \\sum_J op_{IJ} h_{JK}
-"""
+
+# Recursively calculate result_{IK} = \\sum_J op_{IJ} h_{JK}
 function _gemm_recursive_dense_lazy(i_k::Int, N_k::Int, K::Int, J::Int, val::Complex128,
                         shape::Vector{Int}, strides_k::Vector{Int}, strides_j::Vector{Int},
                         indices::Vector{Int}, h::LazyTensor,
@@ -221,9 +234,8 @@ function _gemm_recursive_dense_lazy(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
     end
 end
 
-"""
-Recursively calculate result_{JI} = \\sum_K h_{JK} op_{KI}
-"""
+
+# Recursively calculate result_{JI} = \\sum_K h_{JK} op_{KI}
 function _gemm_recursive_lazy_dense(i_k::Int, N_k::Int, K::Int, J::Int, val::Complex128,
                         shape::Vector{Int}, strides_k::Vector{Int}, strides_j::Vector{Int},
                         indices::Vector{Int}, h::LazyTensor,

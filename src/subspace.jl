@@ -8,14 +8,9 @@ using ..bases, ..states, ..operators, ..operators_dense
 export SubspaceBasis, projector
 
 """
-A basis describing a subspace in a higher dimensional Hilbert space.
+    SubspaceBasis(basisstates)
 
-Arguments
----------
-superbasis
-    Basis of the higher dimensional Hilbert space.
-basisstates
-    States in respect to the superbasis that span the subspace.
+A basis describing a subspace embedded a higher dimensional Hilbert space.
 """
 type SubspaceBasis <: Basis
     shape::Vector{Int}
@@ -42,7 +37,11 @@ SubspaceBasis(basisstates::Vector{Ket}) = SubspaceBasis(basisstates[1].basis, ba
 proj(u::Ket, v::Ket) = dagger(v)*u/(dagger(u)*u)*u
 
 """
-Orthonormalize the given SubspaceBasis using the modified Gram-Schmidt process.
+    orthonormalize(b::SubspaceBasis)
+
+Orthonormalize the basis states of the given [`SubspaceBasis`](@ref)
+
+A modified Gram-Schmidt process is used.
 """
 function orthonormalize(b::SubspaceBasis)
     V = b.basisstates
@@ -60,7 +59,9 @@ end
 
 
 """
-Operator projecting states from one subspace to another.
+    projector(b1, b2)
+
+Projection operator between subspaces and superspaces or between two subspaces.
 """
 function projector(b1::SubspaceBasis, b2::SubspaceBasis)
     if b1.superbasis != b2.superbasis
@@ -71,9 +72,6 @@ function projector(b1::SubspaceBasis, b2::SubspaceBasis)
     return T1*T2
 end
 
-"""
-Operator projecting states from the superspace to the subspace.
-"""
 function projector(b1::SubspaceBasis, b2::Basis)
     if b1.superbasis != b2
         throw(ArgumentError("Second basis has to be the superbasis of the first one."))
@@ -85,9 +83,6 @@ function projector(b1::SubspaceBasis, b2::Basis)
     return DenseOperator(b1, b2, data)
 end
 
-"""
-Operator projecting states from the subspace to the superspace.
-"""
 function projector(b1::Basis, b2::SubspaceBasis)
     if b1 != b2.superbasis
         throw(ArgumentError("First basis has to be the superbasis of the second one."))

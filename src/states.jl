@@ -10,7 +10,7 @@ export StateVector, Bra, Ket,
 
 
 """
-Abstract base class for Bra and Ket.
+Abstract base class for Bra and Ket states.
 
 The state vector class stores the coefficients of an abstract state
 in respect to a certain basis. These coefficients are stored in the
@@ -20,6 +20,8 @@ field.
 abstract StateVector
 
 """
+    Bra(b::Basis[, data])
+
 Bra state defined by coefficients in respect to a basis.
 """
 type Bra <: StateVector
@@ -29,6 +31,8 @@ type Bra <: StateVector
 end
 
 """
+    Ket(b::Basis[, data])
+
 Ket state defined by coefficients in respect to a basis.
 """
 type Ket <: StateVector
@@ -57,41 +61,51 @@ bases.basis(a::StateVector) = a.basis
 -{T<:StateVector}(a::T, b::T) = (check_samebases(a, b); T(a.basis, a.data-b.data))
 
 """
-Tensor product of given bras or kets.
+    tensor(x::Ket, y::Ket, z::Ket...)
+
+Tensor product ``|x⟩⊗|y⟩⊗|z⟩⊗…`` of the given states.
 """
 bases.tensor{T<:StateVector}(a::T, b::T) = T(tensor(a.basis, b.basis), kron(a.data, b.data))
 
 
 """
-Hermitian conjugate of the given Bra state.
+    dagger(x)
+
+Hermitian conjugate.
 """
 dagger(x::Bra) = Ket(x.basis, conj(x.data))
-"""
-Hermitian conjugate of the given Ket state.
-"""
 dagger(x::Ket) = Bra(x.basis, conj(x.data))
 
 
 # Normalization functions
 """
-Norm of the given state vector.
+    norm(x::StateVector)
+
+Norm of the given bra or ket state.
 """
 Base.norm(x::StateVector) = norm(x.data)
-
 """
-Normalized copy of the given state vector.
+    normalize(x::StateVector)
+
+Return the normalized state so that `norm(x)` is one.
 """
 Base.normalize(x::StateVector) = x/norm(x)
-
 """
-Normalize the given state vector.
+    normalize!(x::StateVector)
+
+In-place normalization of the given bra or ket so that `norm(x)` is one.
 """
 Base.normalize!(x::StateVector) = scale!(x.data, 1./norm(x))
 
 
 # Creation of basis states.
 """
-Ket state where the entry specified by the indices is 1 and all others are zero.
+    basisstate(b, index)
+
+Basis vector specified by `index` as ket state.
+
+For a composite system `index` can be a vector which then creates a tensor
+product state ``|i_1⟩⊗|i_2⟩⊗…⊗|i_n⟩`` of the corresponding basis states.
 """
 function basisstate(b::Basis, indices::Vector{Int})
     @assert length(b.shape) == length(indices)
@@ -100,25 +114,12 @@ function basisstate(b::Basis, indices::Vector{Int})
     Ket(b, reshape(x, length(b)))
 end
 
-"""
-Ket state where the i-th entry is 1 and all others are zero.
-"""
 function basisstate(b::Basis, index::Int)
     data = zeros(length(b))
     data[index] = Complex(1.)
     Ket(b, data)
 end
 
-"""
-Change the ordering of the subsystems of the given state.
-
-Arguments
----------
-state
-    A state represented in a composite basis.
-perm
-    Vector defining the new ordering of the subsystems.
-"""
 function bases.permutesystems{T<:StateVector}(state::T, perm::Vector{Int})
     @assert length(state.basis.bases) == length(perm)
     @assert isperm(perm)

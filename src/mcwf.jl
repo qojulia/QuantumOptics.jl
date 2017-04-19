@@ -8,36 +8,25 @@ using ...operators
 using ...ode_dopri
 
 """
+    integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed; fout, kwargs...)
+
 Integrate a single Monte Carlo wave function trajectory.
 
-Arguments
----------
-
-dmcwf
-    A function f(t, psi, dpsi) that calculates the time-derivative of psi at
-    time t and stores the result in dpsi.
-jumpfun
-    A function f(rng, t, psi, dpsi) that uses the random number generator rng
-    to determine if a jump is performed and stores the result in dpsi.
-tspan
-    Vector specifying the points of time for which output should be displayed.
-psi0
-    Initial state vector.
-seed
-    Seed used for the random number generator to make trajectories repeatable.
-
-
-Keyword arguments
------------------
-
-fout (optional)
-    If given, this function fout(t, psi) is called every time an output should
-    be displayed.
-    ATTENTION: The state psi is neither normalized nor permanent! It is still
-    in use by the ode solver and therefore must not be changed.
-
-kwargs
-    Further arguments are passed on to the ode solver.
+# Arguments
+* `dmcwf`: A function `f(t, psi, dpsi)` that calculates the time-derivative of
+        `psi` at time `t` and stores the result in `dpsi`.
+* `jumpfun`: A function `f(rng, t, psi, dpsi)` that uses the random number
+        generator `rng` to determine if a jump is performed and stores the
+        result in `dpsi`.
+* `tspan`: Vector specifying the points of time for which output should
+        be displayed.
+* `psi0`: Initial state vector.
+* `seed`: Seed used for the random number generator.
+* `fout`: If given, this function `fout(t, psi)` is called every time an
+        output should be displayed. ATTENTION: The state `psi` is neither
+        normalized nor permanent! It is still in use by the ode solver
+        and therefore must not be changed.
+* `kwargs`: Further arguments are passed on to the ode solver.
 """
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan, psi0::Ket, seed;
                 fout=nothing,
@@ -78,21 +67,16 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan, psi0::Ket, se
 end
 
 """
+    jump(rng, t, psi, J, psi_new)
+
 Default jump function.
 
-Arguments
----------
-
-rng
-    Random number generator
-t
-    Point of time where the jump is performed.
-psi
-    State vector before the jump.
-J
-    List of jump operators.
-psi_new
-    Result of jump.
+# Arguments
+* `rng:` Random number generator
+* `t`: Point of time where the jump is performed.
+* `psi`: State vector before the jump.
+* `J`: List of jump operators.
+* `psi_new`: Result of jump.
 """
 function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket)
     if length(J)==1
@@ -175,6 +159,8 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector;
 end
 
 """
+    mcwf(tspan, rho0, H, J; <keyword arguments>)
+
 Integrate the master equation using the MCWF method.
 
 There are two implementations for integrating the non-hermitian
@@ -186,38 +172,23 @@ schroedinger equation:
 The ``mcwf`` function takes a normal Hamiltonian, calculates the
 non-hermitian Hamiltonian and then calls mcwf_nh which is slightly faster.
 
-Arguments
----------
-
-tspan
-    Vector specifying the points of time for which output should be displayed.
-psi0
-    Initial state vector.
-H
-    DenseOperator specifying the Hamiltonian.
-J
-    Vector containing all jump operators.
-
-
-Keyword Arguments
------------------
-
-seed (optional)
-    Seed used for the random number generator to make trajectories repeatable.
-fout (optional)
-    If given, this function fout(t, psi) is called every time an output should
-    be displayed.
-    ATTENTION: The state psi is neither normalized nor permanent! It is still
-    in use by the ode solver and therefore must not be changed.
-Jdagger (optional)
-    Vector containing the hermitian conjugates of the jump operators. If they
-    are not given they are calculated automatically.
-display_beforeevent [false]
-    fout is called before every jump.
-display_afterevent [false]
-    fout is called after every jump.
-kwargs
-    Further arguments are passed on to the ode solver.
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should
+        be displayed.
+* `psi0`: Initial state vector.
+* `H`: Arbitrary Operator specifying the Hamiltonian.
+* `J`: Vector containing all jump operators which can be of any arbitrary
+        operator type.
+* `seed=rand()`: Seed used for the random number generator.
+* `fout`: If given, this function `fout(t, psi)` is called every time an
+        output should be displayed. ATTENTION: The state `psi` is neither
+        normalized nor permanent! It is still in use by the ode solve
+        and therefore must not be changed.
+* `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
+        operators. If they are not given they are calculated automatically.
+* `display_beforeevent=false`: `fout` is called before every jump.
+* `display_afterevent=false`: `fout` is called after every jump.
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
                 seed=rand(UInt), fout=nothing, Jdagger::Vector=map(dagger, J),
@@ -237,18 +208,12 @@ function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
 end
 
 """
-Diagonal jump operators.
+    diagonaljumps(Gamma, J)
 
-A given matrix of decay rates is diagonalized and the corresponding set of jump
-operators is calculated.
+Diagonalize jump operators.
 
-Arguments
----------
-
-Gamma
-  Matrix of decay rates.
-J
-  Vector containing jump operators.
+The given matrix `Gamma` of decay rates is diagonalized and the
+corresponding set of jump operators is calculated.
 """
 function diagonaljumps(Gamma::Array{Float64}, J::Vector)
   d, v = eig(Gamma)

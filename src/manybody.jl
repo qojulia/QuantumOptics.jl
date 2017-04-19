@@ -11,9 +11,11 @@ import ..nlevel: transition
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
 """
+    ManyBodyBasis(b, occupations)
+
 Basis for a many body system.
 
-The basis has to know the associated one-body basis and which occupation states
+The basis has to know the associated one-body basis `b` and which occupation states
 should be included. The occupations_hash is used to speed up checking if two
 many-body bases are equal.
 """
@@ -29,14 +31,24 @@ type ManyBodyBasis <: Basis
 end
 
 """
+    fermionstates(Nmodes, Nparticles)
+    fermionstates(b, Nparticles)
+
 Generate all fermionic occupation states for N-particles in M-modes.
+`Nparticles` can be a vector to define a Hilbert space with variable
+particle number.
 """
 fermionstates(Nmodes::Int, Nparticles::Int) = _distribute_fermions(Nparticles, Nmodes, 1, zeros(Int, Nmodes), Vector{Int}[])
 fermionstates(Nmodes::Int, Nparticles::Vector{Int}) = vcat([fermionstates(Nmodes, N) for N in Nparticles]...)
 fermionstates(onebodybasis::Basis, Nparticles) = fermionstates(length(onebodybasis), Nparticles)
 
 """
+    bosonstates(Nmodes, Nparticles)
+    bosonstates(b, Nparticles)
+
 Generate all bosonic occupation states for N-particles in M-modes.
+`Nparticles` can be a vector to define a Hilbert space with variable
+particle number.
 """
 bosonstates(Nmodes::Int, Nparticles::Int) = _distribute_bosons(Nparticles, Nmodes, 1, zeros(Int, Nmodes), Vector{Int}[])
 bosonstates(Nmodes::Int, Nparticles::Vector{Int}) = vcat([bosonstates(Nmodes, N) for N in Nparticles]...)
@@ -44,6 +56,12 @@ bosonstates(onebodybasis::Basis, Nparticles) = bosonstates(length(onebodybasis),
 
 ==(b1::ManyBodyBasis, b2::ManyBodyBasis) = b1.occupations_hash==b2.occupations_hash && b1.onebodybasis==b2.onebodybasis
 
+"""
+    basisstate(b::ManyBodyBasis, occupation::Vector{Int})
+
+Return a ket state where the system is in the state specified by the given
+occupation numbers.
+"""
 function basisstate(basis::ManyBodyBasis, occupation::Vector{Int})
     index = findfirst(basis.occupations, occupation)
     if index == 0
@@ -68,7 +86,9 @@ function isnonzero(occ1, occ2, index)
 end
 
 """
-Creation operator for the i-th mode.
+    create(b::ManyBodyBasis, index)
+
+Creation operator for the i-th mode of the many-body basis `b`.
 """
 function create(b::ManyBodyBasis, index::Int)
     result = SparseOperator(b)
@@ -88,7 +108,9 @@ function create(b::ManyBodyBasis, index::Int)
 end
 
 """
-Annihilation operator for the i-th mode.
+    destroy(b::ManyBodyBasis, index)
+
+Annihilation operator for the i-th mode of the many-body basis `b`.
 """
 function destroy(b::ManyBodyBasis, index::Int)
     result = SparseOperator(b)
@@ -108,7 +130,9 @@ function destroy(b::ManyBodyBasis, index::Int)
 end
 
 """
-Particle number operator for the i-th mode.
+    number(b::ManyBodyBasis, index)
+
+Particle number operator for the i-th mode of the many-body basis `b`.
 """
 function number(b::ManyBodyBasis, index::Int)
     result = SparseOperator(b)
@@ -119,6 +143,8 @@ function number(b::ManyBodyBasis, index::Int)
 end
 
 """
+    number(b::ManyBodyBasis)
+
 Total particle number operator.
 """
 function number(b::ManyBodyBasis)
@@ -153,7 +179,9 @@ function isnonzero(occ1, occ2, index1::Int, index2::Int)
 end
 
 """
-Transition operator from particles in one mode into another mode.
+    transition(b::ManyBodyBasis, to::Int, from::Int)
+
+Transition operator `from` particles in one mode `to` another mode.
 """
 function transition(b::ManyBodyBasis, to::Int, from::Int)
     result = SparseOperator(b)
@@ -175,7 +203,9 @@ end
 
 # Calculate many-Body operator from one-body operator
 """
-Create the many-body operator from the given one-body operator.
+    manybodyoperator(b::ManyBodyBasis, op)
+
+Create the many-body operator from the given one-body operator `op`.
 
 The given operator can either be a one-body operator or a
 two-body interaction. Higher order interactions are at the
@@ -183,33 +213,22 @@ moment not implemented.
 
 The mathematical formalism for the one-body case is described by
 
-.. math::
-
-    X = \\sum_{ij} a_i^\\dagger a_j
-                    \\left\\langle u_i \\right|
-                    x
-                    \\left| u_j \\right\\rangle
+```math
+X = \\sum_{ij} a_i^† a_j \\left⟨u_i \right| x \\left| u_j \\right⟩
+```
 
 and for the interaction case by
 
-.. math::
-
-    X = \\sum_{ijkl} a_i^\\dagger a_j^\\dagger a_k a_l
-            \\left\\langle u_i \\right| \\left\\langle u_j \\right|
+```math
+X = \\sum_{ijkl} a_i^† a_j^† a_k a_l
+            \\left⟨ u_i \\right| \\left⟨ u_j \\right|
             x
-            \\left| u_k \\right\\rangle \\left| u_l \\right\\rangle
+            \\left| u_k \\right⟩ \\left| u_l \\right⟩
+```
 
-where :math:`X` is the N-particle operator, :math:`x` is the one-body operator and
-:math:`\\left| u \\right\\rangle` are the one-body states associated to the
+where ``X`` is the N-particle operator, ``x`` is the one-body operator and
+``\\left| u \\right⟩`` are the one-body states associated to the
 different modes of the N-particle basis.
-
-Arguments
----------
-
-basis
-    A many-body basis
-op
-    Dense or sparse operator in first quantization.
 """
 function manybodyoperator{T<:Operator}(basis::ManyBodyBasis, op::T)::T
     @assert op.basis_l == op.basis_r
@@ -300,15 +319,9 @@ end
 
 # Calculate expectation value of one-body operator
 """
-Expectation value of the one-body operator in respect to the many-body state.
+    onebodyexpect(op, state)
 
-Arguments
----------
-
-op
-    Dense or sparse operator in first quantization.
-state
-    Ket-state in second quantization.
+Expectation value of the one-body operator `op` in respect to the many-body `state`.
 """
 function onebodyexpect(op::Operator, state::Ket)
     @assert isa(state.basis, ManyBodyBasis)
@@ -324,17 +337,6 @@ function onebodyexpect(op::Operator, state::Ket)
     result
 end
 
-"""
-Expectation value of the operator given in first quantization.
-
-Arguments
----------
-
-op
-    Dense or sparse operator in first quantization.
-state
-    Density operator in second quantization.
-"""
 function onebodyexpect(op::Operator, state::Operator)
     @assert op.basis_l == op.basis_r
     @assert state.basis_l == state.basis_r

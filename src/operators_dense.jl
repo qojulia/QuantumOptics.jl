@@ -12,9 +12,11 @@ using ..bases, ..states, ..operators
 export DenseOperator, projector, dm
 
 """
+    DenseOperator(b1[, b2, data])
+
 Dense array implementation of Operator.
 
-The matrix consisting of complex floats is stored in the data field.
+The matrix consisting of complex floats is stored in the `data` field.
 """
 type DenseOperator <: Operator
     basis_l::Basis
@@ -28,10 +30,13 @@ DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(Complex128, le
 DenseOperator(b::Basis) = DenseOperator(b, b)
 DenseOperator(op::Operator) = full(op)
 
-"""
-Converting an arbitrary Operator into a DenseOperator.
-"""
 Base.copy(x::DenseOperator) = deepcopy(x)
+
+"""
+    full(op::Operator)
+
+Convert an arbitrary Operator into a [`DenseOperator`](@ref).
+"""
 Base.full(x::DenseOperator) = deepcopy(x)
 
 ==(x::DenseOperator, y::DenseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
@@ -112,6 +117,11 @@ function operators.expect(op::DenseOperator, state::Operator)
 end
 
 tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
+"""
+    tensor(x::Ket, y::Bra)
+
+Outer product ``|x⟩⟨y|`` of the given states.
+"""
 tensor(a::Ket, b::Bra) = DenseOperator(a.basis, b.basis, reshape(kron(b.data, a.data), prod(a.basis.shape), prod(b.basis.shape)))
 
 function permutesystems(a::DenseOperator, perm::Vector{Int})
@@ -125,21 +135,32 @@ function permutesystems(a::DenseOperator, perm::Vector{Int})
 end
 
 """
+    projector(a::Ket, b::Bra)
+
 Projection operator ``|a⟩⟨b|``.
 """
 projector(a::Ket, b::Bra) = tensor(a, b)
 """
+    projector(a::Ket)
+
 Projection operator ``|a⟩⟨a|``.
 """
 projector(a::Ket) = tensor(a, dagger(a))
 """
+    projector(a::Bra)
+
 Projection operator ``|a⟩⟨a|``.
 """
 projector(a::Bra) = tensor(dagger(a), a)
 
 """
-Operator exponential.
+    dm(a::StateVector)
+
+Create density matrix ``|a⟩⟨a|``. Same as `projector(a)`.
 """
+dm(x::Ket) = tensor(x, dagger(x))
+dm(x::Bra) = tensor(dagger(x), x)
+
 function Base.expm(op::DenseOperator)
     check_samebases(op)
     return DenseOperator(op.basis_l, op.basis_r, expm(op.data))
@@ -214,18 +235,6 @@ function gemm!(alpha, b::DenseOperator, M::Operator, beta, result::DenseOperator
     end
 end
 
-
-"""
-Check if an operator is Hermitian.
-"""
 ishermitian(A::DenseOperator) = ishermitian(A.data)
-
-
-"""
-Create density matrix from Ket or Bra.
-"""
-dm(x::Ket) = tensor(x, dagger(x))
-dm(x::Bra) = tensor(dagger(x), x)
-
 
 end # module

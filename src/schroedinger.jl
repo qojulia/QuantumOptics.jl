@@ -8,7 +8,21 @@ using ...operators
 using ...ode_dopri
 
 """
+    integrate_schroedinger(dschroedinger, tspan, psi0; kwargs...)
+
 Integrate Schroedinger equation with given derivative function.
+
+# Arguments
+* `dmaster::Function`: A function `f(t, psi, dpsi)` that calculates the
+        time-derivative of `rho` at time `t` and stores the result in `dpsi`.
+* `tspan::Vector`: Vector specifying the points of time for which output
+        should be displayed.
+* `psi0::DenseOperator`: Initial state.
+* `fout::Function = nothing`: If given, this function `fout(t, rho)` is called
+        every time an output should be displayed. ATTENTION: The state `psi` is
+        not permanent! It is still in use by the ode solver and therefore must
+        not be changed.
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function integrate_schroedinger{T<:StateVector}(dschroedinger::Function, tspan, psi0::T; fout=nothing, kwargs...)
     as_statevector(x::Vector{Complex128}) = T(psi0.basis, x)
@@ -57,24 +71,18 @@ function _check_input(psi::Bra, H::Operator)
 end
 
 """
+    timeevolution.schroedinger(tspan, psi0, H; fout)
+
 Integrate Schroedinger equation.
 
-Arguments
----------
-tspan
-    Vector specifying the points of time for which output should be displayed.
-psi0
-    Initial state vector (can be a bra or a ket).
-H
-    Operator specifying the Hamiltonian.
-
-Keyword Arguments
------------------
-fout (optional)
-    If given, this function fout(t, psi) is called every time an output should
-    be displayed.
-    ATTENTION: The state psi is neither normalized nor permanent! It is still
-    in use by the ode solver and therefore must not be changed.
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should be displayed.
+* `psi0`: Initial state vector (can be a bra or a ket).
+* `H`: Arbitrary operator specifying the Hamiltonian.
+* `fout=nothing`: If given, this function `fout(t, psi)` is called every time
+        an output should be displayed. ATTENTION: The state `psi` is neither
+        normalized nor permanent! It is still in use by the ode solver and
+        therefore must not be changed.
 """
 function schroedinger{T<:StateVector}(tspan, psi0::T, H::Operator;
                 fout::Union{Function,Void}=nothing,
@@ -86,24 +94,18 @@ end
 
 
 """
+    timeevolution.schroedinger(tspan, psi0, f; fout)
+
 Integrate time-dependent Schroedinger equation.
 
-Arguments
----------
-tspan
-    Vector specifying the points of time for which output should be displayed.
-psi0
-    Initial state vector (can be a bra or a ket).
-f
-    Function f(t, psi) -> H returning the time and or state dependent Hamiltonian.
-
-Keyword Arguments
------------------
-fout (optional)
-    If given, this function fout(t, psi) is called every time an output should
-    be displayed.
-    ATTENTION: The state psi is neither normalized nor permanent! It is still
-    in use by the ode solver and therefore must not be changed.
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should be displayed.
+* `psi0`: Initial state vector (can be a bra or a ket).
+* `f`: Function `f(t, psi) -> H` returning the time and or state dependent Hamiltonian.
+* `fout=nothing`: If given, this function `fout(t, psi)` is called every time
+        an output should be displayed. ATTENTION: The state `psi` is neither
+        normalized nor permanent! It is still in use by the ode solver and
+        therefore must not be changed.
 """
 function schroedinger_dynamic{T<:StateVector}(tspan, psi0::T, f::Function;
                 fout::Union{Function,Void}=nothing,

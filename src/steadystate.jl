@@ -12,37 +12,26 @@ type ConvergenceReached <: Exception end
 
 
 """
+    steadystate.master(H, J; <keyword arguments>)
+
 Calculate steady state using long time master equation evolution.
 
-Arguments
----------
-
-H
-    Operator specifying the Hamiltonian.
-J
-    Vector of jump operators.
-
-Keyword Arguments
------------------
-
-rho0
-    Initial density operator. If not given the :math:`|0 \\rangle\\langle0|`
-    state in respect to the choosen basis is used.
-eps
-    Tracedistance used as termination criterion.
-hmin
-    Minimal time step used in the time evolution.
-Gamma
-    Vector or matrix specifying the coefficients for the jump operators.
-Jdagger (optional)
-    Vector containing the hermitian conjugates of the jump operators. If they
-    are not given they are calculated automatically.
-fout (optional)
-    If given this function fout(t, rho) is called every time an output should
-    be displayed. To limit copying to a minimum the given density operator rho
-    is further used and therefore must not be changed.
-kwargs
-    Further arguments are passed on to the ode solver.
+# Arguments
+* `H`: Arbitrary operator specifying the Hamiltonian.
+* `J`: Vector containing all jump operators which can be of any arbitrary
+        operator type.
+* `rho0=dm(basisstate(b))`: Initial density operator. If not given the
+        ``|0⟩⟨0|`` state in respect to the choosen basis is used.
+* `eps=1e-3`: Tracedistance used as termination criterion.
+* `hmin=1e-7`: Minimal time step used in the time evolution.
+* `Gamma=ones(N)`: Vector or matrix specifying the coefficients for the
+        jump operators.
+* `Jdagger=dagger.(Jdagger)`: Vector containing the hermitian conjugates of the
+        jump operators. If they are not given they are calculated automatically.
+* `fout=nothing`: If given this function `fout(t, rho)` is called every time an
+        output should be displayed. To limit copying to a minimum the given
+        density operator `rho` is further used and therefore must not be changed.
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master(H::Operator, J::Vector;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
@@ -83,13 +72,10 @@ function master(H::Operator, J::Vector;
 end
 
 """
-Find steady state by calculating the eigenstate of the Liouvillian matrix.
+    steadystate.eigenvector(L)
+    steadystate.eigenvector(H, J)
 
-Arguments
----------
-
-L
-    Dense or sparse super-operator.
+Find steady state by calculating the eigenstate of the Liouvillian matrix `l`.
 """
 function eigenvector(L::DenseSuperOperator)
     d, v = Base.eig(L.data)
@@ -114,17 +100,6 @@ function eigenvector(L::SparseSuperOperator)
     return op/trace(op)
 end
 
-"""
-Find steady state by calculating the eigenstate of the Liouvillian matrix.
-
-Arguments
----------
-
-H
-    Operator specifying the Hamiltonian.
-J
-    Vector of jump operators.
-"""
 eigenvector(H::Operator, J::Vector) = eigenvector(liouvillian(H, J))
 
 

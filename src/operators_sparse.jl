@@ -10,10 +10,12 @@ export SparseOperator, diagonaloperator
 
 
 """
+    SparseOperator(b1[, b2, data])
+
 Sparse array implementation of Operator.
 
-The matrix is stored as the julia built-in type SparseMatrixCSC
-in the data field.
+The matrix is stored as the julia built-in type `SparseMatrixCSC`
+in the `data` field.
 """
 type SparseOperator <: Operator
     basis_l::Basis
@@ -37,6 +39,11 @@ SparseOperator(b::Basis) = SparseOperator(b, b)
 Base.copy(x::SparseOperator) = deepcopy(x)
 Base.full(a::SparseOperator) = DenseOperator(a.basis_l, a.basis_r, full(a.data))
 
+"""
+    sparse(op::Operator)
+
+Convert an arbitrary operator into a [`SparseOperator`](@ref).
+"""
 Base.sparse(a::Operator) = throw(ArgumentError("Direct conversion from $(typeof(a)) not implemented. Use sparse(full(op)) instead."))
 Base.sparse(a::SparseOperator) = deepcopy(a)
 Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.data))
@@ -110,7 +117,9 @@ operators.gemv!{T<:Complex}(alpha::T, b::Bra, M::SparseOperator, beta::T, result
 
 
 """
-Diagonal operator.
+    diagonaloperator(b::Basis)
+
+Create a diagonal operator of type [`SparseOperator`](@ref).
 """
 function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
   @assert 1 <= length(diag) <= b.shape[1]
@@ -118,9 +127,6 @@ function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
 end
 
 
-"""
-Check if an operator is Hermitian.
-"""
 ishermitian(A::SparseOperator) = ishermitian(A.data)
 
 end # module

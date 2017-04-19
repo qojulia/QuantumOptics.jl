@@ -11,39 +11,25 @@ export correlation, spectrum, correlation2spectrum
 
 
 """
-Calculate two time correlation values :math:`\\langle A(t) B(0) \\rangle`
+    timecorrelations.correlation(tspan, rho0, H, J, op1, op2; <keyword arguments>)
+
+Calculate two time correlation values ``⟨A(t)B(0)⟩``.
 
 The calculation is done by multiplying the initial density operator
-with :math:`B` performing a time evolution according to a master equation
-and then calculating the expectation value :math:`\\mathrm{Tr} \\{ A \\rho \\}`
+with ``B`` performing a time evolution according to a master equation
+and then calculating the expectation value ``\\mathrm{Tr} \\{A ρ\\}`
 
-Arguments
----------
-
-tspan
-    Points of time at which the correlation should be calculated.
-rho0
-    Initial density operator.
-H
-    Operator specifying the Hamiltonian.
-J
-    Vector of jump operators.
-op1
-    Operator at time t.
-op2
-    Operator at time t=0.
-
-
-Keyword Arguments
------------------
-
-Gamma
-    Vector or matrix specifying the coefficients for the jump operators.
-Jdagger (optional)
-    Vector containing the hermitian conjugates of the jump operators. If they
-    are not given they are calculated automatically.
-kwargs
-    Further arguments are passed on to the ode solver.
+# Arguments
+* `tspan`: Points of time at which the correlation should be calculated.
+* `rho0`: Initial density operator.
+* `H`: Operator specifying the Hamiltonian.
+* `J`: Vector of jump operators.
+* `op1`: Operator at time `t`.
+* `op2`: Operator at time `t=0`.
+* `Gamma=ones(N)`: Vector or matrix specifying the coefficients (decay rates)
+        for the jump operators.
+* `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
@@ -62,44 +48,11 @@ end
 
 
 """
-Calculate two time correlation values :math:`\\langle A(t) B(0) \\rangle`
+    timecorrelations.correlation(rho0, H, J, op1, op2; <keyword arguments>)
 
-The calculation is done by multiplying the initial density operator
-with :math:`B` performing a time evolution according to a master equation
-and then calculating the expectation value :math:`\\mathrm{Tr} \\{ A \\rho \\}`.
-The points of time are chosen automatically from the ode solver and the final
-time is determined by the steady state termination criterion specified in
-:func:`steadystate.master`.
-
-Arguments
----------
-
-rho0
-    Initial density operator.
-H
-    Operator specifying the Hamiltonian.
-J
-    Vector of jump operators.
-op1
-    Operator at time t.
-op2
-    Operator at time t=0.
-
-
-Keyword Arguments
------------------
-
-eps
-    Tracedistance used as termination criterion.
-h0
-    Initial time step used in the time evolution.
-Gamma
-    Vector or matrix specifying the coefficients for the jump operators.
-Jdagger (optional)
-    Vector containing the hermitian conjugates of the jump operators. If they
-    are not given they are calculated automatically.
-kwargs
-    Further arguments are passed on to the ode solver.
+Without the `tspan` argument the points in time are chosen automatically from
+the ode solver and the final time is determined by the steady state termination
+criterion specified in [`steadystate.master`](@ref).
 """
 function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
@@ -122,48 +75,35 @@ end
 
 
 """
+    timecorrelations.spectrum(omega_samplepoints, H, J, op; <keyword arguments>)
+
 Calculate spectrum as Fourier transform of a correlation function
 
-This is done by the use of the Wiener-Khinchin theorem
+This is done with the Wiener-Khinchin theorem
 
-.. math::
+```math
+S(ω, t) = \\int_{-∞}^{∞} dτ e^{-iωτ}⟨A^†(t+τ) A(t)⟩ =
+    2\\Re\\left\\{\\int_0^{∞} dτ e^{-iωτ}⟨A^†(t+τ)A(t)⟩\\right\\}
+```
 
-  S(\\omega, t) = \\int_{-\\infty}^{\\infty} d\\tau e^{-i\\omega\\tau}\\langle A^\\dagger(t+\\tau) A(t)\\rangle =
-  2\\Re\\left\\{\\int_0^{\\infty} d\\tau e^{-i\\omega\\tau}\\langle A^\\dagger(t+\\tau) A(t)\\rangle\\right\\}
+The argument `omega_samplepoints` gives the list of frequencies where ``S(ω)``
+is caclulated. A corresponding list of times is calculated internally by means
+of a inverse discrete frequency fourier transform. If not given, the
+steady-state is computed before calculating the auto-correlation function.
 
-The argument :func:`omega_samplepoints` gives the list of frequencies where :math:`S(\\omega)`
-is caclulated. A corresponding list of times is calculated internally by means of a inverse
-discrete frequency fourier transform. If not given, the steady-state is computed before
-calculating the auto-correlation function.
-
-Arguments
----------
-
-omega_samplepoints
-    List of frequency points at which the spectrum is calculated.
-H
-    Operator specifying the Hamiltonian.
-J
-    Vector of jump operators.
-op
-    Operator for which the auto-correlation function is calculated.
-
-Keyword Arguments
------------------
-
-rho0
-    Initial density operator.
-eps
-    Tracedistance used as termination criterion.
-h0
-    Initial time step used in the time evolution.
-Gamma
-    Vector or matrix specifying the coefficients for the jump operators.
-Jdagger (optional)
-    Vector containing the hermitian conjugates of the jump operators. If they
-    are not given they are calculated automatically.
-kwargs
-    Further arguments are passed on to the ode solver.
+# Arguments
+* `omega_samplepoints`: List of frequency points at which the spectrum
+        is calculated.
+* `H`: Operator specifying the Hamiltonian.
+* `J`: Vector of jump operators.
+* `op`: Operator for which the auto-correlation function is calculated.
+* `rho0`: Initial density operator.
+* `eps=1e-4`: Tracedistance used as termination criterion.
+* `Gamma=ones(N)`: Vector or matrix specifying the coefficients for the
+        jump operators.
+* `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the
+        jump operators. If they are not given they are calculated automatically.
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function spectrum(omega_samplepoints::Vector{Float64},
                 H::Operator, J::Vector, op::Operator;
@@ -182,39 +122,10 @@ end
 
 
 """
-Calculate spectrum as Fourier transform of a correlation function
+    timecorrelations.spectrum(H, J, op; <keyword arguments>)
 
-The argument :func:`omega_samplepoints` gives the list of frequencies where :math:`S(\\omega)`
-is caclulated. A corresponding list of times is calculated internally by means of a inverse
-discrete frequency fourier transform. If not given, the steady-state is computed before
-calculating the auto-correlation function.
-
-Arguments
----------
-
-H
-    Operator specifying the Hamiltonian.
-J
-    Vector of jump operators.
-op
-    Operator for which the auot-correlation function is calculated.
-
-Keyword Arguments
------------------
-
-rho0
-    Initial density operator.
-eps
-    Tracedistance used as termination criterion.
-h0
-    Initial time step used in the time evolution.
-Gamma
-    Vector or matrix specifying the coefficients for the jump operators.
-Jdagger (optional)
-    Vector containing the hermitian conjugates of the jump operators. If they
-    are not given they are calculated automatically.
-kwargs
-    Further arguments are passed on to the ode solver.
+Without the `omega_samplepoints` arguments the frequencies are chosen
+automatically.
 """
 function spectrum(H::Operator, J::Vector, op::Operator;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
@@ -233,21 +144,9 @@ end
 
 
 """
-Calculate spectrum as Fourier transform of a correlation function with a given correlation function
+    timecorrelations.correlation2spectrum(tspan, corr; normalize)
 
-Arguments
----------
-
-tspan
-    Time list corresponding to the correlation function.
-corr
-    Two-time correlation function.
-
-Keyword Arguments
------------------
-
-normalize (optional)
-    Specify whether or not to normalize the resulting spectrum to its maximum; default is :func:`false`.
+Calculate spectrum as Fourier transform of a correlation function with a given correlation function.
 """
 function correlation2spectrum{T <: Number}(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false)
   n = length(tspan)

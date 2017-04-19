@@ -8,17 +8,13 @@ export SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown
 
 
 """
+    SpinBasis(n)
+
 Basis for spin-n particles.
 
 The basis can be created for arbitrary spinnumbers by using a rational number,
-e.g. SpinBasis(3//2). The Pauli operators are defined for all possible
+e.g. `SpinBasis(3//2)`. The Pauli operators are defined for all possible
 spinnumbers.
-
-Arguments
----------
-
-spinnumber
-    Rational number specifying the spin quantum number.
 """
 type SpinBasis <: Basis
     shape::Vector{Int}
@@ -34,7 +30,9 @@ SpinBasis(spinnumber::Int) = SpinBasis(convert(Rational{Int}, spinnumber))
 ==(b1::SpinBasis, b2::SpinBasis) = b1.spinnumber==b2.spinnumber
 
 """
-Pauli :math:`\\sigma_x` operator for the given SpinBasis.
+    sigmax(b::SpinBasis)
+
+Pauli ``σ_x`` operator for the given Spin basis.
 """
 function sigmax(b::SpinBasis)
     N = num(b.spinnumber*2 + 1)
@@ -44,7 +42,9 @@ function sigmax(b::SpinBasis)
 end
 
 """
-Pauli :math:`\\sigma_y` operator for the given SpinBasis.
+    sigmay(b::SpinBasis)
+
+Pauli ``σ_y`` operator for the given Spin basis.
 """
 function sigmay(b::SpinBasis)
     N = num(b.spinnumber*2 + 1)
@@ -54,7 +54,9 @@ function sigmay(b::SpinBasis)
 end
 
 """
-Pauli :math:`\\sigma_z` operator for the given SpinBasis.
+    sigmaz(b::SpinBasis)
+
+Pauli ``σ_z`` operator for the given Spin basis.
 """
 function sigmaz(b::SpinBasis)
     N = num(b.spinnumber*2 + 1)
@@ -64,7 +66,9 @@ function sigmaz(b::SpinBasis)
 end
 
 """
-Raising operator :math:`\\sigma_+` for the given SpinBasis.
+    sigmap(b::SpinBasis)
+
+Raising operator `σ_+` for the given Spin basis.
 """
 function sigmap(b::SpinBasis)
     N = num(b.spinnumber*2 + 1)
@@ -75,7 +79,9 @@ function sigmap(b::SpinBasis)
 end
 
 """
-Lowering operator :math:`\\sigma_-` for the given SpinBasis.
+    sigmam(b::SpinBasis)
+
+Lowering operator `σ_-` for the given Spin basis.
 """
 function sigmam(b::SpinBasis)
     N = num(b.spinnumber*2 + 1)
@@ -87,12 +93,16 @@ end
 
 
 """
-Spin up state for the given SpinBasis.
+    spinup(b::SpinBasis)
+
+Spin up state for the given Spin basis.
 """
 spinup(b::SpinBasis) = basisstate(b, 1)
 
 """
-Spin down state for the given SpinBasis.
+    spindown(b::SpinBasis)
+
+Spin down state for the given Spin basis.
 """
 spindown(b::SpinBasis) = basisstate(b, b.shape[1])
 

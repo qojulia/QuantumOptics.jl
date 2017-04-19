@@ -8,14 +8,10 @@ export FockBasis, number, destroy, create, fockstate, coherentstate, qfunc, disp
 
 
 """
-Basis for a Fock space.
+    FockBasis(N)
 
-Arguments
----------
-
-N
-    Maximal particle number included in this basis. Note that the dimension of
-    this basis is N+1.
+Basis for a Fock space where `N` specifies a cutoff, i.e. what the highest
+included fock state is. Note that the dimension of this basis then is N+1.
 """
 type FockBasis <: Basis
     shape::Vector{Int}
@@ -32,13 +28,9 @@ end
 ==(b1::FockBasis, b2::FockBasis) = b1.N==b2.N
 
 """
-Number operator for the given Fock space.
+    number(b::FockBasis)
 
-Arguments
----------
-
-b
-    FockBasis of this operator.
+Number operator for the specified Fock space.
 """
 function number(b::FockBasis)
     diag = Complex128[complex(x) for x=0:b.N]
@@ -47,13 +39,9 @@ function number(b::FockBasis)
 end
 
 """
-Annihilation operator for the given Fock space.
+    destroy(b::FockBasis)
 
-Arguments
----------
-
-b
-    FockBasis of this operator.
+Annihilation operator for the specified Fock space.
 """
 function destroy(b::FockBasis)
     diag = Complex128[complex(sqrt(x)) for x=1:b.N]
@@ -62,13 +50,9 @@ function destroy(b::FockBasis)
 end
 
 """
-Creation operator for the given Fock space.
+    create(b::FockBasis)
 
-Arguments
----------
-
-b
-    FockBasis of this operator.
+Creation operator for the specified Fock space.
 """
 function create(b::FockBasis)
     diag = Complex128[complex(sqrt(x)) for x=1:b.N]
@@ -77,20 +61,16 @@ function create(b::FockBasis)
 end
 
 """
-Construct displacement operator.
+    displace(b::FockBasis, alpha)
+
+Displacement operator ``D(α)`` for the specified Fock space.
 """
 displace(b::FockBasis, alpha::Number) = expm(full(alpha*create(b) - conj(alpha)*destroy(b)))
 
 """
-Fock state for the given particle number.
+    fockstate(b::FockBasis, n)
 
-Arguments
----------
-
-b
-    FockBasis for this state.
-n
-    Quantum number of the state.
+Fock state ``|n⟩`` for the specified Fock space.
 """
 function fockstate(b::FockBasis, n::Int)
     @assert n <= b.N
@@ -98,15 +78,9 @@ function fockstate(b::FockBasis, n::Int)
 end
 
 """
-Coherent state :math:`| \\alpha \\rangle` for the given Fock basis.
+    coherentstate(b::FockBasis, alpha)
 
-Arguments
----------
-
-b
-    FockBasis for this state.
-alpha
-    Eigenvalue of annihilation operator.
+Coherent state `|α⟩` for the specified Fock space.
 """
 function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex128}(length(b))))
     alpha = complex(alpha)
@@ -119,7 +93,12 @@ function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex
 end
 
 """
-Husimi Q representation :math:`\\frac{1}{\\pi} \\langle \\alpha | \\rho | \\alpha \\rangle`.
+    qfunc(x, α)
+    qfunc(x, xvec, yvec)
+
+Husimi Q representation ``⟨α|ρ|α⟩/π`` for the given state or operator `x`. The
+function can either be evaluated on one point α or on a grid specified by
+the vectors `xvec` and `yvec`.
 """
 function qfunc(rho::Operator, alpha::Complex128,
                 tmp1=Ket(basis(rho), Vector{Complex128}(length(basis(rho)))),

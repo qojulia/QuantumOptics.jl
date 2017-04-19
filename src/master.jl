@@ -109,30 +109,21 @@ function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
 end
 
 """
+    integrate_master(dmaster, tspan, rho0; fout, kwargs...)
+
 Integrate master equation with the given derivative function.
 
-Arguments
----------
-
-dmaster
-    A function f(t, rho, drho) that calculates the time-derivative of rho at
-    time t and stores the result in drho.
-tspan
-    Vector specifying the points of time for which output should be displayed.
-rho0
-    Initial density operator.
-
-
-Keyword arguments
------------------
-fout (optional)
-    If given, this function fout(t, rho) is called every time an output should
-    be displayed.
-    ATTENTION: The state rho is not permanent! It is still in use by the ode
-    solver and therefore must not be changed.
-
-kwargs
-    Further arguments are passed on to the ode solver.
+# Arguments
+* `dmaster::Function`: A function `f(t, rho, drho)` that calculates the
+        time-derivative of `rho` at time `t` and stores the result in `drho`.
+* `tspan::Vector`: Vector specifying the points of time for which output
+        should be displayed.
+* `rho0::DenseOperator`: Initial density operator.
+* `fout::Function = nothing`: If given, this function `fout(t, rho)` is called
+        every time an output should be displayed. ATTENTION: The state `rho` is
+        not permanent! It is still in use by the ode solver and therefore must
+        not be changed.
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function integrate_master(dmaster::Function, tspan, rho0::DenseOperator; fout=nothing, kwargs...)
     n = length(basis(rho0))
@@ -176,9 +167,11 @@ function _check_input(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vect
 end
 
 """
+    timeevolution.master_h(tspan, rho0, H, J; <keyword arguments>)
+
 Integrate the master equation with dmaster_h as derivative function.
 
-For further information look at :func:`master(,::DenseOperator,::Operator,)`
+Further information can be found at [`master`](@ref).
 """
 function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
@@ -196,10 +189,12 @@ master_h(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master_h(tspan, 
 
 
 """
+    timeevolution.master_nh(tspan, rho0, H, J; <keyword arguments>)
+
 Integrate the master equation with dmaster_nh as derivative function.
 
 In this case the given Hamiltonian is assumed to be the non-hermitian version.
-For further information look at :func:`master(,::DenseOperator,::Operator,)`
+Further information can be found at [`master`](@ref).
 """
 function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
@@ -218,45 +213,35 @@ master_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector; kwargs...) = master_nh(tsp
 
 
 """
+    timeevolution.master(tspan, rho0, H, J; <keyword arguments>)
+
 Time-evolution according to a master equation.
 
 There are two implementations for integrating the master equation:
 
-* ``master_h``: Usual formulation of the master equation.
-* ``master_nh``: Variant with non-hermitian Hamiltonian.
+* [`master_h`](@ref): Usual formulation of the master equation.
+* [`master_nh`](@ref): Variant with non-hermitian Hamiltonian.
 
 For dense arguments the ``master`` function calculates the
 non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 
-Arguments
----------
-
-tspan
-    Vector specifying the points of time for which output should be displayed.
-rho0
-    Initial density operator (must be a dense operator or ket). Can also be a
-    state vector which is automatically converted into a density operator.
-H
-    DenseOperator specifying the Hamiltonian.
-J
-    Vector containing all jump operators.
-
-
-Keyword Arguments
------------------
-
-Gamma (optional)
-    Vector or matrix specifying the coefficients for the jump operators.
-Jdagger (optional)
-    Vector containing the hermitian conjugates of the jump operators. If they
-    are not given they are calculated automatically.
-fout (optional)
-    If given, this function fout(t, rho) is called every time an output should
-    be displayed.
-    ATTENTION: The state rho is not permanent! It is still in use by the ode
-    solver and therefore must not be changed.
-kwargs
-    Further arguments are passed on to the ode solver.
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should
+        be displayed.
+* `rho0`: Initial density operator. Can also be a state vector which is
+        automatically converted into a density operator.
+* `H`: Arbitrary operator specifying the Hamiltonian.
+* `J`: Vector containing all jump operators which can be of any arbitrary
+        operator type.
+* `Gamma=ones(N)`: Vector or matrix specifying the coefficients (decay rates)
+        for the jump operators.
+* `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
+        operators. If they are not given they are calculated automatically.
+* `fout=nothing`: If given, this function `fout(t, rho)` is called every time
+        an output should be displayed. ATTENTION: The given state rho is not
+        permanent! It is still in use by the ode solver and therefore must not
+        be changed.
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
@@ -297,10 +282,12 @@ master(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(tspan, dm(p
 
 
 """
+    timeevolution.master_dynamic(tspan, rho0, f; <keyword arguments>)
+
 Time-evolution according to a master equation with a dynamic non-hermitian Hamiltonian and J.
 
 In this case the given Hamiltonian is assumed to be the non-hermitian version.
-For further information look at :func:`master(,::DenseOperator,::Operator,)`
+For further information look at [`master_nh_dynamic`](@ref)
 """
 function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
@@ -314,44 +301,30 @@ end
 master_nh_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_nh_dynamic(tspan, dm(psi0), f; kwargs...)
 
 
-
 """
+    timeevolution.master_dynamic(tspan, rho0, f; <keyword arguments>)
+
 Time-evolution according to a master equation with a dynamic Hamiltonian and J.
 
 There are two implementations for integrating the master equation with dynamic
 operators:
 
-* ``master_dynamic``: Usual formulation of the master equation.
-* ``master_nh``: Variant with non-hermitian Hamiltonian.
+* [`master_dynamic`](@ref): Usual formulation of the master equation.
+* [`master_nh_dynamic`](@ref): Variant with non-hermitian Hamiltonian.
 
-Arguments
----------
-
-tspan
-    Vector specifying the points of time for which output should be displayed.
-rho0
-    Initial density operator (must be a dense operator or ket). Can also be a
-    state vector which is automatically converted into a density operator.
-f
-    Function f(t, rho) -> (H, J, Jdagger) returning the time and/or state dependent
-    Hamiltonian and Jump operators.
-
-
-Keyword Arguments
------------------
-
-Gamma (optional)
-    Vector or matrix specifying the coefficients for the jump operators.
-Jdagger (optional)
-    Vector containing the hermitian conjugates of the jump operators. If they
-    are not given they are calculated automatically.
-fout (optional)
-    If given, this function fout(t, rho) is called every time an output should
-    be displayed.
-    ATTENTION: The state rho is not permanent! It is still in use by the ode
-    solver and therefor must not be changed.
-kwargs
-    Further arguments are passed on to the ode solver.
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should be displayed.
+* `rho0`: Initial density operator. Can also be a state vector which is
+        automatically converted into a density operator.
+* `f`: Function `f(t, rho) -> (H, J, Jdagger)` returning the time and/or state dependent
+        Hamiltonian and Jump operators.
+* `Gamma=ones(N)`: Vector or matrix specifying the coefficients (decay rates)
+        for the jump operators.
+* `fout=nothing`: If given, this function `fout(t, rho)` is called every time
+        an output should be displayed. ATTENTION: The given state rho is not
+        permanent! It is still in use by the ode solver and therefore must not
+        be changed.
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,

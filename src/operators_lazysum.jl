@@ -9,6 +9,8 @@ using ..bases, ..states, ..operators, ..operators_dense
 export LazySum
 
 """
+    LazySum([factors,] operators)
+
 Lazy evaluation of sum of operators.
 
 All operators have to be given in respect to the same bases. The field

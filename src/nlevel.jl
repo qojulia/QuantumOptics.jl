@@ -7,13 +7,9 @@ using ..bases, ..states, ..operators, ..operators_sparse
 export NLevelBasis, transition, nlevelstate
 
 """
+    NLevelBasis(N)
+
 Basis for a system consisting of N states.
-
-Arguments
----------
-
-N
-    Number of states.
 """
 type NLevelBasis <: Basis
     shape::Vector{Int}
@@ -30,17 +26,9 @@ end
 
 
 """
-Transition operator :math:`|n><m|`.
+    transition(b::NLevelBasis, to::Int, from::Int)
 
-Arguments
----------
-
-b
-    NLevelBasis
-to
-    Index of ket state in :math:`|to><from|`
-from
-    Index of bra state in :math:`|to><from|`
+Transition operator ``|to><from|``.
 """
 function transition(b::NLevelBasis, to::Int, from::Int)
     if to < 1 || b.N < to
@@ -56,6 +44,8 @@ end
 
 
 """
+    nlevelstate(b::NLevelBasis, n::Int)
+
 State where the system is completely in the n-th level.
 """
 function nlevelstate(b::NLevelBasis, n::Int)

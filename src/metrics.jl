@@ -5,6 +5,17 @@ using ..bases, ..operators, ..operators_dense
 export tracedistance, tracedistance_general, tracenorm, tracenorm_general,
         entropy_vn, fidelity
 
+"""
+    tracenorm(rho)
+
+Trace norm of `rho`
+
+It uses the identity
+
+```math
+T(ρ) = \\frac{1}{2} \\sum_i |λ_i|
+```
+"""
 function tracenorm(rho::DenseOperator)
     check_samebases(rho)
     data = rho.data
@@ -20,6 +31,17 @@ function tracenorm{T<:Operator}(rho::T)
 end
 
 
+"""
+    tracenorm_general(rho)
+
+Trace norm of `rho`.
+
+It uses the identity
+
+```math
+    T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{ρ^† ρ}\\}
+```
+"""
 tracenorm_general(rho::DenseOperator) = 0.5*trace(sqrtm((dagger(rho)*rho).data))
 
 function tracenorm_general{T<:Operator}(rho::T)
@@ -29,18 +51,19 @@ end
 
 
 """
+    tracedistance(rho, sigma)
+
 Trace distance between two density operators.
 
 It uses the identity
 
-.. math::
+```math
+T(ρ, σ) = \\frac{1}{2} \\sum_i |λ_i|
+```
 
-    T(\\rho, \\sigma) = \\frac{1}{2} \\sum_i |\\lambda_i|
-
-where :math:`\\lambda_i` are the eigenvalues of the matrix
-:math:`\\rho - \\sigma`. This works only if :math:`rho` and :math:`sigma`
-are density operators. For trace distances between general operators use
-:jl:func:`tracedistance_general`.
+where ``λ_i`` are the eigenvalues of the matrix ``ρ - σ``. This works only
+if `rho` and `sigma` are density operators. For trace distances between
+general operators use [`tracedistance_general`](@ref).
 """
 tracedistance(rho::DenseOperator, sigma::DenseOperator) = tracenorm(rho - sigma)
 
@@ -50,12 +73,15 @@ end
 
 
 """
+    tracedistance_general(rho, sigma)
+
 Trace distance between two operators.
 
-.. math::
+It uses the identity
 
-    T(\\rho, \\sigma) = \\frac{1}{2}
-            Tr\\{\\ \\sqrt{(\\rho-\\sigma)^\\dagger(\\rho-\\sigma)}\\}
+```math
+    T(ρ, σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ-σ)^† (ρ-σ)}\\}
+```
 """
 tracedistance_general(rho::DenseOperator, sigma::DenseOperator) = tracenorm_general(rho - sigma)
 
@@ -65,29 +91,33 @@ end
 
 
 """
-Von Neumann entropy of density matrix.
+    entropy_vn(rho)
 
-The VN entropy of a density operator is defined as
+Von Neumann entropy of a density matrix.
 
-.. math::
+The Von Neumann entropy of a density operator is defined as
 
-    S(\\rho) = -Tr(\\rho \\log(\\rho)) = -\\sum_n \\lambda_n\\log(\\lambda_n)
+```math
+S(ρ) = -Tr(ρ \\log(ρ)) = -\\sum_n λ_n\\log(λ_n)
+```
 
-where :math:`\\lambda_n` are the eigenvalues of the density matrix
-:math:`\\rho`, :math:`\\log` is the natural logarithm and :math:`\\log(0)\\equiv 0`.
+where ``λ_n`` are the eigenvalues of the density matrix ``ρ``, ``\\log`` is the
+natural logarithm and ``\\log(0) ≡ 0``.
 """
 entropy_vn(rho::DenseOperator) = sum([d == 0 ? 0 : -d*log(d) for d=eigvals(rho.data)])
 
 """
-Fidelity of two density matrices
+    fidelity(rho, sigma)
 
-The fidelity of two density operators :math:`\\rho` and :math:`\\sigma` is defined by
+Fidelity of two density operators.
 
-.. math:
+The fidelity of two density operators ``\ρ`` and ``σ`` is defined by
 
-    F(\\rho, \\sigma) = Tr\\left(\\sqrt{\\sqrt{\\rho}\\sigma\\sqrt{\\rho}}\\right),
+```math
+F(ρ, σ) = Tr\\left(\\sqrt{\\sqrt{ρ}σ\\sqrt{ρ}}\\right),
+```
 
-where :math:`\\sqrt{\\rho}=\\sum_n\\sqrt{\\lambda_n}|\\psi\\rangle\\langle\\psi|`.
+where ``\\sqrt{ρ}=\\sum_n\\sqrt{λ_n}|ψ⟩⟨ψ|``.
 """
 fidelity(rho::DenseOperator, sigma::DenseOperator) = trace(sqrtm(sqrtm(rho.data)*sigma.data*sqrtm(rho.data)))
 

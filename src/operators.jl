@@ -45,13 +45,12 @@ addnumbererror() = throw(ArgumentError("Can't add or subtract a number and an op
 
 bases.basis(a::Operator) = (check_samebases(a); a.basis_l)
 
-"""
-Hermitian conjugate of the given operator.
-"""
 dagger(a::Operator) = arithmetic_unary_error("Hermitian conjugate", a)
 
 """
-Identity operator.
+    identityoperator(a::Basis, [b::Basis])
+
+Return an identityoperator in the given bases.
 """
 identityoperator{T<:Operator}(::Type{T}, b1::Basis, b2::Basis) = throw(ArgumentError("Identity operator not defined for operator type $T."))
 identityoperator{T<:Operator}(::Type{T}, b::Basis) = identityoperator(T, b, b)
@@ -61,27 +60,34 @@ Base.one(b::Basis) = identityoperator(b)
 Base.one(op::Operator) = identityoperator(op)
 
 """
-Trace of given operator.
+    trace(x::Operator)
+
+Trace of the given operator.
 """
 trace(x::Operator) = arithmetic_unary_error("Trace", x)
 
-"""
-Partial trace of the given operator over the specified indices.
-"""
 ptrace(a::Operator, index::Vector{Int}) = arithmetic_unary_error("Partial trace", a)
 
 """
-Normalized copy of given operator (trace is 1.).
+    normalize(op)
+
+Return the normalized operator so that its trace is one.
 """
 normalize(op::Operator) = op/trace(op)
 
 """
-Normalize the given operator in-place (trace is 1.).
+    normalize!(op)
+
+In-place normalization of the given operator so that its trace is one.
 """
 normalize!(op::Operator) = throw(ArgumentError("normalize! is not defined for this type of operator: $(typeof(op)).\n You may have to fall back to the non-inplace version 'normalize()'."))
 
 """
-Expectation value of the given operator for the specified state(s).
+    expect(op, state)
+
+Expectation value of the given operator `op` for the specified `state`.
+
+`state` can either be a (density) operator or a ket.
 """
 expect(op::Operator, state::Ket) = dagger(state)*(op*state)
 expect(op::Operator, state::Operator) = trace(op*state)
@@ -95,12 +101,22 @@ function expect(indices::Vector{Int}, op::Operator, state::Ket)
     indices_ = sortedindices.complement(N, indices)
     expect(op, ptrace(state, indices_))
 end
+
+"""
+    expect(index, op, state)
+
+If `index` is given, it assumes that
+"""
 expect(index::Int, op::Operator, state) = expect([index], op, state)
 expect(op::Operator, states::Vector) = [expect(op, state) for state=states]
 expect(indices::Vector{Int}, op::Operator, states::Vector) = [expect(indices, op, state) for state=states]
 
 """
-Variance of the given operator for the specified state(s).
+    variance(op, state)
+
+Variance of the given operator `op` for the specified `state`.
+
+`state` can either be a (density) operator or a ket.
 """
 function variance(op::Operator, state::Ket)
     x = op*state
@@ -113,22 +129,13 @@ end
 variance(op::Operator, states::Vector) = [variance(op, state) for state=states]
 
 """
-Tensor product of operators.
+    tensor(x::Operator, y::Operator, z::Operator...)
+
+Tensor product ``\\hat{x}⊗\\hat{y}⊗\\hat{z}⊗…`` of the given operators.
 """
 tensor(a::Operator, b::Operator) = arithmetic_binary_error("Tensor product", a, b)
 
-"""
-Change the ordering of the subsystems of the given operator.
-
-Arguments
----------
-a
-    An operator represented in a composite basis.
-perm
-    Vector defining the new ordering of the subsystems.
-"""
 permutesystems(a::Operator, perm::Vector{Int}) = arithmetic_unary_error("Permutations of subsystems", a)
-
 
 """
 Vector of indices that are not in the given vector.
@@ -136,18 +143,9 @@ Vector of indices that are not in the given vector.
 complement(N::Int, indices) = Int[i for i=1:N if i ∉ indices]
 
 """
-Tensor product of operators where missing indices are filled up with identity operators.
+    embed(basis1, [basis2], indices::Vector, operators::Vector)
 
-Arguments
----------
-basis_l
-    Left hand side basis of the resulting operator.
-basis_r
-    Right hand side basis of the resulting operator.
-indices
-    Indices of the subsystems in which the given operators live.
-operators
-    Operators defined in the subsystems.
+Tensor product of operators where missing indices are filled up with identity operators.
 """
 function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
                             indices::Vector{Int}, operators::Vector{T})
@@ -162,17 +160,10 @@ embed(basis::CompositeBasis, index::Int, op::Operator) = embed(basis, basis, Int
 embed{T<:Operator}(basis::CompositeBasis, indices::Vector{Int}, operators::Vector{T}) = embed(basis, basis, indices, operators)
 
 """
-Tensor product of operators where all missing indices are identity operators.
+    embed(basis1, [basis2], operators::Dict)
 
-Arguments
----------
-basis_l
-    Left hand side basis of the resulting operator.
-basis_r
-    Right hand side basis of the resulting operator.
-operators
-    Dictionary specifying to which subsystems the corresponding operator
-    belongs.
+`operators` is a dictionary `Dict{Vector{Int}, Operator}`. The integer vector
+specifies in which subsystems the corresponding operator is defined.
 """
 function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
                             operators::Dict{Vector{Int}, T})
@@ -208,12 +199,22 @@ embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Int, T}; kwargs...) = 
 embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Vector{Int}, T}; kwargs...) = embed(basis, basis, operators; kwargs...)
 
 """
-Fast multiplication of operators with states.
+    gemv!(alpha, a, b, beta, result)
+
+Fast in-place multiplication of operators with state vectors. It
+implements the relation `result = beta*result + alpha*a*b`.
+`alpha` and `beta` are complex numbers. `result` and either `a` or `b`
+are state vectors while the other one can be of any operator type.
 """
 gemv!() = error("Not Implemented.")
 
 """
-Fast multiplication of operators with DenseOperators.
+    gemm!(alpha, a, b, beta, result)
+
+Fast in-place multiplication of of operators with DenseOperators. It
+implements the relation `result = beta*result + alpha*a*b`.
+`alpha` and `beta` are complex numbers. `result` and either `a` or `b`
+are dense operators while the other one can be of any operator type.
 """
 gemm!() = error("Not Implemented.")
 
@@ -233,11 +234,15 @@ bases.multiplicable(a::Bra, b::Operator) = multiplicable(a.basis, b.basis_l)
 bases.multiplicable(a::Operator, b::Operator) = multiplicable(a.basis_r, b.basis_l)
 
 """
+    ishermitian(op::Operator)
+
 Check if an operator is Hermitian.
 """
-ishermitian(A::Operator) = arithmetic_unary_error(ishermitian, A)
+ishermitian(op::Operator) = arithmetic_unary_error(ishermitian, op)
 
 """
+    expm(op::Operator)
+
 Operator exponential.
 """
 Base.expm(op::Operator) = throw(ArgumentError("expm() is not defined for this type of operator: $(typeof(op)).\nTry to convert to dense operator first with full()."))

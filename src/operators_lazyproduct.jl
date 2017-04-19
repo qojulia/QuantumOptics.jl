@@ -9,6 +9,9 @@ using ..bases, ..states, ..operators, ..operators_dense
 export LazyProduct
 
 """
+    LazyProduct(operators[, factor=1])
+    LazyProduct(op1, op2...)
+
 Lazy evaluation of product of operators.
 
 The factors of the product are stored in the "operators" field. Additionally a
