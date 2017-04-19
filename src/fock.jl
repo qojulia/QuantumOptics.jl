@@ -80,7 +80,7 @@ end
 """
     coherentstate(b::FockBasis, alpha)
 
-Coherent state `|α⟩` for the specified Fock space.
+Coherent state ``|α⟩`` for the specified Fock space.
 """
 function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex128}(length(b))))
     alpha = complex(alpha)

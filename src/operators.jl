@@ -16,10 +16,10 @@ export Operator,
 Abstract base class for all operators.
 
 All deriving operator classes have to define the fields
-basis_l and basis_r defining the left and right side bases.
+`basis_l` and `basis_r` defining the left and right side bases.
 
 For fast time evolution also at least the function
-gemv!(alpha, op::Operator, x::Ket, beta, result::Ket) should be
+`gemv!(alpha, op::Operator, x::Ket, beta, result::Ket)` should be
 implemented. Many other generic multiplication functions can be defined in
 terms of this function and are provided automatically.
 """
@@ -71,14 +71,14 @@ ptrace(a::Operator, index::Vector{Int}) = arithmetic_unary_error("Partial trace"
 """
     normalize(op)
 
-Return the normalized operator so that its trace is one.
+Return the normalized operator so that its `trace(op)` is one.
 """
 normalize(op::Operator) = op/trace(op)
 
 """
     normalize!(op)
 
-In-place normalization of the given operator so that its trace is one.
+In-place normalization of the given operator so that its `trace(x)` is one.
 """
 normalize!(op::Operator) = throw(ArgumentError("normalize! is not defined for this type of operator: $(typeof(op)).\n You may have to fall back to the non-inplace version 'normalize()'."))
 
@@ -105,7 +105,7 @@ end
 """
     expect(index, op, state)
 
-If `index` is given, it assumes that
+If an `index` is given, it assumes that `op` is defined in the subsystem specified by this number.
 """
 expect(index::Int, op::Operator, state) = expect([index], op, state)
 expect(op::Operator, states::Vector) = [expect(op, state) for state=states]
@@ -203,8 +203,8 @@ embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Vector{Int}, T}; kwarg
 
 Fast in-place multiplication of operators with state vectors. It
 implements the relation `result = beta*result + alpha*a*b`.
-`alpha` and `beta` are complex numbers. `result` and either `a` or `b`
-are state vectors while the other one can be of any operator type.
+Here, `alpha` and `beta` are complex numbers, while `result` and either `a`
+or `b` are state vectors while the other one can be of any operator type.
 """
 gemv!() = error("Not Implemented.")
 
@@ -213,8 +213,8 @@ gemv!() = error("Not Implemented.")
 
 Fast in-place multiplication of of operators with DenseOperators. It
 implements the relation `result = beta*result + alpha*a*b`.
-`alpha` and `beta` are complex numbers. `result` and either `a` or `b`
-are dense operators while the other one can be of any operator type.
+Here, `alpha` and `beta` are complex numbers, while `result` and either `a`
+or `b` are dense operators while the other one can be of any operator type.
 """
 gemm!() = error("Not Implemented.")
 

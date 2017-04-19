@@ -28,7 +28,7 @@ end
 """
     transition(b::NLevelBasis, to::Int, from::Int)
 
-Transition operator ``|to><from|``.
+Transition operator ``|\\mathrm{to}⟩⟨\\mathrm{from}|``.
 """
 function transition(b::NLevelBasis, to::Int, from::Int)
     if to < 1 || b.N < to

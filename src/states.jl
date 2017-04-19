@@ -10,7 +10,7 @@ export StateVector, Bra, Ket,
 
 
 """
-Abstract base class for Bra and Ket states.
+Abstract base class for [`Bra`](@ref) and [`Ket`](@ref) states.
 
 The state vector class stores the coefficients of an abstract state
 in respect to a certain basis. These coefficients are stored in the
@@ -22,7 +22,7 @@ abstract StateVector
 """
     Bra(b::Basis[, data])
 
-Bra state defined by coefficients in respect to a basis.
+Bra state defined by coefficients in respect to the basis.
 """
 type Bra <: StateVector
     basis::Basis
@@ -33,7 +33,7 @@ end
 """
     Ket(b::Basis[, data])
 
-Ket state defined by coefficients in respect to a basis.
+Ket state defined by coefficients in respect to the given basis.
 """
 type Ket <: StateVector
     basis::Basis

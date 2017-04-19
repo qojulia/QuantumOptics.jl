@@ -16,7 +16,7 @@ The Basis class is meant to specify a basis of the Hilbert space of the
 studied system. Besides basis specific information all subclasses must
 implement a shape variable which indicates the dimension of the used
 Hilbert space. For a spin-1/2 Hilbert space this would be the
-vector `Int[2]`. A system composed of 2 spins would then have a
+vector `Int[2]`. A system composed of two spins would then have a
 shape vector `Int[2 2]`.
 
 Composite systems can be defined with help of the [`CompositeBasis`](@ref)
@@ -247,8 +247,8 @@ ptrace(a, index::Int) = ptrace(a, Int[index])
 
 Change the ordering of the subsystems of the given object.
 
-For a permutation vector [2,1,3] and a given object with basis [b1, b2, b3]
-this function results in [b2, b1, b3].
+For a permutation vector `[2,1,3]` and a given object with basis `[b1, b2, b3]`
+this function results in `[b2, b1, b3]`.
 """
 function permutesystems(b::CompositeBasis, perm::Vector{Int})
     @assert length(b.bases) == length(perm)

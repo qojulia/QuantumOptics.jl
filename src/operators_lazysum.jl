@@ -11,10 +11,11 @@ export LazySum
 """
     LazySum([factors,] operators)
 
-Lazy evaluation of sum of operators.
+Lazy evaluation of sums of operators.
 
 All operators have to be given in respect to the same bases. The field
-factors accounts for an additional multiplicative factor for each operator.
+`factors` accounts for an additional multiplicative factor for each operator
+stored in the `operators` field.
 """
 type LazySum <: Operator
     basis_l::Basis

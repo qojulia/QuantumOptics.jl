@@ -166,8 +166,8 @@ Integrate the master equation using the MCWF method.
 There are two implementations for integrating the non-hermitian
 schroedinger equation:
 
-* ``mcwf_h``: Usual formulation with Hamiltonian + jump operators separately.
-* ``mcwf_nh``: Variant with non-hermitian Hamiltonian.
+* [`mcwf_h`](@ref): Usual formulation with Hamiltonian + jump operators separately.
+* [`mcwf_nh`](@ref): Variant with non-hermitian Hamiltonian.
 
 The ``mcwf`` function takes a normal Hamiltonian, calculates the
 non-hermitian Hamiltonian and then calls mcwf_nh which is slightly faster.

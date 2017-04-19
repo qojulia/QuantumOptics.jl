@@ -37,6 +37,7 @@ Base.copy(x::DenseOperator) = deepcopy(x)
 
 Convert an arbitrary Operator into a [`DenseOperator`](@ref).
 """
+Base.full(x::Operator) = throw(ArgumentError("Conversion from $(typeof(a)) to a DenseOperator not implemented."))
 Base.full(x::DenseOperator) = deepcopy(x)
 
 ==(x::DenseOperator, y::DenseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)

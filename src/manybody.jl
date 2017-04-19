@@ -214,20 +214,17 @@ moment not implemented.
 The mathematical formalism for the one-body case is described by
 
 ```math
-X = \\sum_{ij} a_i^† a_j \\left⟨u_i \right| x \\left| u_j \\right⟩
+X = \\sum_{ij} a_i^† a_j ⟨u_i| x | u_j⟩
 ```
 
 and for the interaction case by
 
 ```math
-X = \\sum_{ijkl} a_i^† a_j^† a_k a_l
-            \\left⟨ u_i \\right| \\left⟨ u_j \\right|
-            x
-            \\left| u_k \\right⟩ \\left| u_l \\right⟩
+X = \\sum_{ijkl} a_i^† a_j^† a_k a_l ⟨u_i|⟨u_j| x |u_k⟩|u_l⟩
 ```
 
 where ``X`` is the N-particle operator, ``x`` is the one-body operator and
-``\\left| u \\right⟩`` are the one-body states associated to the
+``|u⟩`` are the one-body states associated to the
 different modes of the N-particle basis.
 """
 function manybodyoperator{T<:Operator}(basis::ManyBodyBasis, op::T)::T
