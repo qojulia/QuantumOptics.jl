@@ -158,7 +158,7 @@ The super-operator ``S`` is defined by
 """
 function liouvillian{T<:Operator}(H::T, J::Vector{T};
             Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
-            Jdagger::Vector{T}=map(dagger, J))
+            Jdagger::Vector{T}=dagger.(J))
     _check_input(H, J, Jdagger, Gamma)
     L = spre(-1im*H) + spost(1im*H)
     if typeof(Gamma) == Matrix{Float64}

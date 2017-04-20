@@ -175,7 +175,7 @@ Further information can be found at [`master`](@ref).
 """
 function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
-                Jdagger::Vector=map(dagger, J),
+                Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=deepcopy(rho0),
                 kwargs...)
@@ -204,7 +204,7 @@ Further information can be found at [`master`](@ref).
 function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
                 Hnhdagger::Operator=dagger(Hnh),
-                Jdagger::Vector=map(dagger, J),
+                Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=deepcopy(rho0),
                 kwargs...)
@@ -250,7 +250,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 """
 function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
-                Jdagger::Vector=map(dagger, J),
+                Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=deepcopy(rho0),
                 kwargs...)
@@ -262,7 +262,7 @@ end
 
 function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOperator};
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
-                Jdagger::Vector{DenseOperator}=map(dagger, J),
+                Jdagger::Vector{DenseOperator}=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=deepcopy(rho0),
                 kwargs...)

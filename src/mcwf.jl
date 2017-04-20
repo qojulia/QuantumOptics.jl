@@ -39,9 +39,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan, psi0::Ket, se
     djumpnorm(t, x::Vector{Complex128}) = norm(as_ket(x))^2 - (1-jumpnorm[1])
     function dojump(t, x::Vector{Complex128})
         jumpfun(rng, t, as_ket(x), tmp)
-        for i=1:length(x)
-            x[i] = tmp.data[i]
-        end
+        x .= tmp.data
         jumpnorm[1] = rand(rng)
         return ode_dopri.jump
     end
@@ -81,16 +79,12 @@ Default jump function.
 function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket)
     if length(J)==1
         operators.gemv!(complex(1.), J[1], psi, complex(0.), psi_new)
-        N = norm(psi_new)
-        for i=1:length(psi_new.data)
-            psi_new.data[i] /= N
-        end
+        psi_new.data ./= norm(psi_new)
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
             operators.gemv!(complex(1.), J[i], psi, complex(0.), psi_new)
-            #probs[i] = norm(psi_new)^2
-            probs[i] = dagger(psi_new)*psi_new
+            probs[i] = dot(psi_new.data, psi_new.data)
         end
         cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)

@@ -37,7 +37,7 @@ function master(H::Operator, J::Vector;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 eps::Float64=1e-3, hmin=1e-7,
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
-                Jdagger::Vector=map(dagger, J),
+                Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=deepcopy(rho0),
                 kwargs...)

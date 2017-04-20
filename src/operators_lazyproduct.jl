@@ -37,8 +37,8 @@ end
 LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(convert(Vector{Operator}, operators), factor)
 LazyProduct(operators::Operator...) = LazyProduct(Operator[operators...])
 
-Base.full(op::LazyProduct) = op.factor*prod(full(op_i) for op_i in op.operators)
-Base.sparse(op::LazyProduct) = op.factor*prod(sparse(op_i) for op_i in op.operators)
+Base.full(op::LazyProduct) = op.factor*prod(full.(op.operators))
+Base.sparse(op::LazyProduct) = op.factor*prod(sparse.(op.operators))
 
 ==(x::LazyProduct, y::LazyProduct) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor == y.factor
 
@@ -52,7 +52,7 @@ Base.sparse(op::LazyProduct) = op.factor*prod(sparse(op_i) for op_i in op.operat
 
 identityoperator(::Type{LazyProduct}, b1::Basis, b2::Basis) = LazyProduct(identityoperator(b1, b2))
 
-dagger(op::LazyProduct) = LazyProduct([dagger(op_i) for op_i in reverse(op.operators)], conj(op.factor))
+dagger(op::LazyProduct) = LazyProduct(dagger.(reverse(op.operators)), conj(op.factor))
 
 trace(op::LazyProduct) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
 

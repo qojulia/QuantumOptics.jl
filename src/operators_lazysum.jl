@@ -36,8 +36,8 @@ end
 LazySum{T<:Number}(factors::Vector{T}, operators::Vector) = LazySum(complex(factors), Operator[op for op in operators])
 LazySum(operators::Operator...) = LazySum(ones(Complex128, length(operators)), Operator[operators...])
 
-Base.full(op::LazySum) = sum(a*full(op_i) for (a, op_i) in zip(op.factors, op.operators))
-Base.sparse(op::LazySum) = sum(a*sparse(op_i) for (a, op_i) in zip(op.factors, op.operators))
+Base.full(op::LazySum) = sum(op.factors .* full.(op.operators))
+Base.sparse(op::LazySum) = sum(op.factors .* sparse.(op.operators))
 
 ==(x::LazySum, y::LazySum) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factors==y.factors
 
@@ -54,9 +54,9 @@ Base.sparse(op::LazySum) = sum(a*sparse(op_i) for (a, op_i) in zip(op.factors, o
 
 identityoperator(::Type{LazySum}, b1::Basis, b2::Basis) = LazySum(identityoperator(b1, b2))
 
-dagger(op::LazySum) = LazySum(conj(op.factors), Operator[dagger(op_i) for op_i in op.operators])
+dagger(op::LazySum) = LazySum(conj.(op.factors), dagger.(op.operators))
 
-trace(op::LazySum) = sum(op.factors[i]*trace(op.operators[i]) for i in 1:length(op.operators))
+trace(op::LazySum) = sum(op.factors .* trace.(op.operators))
 
 normalize!(op::LazySum) = (op.factors /= trace(op))
 

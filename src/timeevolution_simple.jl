@@ -33,7 +33,7 @@ end
 Integrate master equation.
 """
 function master(T::Vector, rho0::DenseOperator, H::Operator, J::Vector;
-                    Jdagger=map(dagger,J),
+                    Jdagger=dagger.(J),
                     gamma::Union{Real, Vector, Matrix}=ones(Int, length(J)),
                     kwargs...)
     check_samebases(rho0, H)
@@ -59,7 +59,7 @@ function master(T::Vector, rho0::DenseOperator, H::Operator, J::Vector;
     return tout, rho_t
 end
 
-master(T::Vector, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(T, tensor(psi0, dagger(psi0)), H, J; kwargs...)
+master(T::Vector, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(T, dm(psi0), H, J; kwargs...)
 
 
 """

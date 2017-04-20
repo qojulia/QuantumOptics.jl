@@ -38,7 +38,7 @@ criterion specified in [`steadystate.master`](@ref).
 function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
-                     Jdagger::Vector=map(dagger, J),
+                     Jdagger::Vector=dagger.(J),
                      tmp::DenseOperator=deepcopy(rho0),
                      kwargs...)
     exp_values = Complex128[]
@@ -54,7 +54,7 @@ function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      eps::Float64=1e-4, h0=10.,
                      Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
-                     Jdagger::Vector=map(dagger, J),
+                     Jdagger::Vector=dagger.(J),
                      tmp::DenseOperator=deepcopy(rho0),
                      kwargs...)
     op2rho0 = op2*rho0
