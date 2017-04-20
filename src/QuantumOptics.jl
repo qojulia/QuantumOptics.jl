@@ -55,6 +55,7 @@ include("metrics.jl")
 include("ode_dopri.jl")
 include("timeevolution_simple.jl")
 module timeevolution
+    export diagonaljumps
     include("master.jl")
     include("schroedinger.jl")
     include("mcwf.jl")
@@ -62,7 +63,6 @@ module timeevolution
     using .timeevolution_schroedinger
     using .timeevolution_mcwf
 end
-diagonaljumps = timeevolution.timeevolution_mcwf.diagonaljumps
 include("steadystate.jl")
 include("timecorrelations.jl")
 include("spectralanalysis.jl")
@@ -84,6 +84,7 @@ using .subspace
 using .particle
 using .nlevel
 using .manybody
+using .timeevolution
 using .metrics
 using .spectralanalysis
 using .timecorrelations

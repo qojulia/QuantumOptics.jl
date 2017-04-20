@@ -11,13 +11,17 @@ export correlation, spectrum, correlation2spectrum
 
 
 """
-    timecorrelations.correlation(tspan, rho0, H, J, op1, op2; <keyword arguments>)
+    timecorrelations.correlation([tspan, ]rho0, H, J, op1, op2; <keyword arguments>)
 
 Calculate two time correlation values ``⟨A(t)B(0)⟩``.
 
 The calculation is done by multiplying the initial density operator
 with ``B`` performing a time evolution according to a master equation
-and then calculating the expectation value ``\\mathrm{Tr} \\{A ρ\\}`
+and then calculating the expectation value ``\\mathrm{Tr} \\{A ρ\\}``
+
+Without the `tspan` argument the points in time are chosen automatically from
+the ode solver and the final time is determined by the steady state termination
+criterion specified in [`steadystate.master`](@ref).
 
 # Arguments
 * `tspan`: Points of time at which the correlation should be calculated.
@@ -46,14 +50,6 @@ function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J
     return exp_values
 end
 
-
-"""
-    timecorrelations.correlation(rho0, H, J, op1, op2; <keyword arguments>)
-
-Without the `tspan` argument the points in time are chosen automatically from
-the ode solver and the final time is determined by the steady state termination
-criterion specified in [`steadystate.master`](@ref).
-"""
 function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      eps::Float64=1e-4, h0=10.,
@@ -75,7 +71,7 @@ end
 
 
 """
-    timecorrelations.spectrum(omega_samplepoints, H, J, op; <keyword arguments>)
+    timecorrelations.spectrum([omega_samplepoints,] H, J, op; <keyword arguments>)
 
 Calculate spectrum as Fourier transform of a correlation function
 
@@ -90,6 +86,9 @@ The argument `omega_samplepoints` gives the list of frequencies where ``S(ω)``
 is caclulated. A corresponding list of times is calculated internally by means
 of a inverse discrete frequency fourier transform. If not given, the
 steady-state is computed before calculating the auto-correlation function.
+
+Without the `omega_samplepoints` arguments the frequencies are chosen
+automatically.
 
 # Arguments
 * `omega_samplepoints`: List of frequency points at which the spectrum
@@ -120,13 +119,6 @@ function spectrum(omega_samplepoints::Vector{Float64},
     return omega_samplepoints, S
 end
 
-
-"""
-    timecorrelations.spectrum(H, J, op; <keyword arguments>)
-
-Without the `omega_samplepoints` arguments the frequencies are chosen
-automatically.
-"""
 function spectrum(H::Operator, J::Vector, op::Operator;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 eps::Float64=1e-4, h0=10.,

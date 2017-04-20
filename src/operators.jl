@@ -48,7 +48,7 @@ bases.basis(a::Operator) = (check_samebases(a); a.basis_l)
 dagger(a::Operator) = arithmetic_unary_error("Hermitian conjugate", a)
 
 """
-    identityoperator(a::Basis, [b::Basis])
+    identityoperator(a::Basis[, b::Basis])
 
 Return an identityoperator in the given bases.
 """
@@ -143,7 +143,7 @@ Vector of indices that are not in the given vector.
 complement(N::Int, indices) = Int[i for i=1:N if i ∉ indices]
 
 """
-    embed(basis1, [basis2], indices::Vector, operators::Vector)
+    embed(basis1[, basis2], indices::Vector, operators::Vector)
 
 Tensor product of operators where missing indices are filled up with identity operators.
 """
@@ -160,7 +160,7 @@ embed(basis::CompositeBasis, index::Int, op::Operator) = embed(basis, basis, Int
 embed{T<:Operator}(basis::CompositeBasis, indices::Vector{Int}, operators::Vector{T}) = embed(basis, basis, indices, operators)
 
 """
-    embed(basis1, [basis2], operators::Dict)
+    embed(basis1[, basis2], operators::Dict)
 
 `operators` is a dictionary `Dict{Vector{Int}, Operator}`. The integer vector
 specifies in which subsystems the corresponding operator is defined.

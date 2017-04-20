@@ -181,7 +181,7 @@ end
 """
     transition(b::ManyBodyBasis, to::Int, from::Int)
 
-Transition operator `from` particles in one mode `to` another mode.
+Operator ``|\\mathrm{to}⟩⟨\\mathrm{from}|`` transferring particles between modes.
 """
 function transition(b::ManyBodyBasis, to::Int, from::Int)
     result = SparseOperator(b)

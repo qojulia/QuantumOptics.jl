@@ -79,7 +79,7 @@ Compute eigenvalues of an operator. This is just a thin wrapper around julia's
 eigvals(A::DenseOperator, args...) = ishermitian(A) ? eigvals(Hermitian(A.data), args...) : sort(eigvals(A.data), by=abs)
 
 """
-    eigvals(op::DenseOperator, args...)
+    eigvals!(op::DenseOperator, args...)
 
 Compute eigenvalues of an operator. This is just a thin wrapper around julia's
 `eigvals` function. More details can be found at

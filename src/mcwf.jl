@@ -128,7 +128,11 @@ function dmcwf_nh(psi::Ket, Hnh::Operator, dpsi::Ket)
 end
 
 """
-Integrate master equation using MCWF method with mcwf_h as derivative function.
+    mcwf_h(tspan, rho0, Hnh, J; <keyword arguments>)
+
+Calculate MCWF trajectory where the Hamiltonian is given in hermitian form.
+
+For more information see: [`mcwf`](@ref)
 """
 function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
                 seed=rand(UInt), fout=nothing, Jdagger::Vector=map(dagger, J),
@@ -144,7 +148,15 @@ function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
 end
 
 """
-Integrate master equation using MCWF method with mcwf_nh as derivative function.
+    mcwf_nh(tspan, rho0, Hnh, J; <keyword arguments>)
+
+Calculate MCWF trajectory where the Hamiltonian is given in non-hermitian form.
+
+```math
+H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
+```
+
+For more information see: [`mcwf`](@ref)
 """
 function mcwf_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector;
                 seed=rand(UInt), fout=nothing,
@@ -166,11 +178,13 @@ Integrate the master equation using the MCWF method.
 There are two implementations for integrating the non-hermitian
 schroedinger equation:
 
-* [`mcwf_h`](@ref): Usual formulation with Hamiltonian + jump operators separately.
+* [`mcwf_h`](@ref): Usual formulation with Hamiltonian + jump operators
+        separately.
 * [`mcwf_nh`](@ref): Variant with non-hermitian Hamiltonian.
 
-The ``mcwf`` function takes a normal Hamiltonian, calculates the
-non-hermitian Hamiltonian and then calls mcwf_nh which is slightly faster.
+The `mcwf` function takes a normal Hamiltonian, calculates the
+non-hermitian Hamiltonian and then calls [`mcwf_nh`](@ref) which is
+slightly faster.
 
 # Arguments
 * `tspan`: Vector specifying the points of time for which output should

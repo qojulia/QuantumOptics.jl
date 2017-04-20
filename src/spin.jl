@@ -68,7 +68,7 @@ end
 """
     sigmap(b::SpinBasis)
 
-Raising operator `σ_+` for the given Spin basis.
+Raising operator ``σ_+`` for the given Spin basis.
 """
 function sigmap(b::SpinBasis)
     N = num(b.spinnumber*2 + 1)
@@ -81,7 +81,7 @@ end
 """
     sigmam(b::SpinBasis)
 
-Lowering operator `σ_-` for the given Spin basis.
+Lowering operator ``σ_-`` for the given Spin basis.
 """
 function sigmam(b::SpinBasis)
     N = num(b.spinnumber*2 + 1)

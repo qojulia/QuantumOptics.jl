@@ -6,8 +6,6 @@ using ..operators
 using ..operators_dense
 using ODE
 
-export master
-
 
 """
 Evaluate master equation for diagonal jump operators.

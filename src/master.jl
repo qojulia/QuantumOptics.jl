@@ -193,7 +193,12 @@ master_h(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master_h(tspan, 
 
 Integrate the master equation with dmaster_nh as derivative function.
 
-In this case the given Hamiltonian is assumed to be the non-hermitian version.
+In this case the given Hamiltonian is assumed to be the non-hermitian version:
+
+```math
+H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
+```
+
 Further information can be found at [`master`](@ref).
 """
 function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
@@ -222,7 +227,7 @@ There are two implementations for integrating the master equation:
 * [`master_h`](@ref): Usual formulation of the master equation.
 * [`master_nh`](@ref): Variant with non-hermitian Hamiltonian.
 
-For dense arguments the ``master`` function calculates the
+For dense arguments the `master` function calculates the
 non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 
 # Arguments
@@ -287,7 +292,12 @@ master(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(tspan, dm(p
 Time-evolution according to a master equation with a dynamic non-hermitian Hamiltonian and J.
 
 In this case the given Hamiltonian is assumed to be the non-hermitian version.
-For further information look at [`master_nh_dynamic`](@ref)
+
+```math
+H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
+```
+
+For further information look at [`master_dynamic`](@ref).
 """
 function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
