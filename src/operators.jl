@@ -91,6 +91,12 @@ Expectation value of the given operator `op` for the specified `state`.
 """
 expect(op::Operator, state::Ket) = dagger(state)*(op*state)
 expect(op::Operator, state::Operator) = trace(op*state)
+
+"""
+    expect(index, op, state)
+
+If an `index` is given, it assumes that `op` is defined in the subsystem specified by this number.
+"""
 function expect(indices::Vector{Int}, op::Operator, state::Operator)
     N = length(state.basis_l.shape)
     indices_ = sortedindices.complement(N, indices)
@@ -101,12 +107,6 @@ function expect(indices::Vector{Int}, op::Operator, state::Ket)
     indices_ = sortedindices.complement(N, indices)
     expect(op, ptrace(state, indices_))
 end
-
-"""
-    expect(index, op, state)
-
-If an `index` is given, it assumes that `op` is defined in the subsystem specified by this number.
-"""
 expect(index::Int, op::Operator, state) = expect([index], op, state)
 expect(op::Operator, states::Vector) = [expect(op, state) for state=states]
 expect(indices::Vector{Int}, op::Operator, states::Vector) = [expect(indices, op, state) for state=states]
@@ -126,7 +126,26 @@ end
 function variance(op::Operator, state::Operator)
     expect(op*op, state) - expect(op, state)^2
 end
+
+"""
+    variance(index, op, state)
+
+If an `index` is given, it assumes that `op` is defined in the subsystem specified by this number
+"""
+function variance(indices::Vector{Int}, op::Operator, state::Operator)
+    N = length(state.basis_l.shape)
+    indices_ = sortedindices.complement(N, indices)
+    variance(op, ptrace(state, indices_))
+end
+function variance(indices::Vector{Int}, op::Operator, state::Ket)
+    N = length(state.basis.shape)
+    indices_ = sortedindices.complement(N, indices)
+    variance(op, ptrace(state, indices_))
+end
+variance(index::Int, op::Operator, state) = variance([index], op, state)
 variance(op::Operator, states::Vector) = [variance(op, state) for state=states]
+variance(indices::Vector{Int}, op::Operator, states::Vector) = [variance(indices, op, state) for state=states]
+
 
 """
     tensor(x::Operator, y::Operator, z::Operator...)

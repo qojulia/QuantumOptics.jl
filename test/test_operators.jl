@@ -40,7 +40,10 @@ op_test = test_operators(b, b, op.data)
 @test expect(op, [ρ, ρ]) == [expect(op, ρ) for i=1:2]
 @test expect(1, op1, [ρ, ψ]) == [expect(1, op1, ρ), expect(1, op1, ψ)]
 
+@test variance(1, op1, ρ) ≈ variance(embed(b, 1, op1), ρ)
+@test variance(1, op1, ψ) ≈ variance(embed(b, 1, op1), ψ)
 @test variance(op, [ρ, ρ]) == [variance(op, ρ) for i=1:2]
+@test variance(1, op1, [ρ, ψ]) == [variance(1, op1, ρ), variance(1, op1, ψ)]
 
 
 @test_throws ArgumentError tensor(op_test, op_test)
