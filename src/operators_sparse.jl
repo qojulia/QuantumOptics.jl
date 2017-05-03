@@ -59,9 +59,13 @@ Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.da
 /(a::SparseOperator, b::Number) = SparseOperator(a.basis_l, a.basis_r, a.data/complex(b))
 
 +(a::SparseOperator, b::SparseOperator) = (check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data+b.data))
++(a::SparseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data+b.data))
++(a::DenseOperator, b::SparseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data+b.data))
 
 -(a::SparseOperator) = SparseOperator(a.basis_l, a.basis_r, -a.data)
 -(a::SparseOperator, b::SparseOperator) = (check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data-b.data))
+-(a::SparseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
+-(a::DenseOperator, b::SparseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
 
 
 dagger(x::SparseOperator) = SparseOperator(x.basis_r, x.basis_l, x.data')
@@ -99,6 +103,8 @@ function operators.expect(op::SparseOperator, state::DenseOperator)
 end
 
 tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
+tensor(a::DenseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
+tensor(a::SparseOperator, b::DenseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
 
 function permutesystems(rho::SparseOperator, perm::Vector{Int})
     @assert length(rho.basis_l.bases) == length(rho.basis_r.bases) == length(perm)

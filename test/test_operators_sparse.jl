@@ -58,12 +58,16 @@ xbra2 = dagger(randstate(b_l))
 # Addition
 @test_throws bases.IncompatibleBases op1 + dagger(op2)
 @test 1e-14 > D(op1+op2, op1_+op2_)
+@test 1e-14 > D(op1+op2, op1+op2_)
+@test 1e-14 > D(op1+op2, op1_+op2)
 
 # Subtraction
 @test_throws bases.IncompatibleBases op1 - dagger(op2)
-@test 1e-14 > D(op1 - op2, op1_ - op2_)
-@test 1e-14 > D(op1 + (-op2), op1_ - op2_)
-@test 1e-14 > D(op1 + (-1*op2), op1_ - op2_)
+@test 1e-14 > D(op1-op2, op1_-op2_)
+@test 1e-14 > D(op1-op2, op1-op2_)
+@test 1e-14 > D(op1-op2, op1_-op2)
+@test 1e-14 > D(op1+(-op2), op1_ - op2_)
+@test 1e-14 > D(op1+(-1*op2), op1_ - op2_)
 
 # Test multiplication
 @test_throws bases.IncompatibleBases op1*op2
@@ -154,25 +158,30 @@ op123_ = op1a_ ⊗ op2a_ ⊗ op3a_
 # Associativity
 @test 1e-13 > D((op1a ⊗ op2a) ⊗ op3a, (op1a_ ⊗ op2a_) ⊗ op3a_)
 @test 1e-13 > D(op1a ⊗ (op2a ⊗ op3a), op1a_ ⊗ (op2a_ ⊗ op3a_))
+@test 1e-13 > D(op1a ⊗ (op2a ⊗ op3a), op1a_ ⊗ (op2a_ ⊗ op3a))
 
 # Linearity
 @test 1e-13 > D(op1a ⊗ (0.3*op2a), op1a_ ⊗ (0.3*op2a_))
 @test 1e-13 > D(0.3*(op1a ⊗ op2a), 0.3*(op1a_ ⊗ op2a_))
 @test 1e-13 > D((0.3*op1a) ⊗ op2a, (0.3*op1a_) ⊗ op2a_)
 @test 1e-13 > D(0.3*(op1a ⊗ op2a), 0.3*(op1a_ ⊗ op2a_))
+@test 1e-13 > D(0.3*(op1a ⊗ op2a), 0.3*(op1a ⊗ op2a_))
 
 # Distributivity
 @test 1e-13 > D(op1a ⊗ (op2a + op2b), op1a_ ⊗ (op2a_ + op2b_))
 @test 1e-13 > D(op1a ⊗ op2a + op1a ⊗ op2b, op1a_ ⊗ op2a_ + op1a_ ⊗ op2b_)
 @test 1e-13 > D((op2a + op2b) ⊗ op3a, (op2a_ + op2b_) ⊗ op3a_)
 @test 1e-13 > D(op2a ⊗ op3a + op2b ⊗ op3a, op2a_ ⊗ op3a_ + op2b_ ⊗ op3a_)
+@test 1e-13 > D(op2a ⊗ op3a + op2b ⊗ op3a, op2a ⊗ op3a_ + op2b_ ⊗ op3a_)
 
 # Mixed-product property
 @test 1e-13 > D((op1a ⊗ op2a) * dagger(op1b ⊗ op2b), (op1a_ ⊗ op2a_) * dagger(op1b_ ⊗ op2b_))
 @test 1e-13 > D((op1a*dagger(op1b)) ⊗ (op2a*dagger(op2b)), (op1a_*dagger(op1b_)) ⊗ (op2a_*dagger(op2b_)))
+@test 1e-13 > D((op1a*dagger(op1b)) ⊗ (op2a*dagger(op2b)), (op1a_*dagger(op1b)) ⊗ (op2a_*dagger(op2b_)))
 
 # Transpose
 @test 1e-13 > D(dagger(op1a ⊗ op2a), dagger(op1a_ ⊗ op2a_))
+@test 1e-13 > D(dagger(op1a ⊗ op2a), dagger(op1a ⊗ op2a_))
 @test 1e-13 > D(dagger(op1a) ⊗ dagger(op2a), dagger(op1a_) ⊗ dagger(op2a_))
 
 
