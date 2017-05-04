@@ -98,7 +98,8 @@ end
 
 Husimi Q representation ``⟨α|ρ|α⟩/π`` for the given state or operator `x`. The
 function can either be evaluated on one point α or on a grid specified by
-the vectors `xvec` and `yvec`.
+the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
+done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + y)``.
 """
 function qfunc(rho::Operator, alpha::Complex128,
                 tmp1=Ket(basis(rho), Vector{Complex128}(length(basis(rho)))),
@@ -161,10 +162,20 @@ function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
 end
 
 """
-Wigner function of a state.
+    wigner(x, α)
+    wigner(x, xvec, yvec)
 
-This implementation uses the series representation in a Fock basis :math:`W(α)=\\frac{1}{\\pi}\\sum_{k=0}^\infty (-1)^k \\langle k| D(\\alpha)^\\dagger \\rho D(\\alpha)|k\\rangle`,
-where :math:`D(\alpha)` is the displacement operator.
+Wigner function for the given state or operator `x`.  The
+function can either be evaluated on one point α or on a grid specified by
+the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
+done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + y)``.
+
+This implementation uses the series representation in a Fock basis,
+
+```math
+W(α)=\\frac{1}{\\pi}\\sum_{k=0}^\infty (-1)^k \\langle k| D(\\alpha)^\\dagger \\rho D(\\alpha)|k\\rangle
+```
+where ``D(\alpha)`` is the displacement operator.
 """
 function wigner(rho::DenseOperator, x::Vector{Float64}, y::Vector{Float64})
   b = basis(rho)
