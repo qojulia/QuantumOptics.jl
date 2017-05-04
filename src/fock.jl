@@ -117,7 +117,7 @@ function qfunc(rho::Operator, X::Vector{Float64}, Y::Vector{Float64})
     tmp2 = Ket(b, Vector{Complex128}(length(b)))
     result = Matrix{Complex128}(Nx, Ny)
     for j=1:Ny, i=1:Nx
-        result[i, j] = qfunc(rho, complex(X[i], Y[j]), tmp1, tmp2)
+        result[i, j] = qfunc(rho, complex(X[i], Y[j])/sqrt(2), tmp1, tmp2)
     end
     return result
 end
@@ -154,7 +154,7 @@ function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
     end
     result = Matrix{Float64}(Nx, Ny)
     for j=1:Ny, i=1:Nx
-        a = complex(X[i], -Y[j])
+        a = complex(X[i], -Y[j])/sqrt(2)
         result[i, j] = _qfunc_ket(x, a)
     end
     return result
