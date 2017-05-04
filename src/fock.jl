@@ -172,7 +172,7 @@ function wigner(rho::DenseOperator, x::Vector{Float64}, y::Vector{Float64})
 
   X = x./sqrt(2) # Normalization of alpha
   Y = y./sqrt(2)
-  if abs2(maximum(abs(x)) + 1.0im*maximum(abs(y))) > 0.75b.Nmax
+  if abs2(maximum(abs(x)) + 1.0im*maximum(abs(y))) > 0.75*b.N
     warn("x and y range close to cut-off!")
   end
 
@@ -181,7 +181,7 @@ function wigner(rho::DenseOperator, x::Vector{Float64}, y::Vector{Float64})
     alpha = (X[i] + 1.0im*Y[j])
     D = displace(b, alpha)
     op = dagger(D)*rho*D
-    W[i, j] = real(sum([(-1)^k*op.data[k+1, k+1] for k=0:b.Nmax]))
+    W[i, j] = real(sum([(-1)^k*op.data[k+1, k+1] for k=0:b.N]))
   end
 
   return W./pi
@@ -193,7 +193,7 @@ function wigner(psi::Ket, x::Vector{Float64}, y::Vector{Float64})
 
   X = x./sqrt(2)
   Y = y./sqrt(2)
-  if abs2(maximum(abs(x)) + 1.0im*maximum(abs(y))) > 0.75b.Nmax
+  if abs2(maximum(abs(x)) + 1.0im*maximum(abs(y))) > 0.75*b.N
     warn("x and y range close to cut-off!")
   end
 
@@ -201,7 +201,7 @@ function wigner(psi::Ket, x::Vector{Float64}, y::Vector{Float64})
   for i=1:length(x), j=1:length(y)
     alpha = (X[i] + 1.0im*Y[j])
     Dpsi = displace(b, -alpha)*psi
-    W[i, j] = sum([(-1)^k*abs2(Dpsi.data[k+1]) for k=0:b.Nmax])
+    W[i, j] = sum([(-1)^k*abs2(Dpsi.data[k+1]) for k=0:b.N])
   end
 
   return W./pi
