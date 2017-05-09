@@ -65,7 +65,7 @@ bases.basis(a::StateVector) = a.basis
 
 Tensor product ``|x⟩⊗|y⟩⊗|z⟩⊗…`` of the given states.
 """
-bases.tensor{T<:StateVector}(a::T, b::T) = T(tensor(a.basis, b.basis), kron(a.data, b.data))
+bases.tensor{T<:StateVector}(a::T, b::T) = T(tensor(a.basis, b.basis), kron(b.data, a.data))
 
 
 """
@@ -109,9 +109,9 @@ product state ``|i_1⟩⊗|i_2⟩⊗…⊗|i_n⟩`` of the corresponding basis s
 """
 function basisstate(b::Basis, indices::Vector{Int})
     @assert length(b.shape) == length(indices)
-    x = zeros(Complex128, reverse(b.shape)...)
-    x[reverse(indices)...] = Complex(1.)
-    Ket(b, reshape(x, length(b)))
+    x = zeros(Complex128, length(b))
+    x[sub2ind(tuple(b.shape...), indices...)] = Complex(1.)
+    Ket(b, x)
 end
 
 function basisstate(b::Basis, index::Int)
@@ -123,9 +123,8 @@ end
 function bases.permutesystems{T<:StateVector}(state::T, perm::Vector{Int})
     @assert length(state.basis.bases) == length(perm)
     @assert isperm(perm)
-    data = reshape(state.data, reverse(state.basis.shape)...)
-    dataperm = length(perm) - reverse(perm) + 1
-    data = permutedims(data, dataperm)
+    data = reshape(state.data, state.basis.shape...)
+    data = permutedims(data, perm)
     data = reshape(data, length(data))
     T(permutesystems(state.basis, perm), data)
 end

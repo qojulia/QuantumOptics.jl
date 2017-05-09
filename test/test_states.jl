@@ -10,6 +10,7 @@ D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 
 b1 = GenericBasis(3)
 b2 = GenericBasis(5)
+b3 = GenericBasis(7)
 b = b1 ⊗ b2
 
 bra = Bra(b)
@@ -30,9 +31,11 @@ ket = Ket(b)
 # =====================
 bra_b1 = dagger(randstate(b1))
 bra_b2 = dagger(randstate(b2))
+bra_b3 = dagger(randstate(b3))
 
 ket_b1 = randstate(b1)
 ket_b2 = randstate(b2)
+ket_b3 = randstate(b3)
 
 # Addition
 @test_throws bases.IncompatibleBases bra_b1 + bra_b2
@@ -54,6 +57,20 @@ ket_b2 = randstate(b2)
 @test 1e-14 > D(0.3*(bra_b1 - dagger(ket_b1)), bra_b1*0.3 - dagger(ket_b1*0.3))
 @test 0 ≈ bra*ket
 @test 1e-14 > D((bra_b1 ⊗ bra_b2)*(ket_b1 ⊗ ket_b2), (bra_b1*ket_b1)*(bra_b2*ket_b2))
+
+# Tensor product
+@test 1e-14 > D((ket_b1 ⊗ ket_b2) ⊗ ket_b3, ket_b1 ⊗ (ket_b2 ⊗ ket_b3))
+@test 1e-14 > D((bra_b1 ⊗ bra_b2) ⊗ bra_b3, bra_b1 ⊗ (bra_b2 ⊗ bra_b3))
+
+ket_b1b2 = ket_b1 ⊗ ket_b2
+shape = (ket_b1b2.basis.shape...)
+idx = sub2ind(shape, 2, 3)
+@test ket_b1b2.data[idx] == ket_b1.data[2]*ket_b2.data[3]
+ket_b1b2b3 = ket_b1 ⊗ ket_b2 ⊗ ket_b3
+shape = (ket_b1b2b3.basis.shape...)
+idx = sub2ind(shape, 1, 4, 3)
+@test ket_b1b2b3.data[idx] == ket_b1.data[1]*ket_b2.data[4]*ket_b3.data[3]
+
 
 # Norm
 basis = FockBasis(1)
