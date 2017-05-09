@@ -81,15 +81,15 @@ rho_coherent = dm(psi_coherent)
 psi_fock = fockstate(b, nfock)
 rho_fock = dm(psi_fock)
 
-Wpsi_coherent = wigner(psi_coherent, X, Y)
-Wrho_coherent = wigner(rho_coherent, X, Y)
-Wpsi_fock = wigner(psi_fock, X, Y)
-Wrho_fock = wigner(rho_fock, X, Y)
-
 Qpsi_coherent = qfunc(psi_coherent, X, Y)
 Qrho_coherent = qfunc(rho_coherent, X, Y)
 Qpsi_fock = qfunc(psi_fock, X, Y)
 Qrho_fock = qfunc(rho_fock, X, Y)
+
+Wpsi_coherent = wigner(psi_coherent, X, Y)
+Wrho_coherent = wigner(rho_coherent, X, Y)
+Wpsi_fock = wigner(psi_fock, X, Y)
+Wrho_fock = wigner(rho_fock, X, Y)
 
 laguerre3(x) = (-x^3+9x^2-18x+6)/6
 
@@ -116,10 +116,14 @@ for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     w_coherent = 1/pi*exp(-2*abs2(alpha-beta))
     @test Wpsi_coherent[i, j] ≈ w_coherent
     @test Wrho_coherent[i, j] ≈ w_coherent
+    @test wigner(psi_coherent, beta) ≈ w_coherent
+    @test wigner(rho_coherent, beta) ≈ w_coherent
 
     w_fock = 1/pi*(-1)^nfock*laguerre3(4*abs2(beta))*exp(-2*abs2(beta))
     @test Wpsi_fock[i, j] ≈ w_fock
     @test Wrho_fock[i, j] ≈ w_fock
+    @test wigner(psi_fock, beta) ≈ w_fock
+    @test wigner(rho_fock, beta) ≈ w_fock
 end
 
 # Test qfunc with rand operators

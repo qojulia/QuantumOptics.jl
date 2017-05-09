@@ -183,10 +183,7 @@ where ``D(\alpha)`` is the displacement operator.
 function wigner(psi::Ket, alpha::Complex128; warning=true)
     b = basis(psi)
     @assert typeof(b) == FockBasis
-
-    if warning && abs2(alpha) > 0.5*b.N
-        warn("alpha close to cut-off!")
-    end
+    warning && abs2(alpha) > 0.5*b.N && warn("alpha close to cut-off!")
 
     Dpsi = displace(b, -alpha)*psi
     w = 0.
@@ -199,10 +196,7 @@ end
 function wigner(rho::DenseOperator, alpha::Complex128; warning=true)
     b = basis(rho)
     @assert typeof(b) == FockBasis
-
-    if warning && abs2(alpha) > 0.5*b.N
-        warn("alpha close to cut-off!")
-    end
+    warning && abs2(alpha) > 0.5*b.N && warn("alpha close to cut-off!")
 
     D = displace(b, alpha)
     op = dagger(D)*rho*D # can be made faster but negligible compared to displace
@@ -221,10 +215,7 @@ end
 function wigner(a::Union{Ket, DenseOperator}, x::Vector{Float64}, y::Vector{Float64}; warning=true)
     b = basis(a)
     @assert typeof(b) == FockBasis
-
-    if warning && maxabs(x)^2 + maxabs(y)^2 > b.N
-        warn("x and y range close to cut-off!")
-    end
+    warning && maxabs(x)^2 + maxabs(y)^2 > b.N && warn("x and y range close to cut-off!")
 
     W = Matrix{Float64}(length(x), length(y))
     for i=1:length(x), j=1:length(y)
