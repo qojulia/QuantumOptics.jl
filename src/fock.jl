@@ -4,7 +4,8 @@ import Base.==
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
-export FockBasis, number, destroy, create, fockstate, coherentstate, qfunc, displace, wigner
+export FockBasis, number, destroy, create, displace, fockstate, coherentstate,
+            qfunc, wigner
 
 
 """
@@ -162,10 +163,11 @@ function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
 end
 
 """
-    wigner(x, α)
-    wigner(x, xvec, yvec)
+    wigner(a, α)
+    wigner(a, x, y)
+    wigner(a, xvec, yvec)
 
-Wigner function for the given state or operator `x`.  The
+Wigner function for the given state or operator `a`.  The
 function can either be evaluated on one point α or on a grid specified by
 the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
 done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + y)``.
@@ -173,51 +175,62 @@ done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + y)``.
 This implementation uses the series representation in a Fock basis,
 
 ```math
-W(α)=\\frac{1}{\\pi}\\sum_{k=0}^\infty (-1)^k \\langle k| D(\\alpha)^\\dagger \\rho D(\\alpha)|k\\rangle
+W(α)=\\frac{1}{\\pi}\\sum_{k=0}^\\infty (-1)^k \\langle k| D(\\alpha)^\\dagger \\rho D(\\alpha)|k\\rangle
 ```
+
 where ``D(\alpha)`` is the displacement operator.
 """
-function wigner(rho::DenseOperator, x::Vector{Float64}, y::Vector{Float64})
-  b = basis(rho)
-  @assert typeof(b) == FockBasis
+function wigner(psi::Ket, alpha::Complex128; warning=true)
+    b = basis(psi)
+    @assert typeof(b) == FockBasis
 
-  X = x./sqrt(2) # Normalization of alpha
-  Y = y./sqrt(2)
-  if abs2(maximum(abs(x)) + 1.0im*maximum(abs(y))) > 0.75*b.N
-    warn("x and y range close to cut-off!")
-  end
+    if warning && abs2(alpha) > 0.5*b.N
+        warn("alpha close to cut-off!")
+    end
 
-  W = zeros(Float64, length(x), length(y))
-  @inbounds for i=1:length(x), j=1:length(y)
-    alpha = (X[i] + 1.0im*Y[j])
-    D = displace(b, alpha)
-    op = dagger(D)*rho*D
-    W[i, j] = real(sum([(-1)^k*op.data[k+1, k+1] for k=0:b.N]))
-  end
-
-  return W./pi
-end
-
-function wigner(psi::Ket, x::Vector{Float64}, y::Vector{Float64})
-  b = basis(psi)
-  @assert typeof(b) == FockBasis
-
-  X = x./sqrt(2)
-  Y = y./sqrt(2)
-  if abs2(maximum(abs(x)) + 1.0im*maximum(abs(y))) > 0.75*b.N
-    warn("x and y range close to cut-off!")
-  end
-
-  W = zeros(Float64, length(x), length(y))
-  for i=1:length(x), j=1:length(y)
-    alpha = (X[i] + 1.0im*Y[j])
     Dpsi = displace(b, -alpha)*psi
-    W[i, j] = sum([(-1)^k*abs2(Dpsi.data[k+1]) for k=0:b.N])
-  end
-
-  return W./pi
+    w = 0.
+    for k=0:b.N
+        w += (-1)^k*abs2(Dpsi.data[k+1])
+    end
+    w/pi
 end
 
-wigner(psi::Bra, x::Vector{Float64}, y::Vector{Float64}) = wigner(dagger(psi), x, y)
+function wigner(rho::DenseOperator, alpha::Complex128; warning=true)
+    b = basis(rho)
+    @assert typeof(b) == FockBasis
+
+    if warning && abs2(alpha) > 0.5*b.N
+        warn("alpha close to cut-off!")
+    end
+
+    D = displace(b, alpha)
+    op = dagger(D)*rho*D # can be made faster but negligible compared to displace
+    w = 0.
+    for k=0:b.N
+        w += (-1)^k*real(op.data[k+1, k+1])
+    end
+    w/pi
+end
+
+function wigner(a::Union{Ket, DenseOperator}, x::Float64, y::Float64; warning=true)
+    alpha = complex(x, y)/sqrt(2)
+    wigner(a, alpha; warning=warning)
+end
+
+function wigner(a::Union{Ket, DenseOperator}, x::Vector{Float64}, y::Vector{Float64}; warning=true)
+    b = basis(a)
+    @assert typeof(b) == FockBasis
+
+    if warning && maxabs(x)^2 + maxabs(y)^2 > b.N
+        warn("x and y range close to cut-off!")
+    end
+
+    W = Matrix{Float64}(length(x), length(y))
+    for i=1:length(x), j=1:length(y)
+        W[i, j] = wigner(a, x[i], y[j]; warning=false)
+    end
+    W
+end
 
 end # module
