@@ -104,8 +104,8 @@ For operators ``A``, ``B`` the relation
 
 holds. `op` can be a dense or a sparse operator.
 """
-spre(op::DenseOperator) = DenseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r), tensor(identityoperator(op), op).data)
-spre(op::SparseOperator) = SparseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r), tensor(identityoperator(op), op).data)
+spre(op::DenseOperator) = DenseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r), tensor(op, identityoperator(op)).data)
+spre(op::SparseOperator) = SparseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r), tensor(op, identityoperator(op)).data)
 
 """
 Create a super-operator equivalent for left side operator multiplication.

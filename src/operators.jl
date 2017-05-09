@@ -242,6 +242,11 @@ gemm!() = error("Not Implemented.")
 function check_ptrace_arguments(a::Operator, indices::Vector{Int})
     @assert length(a.basis_l.shape) == length(a.basis_r.shape)
     sortedindices.check_indices(length(a.basis_l.shape), indices)
+    for i=indices
+        if a.basis_l.shape[i] != a.basis_r.shape[i]
+            throw(ArgumentError("Partial trace can only be applied onto subsystems that have the same left and right dimension."))
+        end
+    end
 end
 
 bases.samebases(a::Operator) = samebases(a.basis_l, a.basis_r)

@@ -114,9 +114,13 @@ op_normalized = normalize(op)
 # @test 1 == trace(op)
 
 # Test partial trace
-op1 = sprandop(b1a)
-op2 = sprandop(b2a)
-op3 = sprandop(b3a)
+b1 = GenericBasis(3)
+b2 = GenericBasis(5)
+b3 = GenericBasis(7)
+b_l = b1 ⊗ b2 ⊗ b3
+op1 = sprandop(b1)
+op2 = sprandop(b2)
+op3 = sprandop(b3)
 op123 = op1 ⊗ op2 ⊗ op3
 op123_ = full(op123)
 
@@ -140,6 +144,14 @@ state = randoperator(b_l)
 
 # Tensor product
 # ==============
+b1a = GenericBasis(2)
+b1b = GenericBasis(3)
+b2a = GenericBasis(1)
+b2b = GenericBasis(4)
+b3a = GenericBasis(1)
+b3b = GenericBasis(5)
+b_l = b1a ⊗ b2a ⊗ b3a
+b_r = b1b ⊗ b2b ⊗ b3b
 op1a = sprandop(b1a, b1b)
 op1b = sprandop(b1a, b1b)
 op2a = sprandop(b2a, b2b)
@@ -186,9 +198,9 @@ op123_ = op1a_ ⊗ op2a_ ⊗ op3a_
 
 
 # Permute systems
-op1 = sprandop(b1a)
-op2 = sprandop(b2a)
-op3 = sprandop(b3a)
+op1 = sprandop(b1a, b1b)
+op2 = sprandop(b2a, b2b)
+op3 = sprandop(b3a, b3b)
 op123 = op1⊗op2⊗op3
 
 op132 = op1⊗op3⊗op2

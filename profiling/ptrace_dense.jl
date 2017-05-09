@@ -1,4 +1,5 @@
 using Base.Cartesian
+using BenchmarkTools
 
 N1 = 23
 N2 = 17
@@ -11,7 +12,7 @@ x = rand(Complex128, N1, N2, N3, N1, N2, N3)
 function ptrace_forloops(x)
     n1, n2, n3 = size(x)
     y = zeros(Complex128, n2, n3, n2, n3)
-    for i5=1:n3
+    @inbounds for i5=1:n3
         for i4=1:n2
             for i3=1:n3
                 for i2=1:n2
@@ -28,7 +29,7 @@ end
 function ptrace_slicing(x::Array{Complex128, 6})
     n1, n2, n3 = size(x)
     y = zeros(Complex128, n2, n3, n2, n3)
-    for i1=1:n1
+    @inbounds for i1=1:n1
         y += x[i1,:,:,i1,:,:]
     end
     y
@@ -38,7 +39,7 @@ function ptrace_cartesian(x::Array{Complex128, 6})
     n1, n2, n3 = size(x)
     y = zeros(Complex128, 1, n2, n3, 1, n2, n3)
     ymax = CartesianIndex(size(y))
-    for I in CartesianRange(size(x))
+    @inbounds for I in CartesianRange(size(x))
         if I.I[1] != I.I[4]
             continue
         end
@@ -50,7 +51,7 @@ end
 function ptrace_cartesian2(x::Array{Complex128, 6})
     n1, n2, n3 = size(x)
     y = zeros(Complex128, 1, n2, n3, 1, n2, n3)
-    for I in CartesianRange(size(y))
+    @inbounds for I in CartesianRange(size(y))
         for k in CartesianRange((n1, 1, 1))
             delta = CartesianIndex(k, k)
             y[I] += x[I+delta-1]
@@ -86,7 +87,7 @@ end
         N_result_r = prod(result_shape_r)
         result = zeros(Complex128, N_result_l, N_result_r)
         @nexprs 1 (d->(Jr_{3}=1;Ir_{3}=1))
-        @nloops 3 ir (d->1:shape_r[d]) (d->(Ir_{d-1}=Ir_d; Jr_{d-1}=Jr_d)) (d->(Ir_d+=a_strides_r[d]; if !(d in indices) Jr_d+=result_strides_r[d] end)) begin
+        @inbounds @nloops 3 ir (d->1:shape_r[d]) (d->(Ir_{d-1}=Ir_d; Jr_{d-1}=Jr_d)) (d->(Ir_d+=a_strides_r[d]; if !(d in indices) Jr_d+=result_strides_r[d] end)) begin
             @nexprs 1 (d->(Jl_{3}=1;Il_{3}=1))
             @nloops 3 il (k->1:shape_l[k]) (k->(Il_{k-1}=Il_k; Jl_{k-1}=Jl_k; if (k in indices && il_k!=ir_k) Il_k+=a_strides_l[k]; continue end)) (k->(Il_k+=a_strides_l[k]; if !(k in indices) Jl_k+=result_strides_l[k] end)) begin
                 #println("Jl_0: ", Jl_0, "; Jr_0: ", Jr_0, "; Il_0: ", Il_0, "; Ir_0: ", Ir_0)

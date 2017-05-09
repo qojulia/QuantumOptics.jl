@@ -82,9 +82,8 @@ function operators.ptrace(op::SparseOperator, indices::Vector{Int})
     if rank==0
         return trace(op)
     end
-    shape = [reverse(op.basis_l.shape); reverse(op.basis_r.shape)]
-    indices_data = length(op.basis_l.shape) - indices + 1
-    data = sparsematrix.ptrace(op.data, shape, indices_data)
+    shape = [op.basis_l.shape; op.basis_r.shape]
+    data = sparsematrix.ptrace(op.data, shape, indices)
     b_l = ptrace(op.basis_l, indices)
     b_r = ptrace(op.basis_r, indices)
     SparseOperator(b_l, b_r, data)
@@ -102,16 +101,15 @@ function operators.expect(op::SparseOperator, state::DenseOperator)
     result
 end
 
-tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
-tensor(a::DenseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
-tensor(a::SparseOperator, b::DenseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
+tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
+tensor(a::DenseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
+tensor(a::SparseOperator, b::DenseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 
 function permutesystems(rho::SparseOperator, perm::Vector{Int})
     @assert length(rho.basis_l.bases) == length(rho.basis_r.bases) == length(perm)
     @assert isperm(perm)
-    shape = [reverse(rho.basis_l.shape); reverse(rho.basis_r.shape)]
-    dataperm = length(perm) - reverse(perm) + 1
-    data = sparsematrix.permutedims(rho.data, shape, [dataperm; dataperm + length(perm)])
+    shape = [rho.basis_l.shape; rho.basis_r.shape]
+    data = sparsematrix.permutedims(rho.data, shape, [perm; perm + length(perm)])
     SparseOperator(permutesystems(rho.basis_l, perm), permutesystems(rho.basis_r, perm), data)
 end
 

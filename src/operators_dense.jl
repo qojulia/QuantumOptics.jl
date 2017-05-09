@@ -92,15 +92,7 @@ trace(op::DenseOperator) = (check_samebases(op); trace(op.data))
 
 const RANKS = [zeros(Int, [0 for i=1:N]...) for N=1:20]
 
-function ptrace(a::DenseOperator, indices::Vector{Int})
-    operators.check_ptrace_arguments(a, indices)
-    if length(a.basis_l.shape) == length(indices)
-        return trace(a)
-    end
-    rank = RANKS[length(a.basis_l.shape)]
-    result = _ptrace(rank, a.data, a.basis_l.shape, a.basis_r.shape, indices)
-    return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
-end
+
 
 ptrace(a::Ket, indices::Vector{Int}) = ptrace(tensor(a, dagger(a)), indices)
 ptrace(a::Bra, indices::Vector{Int}) = ptrace(tensor(dagger(a), a), indices)
@@ -117,7 +109,7 @@ function operators.expect(op::DenseOperator, state::Operator)
     result
 end
 
-tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(a.data, b.data))
+tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 """
     tensor(x::Ket, y::Bra)
 
@@ -128,9 +120,8 @@ tensor(a::Ket, b::Bra) = DenseOperator(a.basis, b.basis, reshape(kron(b.data, a.
 function permutesystems(a::DenseOperator, perm::Vector{Int})
     @assert length(a.basis_l.bases) == length(a.basis_r.bases) == length(perm)
     @assert isperm(perm)
-    data = reshape(a.data, [reverse(a.basis_l.shape); reverse(a.basis_r.shape)]...)
-    dataperm = length(perm) - reverse(perm) + 1
-    data = permutedims(data, [dataperm; dataperm + length(perm)])
+    data = reshape(a.data, [a.basis_l.shape; a.basis_r.shape]...)
+    data = permutedims(data, [perm; perm + length(perm)])
     data = reshape(data, length(a.basis_l), length(a.basis_r))
     DenseOperator(permutesystems(a.basis_l, perm), permutesystems(a.basis_r, perm), data)
 end
@@ -172,9 +163,9 @@ end
 function _strides(shape::Vector{Int})
     N = length(shape)
     S = zeros(Int, N)
-    S[N] = 1
-    for m=N-1:-1:1
-        S[m] = S[m+1]*shape[m+1]
+    S[1] = 1
+    for m=2:N
+        S[m] = S[m-1]*shape[m-1]
     end
     return S
 end
@@ -206,6 +197,15 @@ end
     end
 end
 
+function ptrace(a::DenseOperator, indices::Vector{Int})
+    operators.check_ptrace_arguments(a, indices)
+    if length(a.basis_l.shape) == length(indices)
+        return trace(a)
+    end
+    rank = RANKS[length(a.basis_l.shape)]
+    result = _ptrace(rank, a.data, a.basis_l.shape, a.basis_r.shape, indices)
+    return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
+end
 
 # Fast in-place multiplication with dense operators
 gemm!{T<:Complex}(alpha::T, a::Matrix{T}, b::Matrix{T}, beta::T, result::Matrix{T}) = BLAS.gemm!('N', 'N', alpha, a, b, beta, result)
