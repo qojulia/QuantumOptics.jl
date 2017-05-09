@@ -178,7 +178,7 @@ This implementation uses the series representation in a Fock basis,
 W(α)=\\frac{1}{\\pi}\\sum_{k=0}^\\infty (-1)^k \\langle k| D(\\alpha)^\\dagger \\rho D(\\alpha)|k\\rangle
 ```
 
-where ``D(\alpha)`` is the displacement operator.
+where ``D(\\alpha)`` is the displacement operator.
 """
 function wigner(psi::Ket, alpha::Complex128; warning=true)
     b = basis(psi)
