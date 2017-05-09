@@ -63,7 +63,7 @@ CompositeBasis(bases::Basis...) = CompositeBasis(Basis[bases...])
 Tensor product of the given objects. Alternatively, the unicode
 symbol ⊗ (\\otimes) can be used.
 """
-tensor() = error("Tensor function needs at least one argument.")
+tensor() = throw(ArgumentError("Tensor function needs at least one argument."))
 
 """
     tensor(x::Basis, y::Basis, z::Basis...)
@@ -227,12 +227,14 @@ function basis end
 Partial trace of the given basis, state or operator.
 
 The `indices` argument, which can be a single integer or a vector of integers,
-specifies which subsystems are traced out.
+specifies which subsystems are traced out. The number of indices has to be
+smaller than the number of subsystems, i.e. it is not allowed to perform a
+full trace.
 """
 function ptrace(b::CompositeBasis, indices::Vector{Int})
     J = [i for i in 1:length(b.bases) if i ∉ indices]
     if length(J)==0
-        error("Nothing left.")
+        throw(ArgumentError("Tracing over all indices is not allowed in ptrace."))
     elseif length(J)==1
         return b.bases[J[1]]
     else
