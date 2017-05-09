@@ -68,8 +68,10 @@ println("Difference 1,2: ", abs2(f1(rho, xvec, xvec) - f2(rho, xvec, xvec)))
 Profile.clear()
 @profile run_f2(20, rho, xvec, xvec)
 
+# r0 = @benchmark wigner($rho, $xvec, $xvec) seconds=3
 # r1 = @benchmark f1($rho, $xvec, $xvec) seconds=3
 # r2 = @benchmark f2($rho, $xvec, $xvec) seconds=3
 
+# println(r0)
 # println(r1)
 # println(r2)
