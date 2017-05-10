@@ -92,7 +92,15 @@ trace(op::DenseOperator) = (check_samebases(op); trace(op.data))
 
 const RANKS = [zeros(Int, [0 for i=1:N]...) for N=1:20]
 
-
+function ptrace(a::DenseOperator, indices::Vector{Int})
+    operators.check_ptrace_arguments(a, indices)
+    if length(a.basis_l.shape) == length(indices)
+        return trace(a)
+    end
+    rank = RANKS[length(a.basis_l.shape)]
+    result = _ptrace(rank, a.data, a.basis_l.shape, a.basis_r.shape, indices)
+    return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
+end
 
 ptrace(a::Ket, indices::Vector{Int}) = ptrace(tensor(a, dagger(a)), indices)
 ptrace(a::Bra, indices::Vector{Int}) = ptrace(tensor(dagger(a), a), indices)
@@ -195,16 +203,6 @@ end
         end
         return result
     end
-end
-
-function ptrace(a::DenseOperator, indices::Vector{Int})
-    operators.check_ptrace_arguments(a, indices)
-    if length(a.basis_l.shape) == length(indices)
-        return trace(a)
-    end
-    rank = RANKS[length(a.basis_l.shape)]
-    result = _ptrace(rank, a.data, a.basis_l.shape, a.basis_r.shape, indices)
-    return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
 end
 
 # Fast in-place multiplication with dense operators
