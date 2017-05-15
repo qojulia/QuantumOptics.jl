@@ -72,14 +72,14 @@ In real space the gaussian state is defined as
 
 ```math
 \\Psi(x) = \\frac{\\sqrt{\\Delta x}}{\\pi^{1/4}\\sqrt{\\sigma}}
-                e^{i p_0 (x-x_0) - \\frac{(x-x_0)^2}{2 \\sigma^2}}
+            e^{i p_0 (x-\\frac{x_0}{2}) - \\frac{(x-x_0)^2}{2 \\sigma^2}}
 ```
 
 and is connected to the momentum space definition
 
 ```math
 \\Psi(p) = \\frac{\\sqrt{\\sigma} \\sqrt{\\Delta x}}{\\pi^{1/4}}
-            e^{-i x_0 p - \\frac{1}{2}(p-p_0)^2 \\sigma^2}
+            e^{-i x_0 (p-\\frac{p_0}{2}) - \\frac{1}{2}(p-p_0)^2 \\sigma^2}
 ```
 
 via a Fourier-transformation
@@ -107,7 +107,7 @@ function gaussianstate(b::PositionBasis, x0::Real, p0::Real, sigma::Real)
     alpha = 1./(pi^(1/4)*sqrt(sigma))*sqrt(dx)
     x = b.xmin
     for i=1:b.N
-        psi.data[i] = alpha*exp(1im*p0*(x-x0) - (x-x0)^2/(2*sigma^2))
+        psi.data[i] = alpha*exp(1im*p0*(x-x0/2) - (x-x0)^2/(2*sigma^2))
         x += dx
     end
     return psi
@@ -119,7 +119,7 @@ function gaussianstate(b::MomentumBasis, x0::Real, p0::Real, sigma::Real)
     alpha = sqrt(sigma)/pi^(1/4)*sqrt(dp)
     p = b.pmin
     for i=1:b.N
-        psi.data[i] = alpha*exp(-1im*x0*p - (p-p0)^2/2*sigma^2)
+        psi.data[i] = alpha*exp(-1im*x0*(p-p0/2) - (p-p0)^2/2*sigma^2)
         p += dp
     end
     return psi
