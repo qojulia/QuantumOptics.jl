@@ -34,6 +34,7 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
 
 
 include("sortedindices.jl")
+include("polynomials.jl")
 include("bases.jl")
 include("states.jl")
 include("operators.jl")
