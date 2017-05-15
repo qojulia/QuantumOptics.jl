@@ -24,6 +24,7 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         nlevel, NLevelBasis, transition, nlevelstate,
         manybody, ManyBodyBasis, fermionstates, bosonstates,
                 manybodyoperator, onebodyexpect, occupation,
+        transformations, transform,
         metrics, tracenorm, tracenorm_general, tracedistance, tracedistance_general,
                 entropy_vn, fidelity,
         spectralanalysis, simdiag,
@@ -52,6 +53,7 @@ include("subspace.jl")
 include("particle.jl")
 include("nlevel.jl")
 include("manybody.jl")
+include("transformations.jl")
 include("metrics.jl")
 include("ode_dopri.jl")
 include("timeevolution_simple.jl")
@@ -85,6 +87,7 @@ using .subspace
 using .particle
 using .nlevel
 using .manybody
+using .transformations
 using .timeevolution
 using .metrics
 using .spectralanalysis
