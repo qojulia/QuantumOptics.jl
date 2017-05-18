@@ -40,6 +40,7 @@ for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     @test Qrho_coherent[i, j] ≈ q_coherent
     @test qfunc(psi_coherent, beta) ≈ q_coherent
     @test qfunc(rho_coherent, beta) ≈ q_coherent
+    @test qfunc(psi_coherent, x, y) ≈ q_coherent
     @test abs2(dagger(betastate) * psi_coherent)/pi ≈ q_coherent
     @test dagger(betastate) * rho_coherent * betastate/pi ≈ q_coherent
 

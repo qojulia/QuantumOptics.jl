@@ -6,72 +6,87 @@ using ..bases, ..states, ..operators, ..operators_dense, ..fock
 
 
 """
-    qfunc(x, α)
-    qfunc(x, xvec, yvec)
+    qfunc(a, α)
+    qfunc(a, x, y)
+    qfunc(a, xvec, yvec)
 
-Husimi Q representation ``⟨α|ρ|α⟩/π`` for the given state or operator `x`. The
+Husimi Q representation ``⟨α|ρ|α⟩/π`` for the given state or operator `a`. The
 function can either be evaluated on one point α or on a grid specified by
 the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
-done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + y)``.
+done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + i y)``.
 """
-function qfunc(rho::Operator, alpha::Complex128,
-                tmp1=Ket(basis(rho), Vector{Complex128}(length(basis(rho)))),
-                tmp2=Ket(basis(rho), Vector{Complex128}(length(basis(rho)))))
+function qfunc(rho::Operator, alpha::Number)
+    b = basis(rho)
+    @assert isa(b, FockBasis)
+    _qfunc_operator(rho, convert(Complex128, alpha), Ket(b), Ket(b))
+end
+
+function qfunc(rho::Operator, xvec::Vector{Float64}, yvec::Vector{Float64})
+    b = basis(rho)
+    @assert isa(b, FockBasis)
+    Nx = length(xvec)
+    Ny = length(yvec)
+    tmp1 = Ket(b)
+    tmp2 = Ket(b)
+    result = Matrix{Complex128}(Nx, Ny)
+    @inbounds for j=1:Ny, i=1:Nx
+        result[i, j] = _qfunc_operator(rho, complex(xvec[i], yvec[j])/sqrt(2), tmp1, tmp2)
+    end
+    result
+end
+
+function qfunc(psi::Ket, alpha::Number)
+    b = basis(psi)
+    @assert isa(b, FockBasis)
+    _alpha = convert(Complex128, alpha)
+    _conj_alpha = conj(_alpha)
+    N = length(psi.basis)
+    s = psi.data[N]/sqrt(N-1)
+    @inbounds for i=1:N-2
+        s = (psi.data[N-i] + s*_conj_alpha)/sqrt(N-i-1)
+    end
+    s = psi.data[1] + s*_conj_alpha
+    return abs2(s)*exp(-abs2(_alpha))/pi
+end
+
+function qfunc(psi::Ket, xvec::Vector{Float64}, yvec::Vector{Float64})
+    b = basis(psi)
+    @assert isa(b, FockBasis)
+    Nx = length(xvec)
+    Ny = length(yvec)
+    N = length(b)
+    x = similar(psi.data)
+    x[N] = psi.data[1]
+    n = 1.
+    @inbounds for i in 1:N-1
+        x[N-i] = psi.data[i+1]/n
+        n *= sqrt(i+1)
+    end
+    result = Matrix{Float64}(Nx, Ny)
+    for j=1:Ny, i=1:Nx
+        _conj_alpha = complex(xvec[i], -yvec[j])/sqrt(2)
+        result[i, j] = _qfunc_ket(x, _conj_alpha)
+    end
+    return result
+end
+
+function qfunc(state::Union{Ket, Operator}, x::Number, y::Number)
+    qfunc(state, Complex128(x, y)/sqrt(2))
+end
+
+function _qfunc_operator(rho::Operator, alpha::Complex128, tmp1::Ket, tmp2::Ket)
     coherentstate(basis(rho), alpha, tmp1)
     operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
     a = dot(tmp1.data, tmp2.data)
     return a/pi
 end
 
-function qfunc(rho::Operator, X::Vector{Float64}, Y::Vector{Float64})
-    b = basis(rho)
-    Nx = length(X)
-    Ny = length(Y)
-    tmp1 = Ket(b, Vector{Complex128}(length(b)))
-    tmp2 = Ket(b, Vector{Complex128}(length(b)))
-    result = Matrix{Complex128}(Nx, Ny)
-    for j=1:Ny, i=1:Nx
-        result[i, j] = qfunc(rho, complex(X[i], Y[j])/sqrt(2), tmp1, tmp2)
-    end
-    return result
-end
-
-function qfunc(psi::Ket, alpha::Complex128)
-    a = conj(alpha)
-    N = length(psi.basis)
-    s = psi.data[N]/sqrt(N-1)
-    @inbounds for i=1:N-2
-        s = (psi.data[N-i] + s*a)/sqrt(N-i-1)
-    end
-    s = psi.data[1] + s*a
-    return abs2(s)*exp(-abs2(alpha))/pi
-end
-
-function _qfunc_ket(x::Vector{Complex128}, a::Complex128)
+function _qfunc_ket(x::Vector{Complex128}, conj_alpha::Complex128)
     s = x[1]
     @inbounds for i=2:length(x)
-        s = x[i] + s*a
+        s = x[i] + s*conj_alpha
     end
-    abs2(s)*exp(-abs2(a))/pi
-end
-
-function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
-    Nx = length(X)
-    Ny = length(Y)
-    N = length(psi.basis)
-    n = 1.
-    x = Vector{Complex128}(N)
-    x[N] = psi.data[1]
-    for i in 1:N-1
-        x[N-i] = psi.data[i+1]/n
-        n *= sqrt(i+1)
-    end
-    result = Matrix{Float64}(Nx, Ny)
-    for j=1:Ny, i=1:Nx
-        a = complex(X[i], -Y[j])/sqrt(2)
-        result[i, j] = _qfunc_ket(x, a)
-    end
-    return result
+    abs2(s)*exp(-abs2(conj_alpha))/pi
 end
 
 
