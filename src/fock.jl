@@ -5,7 +5,7 @@ import Base.==
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
 export FockBasis, number, destroy, create, displace, fockstate, coherentstate,
-            qfunc, wigner
+            qfunc
 
 
 """
@@ -160,68 +160,6 @@ function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
         result[i, j] = _qfunc_ket(x, a)
     end
     return result
-end
-
-"""
-    wigner(a, α)
-    wigner(a, x, y)
-    wigner(a, xvec, yvec)
-
-Wigner function for the given state or operator `a`.  The
-function can either be evaluated on one point α or on a grid specified by
-the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
-done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + y)``.
-
-This implementation uses the series representation in a Fock basis,
-
-```math
-W(α)=\\frac{1}{\\pi}\\sum_{k=0}^\\infty (-1)^k \\langle k| D(\\alpha)^\\dagger \\rho D(\\alpha)|k\\rangle
-```
-
-where ``D(\\alpha)`` is the displacement operator.
-"""
-function wigner(psi::Ket, alpha::Complex128; warning=true)
-    b = basis(psi)
-    @assert typeof(b) == FockBasis
-    warning && abs2(alpha) > 0.5*b.N && warn("alpha close to cut-off!")
-
-    Dpsi = displace(b, -alpha)*psi
-    w = 0.
-    for k=0:b.N
-        w += (-1)^k*abs2(Dpsi.data[k+1])
-    end
-    w/pi
-end
-
-function wigner(rho::DenseOperator, alpha::Complex128; warning=true)
-    b = basis(rho)
-    @assert typeof(b) == FockBasis
-    warning && abs2(alpha) > 0.5*b.N && warn("alpha close to cut-off!")
-
-    D = displace(b, alpha)
-    op = dagger(D)*rho*D # can be made faster but negligible compared to displace
-    w = 0.
-    for k=0:b.N
-        w += (-1)^k*real(op.data[k+1, k+1])
-    end
-    w/pi
-end
-
-function wigner(a::Union{Ket, DenseOperator}, x::Float64, y::Float64; warning=true)
-    alpha = complex(x, y)/sqrt(2)
-    wigner(a, alpha; warning=warning)
-end
-
-function wigner(a::Union{Ket, DenseOperator}, x::Vector{Float64}, y::Vector{Float64}; warning=true)
-    b = basis(a)
-    @assert typeof(b) == FockBasis
-    warning && maxabs(x)^2 + maxabs(y)^2 > b.N && warn("x and y range close to cut-off!")
-
-    W = Matrix{Float64}(length(x), length(y))
-    for i=1:length(x), j=1:length(y)
-        W[i, j] = wigner(a, x[i], y[j]; warning=false)
-    end
-    W
 end
 
 end # module

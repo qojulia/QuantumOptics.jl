@@ -16,7 +16,7 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         superoperators, SuperOperator, DenseSuperOperator, SparseSuperOperator,
                 spre, spost, liouvillian,
         fock, FockBasis, number, destroy, create,
-                fockstate, coherentstate, qfunc, displace, wigner,
+                fockstate, coherentstate, qfunc, displace,
         spin, SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown,
         subspace, SubspaceBasis, projector,
         particle, PositionBasis, MomentumBasis, samplepoints, gaussianstate,
@@ -25,6 +25,7 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         manybody, ManyBodyBasis, fermionstates, bosonstates,
                 manybodyoperator, onebodyexpect, occupation,
         transformations, transform,
+        phasespace, wigner,
         metrics, tracenorm, tracenorm_general, tracedistance, tracedistance_general,
                 entropy_vn, fidelity,
         spectralanalysis, simdiag,
@@ -54,6 +55,7 @@ include("particle.jl")
 include("nlevel.jl")
 include("manybody.jl")
 include("transformations.jl")
+include("phasespace.jl")
 include("metrics.jl")
 include("ode_dopri.jl")
 include("timeevolution_simple.jl")
@@ -88,6 +90,7 @@ using .particle
 using .nlevel
 using .manybody
 using .transformations
+using .phasespace
 using .timeevolution
 using .metrics
 using .spectralanalysis
