@@ -19,6 +19,8 @@ names = [
     "test_manybody.jl",
     "test_nlevel.jl",
     "test_subspace.jl",
+
+    "test_phasespace.jl",
     "test_transformations.jl",
 
     "test_metrics.jl",

@@ -1,8 +1,79 @@
 module phasespace
 
-export wigner
+export qfunc, wigner
 
-using ..bases, ..states, ..operators_dense, ..fock
+using ..bases, ..states, ..operators, ..operators_dense, ..fock
+
+
+"""
+    qfunc(x, α)
+    qfunc(x, xvec, yvec)
+
+Husimi Q representation ``⟨α|ρ|α⟩/π`` for the given state or operator `x`. The
+function can either be evaluated on one point α or on a grid specified by
+the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
+done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + y)``.
+"""
+function qfunc(rho::Operator, alpha::Complex128,
+                tmp1=Ket(basis(rho), Vector{Complex128}(length(basis(rho)))),
+                tmp2=Ket(basis(rho), Vector{Complex128}(length(basis(rho)))))
+    coherentstate(basis(rho), alpha, tmp1)
+    operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
+    a = dot(tmp1.data, tmp2.data)
+    return a/pi
+end
+
+function qfunc(rho::Operator, X::Vector{Float64}, Y::Vector{Float64})
+    b = basis(rho)
+    Nx = length(X)
+    Ny = length(Y)
+    tmp1 = Ket(b, Vector{Complex128}(length(b)))
+    tmp2 = Ket(b, Vector{Complex128}(length(b)))
+    result = Matrix{Complex128}(Nx, Ny)
+    for j=1:Ny, i=1:Nx
+        result[i, j] = qfunc(rho, complex(X[i], Y[j])/sqrt(2), tmp1, tmp2)
+    end
+    return result
+end
+
+function qfunc(psi::Ket, alpha::Complex128)
+    a = conj(alpha)
+    N = length(psi.basis)
+    s = psi.data[N]/sqrt(N-1)
+    @inbounds for i=1:N-2
+        s = (psi.data[N-i] + s*a)/sqrt(N-i-1)
+    end
+    s = psi.data[1] + s*a
+    return abs2(s)*exp(-abs2(alpha))/pi
+end
+
+function _qfunc_ket(x::Vector{Complex128}, a::Complex128)
+    s = x[1]
+    @inbounds for i=2:length(x)
+        s = x[i] + s*a
+    end
+    abs2(s)*exp(-abs2(a))/pi
+end
+
+function qfunc(psi::Ket, X::Vector{Float64}, Y::Vector{Float64})
+    Nx = length(X)
+    Ny = length(Y)
+    N = length(psi.basis)
+    n = 1.
+    x = Vector{Complex128}(N)
+    x[N] = psi.data[1]
+    for i in 1:N-1
+        x[N-i] = psi.data[i+1]/n
+        n *= sqrt(i+1)
+    end
+    result = Matrix{Float64}(Nx, Ny)
+    for j=1:Ny, i=1:Nx
+        a = complex(X[i], -Y[j])/sqrt(2)
+        result[i, j] = _qfunc_ket(x, a)
+    end
+    return result
+end
+
 
 """
     wigner(a, α)
