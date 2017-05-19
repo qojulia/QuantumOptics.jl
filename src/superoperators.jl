@@ -66,6 +66,7 @@ Base.full(a::DenseSuperOperator) = deepcopy(a)
 
 =={T<:SuperOperator}(a::T, b::T) = (a.basis_l == b.basis_l) && (a.basis_r == b.basis_r) && (a.data == b.data)
 
+bases.length(a::SuperOperator) = length(a.basis_l[1])*length(a.basis_l[2])*length(a.basis_r[1])*length(a.basis_r[2])
 bases.samebases(a::SuperOperator, b::SuperOperator) = samebases(a.basis_l[1], b.basis_l[1]) && samebases(a.basis_l[2], b.basis_l[2]) &&
                                                       samebases(a.basis_r[1], b.basis_r[1]) && samebases(a.basis_r[2], b.basis_r[2])
 bases.multiplicable(a::SuperOperator, b::SuperOperator) = multiplicable(a.basis_r[1], b.basis_l[1]) && multiplicable(a.basis_r[2], b.basis_l[2])

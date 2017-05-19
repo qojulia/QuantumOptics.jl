@@ -22,6 +22,9 @@ op_test = test_operators(b, b, op.data)
 ψ = randstate(b)
 ρ = randoperator(b)
 
+@test basis(op1) == b1
+@test length(op1) == length(op1.data) == 25
+
 @test_throws ArgumentError op_test*op_test
 @test_throws ArgumentError -op_test
 

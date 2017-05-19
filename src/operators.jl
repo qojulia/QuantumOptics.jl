@@ -43,6 +43,7 @@ addnumbererror() = throw(ArgumentError("Can't add or subtract a number and an op
 -(a::Number, b::Operator) = addnumbererror()
 -(a::Operator, b::Number) = addnumbererror()
 
+Base.length(a::Operator) = length(a.basis_l)*length(a.basis_r)
 bases.basis(a::Operator) = (check_samebases(a); a.basis_l)
 
 dagger(a::Operator) = arithmetic_unary_error("Hermitian conjugate", a)

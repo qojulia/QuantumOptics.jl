@@ -23,6 +23,8 @@ ket = Ket(b)
 @test 0 ≈ norm(ket)
 @test_throws bases.IncompatibleBases bra*Ket(b1)
 @test bra == bra
+@test length(bra) == length(bra.data) == 15
+@test length(ket) == length(ket.data) == 15
 @test bases.basis(ket) == b
 @test bases.basis(bra) == b
 @test bra != basisstate(b, 1)

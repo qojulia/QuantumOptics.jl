@@ -46,6 +46,7 @@ Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
 
 =={T<:StateVector}(x::T, y::T) = (x.basis == y.basis) && (x.data == y.data)
 
+Base.length(a::StateVector) = length(a.basis)
 bases.basis(a::StateVector) = a.basis
 
 # Arithmetic operations

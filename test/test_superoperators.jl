@@ -3,6 +3,11 @@ using QuantumOptics
 
 @testset "superoperators" begin
 
+b = GenericBasis(3)
+op = DenseOperator(b)
+S = spre(op)
+@assert length(S) == length(S.data) == 9^2
+
 ωc = 1.2
 ωa = 0.9
 g = 1.0
