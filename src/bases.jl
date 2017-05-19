@@ -64,6 +64,7 @@ Tensor product of the given objects. Alternatively, the unicode
 symbol ⊗ (\\otimes) can be used.
 """
 tensor() = throw(ArgumentError("Tensor function needs at least one argument."))
+tensor(b::Basis) = b
 
 """
     tensor(x::Basis, y::Basis, z::Basis...)
@@ -100,7 +101,6 @@ function tensor(b1::Basis, b2::CompositeBasis)
     CompositeBasis(shape, bases)
 end
 tensor(bases::Basis...) = reduce(tensor, bases)
-tensor{T}(x::T...) = reduce(tensor, x)
 ⊗(a,b) = tensor(a,b)
 
 """

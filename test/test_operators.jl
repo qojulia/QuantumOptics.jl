@@ -45,7 +45,7 @@ op_test = test_operators(b, b, op.data)
 @test variance(op, [ρ, ρ]) == [variance(op, ρ) for i=1:2]
 @test variance(1, op1, [ρ, ψ]) == [variance(1, op1, ρ), variance(1, op1, ψ)]
 
-
+@test tensor(op_test) === op_test
 @test_throws ArgumentError tensor(op_test, op_test)
 @test_throws ArgumentError permutesystems(op_test, [1, 2])
 

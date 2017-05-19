@@ -153,6 +153,8 @@ variance(indices::Vector{Int}, op::Operator, states::Vector) = [variance(indices
 Tensor product ``\\hat{x}⊗\\hat{y}⊗\\hat{z}⊗…`` of the given operators.
 """
 tensor(a::Operator, b::Operator) = arithmetic_binary_error("Tensor product", a, b)
+bases.tensor(op::Operator) = op
+bases.tensor(operators::Operator...) = reduce(tensor, operators)
 
 permutesystems(a::Operator, perm::Vector{Int}) = arithmetic_unary_error("Permutations of subsystems", a)
 

@@ -17,6 +17,7 @@ b3 = GenericBasis(shape3)
 @test b1 != FockBasis(2)
 @test b1 == b1
 
+@test tensor(b1) == b1
 comp_b1 = tensor(b1, b2)
 comp_b2 = tensor(b1, b1, b2)
 @test comp_b1.shape == [prod(shape1), prod(shape2)]

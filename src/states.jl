@@ -66,7 +66,8 @@ bases.basis(a::StateVector) = a.basis
 Tensor product ``|x⟩⊗|y⟩⊗|z⟩⊗…`` of the given states.
 """
 bases.tensor{T<:StateVector}(a::T, b::T) = T(tensor(a.basis, b.basis), kron(b.data, a.data))
-
+bases.tensor(state::StateVector) = state
+bases.tensor{T<:StateVector}(states::T...) = reduce(tensor, states)
 
 """
     dagger(x)
