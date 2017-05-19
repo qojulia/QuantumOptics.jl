@@ -39,6 +39,8 @@ names = [
     "test_steadystate.jl",
     "test_timecorrelations.jl",
 
+    "test_semiclassical.jl",
+
     "test_printing.jl"
 ]
 

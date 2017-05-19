@@ -32,7 +32,8 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         timeevolution_simple,
         timeevolution, diagonaljumps,
         steadystate,
-        timecorrelations
+        timecorrelations,
+        semiclassical
 
 
 include("sortedindices.jl")
@@ -72,6 +73,7 @@ end
 include("steadystate.jl")
 include("timecorrelations.jl")
 include("spectralanalysis.jl")
+include("semiclassical.jl")
 include("printing.jl")
 
 using .bases
