@@ -32,7 +32,7 @@ function integrate_schroedinger{T<:StateVector}(dschroedinger::Function, tspan, 
         xout = T[]
         function fout_(t, psi::T)
             push!(tout, t)
-            push!(xout, deepcopy(psi))
+            push!(xout, copy(psi))
         end
         f = fout_
     else

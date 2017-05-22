@@ -36,6 +36,8 @@ end
 LazySum{T<:Number}(factors::Vector{T}, operators::Vector) = LazySum(complex(factors), Operator[op for op in operators])
 LazySum(operators::Operator...) = LazySum(ones(Complex128, length(operators)), Operator[operators...])
 
+Base.copy(x::LazySum) = LazySum(copy(x.factors), [copy(op) for op in x.operators])
+
 Base.full(op::LazySum) = sum(op.factors .* full.(op.operators))
 Base.sparse(op::LazySum) = sum(op.factors .* sparse.(op.operators))
 

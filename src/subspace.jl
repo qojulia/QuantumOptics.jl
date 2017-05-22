@@ -47,7 +47,7 @@ function orthonormalize(b::SubspaceBasis)
     V = b.basisstates
     U = Ket[]
     for (k, v)=enumerate(V)
-        u = deepcopy(v)
+        u = copy(v)
         for i=1:k-1
             u -= proj(U[i], u)
         end

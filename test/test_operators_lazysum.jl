@@ -25,6 +25,16 @@ b_r = b1b⊗b2b⊗b3b
 @test_throws AssertionError LazySum(randoperator(b_l, b_r), sparse(randoperator(b_l, b_l)))
 @test_throws AssertionError LazySum(randoperator(b_l, b_r), sparse(randoperator(b_r, b_r)))
 
+# Test copy
+op1 = 2*LazySum(randoperator(b_l, b_r), sparse(randoperator(b_l, b_r)))
+op2 = copy(op1)
+@test op1 == op2
+@test !(op1 === op2)
+op2.operators[1].data[1,1] = complex(10.)
+@test op1.operators[1].data[1,1] != op2.operators[1].data[1,1]
+op2.factors[1] = 3.
+@test op2.factors[1] != op1.factors[1]
+
 # Test full & sparse
 op1 = randoperator(b_l, b_r)
 op2 = sparse(randoperator(b_l, b_r))

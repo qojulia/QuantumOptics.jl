@@ -61,8 +61,10 @@ type SparseSuperOperator <: SuperOperator
     end
 end
 
+Base.copy{T<:SuperOperator}(a::T) = T(a.basis_l, a.basis_r, a.data)
+
 Base.full(a::SparseSuperOperator) = DenseSuperOperator(a.basis_l, a.basis_r, full(a.data))
-Base.full(a::DenseSuperOperator) = deepcopy(a)
+Base.full(a::DenseSuperOperator) = copy(a)
 
 =={T<:SuperOperator}(a::T, b::T) = (a.basis_l == b.basis_l) && (a.basis_r == b.basis_r) && (a.data == b.data)
 

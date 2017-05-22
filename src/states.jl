@@ -48,6 +48,7 @@ Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
 
 Base.length(a::StateVector) = length(a.basis)::Int
 bases.basis(a::StateVector) = a.basis
+Base.copy{T}(a::T) = T(a.basis, copy(a.data))
 
 # Arithmetic operations
 *(a::Bra, b::Ket) = (check_multiplicable(a, b); sum(a.data.*b.data))

@@ -29,6 +29,14 @@ ket = Ket(b)
 @test bases.basis(bra) == b
 @test bra != basisstate(b, 1)
 
+# Test copy
+psi1 = randstate(b1)
+psi2 = copy(psi1)
+@test psi1.data == psi2.data
+@test !(psi1.data === psi2.data)
+psi2.data[1] = complex(10.)
+@test psi1.data[1] != psi2.data[1]
+
 # Arithmetic operations
 # =====================
 bra_b1 = dagger(randstate(b1))

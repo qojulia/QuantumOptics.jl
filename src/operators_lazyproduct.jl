@@ -37,6 +37,8 @@ end
 LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(convert(Vector{Operator}, operators), factor)
 LazyProduct(operators::Operator...) = LazyProduct(Operator[operators...])
 
+Base.copy(x::LazyProduct) = LazyProduct([copy(op) for op in x.operators], x.factor)
+
 Base.full(op::LazyProduct) = op.factor*prod(full.(op.operators))
 Base.sparse(op::LazyProduct) = op.factor*prod(sparse.(op.operators))
 

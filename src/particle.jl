@@ -269,7 +269,7 @@ function operators.gemv!(alpha::Complex128, M::FFTOperator, b::Ket, beta::Comple
             result.data[i] *= M.mul_after[i] * alpha
         end
     else
-        psi_ = Ket(M.basis_l, deepcopy(b.data))
+        psi_ = Ket(M.basis_l, copy(b.data))
         @inbounds for i=1:N
             psi_.data[i] *= M.mul_before[i]
         end

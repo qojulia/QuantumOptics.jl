@@ -136,7 +136,7 @@ function integrate_master(dmaster::Function, tspan, rho0::DenseOperator; fout=no
         xout = DenseOperator[]
         function fout_(t, rho::DenseOperator)
             push!(tout, t)
-            push!(xout, deepcopy(rho))
+            push!(xout, copy(rho))
         end
         f = fout_
     else
@@ -177,7 +177,7 @@ function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=deepcopy(rho0),
+                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     _check_input(rho0, H, J, Jdagger, Gamma)
     Gamma = complex(Gamma)
@@ -206,7 +206,7 @@ function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
                 Hnhdagger::Operator=dagger(Hnh),
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=deepcopy(rho0),
+                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     _check_input(rho0, Hnh, J, Jdagger, Gamma)
     Gamma = complex(Gamma)
@@ -252,7 +252,7 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=deepcopy(rho0),
+                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     _check_input(rho0, H, J, Jdagger, Gamma)
     Gamma = complex(Gamma)
@@ -264,10 +264,10 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
                 Jdagger::Vector{DenseOperator}=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=deepcopy(rho0),
+                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     _check_input(rho0, H, J, Jdagger, Gamma)
-    Hnh = deepcopy(H)
+    Hnh = copy(H)
     if typeof(Gamma) == Matrix{Float64}
         for i=1:length(J), j=1:length(J)
             Hnh -= 0.5im*Gamma[i,j]*Jdagger[i]*J[j]
@@ -302,7 +302,7 @@ For further information look at [`master_dynamic`](@ref).
 function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=deepcopy(rho0),
+                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, Gamma, drho, tmp)
     return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
@@ -339,7 +339,7 @@ operators:
 function master_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=deepcopy(rho0),
+                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, Gamma, drho, tmp)
     return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)

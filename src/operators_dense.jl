@@ -30,7 +30,7 @@ DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(Complex128, le
 DenseOperator(b::Basis) = DenseOperator(b, b)
 DenseOperator(op::Operator) = full(op)
 
-Base.copy(x::DenseOperator) = deepcopy(x)
+Base.copy(x::DenseOperator) = DenseOperator(x.basis_l, x.basis_r, copy(x.data))
 
 """
     full(op::Operator)
@@ -38,7 +38,7 @@ Base.copy(x::DenseOperator) = deepcopy(x)
 Convert an arbitrary Operator into a [`DenseOperator`](@ref).
 """
 Base.full(x::Operator) = throw(ArgumentError("Conversion from $(typeof(a)) to a DenseOperator not implemented."))
-Base.full(x::DenseOperator) = deepcopy(x)
+Base.full(x::DenseOperator) = copy(x)
 
 ==(x::DenseOperator, y::DenseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
 
@@ -183,11 +183,11 @@ end
                                   indices::Vector{Int})
     return quote
         a_strides_l = _strides(shape_l)
-        result_shape_l = deepcopy(shape_l)
+        result_shape_l = copy(shape_l)
         result_shape_l[indices] = 1
         result_strides_l = _strides(result_shape_l)
         a_strides_r = _strides(shape_r)
-        result_shape_r = deepcopy(shape_r)
+        result_shape_r = copy(shape_r)
         result_shape_r[indices] = 1
         result_strides_r = _strides(result_shape_r)
         N_result_l = prod(result_shape_l)

@@ -309,7 +309,7 @@ function ode_event{T}(F, tspan::Vector{Float64}, x0::Vector{T},
                     args...)
     tout = Float64[]
     xout = Vector{T}[]
-    fout = (t, x) -> (push!(tout, t); push!(xout, deepcopy(x)); nothing)
+    fout = (t, x) -> (push!(tout, t); push!(xout, copy(x)); nothing)
     ode_event(F, tspan, x0, fout, event_locator, event_callback; args...)
     return tout, xout
 end
@@ -388,7 +388,7 @@ end
 function ode{T}(F, tspan::Vector{Float64}, x0::Vector{T}; args...)
     tout = Float64[]
     xout = Vector{T}[]
-    fout = (t, x) -> (push!(tout, t); push!(xout, deepcopy(x)); nothing)
+    fout = (t, x) -> (push!(tout, t); push!(xout, copy(x)); nothing)
     ode(F, tspan, x0, fout; args...)
     return tout, xout
 end

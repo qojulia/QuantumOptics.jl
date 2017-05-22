@@ -39,7 +39,7 @@ function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J
                      op1::Operator, op2::Operator;
                      Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
                      Jdagger::Vector=dagger.(J),
-                     tmp::DenseOperator=deepcopy(rho0),
+                     tmp::DenseOperator=copy(rho0),
                      kwargs...)
     exp_values = Complex128[]
     function fout(t, rho)
@@ -55,7 +55,7 @@ function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      eps::Float64=1e-4, h0=10.,
                      Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
                      Jdagger::Vector=dagger.(J),
-                     tmp::DenseOperator=deepcopy(rho0),
+                     tmp::DenseOperator=copy(rho0),
                      kwargs...)
     op2rho0 = op2*rho0
     tout = Float64[0.]

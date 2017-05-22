@@ -24,6 +24,16 @@ b_r = b1b⊗b2b⊗b3b
 @test_throws bases.IncompatibleBases LazyProduct(randoperator(b_l, b_r), randoperator(b_l, b_r))
 @test_throws bases.IncompatibleBases LazyProduct(randoperator(b_l, b_r), sparse(randoperator(b_l, b_r)))
 
+# Test copy
+op1 = 2*LazyProduct(randoperator(b_l, b_r), sparse(randoperator(b_r, b_l)))
+op2 = copy(op1)
+@test op1 == op2
+@test !(op1 === op2)
+op2.operators[1].data[1,1] = complex(10.)
+@test op1.operators[1].data[1,1] != op2.operators[1].data[1,1]
+op2.factor = 3.
+@test op2.factor != op1.factor
+
 # Test full & sparse
 op1 = randoperator(b_l, b_r)
 op2 = randoperator(b_r, b_l)
@@ -118,27 +128,27 @@ op_ = 0.2*op1*op2*op3
 
 state = Ket(b_r, rand(Complex128, length(b_r)))
 result_ = Ket(b_l, rand(Complex128, length(b_l)))
-result = deepcopy(result_)
+result = copy(result_)
 operators.gemv!(complex(1.), op, state, complex(0.), result)
-@test 1e-13 > D(result, op_*state)
+@test 1e-11 > D(result, op_*state)
 
-result = deepcopy(result_)
+result = copy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
 operators.gemv!(alpha, op, state, beta, result)
-@test 1e-13 > D(result, alpha*op_*state + beta*result_)
+@test 1e-11 > D(result, alpha*op_*state + beta*result_)
 
 state = Bra(b_l, rand(Complex128, length(b_l)))
 result_ = Bra(b_r, rand(Complex128, length(b_r)))
-result = deepcopy(result_)
+result = copy(result_)
 operators.gemv!(complex(1.), state, op, complex(0.), result)
-@test 1e-13 > D(result, state*op_)
+@test 1e-11 > D(result, state*op_)
 
-result = deepcopy(result_)
+result = copy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
 operators.gemv!(alpha, state, op, beta, result)
-@test 1e-13 > D(result, alpha*state*op_ + beta*result_)
+@test 1e-11 > D(result, alpha*state*op_ + beta*result_)
 
 # Test gemm
 op1 = randoperator(b_l, b_r)
@@ -149,11 +159,11 @@ op_ = 0.2*op1*op2*op3
 
 state = randoperator(b_r, b_r)
 result_ = randoperator(b_l, b_r)
-result = deepcopy(result_)
+result = copy(result_)
 operators.gemm!(complex(1.), op, state, complex(0.), result)
 @test 1e-11 > D(result, op_*state)
 
-result = deepcopy(result_)
+result = copy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
 operators.gemm!(alpha, op, state, beta, result)
@@ -161,11 +171,11 @@ operators.gemm!(alpha, op, state, beta, result)
 
 state = randoperator(b_l, b_l)
 result_ = randoperator(b_l, b_r)
-result = deepcopy(result_)
+result = copy(result_)
 operators.gemm!(complex(1.), state, op, complex(0.), result)
 @test 1e-11 > D(result, state*op_)
 
-result = deepcopy(result_)
+result = copy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
 operators.gemm!(alpha, state, op, beta, result)

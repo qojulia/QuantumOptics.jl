@@ -31,7 +31,7 @@ Integrate a single Monte Carlo wave function trajectory.
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan, psi0::Ket, seed;
                 fout=nothing,
                 kwargs...)
-    tmp = deepcopy(psi0)
+    tmp = copy(psi0)
     as_ket(x::Vector{Complex128}) = Ket(psi0.basis, x)
     as_vector(psi::Ket) = psi.data
     rng = MersenneTwister(convert(UInt, seed))
@@ -48,7 +48,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan, psi0::Ket, se
     xout = Ket[]
     function fout_(t, x::Vector{Complex128})
         if fout==nothing
-            psi = deepcopy(as_ket(x))
+            psi = copy(as_ket(x))
             psi /= norm(psi)
             push!(tout, t)
             push!(xout, psi)
@@ -130,7 +130,7 @@ For more information see: [`mcwf`](@ref)
 """
 function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
                 seed=rand(UInt), fout=nothing, Jdagger::Vector=map(dagger, J),
-                tmp::Ket=deepcopy(psi0),
+                tmp::Ket=copy(psi0),
                 display_beforeevent=false, display_afterevent=false,
                 kwargs...)
     f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp)
@@ -202,7 +202,7 @@ function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
                 seed=rand(UInt), fout=nothing, Jdagger::Vector=map(dagger, J),
                 display_beforeevent=false, display_afterevent=false,
                 kwargs...)
-    Hnh = deepcopy(H)
+    Hnh = copy(H)
     for i=1:length(J)
         Hnh -= 0.5im*Jdagger[i]*J[i]
     end

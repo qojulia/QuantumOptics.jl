@@ -33,6 +33,19 @@ op3 = randoperator(b3a, b3b)
 x = randoperator(b2a)
 @test LazyTensor(b_l, 2, x) == LazyTensor(b_l, b_l, [2], [x])
 
+# Test copy
+x = 2*LazyTensor(b_l, b_r, [1,2], [randoperator(b1a, b1b), sparse(randoperator(b2a, b2b))])
+x_ = copy(x)
+@test x == x_
+@test !(x === x_)
+x_.operators[1].data[1,1] = complex(10.)
+@test x.operators[1].data[1,1] != x_.operators[1].data[1,1]
+x_.factor = 3.
+@test x_.factor != x.factor
+x_.indices[2] = 100
+@test x_.indices != x.indices
+
+
 # Test full & sparse
 I2 = identityoperator(b2a, b2b)
 x = LazyTensor(b_l, b_r, [1, 3], [op1, sparse(op3)], 0.3)

@@ -61,6 +61,8 @@ LazyTensor(basis::Basis, indices::Vector{Int}, ops::Vector, factor::Number=1) = 
 LazyTensor(basis_l::Basis, basis_r::Basis, index::Int, operator::Operator, factor::Number=1) = LazyTensor(basis_l, basis_r, [index], Operator[operator], factor)
 LazyTensor(basis::Basis, index::Int, operators::Operator, factor::Number=1.) = LazyTensor(basis, basis, index, operators, factor)
 
+Base.copy(x::LazyTensor) = LazyTensor(x.basis_l, x.basis_r, copy(x.indices), [copy(op) for op in x.operators], x.factor)
+
 """
     suboperator(op::LazyTensor, index)
 

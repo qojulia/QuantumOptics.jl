@@ -39,10 +39,10 @@ function master(H::Operator, J::Vector;
                 Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=deepcopy(rho0),
+                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     t0 = 0.
-    rho0 = deepcopy(rho0)
+    rho0 = copy(rho0)
     function fout_steady(t, rho)
         if fout!=nothing
             fout(t, rho)
