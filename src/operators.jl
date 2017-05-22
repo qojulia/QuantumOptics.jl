@@ -43,7 +43,7 @@ addnumbererror() = throw(ArgumentError("Can't add or subtract a number and an op
 -(a::Number, b::Operator) = addnumbererror()
 -(a::Operator, b::Number) = addnumbererror()
 
-Base.length(a::Operator) = length(a.basis_l)*length(a.basis_r)
+Base.length(a::Operator) = length(a.basis_l)::Int*length(a.basis_r)::Int
 bases.basis(a::Operator) = (check_samebases(a); a.basis_l)
 
 dagger(a::Operator) = arithmetic_unary_error("Hermitian conjugate", a)
@@ -252,8 +252,8 @@ function check_ptrace_arguments(a::Operator, indices::Vector{Int})
     end
 end
 
-bases.samebases(a::Operator) = samebases(a.basis_l, a.basis_r)
-bases.samebases(a::Operator, b::Operator) = samebases(a.basis_l, b.basis_l) && samebases(a.basis_r, b.basis_r)
+bases.samebases(a::Operator) = samebases(a.basis_l, a.basis_r)::Bool
+bases.samebases(a::Operator, b::Operator) = samebases(a.basis_l, b.basis_l)::Bool && samebases(a.basis_r, b.basis_r)::Bool
 bases.check_samebases(a::Operator) = check_samebases(a.basis_l, a.basis_r)
 
 bases.multiplicable(a::Operator, b::Ket) = multiplicable(a.basis_r, b.basis)
