@@ -20,7 +20,7 @@ in the `data` field.
 type SparseOperator <: Operator
     basis_l::Basis
     basis_r::Basis
-    data::SparseMatrixCSC{Complex128}
+    data::SparseMatrixCSC{Complex128, Int}
     function SparseOperator(b1::Basis, b2::Basis, data)
         if length(b1) != size(data, 1) || length(b2) != size(data, 2)
             throw(DimensionMismatch())
@@ -29,7 +29,7 @@ type SparseOperator <: Operator
     end
 end
 
-SparseOperator(b::Basis, data::SparseMatrixCSC{Complex128}) = SparseOperator(b, b, data)
+SparseOperator(b::Basis, data::SparseMatrixCSC{Complex128, Int}) = SparseOperator(b, b, data)
 SparseOperator(b::Basis, data::Matrix{Complex128}) = SparseOperator(b, sparse(data))
 SparseOperator(op::DenseOperator) = SparseOperator(op.basis_l, op.basis_r, sparse(op.data))
 

@@ -52,8 +52,8 @@ SuperOperator stored as sparse matrix.
 type SparseSuperOperator <: SuperOperator
     basis_l::Tuple{Basis, Basis}
     basis_r::Tuple{Basis, Basis}
-    data::SparseMatrixCSC{Complex128}
-    function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::SparseMatrixCSC{Complex128})
+    data::SparseMatrixCSC{Complex128, Int}
+    function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::SparseMatrixCSC{Complex128, Int})
         if length(basis_l[1])*length(basis_l[2]) != size(data, 1) || length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
         end
