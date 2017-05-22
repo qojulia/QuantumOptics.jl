@@ -37,11 +37,17 @@ type DenseSuperOperator <: SuperOperator
     basis_r::Tuple{Basis, Basis}
     data::Matrix{Complex128}
     function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::Matrix{Complex128})
-        if length(basis_l[1])*length(basis_l[2]) != size(data, 1) || length(basis_r[1])*length(basis_r[2]) != size(data, 2)
+        if length(basis_l[1])*length(basis_l[1]) != size(data, 1) ||
+           length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
         end
         new(basis_l, basis_r, data)
     end
+end
+
+function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis})
+    data = zeros(Complex128, length(basis_l), length(basis_r))
+    DenseSuperOperator(basis_l, basis_r, data)
 end
 
 
@@ -55,45 +61,62 @@ type SparseSuperOperator <: SuperOperator
     basis_r::Tuple{Basis, Basis}
     data::SparseMatrixCSC{Complex128, Int}
     function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::SparseMatrixCSC{Complex128, Int})
-        if length(basis_l[1])*length(basis_l[2]) != size(data, 1) || length(basis_r[1])*length(basis_r[2]) != size(data, 2)
+        if length(basis_l[1])*length(basis_l[1]) != size(data, 1) ||
+           length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
         end
         new(basis_l, basis_r, data)
     end
 end
 
+function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis})
+    data = spzeros(Complex128, length(basis_l), length(basis_r))
+    SparseSuperOperator(basis_l, basis_r, data)
+end
+
+
 Base.copy{T<:SuperOperator}(a::T) = T(a.basis_l, a.basis_r, a.data)
 
 Base.full(a::SparseSuperOperator) = DenseSuperOperator(a.basis_l, a.basis_r, full(a.data))
 Base.full(a::DenseSuperOperator) = copy(a)
 
-=={T<:SuperOperator}(a::T, b::T) = (a.basis_l == b.basis_l) && (a.basis_r == b.basis_r) && (a.data == b.data)
+=={T<:SuperOperator}(a::T, b::T) = samebases(a, b) && (a.data == b.data)
 
-bases.length(a::SuperOperator) = length(a.basis_l[1])*length(a.basis_l[2])*length(a.basis_r[1])*length(a.basis_r[2])
+Base.length(a::SuperOperator) = length(a.basis_l[1])*length(a.basis_l[2])*length(a.basis_r[1])*length(a.basis_r[2])
 bases.samebases(a::SuperOperator, b::SuperOperator) = samebases(a.basis_l[1], b.basis_l[1]) && samebases(a.basis_l[2], b.basis_l[2]) &&
                                                       samebases(a.basis_r[1], b.basis_r[1]) && samebases(a.basis_r[2], b.basis_r[2])
 bases.multiplicable(a::SuperOperator, b::SuperOperator) = multiplicable(a.basis_r[1], b.basis_l[1]) && multiplicable(a.basis_r[2], b.basis_l[2])
+bases.multiplicable(a::SuperOperator, b::Operator) = multiplicable(a.basis_r[1], b.basis_l) && multiplicable(a.basis_r[2], b.basis_r)
+bases.multiplicable(a::Operator, b::SuperOperator) = multiplicable(a.basis_r, b.basis_l[1]) && multiplicable(a.basis_l, b.basis_l[2])
 
+
+# Arithmetic operations
 function *{T<:SuperOperator}(a::T, b::DenseOperator)
-    check_samebases(a.basis_r[1], b.basis_l)
-    check_samebases(a.basis_r[2], b.basis_r)
+    check_multiplicable(a, b)
     data = a.data*reshape(b.data, length(b.data))
     return DenseOperator(a.basis_l[1], a.basis_l[2], reshape(data, length(a.basis_l[1]), length(a.basis_l[2])))
 end
 
-function *{T<:SuperOperator}(a::T, b::T)
+function *{T<:SuperOperator}(a::DenseOperator, b::T)
+    check_multiplicable(a, b)
+    data = reshape(b.data, length(b.data))*a.data
+    return DenseOperator(b.basis_r[1], b.basis_r[2], reshape(data, length(a.basis_r[1]), length(a.basis_r[2])))
+end
+
+function *(a::SuperOperator, b::SuperOperator)
     check_multiplicable(a, b)
     return T(a.basis_l, b.basis_r, a.data*b.data)
 end
 
-/{T<:SuperOperator}(a::T, b::Number) = T(a.basis_l, a.basis_r, a.data/complex(b))
 *{T<:SuperOperator}(a::T, b::Number) = T(a.basis_l, a.basis_r, a.data*complex(b))
 *{T<:SuperOperator}(b::Number, a::T) = *(a, b)
 
+/{T<:SuperOperator}(a::T, b::Number) = T(a.basis_l, a.basis_r, a.data/complex(b))
+
 +{T<:SuperOperator}(a::T, b::T) = (check_samebases(a, b); T(a.basis_l, a.basis_r, a.data+b.data))
 
--{T<:SuperOperator}(a::T, b::T) = (check_samebases(a, b); T(a.basis_l, a.basis_r, a.data-b.data))
 -{T<:SuperOperator}(a::T) = T(a.basis_l, a.basis_r, -a.data)
+-{T<:SuperOperator}(a::T, b::T) = (check_samebases(a, b); T(a.basis_l, a.basis_r, a.data-b.data))
 
 """
     spre(op)

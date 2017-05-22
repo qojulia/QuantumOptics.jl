@@ -3,7 +3,11 @@ using QuantumOptics
 
 @testset "superoperators" begin
 
+# Test creation
 b = GenericBasis(3)
+@test_throws DimensionMismatch DenseSuperOperator((b, b), (b, b), zeros(Complex128, 3, 3))
+@test_throws DimensionMismatch SparseSuperOperator((b, b), (b, b), spzeros(Complex128, 3, 3))
+
 op = DenseOperator(b)
 S = spre(op)
 @assert length(S) == length(S.data) == 9^2
@@ -57,9 +61,6 @@ end
 
 tout, ρt = timeevolution.master([0.,1.], ρ₀, H, J; reltol=1e-7)
 @test tracedistance(expm(full(L))*ρ₀, ρt[end]) < 1e-6
-
-@test_throws DimensionMismatch DenseSuperOperator(L.basis_l, L.basis_r, full(L).data[1:end-1, 1:end-1])
-@test_throws DimensionMismatch SparseSuperOperator(L.basis_l, L.basis_r, L.data[1:end-1, 1:end-1])
 
 @test full(spre(op1)) == spre(op1)
 
