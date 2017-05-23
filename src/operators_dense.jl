@@ -206,13 +206,13 @@ end
 end
 
 # Fast in-place multiplication with dense operators
-gemm!{T<:Complex}(alpha::T, a::Matrix{T}, b::Matrix{T}, beta::T, result::Matrix{T}) = BLAS.gemm!('N', 'N', alpha, a, b, beta, result)
-gemv!{T<:Complex}(alpha::T, a::Matrix{T}, b::Vector{T}, beta::T, result::Vector{T}) = BLAS.gemv!('N', alpha, a, b, beta, result)
-gemv!{T<:Complex}(alpha::T, a::Vector{T}, b::Matrix{T}, beta::T, result::Vector{T}) = BLAS.gemv!('T', alpha, b, a, beta, result)
+gemm!(alpha, a::Matrix{Complex128}, b::Matrix{Complex128}, beta, result::Matrix{Complex128}) = BLAS.gemm!('N', 'N', convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
+gemv!(alpha, a::Matrix{Complex128}, b::Vector{Complex128}, beta, result::Vector{Complex128}) = BLAS.gemv!('N', convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
+gemv!(alpha, a::Vector{Complex128}, b::Matrix{Complex128}, beta, result::Vector{Complex128}) = BLAS.gemv!('T', convert(Complex128, alpha), b, a, convert(Complex128, beta), result)
 
-gemm!(alpha, a::DenseOperator, b::DenseOperator, beta, result::DenseOperator) = gemm!(alpha, a.data, b.data, beta, result.data)
-gemv!(alpha, a::DenseOperator, b::Ket, beta, result::Ket) = gemv!(alpha, a.data, b.data, beta, result.data)
-gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = gemv!(alpha, a.data, b.data, beta, result.data)
+gemm!(alpha, a::DenseOperator, b::DenseOperator, beta, result::DenseOperator) = gemm!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
+gemv!(alpha, a::DenseOperator, b::Ket, beta, result::Ket) = gemv!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
+gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = gemv!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
 
 
 # Multiplication for Operators in terms of their gemv! implementation

@@ -78,14 +78,14 @@ operators.permutesystems(op::LazySum, perm::Vector{Int}) = LazySum(op.factors, O
 function operators.gemv!(alpha, a::LazySum, b::Ket, beta, result::Ket)
     operators.gemv!(alpha*a.factors[1], a.operators[1], b, beta, result)
     for i=2:length(a.operators)
-        operators.gemv!(alpha*a.factors[i], a.operators[i], b, Complex(1.), result)
+        operators.gemv!(alpha*a.factors[i], a.operators[i], b, 1, result)
     end
 end
 
 function operators.gemv!(alpha, a::Bra, b::LazySum, beta, result::Bra)
     operators.gemv!(alpha*b.factors[1], a, b.operators[1], beta, result)
     for i=2:length(b.operators)
-        operators.gemv!(alpha*b.factors[i], a, b.operators[i], Complex(1.), result)
+        operators.gemv!(alpha*b.factors[i], a, b.operators[i], 1, result)
     end
 end
 

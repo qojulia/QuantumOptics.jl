@@ -258,7 +258,9 @@ operators.full(op::FFTOperator) = op*identityoperator(DenseOperator, op.basis_r)
 operators.dagger(op::FFTOperator) = FFTOperator(op.basis_r, op.basis_l)
 
 
-function operators.gemv!(alpha::Complex128, M::FFTOperator, b::Ket, beta::Complex128, result::Ket)
+function operators.gemv!(alpha_, M::FFTOperator, b::Ket, beta_, result::Ket)
+    alpha = convert(Complex128, alpha_)
+    beta = convert(Complex128, beta_)
     N::Int = M.basis_r.N
     if beta==Complex(0.)
         @inbounds for i=1:N
@@ -281,7 +283,9 @@ function operators.gemv!(alpha::Complex128, M::FFTOperator, b::Ket, beta::Comple
     nothing
 end
 
-function operators.gemv!(alpha::Complex128, b::Bra, M::FFTOperator, beta::Complex128, result::Bra)
+function operators.gemv!(alpha_, b::Bra, M::FFTOperator, beta_, result::Bra)
+    alpha = convert(Complex128, alpha_)
+    beta = convert(Complex128, beta_)
     N::Int = M.basis_l.N
     if beta==Complex(0.)
         @inbounds for i=1:N
@@ -304,7 +308,9 @@ function operators.gemv!(alpha::Complex128, b::Bra, M::FFTOperator, beta::Comple
     nothing
 end
 
-function operators.gemm!(alpha::Complex128, A::DenseOperator, B::particle.FFTOperator, beta::Complex128, result::DenseOperator)
+function operators.gemm!(alpha_, A::DenseOperator, B::particle.FFTOperator, beta_, result::DenseOperator)
+    alpha = convert(Complex128, alpha_)
+    beta = convert(Complex128, beta_)
     if beta != Complex(0.)
         data = Matrix{Complex128}(size(result.data, 1), size(result.data, 2))
     else
@@ -326,7 +332,9 @@ function operators.gemm!(alpha::Complex128, A::DenseOperator, B::particle.FFTOpe
     nothing
 end
 
-function operators.gemm!(alpha::Complex128, A::particle.FFTOperator, B::DenseOperator, beta::Complex128, result::DenseOperator)
+function operators.gemm!(alpha_, A::particle.FFTOperator, B::DenseOperator, beta_, result::DenseOperator)
+    alpha = convert(Complex128, alpha_)
+    beta = convert(Complex128, beta_)
     if beta != Complex(0.)
         data = Matrix{Complex128}(size(result.data, 1), size(result.data, 2))
     else

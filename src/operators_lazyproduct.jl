@@ -64,10 +64,10 @@ operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(Opera
 
 function operators.gemv!(alpha, a::LazyProduct, b::Ket, beta, result::Ket)
     tmp1 = Ket(a.operators[end].basis_l)
-    operators.gemv!(Complex(1.)*a.factor, a.operators[end], b, Complex(0.), tmp1)
+    operators.gemv!(a.factor, a.operators[end], b, 0, tmp1)
     for i=length(a.operators)-1:-1:2
         tmp2 = Ket(a.operators[i].basis_l)
-        operators.gemv!(Complex(1.), a.operators[i], tmp1, Complex(0.), tmp2)
+        operators.gemv!(1, a.operators[i], tmp1, 0, tmp2)
         tmp1 = tmp2
     end
     operators.gemv!(alpha, a.operators[1], tmp1, beta, result)
@@ -75,10 +75,10 @@ end
 
 function operators.gemv!(alpha, a::Bra, b::LazyProduct, beta, result::Bra)
     tmp1 = Bra(b.operators[1].basis_r)
-    operators.gemv!(Complex(1.)*b.factor, a, b.operators[1], Complex(0.), tmp1)
+    operators.gemv!(b.factor, a, b.operators[1], 0, tmp1)
     for i=2:length(b.operators)-1
         tmp2 = Bra(b.operators[i].basis_r)
-        operators.gemv!(Complex(1.), tmp1, b.operators[i], Complex(0.), tmp2)
+        operators.gemv!(1, tmp1, b.operators[i], 0, tmp2)
         tmp1 = tmp2
     end
     operators.gemv!(alpha, tmp1, b.operators[end], beta, result)

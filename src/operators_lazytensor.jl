@@ -311,8 +311,8 @@ function gemm(alpha::Complex128, h::LazyTensor, op::Matrix{Complex128}, beta::Co
     _gemm_recursive_lazy_dense(1, N_k, 1, 1, alpha*h.factor, shape, strides_k, strides_j, h.indices, h, op, result)
 end
 
-operators.gemm!(alpha::Complex128, h::LazyTensor, op::DenseOperator, beta::Complex128, result::DenseOperator) = gemm(alpha, h, op.data, beta, result.data)
-operators.gemm!(alpha::Complex128, op::DenseOperator, h::LazyTensor, beta::Complex128, result::DenseOperator) = gemm(alpha, op.data, h, beta, result.data)
+operators.gemm!(alpha, h::LazyTensor, op::DenseOperator, beta, result::DenseOperator) = gemm(convert(Complex128, alpha), h, op.data, convert(Complex128, beta), result.data)
+operators.gemm!(alpha, op::DenseOperator, h::LazyTensor, beta, result::DenseOperator) = gemm(convert(Complex128, alpha), op.data, h, convert(Complex128, beta), result.data)
 
 function operators.gemv!(alpha, a::LazyTensor, b::Ket, beta, result::Ket)
     b_data = reshape(b.data, length(b.data), 1)

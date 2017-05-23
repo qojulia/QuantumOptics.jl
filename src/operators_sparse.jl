@@ -114,10 +114,10 @@ function permutesystems(rho::SparseOperator, perm::Vector{Int})
 end
 
 # Fast in-place multiplication implementations
-operators.gemm!{T<:Complex}(alpha::T, M::SparseOperator, b::DenseOperator, beta::T, result::DenseOperator) = sparsematrix.gemm!(alpha, M.data, b.data, beta, result.data)
-operators.gemm!{T<:Complex}(alpha::T, a::DenseOperator, M::SparseOperator, beta::T, result::DenseOperator) = sparsematrix.gemm!(alpha, a.data, M.data, beta, result.data)
-operators.gemv!{T<:Complex}(alpha::T, M::SparseOperator, b::Ket, beta::T, result::Ket) = sparsematrix.gemv!(alpha, M.data, b.data, beta, result.data)
-operators.gemv!{T<:Complex}(alpha::T, b::Bra, M::SparseOperator, beta::T, result::Bra) = sparsematrix.gemv!(alpha, b.data, M.data, beta, result.data)
+operators.gemm!(alpha, M::SparseOperator, b::DenseOperator, beta, result::DenseOperator) = sparsematrix.gemm!(convert(Complex128, alpha), M.data, b.data, convert(Complex128, beta), result.data)
+operators.gemm!(alpha, a::DenseOperator, M::SparseOperator, beta, result::DenseOperator) = sparsematrix.gemm!(convert(Complex128, alpha), a.data, M.data, convert(Complex128, beta), result.data)
+operators.gemv!(alpha, M::SparseOperator, b::Ket, beta, result::Ket) = sparsematrix.gemv!(convert(Complex128, alpha), M.data, b.data, convert(Complex128, beta), result.data)
+operators.gemv!(alpha, b::Bra, M::SparseOperator, beta, result::Bra) = sparsematrix.gemv!(convert(Complex128, alpha), b.data, M.data, convert(Complex128, beta), result.data)
 
 
 """
