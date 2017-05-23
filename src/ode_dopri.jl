@@ -41,12 +41,18 @@ Arguments:
     * k: Function derivatives at the previous substep points.
 """
 function substep{T}(x::Vector{T}, x0::Vector{T}, h::Float64, coeffs::Vector{Float64}, k::Vector{Vector{T}})
-    @inbounds for m=1:length(x0)
-        dx::T = 0.
-        @inbounds for i=1:length(coeffs)
-            dx += coeffs[i] * k[i][m]
+    N = length(x)
+    c_1 = h*coeffs[1]
+    k_1 = k[1]
+    @inbounds for m=1:N
+        x[m] = x0[m] + c_1*k_1[m]
+    end
+    @inbounds for i=2:length(coeffs)
+        c_i = h*coeffs[i]
+        k_i = k[i]
+        @inbounds for m=1:N
+            x[m] += c_i*k_i[m]
         end
-        x[m] = x0[m] + h*dx
     end
     return nothing
 end
@@ -67,7 +73,7 @@ Arguments:
 """
 function step{T}(F::Function, t0::Float64, h::Float64,
                 x0::Vector{T}, xp::Vector{T}, xs::Vector{T}, k::Vector{Vector{T}})
-    for i=2:length(c)
+    @inbounds for i=2:length(c)
         substep(xp, x0, h, a[i], k)
         F(t0 + h*c[i], xp, k[i])
     end
@@ -119,7 +125,7 @@ Estimate the error by comparing results of different order Runge-Kutta methods.
 """
 function error_estimate(xp, xs, abstol, reltol)
     err::Float64 = 0.
-    for i=1:length(xp)
+    @inbounds for i=1:length(xp)
         sc_i = abstol + reltol*max(abs(xp[i]), abs(xs[i]))
         err += abs2(xp[i]-xs[i])/sc_i^2
     end
@@ -133,7 +139,7 @@ Find a good guess for an initial time step.
 function initial_stepsize(F, t, x, k, abstol, reltol, tmp1, tmp2)
     d0 = 0.
     d1 = 0.
-    for i=1:length(x)
+    @inbounds for i=1:length(x)
         sc_i2 = (abstol + abs(x[i])*reltol)^2
         d0 += abs2(x[i])/sc_i2
         d1 += abs2(k[1][i])/sc_i2
@@ -143,7 +149,7 @@ function initial_stepsize(F, t, x, k, abstol, reltol, tmp1, tmp2)
     h0 = ((d0<1e-5 || d1<1e-5) ? 1e-6 : 0.01*d0/d1)
     substep(tmp1, x, h0, [1.], k)
     F(t+h0, tmp1, tmp2)
-    for i=1:length(tmp2)
+    @inbounds for i=1:length(tmp2)
         tmp2[i] -= k[1][i]
     end
     d2 = norm(tmp2, 2)
@@ -159,7 +165,7 @@ end
 """
 Determine the size of the next step.
 """
-function stepsize_strategy(err, laststepaccepted, h, hmin, hmax)
+function stepsize_strategy(err::Float64, laststepaccepted::Bool, h::Float64, hmin::Float64, hmax::Float64)
     accept_step = err<1
     facmin = (laststepaccepted ? 5. : 1.)
     hnew = h*min(facmin, max(0.2, 0.9*(1./err)^(1./order)))
