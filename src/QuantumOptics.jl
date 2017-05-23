@@ -61,6 +61,7 @@ include("ode_dopri.jl")
 include("timeevolution_simple.jl")
 module timeevolution
     export diagonaljumps
+    include("timeevolution_base.jl")
     include("master.jl")
     include("schroedinger.jl")
     include("mcwf.jl")

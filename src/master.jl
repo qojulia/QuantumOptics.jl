@@ -2,11 +2,20 @@ module timeevolution_master
 
 export master, master_nh, master_h, master_dynamic, master_nh_dynamic
 
+import ..integrate, ..recast!
 using ...bases
 using ...states
 using ...operators
 using ...operators_dense
-using ...ode_dopri
+
+
+function recast!(x::Vector{Complex128}, rho::DenseOperator)
+    rho.data = reshape(x, size(rho.data))
+end
+
+function recast!(rho::DenseOperator, x::Vector{Complex128})
+    nothing
+end
 
 """
 Evaluate master equation for diagonal jump operators.
@@ -108,45 +117,6 @@ function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
       dmaster_nh(rho, Hnh, Hnh_dagger, Gamma_, J, Jdagger, drho, tmp)
 end
 
-"""
-    integrate_master(dmaster, tspan, rho0; fout, kwargs...)
-
-Integrate master equation with the given derivative function.
-
-# Arguments
-* `dmaster::Function`: A function `f(t, rho, drho)` that calculates the
-        time-derivative of `rho` at time `t` and stores the result in `drho`.
-* `tspan::Vector`: Vector specifying the points of time for which output
-        should be displayed.
-* `rho0::DenseOperator`: Initial density operator.
-* `fout::Function = nothing`: If given, this function `fout(t, rho)` is called
-        every time an output should be displayed. ATTENTION: The state `rho` is
-        not permanent! It is still in use by the ode solver and therefore must
-        not be changed.
-* `kwargs...`: Further arguments are passed on to the ode solver.
-"""
-function integrate_master(dmaster::Function, tspan, rho0::DenseOperator; fout=nothing, kwargs...)
-    n = length(basis(rho0))
-    N = n^2
-    as_operator(x::Vector{Complex128}) = DenseOperator(rho0.basis_l, rho0.basis_r, reshape(x, n, n))
-    as_vector(rho::DenseOperator) = reshape(rho.data, N)
-    f = (x->x)
-    if fout==nothing
-        tout = Float64[]
-        xout = DenseOperator[]
-        function fout_(t, rho::DenseOperator)
-            push!(tout, t)
-            push!(xout, copy(rho))
-        end
-        f = fout_
-    else
-        f = fout
-    end
-    f_(t, x::Vector{Complex128}) = f(t, as_operator(x))
-    dmaster_(t, x::Vector{Complex128}, dx::Vector{Complex128}) = dmaster(t, as_operator(x), as_operator(dx))
-    ode(dmaster_, float(tspan), as_vector(rho0), f_; kwargs...)
-    return fout==nothing ? (tout, xout) : nothing
-end
 
 function _check_input(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vector, Gamma::Union{Vector{Float64}, Matrix{Float64}})
     check_samebases(rho0, H)
@@ -179,10 +149,14 @@ function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=copy(rho0),
                 kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
     Gamma = complex(Gamma)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
-    return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
+    x0 = reshape(rho0.data, length(rho0))
+    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
 end
 
 master_h(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master_h(tspan, dm(psi0), H, J; kwargs...)
@@ -208,10 +182,14 @@ function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=copy(rho0),
                 kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, Hnh, J, Jdagger, Gamma)
     Gamma = complex(Gamma)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
-    return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
+    x0 = reshape(rho0.data, length(rho0))
+    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
 end
 
 master_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector; kwargs...) = master_nh(tspan, dm(psi0), Hnh, J; kwargs...)
@@ -254,10 +232,14 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=copy(rho0),
                 kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
     Gamma = complex(Gamma)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
-    return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
+    x0 = reshape(rho0.data, length(rho0))
+    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
 end
 
 function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOperator};
@@ -266,6 +248,7 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=copy(rho0),
                 kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
     Hnh = copy(H)
     if typeof(Gamma) == Matrix{Float64}
@@ -280,7 +263,10 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
     Hnhdagger = dagger(Hnh)
     Gamma = complex(Gamma)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
-    return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
+    x0 = reshape(rho0.data, length(rho0))
+    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    return integrate(tspan_, dmaster_, x0, state, dstate, fout; kwargs...)
 end
 
 master(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(tspan, dm(psi0), H, J; kwargs...)
@@ -304,8 +290,12 @@ function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=copy(rho0),
                 kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, Gamma, drho, tmp)
-    return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
+    x0 = reshape(rho0.data, length(rho0))
+    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
 end
 
 master_nh_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_nh_dynamic(tspan, dm(psi0), f; kwargs...)
@@ -341,8 +331,12 @@ function master_dynamic(tspan, rho0::DenseOperator, f::Function;
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=copy(rho0),
                 kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, Gamma, drho, tmp)
-    return integrate_master(dmaster_, tspan, rho0; fout=fout, kwargs...)
+    x0 = reshape(rho0.data, length(rho0))
+    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
 end
 
 master_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_dynamic(tspan, dm(psi0), f; kwargs...)

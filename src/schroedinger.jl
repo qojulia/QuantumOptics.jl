@@ -2,46 +2,18 @@ module timeevolution_schroedinger
 
 export schroedinger, schroedinger_dynamic
 
+import ..integrate, ..recast!
 using ...bases
 using ...states
 using ...operators
-using ...ode_dopri
 
-"""
-    integrate_schroedinger(dschroedinger, tspan, psi0; kwargs...)
 
-Integrate Schroedinger equation with given derivative function.
+function recast!(x::Vector{Complex128}, psi::StateVector)
+    psi.data = x
+end
 
-# Arguments
-* `dmaster::Function`: A function `f(t, psi, dpsi)` that calculates the
-        time-derivative of `rho` at time `t` and stores the result in `dpsi`.
-* `tspan::Vector`: Vector specifying the points of time for which output
-        should be displayed.
-* `psi0::DenseOperator`: Initial state.
-* `fout::Function = nothing`: If given, this function `fout(t, rho)` is called
-        every time an output should be displayed. ATTENTION: The state `psi` is
-        not permanent! It is still in use by the ode solver and therefore must
-        not be changed.
-* `kwargs...`: Further arguments are passed on to the ode solver.
-"""
-function integrate_schroedinger{T<:StateVector}(dschroedinger::Function, tspan, psi0::T; fout=nothing, kwargs...)
-    as_statevector(x::Vector{Complex128}) = T(psi0.basis, x)
-    as_vector(psi::T) = psi.data
-    if fout==nothing
-        tout = Float64[]
-        xout = T[]
-        function fout_(t, psi::T)
-            push!(tout, t)
-            push!(xout, copy(psi))
-        end
-        f = fout_
-    else
-        f = fout
-    end
-    f_(t, x::Vector{Complex128}) = f(t, as_statevector(x))
-    dschroedinger_(t, x::Vector{Complex128}, dx::Vector{Complex128}) = dschroedinger(t, as_statevector(x), as_statevector(dx))
-    ode(dschroedinger_, float(tspan), as_vector(psi0), f_; kwargs...)
-    return fout==nothing ? (tout, xout) : nothing
+function recast!(psi::StateVector, x::Vector{Complex128})
+    nothing
 end
 
 function dschroedinger(psi::Ket, H::Operator, dpsi::Ket)
@@ -87,9 +59,13 @@ Integrate Schroedinger equation.
 function schroedinger{T<:StateVector}(tspan, psi0::T, H::Operator;
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(psi0, H)
-    dschroedinger_(t, psi::T, dpsi::T) = dschroedinger(psi, H, dpsi)
-    integrate_schroedinger(dschroedinger_, tspan, psi0; fout=fout, kwargs...)
+    dschroedinger_(t::Float64, psi::T, dpsi::T) = dschroedinger(psi, H, dpsi)
+    x0 = psi0.data
+    state = T(psi0.basis, psi0.data)
+    dstate = T(psi0.basis, psi0.data)
+    integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
 
@@ -110,8 +86,12 @@ Integrate time-dependent Schroedinger equation.
 function schroedinger_dynamic{T<:StateVector}(tspan, psi0::T, f::Function;
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    dschroedinger_(t, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, f, dpsi)
-    integrate_schroedinger(dschroedinger_, tspan, psi0; fout=fout, kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
+    dschroedinger_(t::Float64, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, f, dpsi)
+    x0 = psi0.data
+    state = Ket(psi0.basis, psi0.data)
+    dstate = Ket(psi0.basis, psi0.data)
+    integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
 end
