@@ -23,16 +23,16 @@ end
 function dmaster_h(rho::DenseOperator, H::Operator,
                     Gamma::Void, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(complex(0,-1.), H, rho, complex(0.), drho)
-    operators.gemm!(complex(0,1.), rho, H, complex(1.), drho)
+    operators.gemm!(-1im, H, rho, 0, drho)
+    operators.gemm!(1im, rho, H, 1, drho)
     for i=1:length(J)
-        operators.gemm!(1., J[i], rho, complex(0.), tmp)
-        operators.gemm!(complex(1.), tmp, Jdagger[i], complex(1.), drho)
+        operators.gemm!(1, J[i], rho, 0, tmp)
+        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
 
-        operators.gemm!(complex(-0.5), Jdagger[i], tmp, complex(1.), drho)
+        operators.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
 
-        operators.gemm!(1., rho, Jdagger[i], complex(0.), tmp)
-        operators.gemm!(complex(-0.5), tmp, J[i], complex(1.), drho)
+        operators.gemm!(1., rho, Jdagger[i], 0, tmp)
+        operators.gemm!(-0.5, tmp, J[i], 1, drho)
     end
     return drho
 end
@@ -40,16 +40,16 @@ end
 function dmaster_h(rho::DenseOperator, H::Operator,
                     Gamma::Vector{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(complex(0,-1.), H, rho, complex(0.), drho)
-    operators.gemm!(complex(0,1.), rho, H, complex(1.), drho)
+    operators.gemm!(-1im, H, rho, 0, drho)
+    operators.gemm!(1im, rho, H, 1, drho)
     for i=1:length(J)
-        operators.gemm!(Gamma[i], J[i], rho, complex(0.), tmp)
-        operators.gemm!(complex(1.), tmp, Jdagger[i], complex(1.), drho)
+        operators.gemm!(Gamma[i], J[i], rho, 0, tmp)
+        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
 
-        operators.gemm!(complex(-0.5), Jdagger[i], tmp, complex(1.), drho)
+        operators.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
 
-        operators.gemm!(Gamma[i], rho, Jdagger[i], complex(0.), tmp)
-        operators.gemm!(complex(-0.5), tmp, J[i], complex(1.), drho)
+        operators.gemm!(Gamma[i], rho, Jdagger[i], 0, tmp)
+        operators.gemm!(-0.5, tmp, J[i], 1, drho)
     end
     return drho
 end
@@ -57,16 +57,16 @@ end
 function dmaster_h(rho::DenseOperator, H::Operator,
                     Gamma::Matrix{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(complex(0,-1.), H, rho, complex(0.), drho)
-    operators.gemm!(complex(0,1.), rho, H, complex(1.), drho)
+    operators.gemm!(-1im, H, rho, 0, drho)
+    operators.gemm!(1im, rho, H, 1, drho)
     for j=1:length(J), i=1:length(J)
-        operators.gemm!(Gamma[i,j], J[i], rho, complex(0.), tmp)
-        operators.gemm!(complex(1.), tmp, Jdagger[j], complex(1.), drho)
+        operators.gemm!(Gamma[i,j], J[i], rho, 0, tmp)
+        operators.gemm!(1, tmp, Jdagger[j], 1, drho)
 
-        operators.gemm!(complex(-0.5), Jdagger[j], tmp, complex(1.), drho)
+        operators.gemm!(-0.5, Jdagger[j], tmp, 1, drho)
 
-        operators.gemm!(Gamma[i,j], rho, Jdagger[j], complex(0.), tmp)
-        operators.gemm!(complex(-0.5), tmp, J[i], complex(1.), drho)
+        operators.gemm!(Gamma[i,j], rho, Jdagger[j], 0, tmp)
+        operators.gemm!(-0.5, tmp, J[i], 1, drho)
     end
     return drho
 end
@@ -82,11 +82,11 @@ end
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
                     Gamma::Void, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(complex(0,-1.), Hnh, rho, complex(0.), drho)
-    operators.gemm!(complex(0,1.), rho, Hnh_dagger, complex(1.), drho)
+    operators.gemm!(-1im, Hnh, rho, 0, drho)
+    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
     for i=1:length(J)
-        operators.gemm!(1., J[i], rho, complex(0.), tmp)
-        operators.gemm!(complex(1.), tmp, Jdagger[i], complex(1.), drho)
+        operators.gemm!(1, J[i], rho, 0, tmp)
+        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
     end
     return drho
 end
@@ -94,33 +94,27 @@ end
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
                     Gamma::Vector{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(complex(0,-1.), Hnh, rho, complex(0.), drho)
-    operators.gemm!(complex(0,1.), rho, Hnh_dagger, complex(1.), drho)
+    operators.gemm!(-1im, Hnh, rho, 0, drho)
+    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
     for i=1:length(J)
-        operators.gemm!(Gamma[i], J[i], rho, complex(0.), tmp)
-        operators.gemm!(complex(1.), tmp, Jdagger[i], complex(1.), drho)
+        operators.gemm!(Gamma[i], J[i], rho, 0, tmp)
+        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
     end
     return drho
 end
 
-"""
-Evaluate master equation for non-hermitian Hamiltonian and non-diagonal jump operators.
-"""
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
                     Gamma::Matrix{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(complex(0,-1.), Hnh, rho, complex(0.), drho)
-    operators.gemm!(complex(0,1.), rho, Hnh_dagger, complex(1.), drho)
+    operators.gemm!(-1im, Hnh, rho, 0, drho)
+    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
     for j=1:length(J), i=1:length(J)
-        operators.gemm!(Gamma[i,j], J[i], rho, complex(0.), tmp)
-        operators.gemm!(complex(1.), tmp, Jdagger[j], complex(1.), drho)
+        operators.gemm!(Gamma[i,j], J[i], rho, 0, tmp)
+        operators.gemm!(1, tmp, Jdagger[j], 1, drho)
     end
     return drho
 end
 
-"""
-Evaluate master equation for dynamic operators.
-"""
 function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
                     Gamma::DecayRates,
                     drho::DenseOperator, tmp::DenseOperator)
