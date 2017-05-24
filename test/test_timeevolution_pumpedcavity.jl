@@ -72,11 +72,15 @@ timeevolution.master_nh(T, psi0, Hint_nh, J; Gamma=Γ, fout=f_test_decay)
 f_test_decay_dynamic(t, rho::DenseOperator) = @test 1e-5 > tracedistance(rho, dm(coherentstate(b, α(t, α0, δc, κ)*exp(-1im*ω*t))))
 
 f_HJ_dynamic(t, rho) = (f_H(t, psi0), J, Jdagger)
+f_HJ_dynamic2(t, rho) = (f_H(t, psi0), J, Jdagger, Γ)
 f_HJ_nh_dynamic(t, rho) = (Hnh=f_H(t, psi0) - 0.5im*κ*n; (Hnh, dagger(Hnh), J, Jdagger))
 f_HJ_nh_dynamic2(t, rho) = (Hnh=f_H(t, psi0) - 0.5im*κ*n; (Hnh, dagger(Hnh), [sqrt(κ)*a], [sqrt(κ)*at]))
+f_HJ_nh_dynamic3(t, rho) = (Hnh=f_H(t, psi0) - 0.5im*κ*n; (Hnh, dagger(Hnh), J, Jdagger, Γ))
 
 timeevolution.master_dynamic(T, psi0, f_HJ_dynamic; Gamma=Γ, fout=f_test_decay_dynamic)
+timeevolution.master_dynamic(T, psi0, f_HJ_dynamic2; fout=f_test_decay_dynamic)
 timeevolution.master_nh_dynamic(T, psi0, f_HJ_nh_dynamic; Gamma=Γ, fout=f_test_decay_dynamic)
 timeevolution.master_nh_dynamic(T, psi0, f_HJ_nh_dynamic2; fout=f_test_decay_dynamic)
+timeevolution.master_nh_dynamic(T, psi0, f_HJ_nh_dynamic3; fout=f_test_decay_dynamic)
 
 end # testset

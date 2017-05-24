@@ -19,6 +19,15 @@ function recast!(rho::DenseOperator, x::Vector{Complex128})
     nothing
 end
 
+function integrate_master(tspan, df::Function, rho0::DenseOperator,
+                        fout::Union{Void, Function}; kwargs...)
+    tspan_ = convert(Vector{Float64}, tspan)
+    x0 = reshape(rho0.data, length(rho0))
+    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    integrate(tspan_, df, x0, state, dstate, fout; kwargs...)
+end
+
 
 function dmaster_h(rho::DenseOperator, H::Operator,
                     Gamma::Void, J::Vector, Jdagger::Vector,
@@ -74,9 +83,16 @@ end
 function dmaster_h_dynamic(t::Float64, rho::DenseOperator, f::Function,
                     Gamma::DecayRates,
                     drho::DenseOperator, tmp::DenseOperator)
-      H, J, Jdagger = f(t, rho)
-      _check_input(rho, H, J, Jdagger, Gamma)
-      dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
+    result = f(t, rho)
+    @assert 3 <= length(result) <= 4
+    if length(result) == 3
+        H, J, Jdagger = result
+        Gamma_ = Gamma
+    else
+        H, J, Jdagger, Gamma_ = result
+    end
+    _check_input(rho, H, J, Jdagger, Gamma_)
+    dmaster_h(rho, H, Gamma_, J, Jdagger, drho, tmp)
 end
 
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
@@ -118,9 +134,16 @@ end
 function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
                     Gamma::DecayRates,
                     drho::DenseOperator, tmp::DenseOperator)
-      Hnh, Hnh_dagger, J, Jdagger = f(t, rho)
-      _check_input(rho, Hnh, J, Jdagger, Gamma)
-      dmaster_nh(rho, Hnh, Hnh_dagger, Gamma, J, Jdagger, drho, tmp)
+    result = f(t, rho)
+    @assert 4 <= length(result) <= 5
+    if length(result) == 4
+        Hnh, Hnh_dagger, J, Jdagger = result
+        Gamma_ = Gamma
+    else
+        Hnh, Hnh_dagger, J, Jdagger, Gamma_ = result
+    end
+    _check_input(rho, Hnh, J, Jdagger, Gamma_)
+    dmaster_nh(rho, Hnh, Hnh_dagger, Gamma_, J, Jdagger, drho, tmp)
 end
 
 
@@ -154,14 +177,10 @@ function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
     tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
-    x0 = reshape(rho0.data, length(rho0))
-    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
+    integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
 master_h(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master_h(tspan, dm(psi0), H, J; kwargs...)
@@ -186,14 +205,10 @@ function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, Hnh, J, Jdagger, Gamma)
     tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
-    x0 = reshape(rho0.data, length(rho0))
-    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
+    integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
 master_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector; kwargs...) = master_nh(tspan, dm(psi0), Hnh, J; kwargs...)
@@ -236,14 +251,10 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
     tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
-    x0 = reshape(rho0.data, length(rho0))
-    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
+    integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
 function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOperator};
@@ -251,7 +262,6 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
                 Jdagger::Vector{DenseOperator}=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
     Hnh = copy(H)
     if typeof(Gamma) == Matrix{Float64}
@@ -270,10 +280,7 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
     Hnhdagger = dagger(Hnh)
     tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
-    x0 = reshape(rho0.data, length(rho0))
-    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    return integrate(tspan_, dmaster_, x0, state, dstate, fout; kwargs...)
+    integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
 master(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(tspan, dm(psi0), H, J; kwargs...)
@@ -285,24 +292,20 @@ master(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(tspan, dm(p
 Time-evolution according to a master equation with a dynamic non-hermitian Hamiltonian and J.
 
 In this case the given Hamiltonian is assumed to be the non-hermitian version.
-
 ```math
 H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 ```
-
-For further information look at [`master_dynamic`](@ref).
+The given function can either be of the form `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger)`
+or `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger, Gamma)` For further information look
+at [`master_dynamic`](@ref).
 """
 function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::DecayRates=nothing,
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    tspan_ = convert(Vector{Float64}, tspan)
     tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, Gamma, drho, tmp)
-    x0 = reshape(rho0.data, length(rho0))
-    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
+    integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
 master_nh_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_nh_dynamic(tspan, dm(psi0), f; kwargs...)
@@ -323,8 +326,7 @@ operators:
 * `tspan`: Vector specifying the points of time for which output should be displayed.
 * `rho0`: Initial density operator. Can also be a state vector which is
         automatically converted into a density operator.
-* `f`: Function `f(t, rho) -> (H, J, Jdagger)` returning the time and/or state dependent
-        Hamiltonian and Jump operators.
+* `f`: Function `f(t, rho) -> (H, J, Jdagger)` or `f(t, rho) -> (H, J, Jdagger, Gamma)`
 * `Gamma=nothing`: Vector or matrix specifying the coefficients (decay rates)
         for the jump operators. If nothing is specified all rates are assumed
         to be 1.
@@ -338,13 +340,9 @@ function master_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::DecayRates=nothing,
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    tspan_ = convert(Vector{Float64}, tspan)
     tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, Gamma, drho, tmp)
-    x0 = reshape(rho0.data, length(rho0))
-    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    return integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
+    integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
 master_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_dynamic(tspan, dm(psi0), f; kwargs...)
