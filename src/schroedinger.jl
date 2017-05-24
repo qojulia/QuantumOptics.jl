@@ -3,44 +3,11 @@ module timeevolution_schroedinger
 export schroedinger, schroedinger_dynamic
 
 import ..integrate, ..recast!
+
 using ...bases
 using ...states
 using ...operators
 
-
-function recast!(x::Vector{Complex128}, psi::StateVector)
-    psi.data = x
-end
-
-function recast!(psi::StateVector, x::Vector{Complex128})
-    nothing
-end
-
-function dschroedinger(psi::Ket, H::Operator, dpsi::Ket)
-    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
-    return dpsi
-end
-
-function dschroedinger(psi::Bra, H::Operator, dpsi::Bra)
-    operators.gemv!(complex(0,1.), psi, H, complex(0.), dpsi)
-    return dpsi
-end
-
-function dschroedinger_dynamic{T<:StateVector}(t::Float64, psi0::T, f::Function, dpsi::T)
-    H = f(t, psi0)
-    _check_input(psi0, H)
-    dschroedinger(psi0, H, dpsi)
-end
-
-function _check_input(psi::Ket, H::Operator)
-    check_multiplicable(H, psi)
-    check_samebases(H)
-end
-
-function _check_input(psi::Bra, H::Operator)
-    check_multiplicable(psi, H)
-    check_samebases(H)
-end
 
 """
     timeevolution.schroedinger(tspan, psi0, H; fout)
@@ -60,12 +27,12 @@ function schroedinger{T<:StateVector}(tspan, psi0::T, H::Operator;
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
-    _check_input(psi0, H)
+    check_schroedinger(psi0, H)
     dschroedinger_(t::Float64, psi::T, dpsi::T) = dschroedinger(psi, H, dpsi)
     x0 = psi0.data
     state = T(psi0.basis, psi0.data)
     dstate = T(psi0.basis, psi0.data)
-    integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
+    integrate(tspan_, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
 
@@ -91,7 +58,40 @@ function schroedinger_dynamic{T<:StateVector}(tspan, psi0::T, f::Function;
     x0 = psi0.data
     state = Ket(psi0.basis, psi0.data)
     dstate = Ket(psi0.basis, psi0.data)
-    integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
+    integrate(tspan_, dschroedinger_, x0, state, dstate, fout; kwargs...)
+end
+
+
+recast!(x::Vector{Complex128}, psi::StateVector) = (psi.data = x);
+recast!(psi::StateVector, x::Vector{Complex128}) = nothing
+
+
+function dschroedinger(psi::Ket, H::Operator, dpsi::Ket)
+    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    return dpsi
+end
+
+function dschroedinger(psi::Bra, H::Operator, dpsi::Bra)
+    operators.gemv!(complex(0,1.), psi, H, complex(0.), dpsi)
+    return dpsi
+end
+
+
+function dschroedinger_dynamic{T<:StateVector}(t::Float64, psi0::T, f::Function, dpsi::T)
+    H = f(t, psi0)
+    check_schroedinger(psi0, H)
+    dschroedinger(psi0, H, dpsi)
+end
+
+
+function check_schroedinger(psi::Ket, H::Operator)
+    check_multiplicable(H, psi)
+    check_samebases(H)
+end
+
+function check_schroedinger(psi::Bra, H::Operator)
+    check_multiplicable(psi, H)
+    check_samebases(H)
 end
 
 end
