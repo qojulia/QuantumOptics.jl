@@ -36,10 +36,9 @@ Calculate steady state using long time master equation evolution.
 function master(H::Operator, J::Vector;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 eps::Float64=1e-3, hmin=1e-7,
-                Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
+                Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     t0 = 0.
     rho0 = copy(rho0)
@@ -58,7 +57,6 @@ function master(H::Operator, J::Vector;
     try
         timeevolution.master([0., Inf], rho0, H, J; Gamma=Gamma, Jdagger=Jdagger,
                             hmin=hmin, hmax=Inf,
-                            tmp=tmp,
                             display_initialvalue=false,
                             display_finalvalue=false,
                             display_intermediatesteps=true,

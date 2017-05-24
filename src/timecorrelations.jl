@@ -37,25 +37,23 @@ criterion specified in [`steadystate.master`](@ref).
 """
 function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
-                     Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
+                     Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                      Jdagger::Vector=dagger.(J),
-                     tmp::DenseOperator=copy(rho0),
                      kwargs...)
     exp_values = Complex128[]
     function fout(t, rho)
         push!(exp_values, expect(op1, rho))
     end
     timeevolution.master(tspan, op2*rho0, H, J; Gamma=Gamma, Jdagger=Jdagger,
-                        tmp=tmp, fout=fout, kwargs...)
+                        fout=fout, kwargs...)
     return exp_values
 end
 
 function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      eps::Float64=1e-4, h0=10.,
-                     Gamma::Union{Real, Vector, Matrix}=ones(Float64, length(J)),
+                     Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                      Jdagger::Vector=dagger.(J),
-                     tmp::DenseOperator=copy(rho0),
                      kwargs...)
     op2rho0 = op2*rho0
     tout = Float64[0.]
@@ -65,7 +63,7 @@ function correlation(rho0::DenseOperator, H::Operator, J::Vector,
         push!(exp_values, expect(op1, rho))
     end
     steadystate.master(H, J; rho0=op2rho0, eps=eps, h0=h0, fout=fout,
-                       Gamma=Gamma, Jdagger=Jdagger, tmp=tmp, kwargs...)
+                       Gamma=Gamma, Jdagger=Jdagger, kwargs...)
     return tout, exp_values
 end
 

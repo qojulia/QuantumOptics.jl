@@ -94,6 +94,9 @@ tout, ρt = timeevolution.master_nh(T, Ψ₀, Hnh_dense, Jdense; reltol=1e-6)
 # Test explicit gamma vector
 Gamma_vector = [γ, κ]
 
+tout, ρt = timeevolution.master(T, ρ₀, Hdense, Junscaled_dense; Gamma=Gamma_vector, reltol=1e-7)
+@test tracedistance(ρt[end], ρ) < 1e-5
+
 tout, ρt = timeevolution.master(T, ρ₀, H, Junscaled_dense; Gamma=Gamma_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 

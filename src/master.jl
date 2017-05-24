@@ -153,10 +153,10 @@ function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Gamma::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
+    tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
     x0 = reshape(rho0.data, length(rho0))
     state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
@@ -185,10 +185,10 @@ function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
                 Hnhdagger::Operator=dagger(Hnh),
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, Hnh, J, Jdagger, Gamma)
+    tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
     x0 = reshape(rho0.data, length(rho0))
     state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
@@ -235,10 +235,10 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Gamma::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
+    tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
     x0 = reshape(rho0.data, length(rho0))
     state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
@@ -250,7 +250,6 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
                 Gamma::DecayRates=nothing,
                 Jdagger::Vector{DenseOperator}=dagger.(J),
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
     _check_input(rho0, H, J, Jdagger, Gamma)
@@ -269,6 +268,7 @@ function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOpe
         end
     end
     Hnhdagger = dagger(Hnh)
+    tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
     x0 = reshape(rho0.data, length(rho0))
     state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
@@ -295,9 +295,9 @@ For further information look at [`master_dynamic`](@ref).
 function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::DecayRates=nothing,
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
+    tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, Gamma, drho, tmp)
     x0 = reshape(rho0.data, length(rho0))
     state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
@@ -337,9 +337,9 @@ operators:
 function master_dynamic(tspan, rho0::DenseOperator, f::Function;
                 Gamma::DecayRates=nothing,
                 fout::Union{Function,Void}=nothing,
-                tmp::DenseOperator=copy(rho0),
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
+    tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, Gamma, drho, tmp)
     x0 = reshape(rho0.data, length(rho0))
     state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
