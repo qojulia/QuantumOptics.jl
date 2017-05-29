@@ -16,6 +16,8 @@ sprandop(b) = sparse(DenseOperator(b, rand(Complex128, length(b), length(b))))
 @test_throws ArgumentError eigenenergies(SpectralanalysisTestOperator())
 @test_throws bases.IncompatibleBases eigenenergies(DenseOperator(GenericBasis(3), GenericBasis(4)))
 
+
+# Test hermitian diagonalization
 b = GenericBasis(5)
 a = randoperator(b)
 H = (a+dagger(a))/2
@@ -30,8 +32,6 @@ R = U*D*dagger(U)
 Rsp = sparse(R)
 @test eigenenergies((R+dagger(R))/2) ≈ d
 @test eigenenergies((Rsp+dagger(Rsp))/2, 3) ≈ d[1:3]
-@test eigenenergies(R) ≈ d
-@test eigenenergies(Rsp, 3) ≈ d[1:3]
 
 E, states = eigenstates((R+dagger(R))/2, 3)
 Esp, states_sp = eigenstates((Rsp+dagger(Rsp))/2, 3)
@@ -43,6 +43,35 @@ for i=1:3
     v = U.data[1,i]/states_sp[i].data[1]
     @test states_sp[i].data*v ≈ U.data[:,i]
 end
+
+
+# Test nonhermitian diagonalization
+b = GenericBasis(5)
+a = randoperator(b)
+H = (a+dagger(a))/2
+U = expm(1im*H)
+d = [-3+0.2im, -2.6-0.1im, -0.1+0.5im, 0.0, 0.6+0.3im]
+D = DenseOperator(b, diagm(d))
+Dsp = sparse(D)
+@test eigenenergies(D; warning=false) ≈ d
+@test eigenenergies(Dsp, 3; warning=false) ≈ d[1:3]
+
+R = U*D*dagger(U)
+Rsp = sparse(R)
+@test eigenenergies(R; warning=false) ≈ d
+@test eigenenergies(Rsp, 3; warning=false) ≈ d[1:3]
+
+E, states = eigenstates(R, 3; warning=false)
+Esp, states_sp = eigenstates(Rsp, 3; warning=false)
+for i=1:3
+    @test E[i] ≈ d[i]
+    @test Esp[i] ≈ d[i]
+    v = U.data[1,i]/states[i].data[1]
+    @test states[i].data*v ≈ U.data[:,i]
+    v = U.data[1,i]/states_sp[i].data[1]
+    @test states_sp[i].data*v ≈ U.data[:,i]
+end
+
 
 # Test simdiag
 spinbasis = SpinBasis(1//2)

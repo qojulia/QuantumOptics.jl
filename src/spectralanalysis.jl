@@ -5,6 +5,8 @@ using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 export eigenstates, eigenenergies, simdiag
 
 
+warn_nonhermitian() = warn("The given operator is not hermitian. If this is due to a numerical error make the operator hermitian first by calculating (x+dagger(x))/2 first.")
+
 """
     eigenstates(op::Operator[, n::Int])
 
@@ -16,13 +18,14 @@ about the way the calculation is done is needed, use the functions directly.
 More details can be found at
 [http://docs.julialang.org/en/stable/stdlib/linalg/].
 """
-function eigenstates(op::DenseOperator, n::Int=length(basis(op)))
+function eigenstates(op::DenseOperator, n::Int=length(basis(op)); warning=true)
     b = basis(op)
     if ishermitian(op)
         D, V = eig(Hermitian(op.data), 1:n)
         states = [Ket(b, V[:, k]) for k=1:length(D)]
         return D, states
     else
+        warning && warn_nonhermitian()
         D, V = eig(op.data)
         states = [Ket(b, V[:, k]) for k=1:length(D)]
         perm = sortperm(D, by=real)
@@ -35,11 +38,12 @@ end
 """
 For sparse operators by default it only returns the 6 lowest eigenvalues.
 """
-function eigenstates(op::SparseOperator, n::Int=length(basis(op)))
+function eigenstates(op::SparseOperator, n::Int=length(basis(op)); warning=true)
     b = basis(op)
     if ishermitian(op)
         data = Hermitian(op.data)
     else
+        warning && warn_nonhermitian()
         data = op.data
     end
     D, V = eigs(data; nev=n, which=:SR)
@@ -58,12 +62,13 @@ about the way the calculation is done is needed, use the function directly.
 More details can be found at
 [http://docs.julialang.org/en/stable/stdlib/linalg/].
 """
-function eigenenergies(op::DenseOperator, n::Int=length(basis(op)))
+function eigenenergies(op::DenseOperator, n::Int=length(basis(op)); warning=true)
     b = basis(op)
     if ishermitian(op)
         D = eigvals(Hermitian(op.data), 1:n)
         return D
     else
+        warning && warn_nonhermitian()
         D = eigvals(op.data)
         sort!(D, by=real)
         return D[1:n]
@@ -73,7 +78,7 @@ end
 """
 For sparse operators by default it only returns the 6 lowest eigenvalues.
 """
-eigenenergies(op::SparseOperator, n::Int=6) = eigenstates(op, n)[1]
+eigenenergies(op::SparseOperator, n::Int=6; warning=true) = eigenstates(op, n; warning=warning)[1]
 
 
 arithmetic_unary_error = operators.arithmetic_unary_error
