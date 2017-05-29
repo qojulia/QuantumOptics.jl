@@ -1,98 +1,84 @@
 module spectralanalysis
 
-import Base.eig, Base.eigs, Base.eigvals, Base.eigvals!
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
-export simdiag
+export eigenstates, eigenenergies, simdiag
 
 
 """
-    eig(op::DenseOperator, args...)
+    eigenstates(op::Operator[, n::Int])
 
-Diagonalize a dense operator. This is just a thin wrapper around julia's
-`eig` function. More details can be found at
-[http://docs.julialang.org/en/stable/stdlib/linalg/]
+Calculate the lowest n eigenvalues and their corresponding eigenstates.
 
-# Returns
-* `D`: Vector of eigenvalues sorted from smalles (abs) to largest.
-* `states`: Vector of Kets in the basis of A sorted by D.
+This is just a thin wrapper around julia's `eig` and `eigs` functions. Which
+of them is used depends on the type of the given operator. If more control
+about the way the calculation is done is needed, use the functions directly.
+More details can be found at
+[http://docs.julialang.org/en/stable/stdlib/linalg/].
 """
-function eig(A::DenseOperator, args...)
-  check_samebases(A)
-  b = A.basis_l
-  if ishermitian(A)
-    D, V = eig(Hermitian(A.data), args...)
-    states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]
-  else
-    D, V = eig(A.data, args...)
-    states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]
-    perm = sortperm(D, by=abs)
-    permute!(D, perm)
-    permute!(states, perm)
-  end
-  return D, states
-end
-
-"""
-    eigs(op::SparseOperator, args...)
-
-Diagonalize a sparse operator. This is just a thin wrapper around julia's
-`eigs` function. More details can be found at
-[http://docs.julialang.org/en/stable/stdlib/linalg/]
-
-# Returns
-* `D`: Vector of eigenvalues sorted from smalles (abs) to largest.
-* `states`: Vector of Kets in the basis of A sorted by D.
-"""
-function eigs(A::SparseOperator, args...; kwargs...)
-    check_samebases(A)
-    b = A.basis_l
-    if ishermitian(A)
-        D, V = eigs(Hermitian(A.data), args...; kwargs...)
-        states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]
+function eigenstates(op::DenseOperator, n::Int=length(basis(op)))
+    b = basis(op)
+    if ishermitian(op)
+        D, V = eig(Hermitian(op.data), 1:n)
+        states = [Ket(b, V[:, k]) for k=1:length(D)]
+        return D, states
     else
-        D, V = eigs(A.data, args...; kwargs...)
-        states = [Ket(A.basis_l, V[:, k]) for k=1:length(D)]
-        perm = sortperm(D, by=abs)
+        D, V = eig(op.data)
+        states = [Ket(b, V[:, k]) for k=1:length(D)]
+        perm = sortperm(D, by=real)
         permute!(D, perm)
         permute!(states, perm)
+        return D[1:n], states[1:n]
     end
-    return D, states
 end
 
+"""
+For sparse operators by default it only returns the 6 lowest eigenvalues.
+"""
+function eigenstates(op::SparseOperator, n::Int=length(basis(op)))
+    b = basis(op)
+    if ishermitian(op)
+        data = Hermitian(op.data)
+    else
+        data = op.data
+    end
+    D, V = eigs(data; nev=n, which=:SR)
+    states = [Ket(b, V[:, k]) for k=1:length(D)]
+    D, states
+end
+
+
+"""
+    eigenenergies(op::Operator[, n::Int])
+
+Calculate the lowest n eigenvalues.
+
+This is just a thin wrapper around julia's `eigvals`. If more control
+about the way the calculation is done is needed, use the function directly.
+More details can be found at
+[http://docs.julialang.org/en/stable/stdlib/linalg/].
+"""
+function eigenenergies(op::DenseOperator, n::Int=length(basis(op)))
+    b = basis(op)
+    if ishermitian(op)
+        D = eigvals(Hermitian(op.data), 1:n)
+        return D
+    else
+        D = eigvals(op.data)
+        sort!(D, by=real)
+        return D[1:n]
+    end
+end
+
+"""
+For sparse operators by default it only returns the 6 lowest eigenvalues.
+"""
+eigenenergies(op::SparseOperator, n::Int=6) = eigenstates(op, n)[1]
+
+
 arithmetic_unary_error = operators.arithmetic_unary_error
-eig(A::Operator, args...) = arithmetic_unary_error(eig, A)
-eigs(A::Operator, args...) = arithmetic_unary_error(eig, A)
-
-
-"""
-    eigvals(op::DenseOperator, args...)
-
-Compute eigenvalues of an operator. This is just a thin wrapper around julia's
-`eigvals` function. More details can be found at
-[http://docs.julialang.org/en/stable/stdlib/linalg/]
-
-# Returns
-* `evals_sorted`: Vector containing eigenvalues sorted from smallest to largest
-        absolute value.
-"""
-eigvals(A::DenseOperator, args...) = ishermitian(A) ? eigvals(Hermitian(A.data), args...) : sort(eigvals(A.data), by=abs)
-
-"""
-    eigvals!(op::DenseOperator, args...)
-
-Compute eigenvalues of an operator. This is just a thin wrapper around julia's
-`eigvals` function. More details can be found at
-[http://docs.julialang.org/en/stable/stdlib/linalg/]
-
-# Returns
-* `evals_sorted`: Vector containing eigenvalues sorted from smallest to largest
-        absolute value.
-"""
-eigvals!(A::DenseOperator, args...) = ishermitian(A) ? eigvals!(Hermitian(A.data), args...) : sort(eigvals!(A.data), by=abs)
-
-eigvals(A::Operator, args...) = arithmetic_unary_error(eigvals, A)
-eigvals!(A::Operator, args...) = arithmetic_unary_error(eigvals!, A)
+eigenstates(op::Operator, n::Int=0) = arithmetic_unary_error("eigenstates", op)
+eigenenergies(op::Operator, n::Int=0) = arithmetic_unary_error("eigenenergies", op)
 
 
 """
