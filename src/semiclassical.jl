@@ -37,40 +37,24 @@ operators.ptrace(state::State, indices::Vector{Int}) = State{DenseOperator}(ptra
 operators_dense.dm(x::State{Ket}) = State{DenseOperator}(dm(x.quantum), x.classical)
 
 
-function recast!(state::State, x::Vector{Complex128})
-    N = length(state.quantum)
-    copy!(x, 1, state.quantum.data, 1, N)
-    copy!(x, N+1, state.classical, 1, length(state.classical))
-    x
-end
-
-function recast!(x::Vector{Complex128}, state::State)
-    N = length(state.quantum)
-    copy!(state.quantum.data, 1, x, 1, N)
-    copy!(state.classical, 1, x, N+1, length(state.classical))
-end
-
-function dschroedinger_dynamic(t::Float64, state::State{Ket}, fquantum, fclassical, dstate::State{Ket})
-    H = fquantum(t, state.quantum, state.classical)
-    timeevolution.timeevolution_schroedinger.check_schroedinger(state.quantum, H)
-    timeevolution.timeevolution_schroedinger.dschroedinger(state.quantum, H, dstate.quantum)
-    fclassical(t, state.quantum, state.classical, dstate.classical)
-end
-
 """
     semiclassical.schroedinger_dynamic(tspan, state0, fquantum, fclassical[; fout, ...])
 
-Integrate time-dependent Schroedinger equation coupled to a classical system.
+Integrate time-dependent Schrödinger equation coupled to a classical system.
 
 # Arguments
-* `tspan`: Vector specifying the points of time for which output should be displayed.
+* `tspan`: Vector specifying the points of time for which the output should
+        be displayed.
 * `psi0`: Initial semi-classical state [`semiclassical.State`](@ref).
-* `fquantum`: Function `f(t, psi, u) -> H` returning the time and or state dependent Hamiltonian.
-* `fclassical`: Function `f(t, psi, u, du)` calculating the possibly time and state
-        dependent derivative of the classical equations and storing it in the vector `du`.
+* `fquantum`: Function `f(t, psi, u) -> H` returning the time and or state
+        dependent Hamiltonian.
+* `fclassical`: Function `f(t, psi, u, du)` calculating the possibly time and
+        state dependent derivative of the classical equations and storing it
+        in the vector `du`.
 * `fout=nothing`: If given, this function `fout(t, state)` is called every time
-        an output should be displayed. ATTENTION: The state `psi` is neither
+        an output should be displayed. ATTENTION: The given state is neither
         normalized nor permanent!
+* `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function schroedinger_dynamic(tspan, state0::State{Ket}, fquantum::Function, fclassical::Function;
                 fout::Union{Function,Void}=nothing,
@@ -84,29 +68,23 @@ function schroedinger_dynamic(tspan, state0::State{Ket}, fquantum::Function, fcl
     integrate(tspan_, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
-function dmaster_h_dynamic(t::Float64, state::State{DenseOperator}, fquantum, fclassical, Gamma, dstate::State{DenseOperator}, tmp::DenseOperator)
-    fquantum_(t, rho) = fquantum(t, state.quantum, state.classical)
-    timeevolution.timeevolution_master.dmaster_h_dynamic(t, state.quantum, fquantum_, Gamma, dstate.quantum, tmp)
-    fclassical(t, state.quantum, state.classical, dstate.classical)
-end
-
 """
     semiclassical.master_dynamic(tspan, state0, fquantum, fclassical; <keyword arguments>)
 
 Integrate time-dependent master equation coupled to a classical system.
 
 # Arguments
-* `tspan`: Vector specifying the points of time for which output should be displayed.
+* `tspan`: Vector specifying the points of time for which output should
+        be displayed.
 * `rho0`: Initial semi-classical state [`semiclassical.State`](@ref).
 * `fquantum`: Function `f(t, rho, u) -> (H, J, Jdagger)` returning the time
         and/or state dependent Hamiltonian and Jump operators.
-* `fclassical`: Function `f(t, rho, u, du)` calculating the possibly time and state
-        dependent derivative of the classical equations and storing it in the
-        complex vector `du`.
-* `fout=nothing`: If given, this function `fout(t, rho)` is called every time
-        an output should be displayed. ATTENTION: The given state rho is not
-        permanent! It is still in use by the ode solver and therefore must not
-        be changed.
+* `fclassical`: Function `f(t, rho, u, du)` calculating the possibly time and
+        state dependent derivative of the classical equations and storing it
+        in the complex vector `du`.
+* `fout=nothing`: If given, this function `fout(t, state)` is called every time
+        an output should be displayed. ATTENTION: The given state is not
+        permanent!
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master_dynamic(tspan, state0::State{DenseOperator}, fquantum, fclassical;
@@ -129,6 +107,31 @@ function master_dynamic(tspan, state0::State{Ket}, fquantum, fclassical; kwargs.
     master_dynamic(tspan, dm(state0), fquantum, fclassical; kwargs...)
 end
 
+
+function recast!(state::State, x::Vector{Complex128})
+    N = length(state.quantum)
+    copy!(x, 1, state.quantum.data, 1, N)
+    copy!(x, N+1, state.classical, 1, length(state.classical))
+    x
+end
+
+function recast!(x::Vector{Complex128}, state::State)
+    N = length(state.quantum)
+    copy!(state.quantum.data, 1, x, 1, N)
+    copy!(state.classical, 1, x, N+1, length(state.classical))
+end
+
+function dschroedinger_dynamic(t::Float64, state::State{Ket}, fquantum, fclassical, dstate::State{Ket})
+    fquantum_(t, psi) = fquantum(t, state.quantum, state.classical)
+    timeevolution.timeevolution_schroedinger.dschroedinger_dynamic(t, state.quantum, fquantum_, dstate.quantum)
+    fclassical(t, state.quantum, state.classical, dstate.classical)
+end
+
+function dmaster_h_dynamic(t::Float64, state::State{DenseOperator}, fquantum, fclassical, Gamma, dstate::State{DenseOperator}, tmp::DenseOperator)
+    fquantum_(t, rho) = fquantum(t, state.quantum, state.classical)
+    timeevolution.timeevolution_master.dmaster_h_dynamic(t, state.quantum, fquantum_, Gamma, dstate.quantum, tmp)
+    fclassical(t, state.quantum, state.classical, dstate.classical)
+end
 
 end # module
 
