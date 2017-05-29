@@ -5,10 +5,10 @@ using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 export eigenstates, eigenenergies, simdiag
 
 
-warn_nonhermitian() = warn("The given operator is not hermitian. If this is due to a numerical error make the operator hermitian first by calculating (x+dagger(x))/2 first.")
+const nonhermitian_warning = "The given operator is not hermitian. If this is due to a numerical error make the operator hermitian first by calculating (x+dagger(x))/2 first."
 
 """
-    eigenstates(op::Operator[, n::Int])
+    eigenstates(op::Operator[, n::Int; warning=true])
 
 Calculate the lowest n eigenvalues and their corresponding eigenstates.
 
@@ -17,6 +17,9 @@ of them is used depends on the type of the given operator. If more control
 about the way the calculation is done is needed, use the functions directly.
 More details can be found at
 [http://docs.julialang.org/en/stable/stdlib/linalg/].
+
+If the given operator is non-hermitian a warning is given. This behavior
+can be turned off using the keyword `warning=false`.
 """
 function eigenstates(op::DenseOperator, n::Int=length(basis(op)); warning=true)
     b = basis(op)
@@ -25,7 +28,7 @@ function eigenstates(op::DenseOperator, n::Int=length(basis(op)); warning=true)
         states = [Ket(b, V[:, k]) for k=1:length(D)]
         return D, states
     else
-        warning && warn_nonhermitian()
+        warning && warn(nonhermitian_warning)
         D, V = eig(op.data)
         states = [Ket(b, V[:, k]) for k=1:length(D)]
         perm = sortperm(D, by=real)
@@ -43,7 +46,7 @@ function eigenstates(op::SparseOperator, n::Int=length(basis(op)); warning=true)
     if ishermitian(op)
         data = Hermitian(op.data)
     else
-        warning && warn_nonhermitian()
+        warning && warn(nonhermitian_warning)
         data = op.data
     end
     D, V = eigs(data; nev=n, which=:SR)
@@ -53,7 +56,7 @@ end
 
 
 """
-    eigenenergies(op::Operator[, n::Int])
+    eigenenergies(op::Operator[, n::Int; warning=true])
 
 Calculate the lowest n eigenvalues.
 
@@ -61,6 +64,9 @@ This is just a thin wrapper around julia's `eigvals`. If more control
 about the way the calculation is done is needed, use the function directly.
 More details can be found at
 [http://docs.julialang.org/en/stable/stdlib/linalg/].
+
+If the given operator is non-hermitian a warning is given. This behavior
+can be turned off using the keyword `warning=false`.
 """
 function eigenenergies(op::DenseOperator, n::Int=length(basis(op)); warning=true)
     b = basis(op)
@@ -68,7 +74,7 @@ function eigenenergies(op::DenseOperator, n::Int=length(basis(op)); warning=true
         D = eigvals(Hermitian(op.data), 1:n)
         return D
     else
-        warning && warn_nonhermitian()
+        warning && warn(nonhermitian_warning)
         D = eigvals(op.data)
         sort!(D, by=real)
         return D[1:n]
