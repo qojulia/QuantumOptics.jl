@@ -7,6 +7,7 @@ using ...bases
 using ...states
 using ...operators
 using ...operators_dense
+using ...operators_sparse
 
 typealias DecayRates Union{Vector{Float64}, Matrix{Float64}, Void}
 
@@ -88,36 +89,31 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    check_master(rho0, H, J, Jdagger, Gamma)
-    tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
-    integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
-end
-
-function master(tspan, rho0::DenseOperator, H::DenseOperator, J::Vector{DenseOperator};
-                Gamma::DecayRates=nothing,
-                Jdagger::Vector{DenseOperator}=dagger.(J),
-                fout::Union{Function,Void}=nothing,
-                kwargs...)
-    check_master(rho0, H, J, Jdagger, Gamma)
-    Hnh = copy(H)
-    if typeof(Gamma) == Matrix{Float64}
-        for i=1:length(J), j=1:length(J)
-            Hnh -= 0.5im*Gamma[i,j]*Jdagger[i]*J[j]
-        end
-    elseif typeof(Gamma) == Vector{Float64}
-        for i=1:length(J)
-            Hnh -= 0.5im*Gamma[i]*Jdagger[i]*J[i]
-        end
+    isreducible = check_master(rho0, H, J, Jdagger, Gamma)
+    if !isreducible
+        tmp = copy(rho0)
+        dmaster_h_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
+        return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
-        for i=1:length(J)
-            Hnh -= 0.5im*Jdagger[i]*J[i]
+        Hnh = copy(H)
+        if typeof(Gamma) == Matrix{Float64}
+            for i=1:length(J), j=1:length(J)
+                Hnh -= 0.5im*Gamma[i,j]*Jdagger[i]*J[j]
+            end
+        elseif typeof(Gamma) == Vector{Float64}
+            for i=1:length(J)
+                Hnh -= 0.5im*Gamma[i]*Jdagger[i]*J[i]
+            end
+        else
+            for i=1:length(J)
+                Hnh -= 0.5im*Jdagger[i]*J[i]
+            end
         end
+        Hnhdagger = dagger(Hnh)
+        tmp = copy(rho0)
+        dmaster_nh_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
+        return integrate_master(tspan, dmaster_nh_, rho0, fout; kwargs...)
     end
-    Hnhdagger = dagger(Hnh)
-    tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
-    integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
 """
@@ -329,13 +325,23 @@ end
 
 
 function check_master(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vector, Gamma::DecayRates)
+    isreducible = true # test if all operators are sparse or dense
     check_samebases(rho0, H)
+    if !(isa(H, DenseOperator) || isa(H, SparseOperator))
+        isreducible = false
+    end
     for j=J
-        @assert typeof(j) <: Operator
+        @assert isa(j, Operator)
+        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+            isreducible = false
+        end
         check_samebases(rho0, j)
     end
     for j=Jdagger
-        @assert typeof(j) <: Operator
+        @assert isa(j, Operator)
+        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+            isreducible = false
+        end
         check_samebases(rho0, j)
     end
     @assert length(J)==length(Jdagger)
@@ -344,6 +350,7 @@ function check_master(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vect
     elseif typeof(Gamma) == Vector{Float64}
         @assert length(Gamma) == length(J)
     end
+    isreducible
 end
 
 end #module

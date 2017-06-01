@@ -34,10 +34,12 @@ Junscaled = [Ja_unscaled, Jc_unscaled]
 Ja = embed(basis, 1, sqrt(γ)*sm)
 Jc = embed(basis, 2, sqrt(κ)*destroy(fockbasis))
 J = [Ja, Jc]
+Jlazy = [LazyTensor(basis, 1, sqrt(γ)*sm), Jc]
 
 Hnh = H - 0.5im*sum([dagger(J[i])*J[i] for i=1:length(J)])
 
 Hdense = full(H)
+Hlazy = LazySum(Ha, Hc, Hint)
 Hnh_dense = full(Hnh)
 Junscaled_dense = map(full, Junscaled)
 Jdense = map(full, J)
@@ -54,6 +56,12 @@ tout, ρt = timeevolution.master(T, ρ₀, H, J; reltol=1e-6)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
 tout, ρt = timeevolution.master(T, Ψ₀, Hdense, Jdense; reltol=1e-6)
+@test tracedistance(ρt[end], ρ) < 1e-5
+
+tout, ρt = timeevolution.master(T, Ψ₀, Hlazy, Jdense; reltol=1e-6)
+@test tracedistance(ρt[end], ρ) < 1e-5
+
+tout, ρt = timeevolution.master(T, Ψ₀, H, Jlazy; reltol=1e-6)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
 
