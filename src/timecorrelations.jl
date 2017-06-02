@@ -137,6 +137,11 @@ end
     timecorrelations.correlation2spectrum(tspan, corr; normalize)
 
 Calculate spectrum as Fourier transform of a correlation function with a given correlation function.
+
+# Arguments
+* `tspan`: List of time points corresponding to the correlation function.
+* `corr`: Correlation function of which the Fourier transform is to be calculated.
+* `normalize`: Specify if spectrum should be normalized to its maximum.
 """
 function correlation2spectrum{T <: Number}(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false)
   n = length(tspan)
