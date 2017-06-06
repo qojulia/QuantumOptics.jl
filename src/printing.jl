@@ -2,6 +2,7 @@ module printing
 
 import Base: show
 
+using Compat
 using ..bases
 using ..spin, ..fock, ..nlevel, ..particle, ..subspace, ..manybody
 using ..states
@@ -28,10 +29,12 @@ function show(stream::IO, x::CompositeBasis)
 end
 
 function show(stream::IO, x::SpinBasis)
-    if den(x.spinnumber) == 1
-        write(stream, "Spin($(num(x.spinnumber)))")
+    d = @compat denominator(x.spinnumber)
+    n = @compat numerator(x.spinnumber)
+    if d == 1
+        write(stream, "Spin($n)")
     else
-        write(stream, "Spin($(num(x.spinnumber))/$(den(x.spinnumber)))")
+        write(stream, "Spin($n/$d)")
     end
 end
 
