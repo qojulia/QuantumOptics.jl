@@ -147,6 +147,7 @@ function initial_stepsize(F, t, x, k, abstol, reltol, tmp1, tmp2)
     d0 = sqrt(d0/length(x))
     d1 = sqrt(d1/length(x))
     h0 = ((d0<1e-5 || d1<1e-5) ? 1e-6 : 0.01*d0/d1)
+    isnan(h0) && return 0.
     substep(tmp1, x, h0, [1.], k)
     F(t+h0, tmp1, tmp2)
     @inbounds for i=1:length(tmp2)
@@ -254,7 +255,8 @@ function ode_event{T}(F, tspan::Vector{Float64}, x0::Vector{T}, fout::Function,
     F(t,x,k[1])
 
     # Find initial step size.
-    h = (h0===NaN ? initial_stepsize(F, t, x, k, abstol, reltol, k[2], k[3]) : h0)
+    h = (isnan(h0) ? initial_stepsize(F, t, x, k, abstol, reltol, k[2], k[3]) : h0)
+    h = (isnan(h) ? 0. : h)
     h = max(hmin, h)
     h = min(hmax, h)
 
@@ -367,7 +369,8 @@ function ode{T}(F, tspan::Vector{Float64}, x0::Vector{T}, fout::Function;
     F(t,x,k[1])
 
     # Find initial step size.
-    h = (h0===NaN ? initial_stepsize(F, t, x, k, abstol, reltol, k[2], k[3]) : h0)
+    h = (isnan(h0) ? initial_stepsize(F, t, x, k, abstol, reltol, k[2], k[3]) : h0)
+    h = (isnan(h) ? 0. : h)
     h = max(hmin, h)
     h = min(hmax, h)
 
