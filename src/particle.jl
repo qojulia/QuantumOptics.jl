@@ -8,7 +8,8 @@ using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 export PositionBasis, MomentumBasis,
         gaussianstate,
         spacing, samplepoints,
-        position, momentum, potentialoperator, FFTOperator
+        position, momentum, potentialoperator,
+        transform
 
 """
     PositionBasis(xmin, xmax, Npoints)
@@ -167,7 +168,7 @@ Position operator in momentum space.
 """
 function position(b::MomentumBasis)
     b_pos = PositionBasis(b)
-    particle.FFTOperator(b, b_pos)*full(position(b_pos))*particle.FFTOperator(b_pos, b)
+    transform(b, b_pos)*full(position(b_pos))*transform(b_pos, b)
 end
 
 """
@@ -184,7 +185,7 @@ Momentum operator in real space.
 """
 function momentum(b::PositionBasis)
     b_mom = MomentumBasis(b)
-    particle.FFTOperator(b, b_mom)*full(momentum(b_mom))*particle.FFTOperator(b_mom, b)
+    transform(b, b_mom)*full(momentum(b_mom))*transform(b_mom, b)
 end
 
 """
@@ -204,8 +205,9 @@ Operator representing a potential ``V(x)`` in momentum space.
 """
 function potentialoperator(b::MomentumBasis, V::Function)
     b_pos = PositionBasis(b)
-    particle.FFTOperator(b, b_pos)*full(potentialoperator(b_pos, V))*particle.FFTOperator(b_pos, b)
+    transform(b, b_pos)*full(potentialoperator(b_pos, V))*transform(b_pos, b)
 end
+
 
 """
     FFTOperator(basis_l, basis_r)
@@ -225,7 +227,13 @@ type FFTOperator <: Operator
     mul_after::Vector{Complex128}
 end
 
-function FFTOperator(basis_l::MomentumBasis, basis_r::PositionBasis)
+"""
+    transform(b1::MomentumBasis, b2::PositionBasis)
+    transform(b1::PositionBasis, b2::MomentumBasis)
+
+Transformation operator between position basis and momentum basis.
+"""
+function transform(basis_l::MomentumBasis, basis_r::PositionBasis)
     Lx = (basis_r.xmax - basis_r.xmin)
     dp = spacing(basis_l)
     dx = spacing(basis_r)
@@ -239,7 +247,7 @@ function FFTOperator(basis_l::MomentumBasis, basis_r::PositionBasis)
     FFTOperator(basis_l, basis_r, plan_bfft!(x), plan_fft!(x), plan_bfft!(A, 2), plan_fft!(A, 1), mul_before, mul_after)
 end
 
-function FFTOperator(basis_l::PositionBasis, basis_r::MomentumBasis)
+function transform(basis_l::PositionBasis, basis_r::MomentumBasis)
     Lx = (basis_l.xmax - basis_l.xmin)
     dp = spacing(basis_r)
     dx = spacing(basis_l)
@@ -255,7 +263,7 @@ end
 
 operators.full(op::FFTOperator) = op*identityoperator(DenseOperator, op.basis_r)
 
-operators.dagger(op::FFTOperator) = FFTOperator(op.basis_r, op.basis_l)
+operators.dagger(op::FFTOperator) = transform(op.basis_r, op.basis_l)
 
 
 function operators.gemv!(alpha_, M::FFTOperator, b::Ket, beta_, result::Ket)

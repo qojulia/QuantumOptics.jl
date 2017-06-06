@@ -1,5 +1,6 @@
 module transformations
 
+import ..particle: transform
 using ..polynomials, ..particle, ..operators_dense, ..fock
 
 export transform

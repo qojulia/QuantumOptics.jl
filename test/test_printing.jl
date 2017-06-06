@@ -73,7 +73,7 @@ op = LazyTensor(b_fock ⊗ b_mb ⊗ b_spin, [1, 3], [SparseOperator(b_fock), Den
 
 bx = PositionBasis(-2, 2, 4)
 bp = MomentumBasis(bx)
-Tpx = FFTOperator(bp, bx)
+Tpx = transform(bp, bx)
 @test sprint(show, Tpx) == "FFTOperator(dim=4x4)
   basis left:  Momentum(pmin=-3.141592653589793, pmax=3.141592653589793, N=4)
   basis right: Position(xmin=-2.0, xmax=2.0, N=4)"

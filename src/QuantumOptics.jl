@@ -20,11 +20,10 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         spin, SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown,
         subspace, SubspaceBasis, projector,
         particle, PositionBasis, MomentumBasis, samplepoints, gaussianstate,
-                position, momentum, potentialoperator, FFTOperator,
+                position, momentum, potentialoperator, transform,
         nlevel, NLevelBasis, transition, nlevelstate,
         manybody, ManyBodyBasis, fermionstates, bosonstates,
                 manybodyoperator, onebodyexpect, occupation,
-        transformations, transform,
         phasespace, qfunc, wigner,
         metrics, tracenorm, tracenorm_general, tracedistance, tracedistance_general,
                 entropy_vn, fidelity,
@@ -92,7 +91,6 @@ using .subspace
 using .particle
 using .nlevel
 using .manybody
-using .transformations
 using .phasespace
 using .timeevolution
 using .metrics
