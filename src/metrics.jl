@@ -23,7 +23,7 @@ function tracenorm(rho::DenseOperator)
         data[i,i] = real(data[i,i])
     end
     s = eigvals(Hermitian(data))
-    return 0.5*sum(abs(s))
+    return 0.5*sum(abs.(s))
 end
 
 function tracenorm{T<:Operator}(rho::T)

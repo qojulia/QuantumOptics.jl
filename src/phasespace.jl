@@ -117,7 +117,7 @@ function wigner(rho::DenseOperator, xvec::Vector{Float64}, yvec::Vector{Float64}
     @assert isa(b, FockBasis)
     N = b.N::Int
     _2α = [complex(x, y)*sqrt(2) for x=xvec, y=yvec]
-    abs2_2α = abs2(_2α)
+    abs2_2α = abs2.(_2α)
     w = zeros(_2α)
     b0 = similar(_2α)
     b1 = similar(_2α)

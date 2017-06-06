@@ -65,8 +65,8 @@ function transformation(b1::MomentumBasis, b2::PositionBasis, psi::Ket)
         throw(IncompatibleBases())
     end
     N = b1.N
-    psi_shifted = exp(1im*b2.xmin*(particle.samplepoints(b1)-b1.pmin)).*psi.data
-    psi_fft = exp(1im*b1.pmin*particle.samplepoints(b2)).*ifft(psi_shifted)*sqrt(N)
+    psi_shifted = exp.(1im*b2.xmin*(particle.samplepoints(b1)-b1.pmin)).*psi.data
+    psi_fft = exp.(1im*b1.pmin*particle.samplepoints(b2)).*ifft(psi_shifted)*sqrt(N)
     return Ket(b2, psi_fft)
 end
 
@@ -77,8 +77,8 @@ function transformation(b1::PositionBasis, b2::MomentumBasis, psi::Ket)
         throw(IncompatibleBases())
     end
     N = b1.N
-    psi_shifted = exp(-1im*b2.pmin*(particle.samplepoints(b1)-b1.xmin)).*psi.data
-    psi_fft = exp(-1im*b1.xmin*particle.samplepoints(b2)).*fft(psi_shifted)/sqrt(N)
+    psi_shifted = exp.(-1im*b2.pmin*(particle.samplepoints(b1)-b1.xmin)).*psi.data
+    psi_fft = exp.(-1im*b1.xmin*particle.samplepoints(b2)).*fft(psi_shifted)/sqrt(N)
     return Ket(b2, psi_fft)
 end
 

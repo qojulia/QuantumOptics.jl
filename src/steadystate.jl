@@ -77,7 +77,7 @@ Find steady state by calculating the eigenstate of the Liouvillian matrix `l`.
 """
 function eigenvector(L::DenseSuperOperator)
     d, v = Base.eig(L.data)
-    index = findmin(abs(d))[2]
+    index = findmin(abs.(d))[2]
     data = reshape(v[:,index], length(L.basis_r[1]), length(L.basis_r[2]))
     op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
     return op/trace(op)

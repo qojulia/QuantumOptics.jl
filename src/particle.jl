@@ -242,8 +242,8 @@ function transform(basis_l::MomentumBasis, basis_r::PositionBasis)
     end
     x = Vector{Complex128}(length(basis_r))
     A = Matrix{Complex128}(length(basis_r), length(basis_r))
-    mul_before = exp(-1im*basis_l.pmin*(samplepoints(basis_r)-basis_r.xmin))
-    mul_after = exp(-1im*basis_r.xmin*samplepoints(basis_l))/sqrt(basis_r.N)
+    mul_before = exp.(-1im*basis_l.pmin*(samplepoints(basis_r)-basis_r.xmin))
+    mul_after = exp.(-1im*basis_r.xmin*samplepoints(basis_l))/sqrt(basis_r.N)
     FFTOperator(basis_l, basis_r, plan_bfft!(x), plan_fft!(x), plan_bfft!(A, 2), plan_fft!(A, 1), mul_before, mul_after)
 end
 
@@ -256,8 +256,8 @@ function transform(basis_l::PositionBasis, basis_r::MomentumBasis)
     end
     x = Vector{Complex128}(length(basis_r))
     A = Matrix{Complex128}(length(basis_r), length(basis_r))
-    mul_before = exp(1im*basis_l.xmin*(samplepoints(basis_r)-basis_r.pmin))
-    mul_after = exp(1im*basis_r.pmin*samplepoints(basis_l))/sqrt(basis_r.N)
+    mul_before = exp.(1im*basis_l.xmin*(samplepoints(basis_r)-basis_r.pmin))
+    mul_after = exp.(1im*basis_r.pmin*samplepoints(basis_l))/sqrt(basis_r.N)
     FFTOperator(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), plan_fft!(A, 2), plan_bfft!(A, 1), mul_before, mul_after)
 end
 
