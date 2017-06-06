@@ -9,7 +9,7 @@ using ...operators
 using ...operators_dense
 using ...operators_sparse
 
-typealias DecayRates Union{Vector{Float64}, Matrix{Float64}, Void}
+const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
 
 """
     timeevolution.master_h(tspan, rho0, H, J; <keyword arguments>)

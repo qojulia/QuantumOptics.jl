@@ -2,7 +2,7 @@ using Base.Test
 using QuantumOptics.sparsematrix
 
 # SparseMatrix = quantumoptics.sparsematrix.SparseMatrix
-typealias SparseMatrix SparseMatrixCSC{Complex128}
+const SparseMatrix = SparseMatrixCSC{Complex128, Int}
 
 
 @testset "sparsematrix" begin

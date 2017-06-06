@@ -1,6 +1,6 @@
 module sparsematrix
 
-typealias SparseMatrix SparseMatrixCSC{Complex128, Int}
+const SparseMatrix = SparseMatrixCSC{Complex128, Int}
 
 
 function gemm_sp_dense_small(alpha::Complex128, M::SparseMatrix, B::Matrix{Complex128}, result::Matrix{Complex128})

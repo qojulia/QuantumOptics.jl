@@ -7,7 +7,7 @@ import ..timeevolution: integrate, recast!
 using ..bases, ..states, ..operators, ..operators_dense, ..timeevolution
 
 
-typealias QuantumState Union{Ket, DenseOperator}
+const QuantumState = Union{Ket, DenseOperator}
 
 """
 Semi-classical state.
