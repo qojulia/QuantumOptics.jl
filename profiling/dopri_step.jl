@@ -65,7 +65,7 @@ const a4 = Float64[44/45, -56/15, 32/9]
 const a5 = Float64[19372/6561, -25360/2187, 64448/6561, -212/729]
 const a6 = Float64[9017/3168, -355/33, 46732/5247, 49/176, -5103/18656]
 const a7 = Float64[35/384, 0., 500/1113, 125/192, -2187/6784, 11/84]
-const a = {Float64[] a2 a3 a4 a5 a6 a7}
+const a = Vector{Float64}[Float64[],a2,a3,a4,a5,a6,a7}
 const bp = a7
 const bs = Float64[5179/57600, 0., 7571/16695, 393/640, -92097/339200, 187/2100, 1/40]
 const c = Float64[0., 1/5, 3/10, 4/5, 8/9, 1., 1.]
@@ -323,8 +323,8 @@ function profile_optimized2(runs)
 end
 
 function profile(runs)
-    t = 1.+0im
-    h = 0.1+0im
+    t = 1.0+0.0im
+    h = 0.1+0.0im
     g(t,x0_,k1_)
     for i=1:runs
         oderk_step(g, t, h,
