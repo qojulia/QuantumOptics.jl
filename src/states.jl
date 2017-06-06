@@ -3,6 +3,7 @@ module states
 import Base: ==, +, -, *, /
 import ..bases
 
+using Compat
 using ..bases
 
 export StateVector, Bra, Ket,
@@ -17,7 +18,7 @@ in respect to a certain basis. These coefficients are stored in the
 `data` field and the basis is defined in the `basis`
 field.
 """
-abstract StateVector
+@compat abstract type StateVector end
 
 """
     Bra(b::Basis[, data])

@@ -4,6 +4,7 @@ import Base: trace, ==, +, -, *, /, ishermitian
 import ..bases: tensor, ptrace, permutesystems
 import ..states: dagger, normalize, normalize!
 
+using Compat
 using ..sortedindices, ..bases, ..states
 
 export Operator,
@@ -23,7 +24,7 @@ For fast time evolution also at least the function
 implemented. Many other generic multiplication functions can be defined in
 terms of this function and are provided automatically.
 """
-abstract Operator
+@compat abstract type Operator end
 
 # Common error messages
 arithmetic_unary_error(funcname, x::Operator) = throw(ArgumentError("$funcname is not defined for this type of operator: $(typeof(x)).\nTry to convert to another operator type first with e.g. full() or sparse()."))

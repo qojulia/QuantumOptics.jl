@@ -3,6 +3,7 @@ module superoperators
 import Base: ==, *, /, +, -
 import ..bases
 
+using Compat
 using ..bases, ..operators, ..operators_dense, ..operators_sparse
 
 export SuperOperator, DenseSuperOperator, SparseSuperOperator,
@@ -24,7 +25,7 @@ A_{br_1,br_2} = B_{bl_1,bl_2} S_{(bl_1,bl_2) ↔ (br_1,br_2)}
 ```
 
 """
-abstract SuperOperator
+@compat abstract type SuperOperator end
 
 """
     DenseSuperOperator(b1[, b2, data])

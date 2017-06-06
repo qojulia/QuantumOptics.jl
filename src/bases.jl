@@ -1,5 +1,6 @@
 module bases
 
+using Compat
 import Base.==
 
 export Basis, GenericBasis, CompositeBasis, basis,
@@ -22,7 +23,7 @@ shape vector `Int[2 2]`.
 Composite systems can be defined with help of the [`CompositeBasis`](@ref)
 class.
 """
-abstract Basis
+@compat abstract type Basis end
 
 
 """
