@@ -13,7 +13,8 @@ function show(stream::IO, x::GenericBasis)
     if length(x.shape) == 1
         write(stream, "Basis(dim=$(x.shape[1]))")
     else
-        write(stream, "Basis(shape=$(x.shape))")
+        s = replace(string(x.shape), " ", "")
+        write(stream, "Basis(shape=$s)")
     end
 end
 
@@ -105,7 +106,8 @@ end
 function show(stream::IO, x::LazyTensor)
     showoperatorheader(stream, x)
     write(stream, "\n  operators: $(length(x.operators))")
-    write(stream, "\n  indices: $(x.indices)")
+    s = replace(string(x.indices), " ", "")
+    write(stream, "\n  indices: $s")
 end
 
 function show(stream::IO, x::Union{LazySum, LazyProduct})
