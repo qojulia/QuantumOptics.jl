@@ -153,13 +153,13 @@ end
 # Test diagonal jump operators
 threespinbasis = spinbasis ⊗ spinbasis ⊗ spinbasis
 Γ, γ1, γ2, = 1.0, 1/sqrt(2), 1/sqrt(3)
-Gamma = [Γ γ1 γ2; γ1 Γ γ1; γ2 γ1 Γ]
+rates = [Γ γ1 γ2; γ1 Γ γ1; γ2 γ1 Γ]
 J3 = [embed(threespinbasis, i, sm) for i=1:3]
 H = sum(J3) + dagger(sum(J3))
-d, diagJ = diagonaljumps(Gamma, J3)
+d, diagJ = diagonaljumps(rates, J3)
 ψ3 = spindown(spinbasis) ⊗ spindown(spinbasis) ⊗ spindown(spinbasis)
-tout, ρ3_nondiag = timeevolution.master(T, ψ3, H, J3; Gamma=Gamma)
-tout, ρ3_diag = timeevolution.master(T, ψ3, H, diagJ; Gamma=d)
+tout, ρ3_nondiag = timeevolution.master(T, ψ3, H, J3; rates=rates)
+tout, ρ3_diag = timeevolution.master(T, ψ3, H, diagJ; rates=d)
 for i=1:length(tout)
   @test tracedistance(ρ3_nondiag[i], ρ3_diag[i]) < 1e-14
 end

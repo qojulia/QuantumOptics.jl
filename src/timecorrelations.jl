@@ -30,21 +30,21 @@ criterion specified in [`steadystate.master`](@ref).
 * `J`: Vector of jump operators.
 * `op1`: Operator at time `t`.
 * `op2`: Operator at time `t=0`.
-* `Gamma=ones(N)`: Vector or matrix specifying the coefficients (decay rates)
+* `rates=ones(N)`: Vector or matrix specifying the coefficients (decay rates)
         for the jump operators.
 * `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
-                     Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                     rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                      Jdagger::Vector=dagger.(J),
                      kwargs...)
     exp_values = Complex128[]
     function fout(t, rho)
         push!(exp_values, expect(op1, rho))
     end
-    timeevolution.master(tspan, op2*rho0, H, J; Gamma=Gamma, Jdagger=Jdagger,
+    timeevolution.master(tspan, op2*rho0, H, J; rates=rates, Jdagger=Jdagger,
                         fout=fout, kwargs...)
     return exp_values
 end
@@ -52,7 +52,7 @@ end
 function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      eps::Float64=1e-4, h0=10.,
-                     Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                     rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                      Jdagger::Vector=dagger.(J),
                      kwargs...)
     op2rho0 = op2*rho0
@@ -63,7 +63,7 @@ function correlation(rho0::DenseOperator, H::Operator, J::Vector,
         push!(exp_values, expect(op1, rho))
     end
     steadystate.master(H, J; rho0=op2rho0, eps=eps, h0=h0, fout=fout,
-                       Gamma=Gamma, Jdagger=Jdagger, kwargs...)
+                       rates=rates, Jdagger=Jdagger, kwargs...)
     return tout, exp_values
 end
 
@@ -96,7 +96,7 @@ automatically.
 * `op`: Operator for which the auto-correlation function is calculated.
 * `rho0`: Initial density operator.
 * `eps=1e-4`: Tracedistance used as termination criterion.
-* `Gamma=ones(N)`: Vector or matrix specifying the coefficients for the
+* `rates=ones(N)`: Vector or matrix specifying the coefficients for the
         jump operators.
 * `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the
         jump operators. If they are not given they are calculated automatically.

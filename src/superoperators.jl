@@ -125,7 +125,7 @@ spost(op::DenseOperator) = DenseSuperOperator((op.basis_l, op.basis_r), (op.basi
 spost(op::SparseOperator) = SparseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r),  kron(transpose(op.data), identityoperator(op).data))
 
 
-function _check_input(H::Operator, J::Vector, Jdagger::Vector, Gamma::Union{Vector{Float64}, Matrix{Float64}})
+function _check_input(H::Operator, J::Vector, Jdagger::Vector, rates::Union{Vector{Float64}, Matrix{Float64}})
     for j=J
         @assert typeof(j) <: Operator
         check_samebases(H, j)
@@ -135,16 +135,16 @@ function _check_input(H::Operator, J::Vector, Jdagger::Vector, Gamma::Union{Vect
         check_samebases(H, j)
     end
     @assert length(J)==length(Jdagger)
-    if typeof(Gamma) == Matrix{Float64}
-        @assert size(Gamma, 1) == size(Gamma, 2) == length(J)
-    elseif typeof(Gamma) == Vector{Float64}
-        @assert length(Gamma) == length(J)
+    if typeof(rates) == Matrix{Float64}
+        @assert size(rates, 1) == size(rates, 2) == length(J)
+    elseif typeof(rates) == Vector{Float64}
+        @assert length(rates) == length(J)
     end
 end
 
 
 """
-    liouvillian(H, J; Gamma, Jdagger)
+    liouvillian(H, J; rates, Jdagger)
 
 Create a super-operator equivalent to the master equation so that ``\\dot ρ = S ρ``
 
@@ -155,26 +155,26 @@ The super-operator ``S`` is defined by
 ```
 
 # Arguments
-* `Gamma`: Vector or matrix specifying the coefficients for the jump operators.
+* `rates`: Vector or matrix specifying the coefficients for the jump operators.
 * `Jdagger`: Vector containing the hermitian conjugates of the jump operators. If they
              are not given they are calculated automatically.
 """
 function liouvillian{T<:Operator}(H::T, J::Vector{T};
-            Gamma::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
+            rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
             Jdagger::Vector{T}=dagger.(J))
-    _check_input(H, J, Jdagger, Gamma)
+    _check_input(H, J, Jdagger, rates)
     L = spre(-1im*H) + spost(1im*H)
-    if typeof(Gamma) == Matrix{Float64}
+    if typeof(rates) == Matrix{Float64}
         for i=1:length(J), j=1:length(J)
-            jdagger_j = Gamma[i,j]/2*Jdagger[j]*J[i]
+            jdagger_j = rates[i,j]/2*Jdagger[j]*J[i]
             L -= spre(jdagger_j) + spost(jdagger_j)
-            L += spre(Gamma[i,j]*J[i]) * spost(Jdagger[j])
+            L += spre(rates[i,j]*J[i]) * spost(Jdagger[j])
         end
-    elseif typeof(Gamma) == Vector{Float64}
+    elseif typeof(rates) == Vector{Float64}
         for i=1:length(J)
-            jdagger_j = Gamma[i]/2*Jdagger[i]*J[i]
+            jdagger_j = rates[i]/2*Jdagger[i]*J[i]
             L -= spre(jdagger_j) + spost(jdagger_j)
-            L += spre(Gamma[i]*J[i]) * spost(Jdagger[i])
+            L += spre(rates[i]*J[i]) * spost(Jdagger[i])
         end
     end
     return L

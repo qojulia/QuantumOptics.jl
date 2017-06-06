@@ -100,33 +100,33 @@ tout, ρt = timeevolution.master_nh(T, Ψ₀, Hnh_dense, Jdense; reltol=1e-6)
 
 
 # Test explicit gamma vector
-Gamma_vector = [γ, κ]
+rates_vector = [γ, κ]
 
-tout, ρt = timeevolution.master(T, ρ₀, Hdense, Junscaled_dense; Gamma=Gamma_vector, reltol=1e-7)
+tout, ρt = timeevolution.master(T, ρ₀, Hdense, Junscaled_dense; rates=rates_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master(T, ρ₀, H, Junscaled_dense; Gamma=Gamma_vector, reltol=1e-7)
+tout, ρt = timeevolution.master(T, ρ₀, H, Junscaled_dense; rates=rates_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master(T, ρ₀, H, Junscaled; Gamma=Gamma_vector, reltol=1e-6)
+tout, ρt = timeevolution.master(T, ρ₀, H, Junscaled; rates=rates_vector, reltol=1e-6)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_h(T, ρ₀, H, Junscaled_dense; Gamma=Gamma_vector, reltol=1e-7)
+tout, ρt = timeevolution.master_h(T, ρ₀, H, Junscaled_dense; rates=rates_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh, Junscaled_dense; Gamma=Gamma_vector, reltol=1e-7)
+tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh, Junscaled_dense; rates=rates_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_h(T, ρ₀, H, Junscaled; Gamma=Gamma_vector, reltol=1e-7)
+tout, ρt = timeevolution.master_h(T, ρ₀, H, Junscaled; rates=rates_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh, Junscaled; Gamma=Gamma_vector, reltol=1e-7)
+tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh, Junscaled; rates=rates_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_h(T, ρ₀, H, Junscaled; Gamma=Gamma_vector, reltol=1e-7)
+tout, ρt = timeevolution.master_h(T, ρ₀, H, Junscaled; rates=rates_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh, Junscaled; Gamma=Gamma_vector, reltol=1e-7)
+tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh, Junscaled; rates=rates_vector, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
 
@@ -136,19 +136,19 @@ R = [cos(alpha) -sin(alpha); sin(alpha) cos(alpha)]
 Rt = transpose(R)
 Jrotated_dense = [R[1,1]*Junscaled_dense[1] + R[1,2]*Junscaled_dense[2], R[2,1]*Junscaled_dense[1] + R[2,2]*Junscaled_dense[2]]
 Jrotated = [SparseOperator(j) for j=Jrotated_dense]
-Gamma_matrix = diagm(Gamma_vector)
-Gamma_matrix_rotated = R * Gamma_matrix * Rt
+rates_matrix = diagm(rates_vector)
+rates_matrix_rotated = R * rates_matrix * Rt
 
-tout, ρt = timeevolution.master(T, ρ₀, Hdense, Jrotated_dense; Gamma=Gamma_matrix_rotated, reltol=1e-7)
+tout, ρt = timeevolution.master(T, ρ₀, Hdense, Jrotated_dense; rates=rates_matrix_rotated, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master(T, ρ₀, H, Jrotated; Gamma=Gamma_matrix_rotated, reltol=1e-6)
+tout, ρt = timeevolution.master(T, ρ₀, H, Jrotated; rates=rates_matrix_rotated, reltol=1e-6)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_h(T, ρ₀, Hdense, Jrotated_dense; Gamma=Gamma_matrix_rotated, reltol=1e-7)
+tout, ρt = timeevolution.master_h(T, ρ₀, Hdense, Jrotated_dense; rates=rates_matrix_rotated, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh_dense, Jrotated_dense; Gamma=Gamma_matrix_rotated, reltol=1e-7)
+tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh_dense, Jrotated_dense; rates=rates_matrix_rotated, reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
 

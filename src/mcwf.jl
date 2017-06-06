@@ -216,15 +216,15 @@ function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
 end
 
 """
-    diagonaljumps(Gamma, J)
+    diagonaljumps(rates, J)
 
 Diagonalize jump operators.
 
-The given matrix `Gamma` of decay rates is diagonalized and the
+The given matrix `rates` of decay rates is diagonalized and the
 corresponding set of jump operators is calculated.
 """
-function diagonaljumps(Gamma::Array{Float64}, J::Vector)
-  d, v = eig(Gamma)
+function diagonaljumps(rates::Array{Float64}, J::Vector)
+  d, v = eig(rates)
   d, [sum([v[j, i]*J[j] for j=1:length(d)]) for i=1:length(d)]
 end
 

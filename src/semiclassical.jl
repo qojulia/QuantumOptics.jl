@@ -88,13 +88,13 @@ Integrate time-dependent master equation coupled to a classical system.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master_dynamic(tspan, state0::State{DenseOperator}, fquantum, fclassical;
-                Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                 fout::Union{Function,Void}=nothing,
                 tmp::DenseOperator=copy(state0.quantum),
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
     function dmaster_(t, state::State{DenseOperator}, dstate::State{DenseOperator})
-        dmaster_h_dynamic(t, state, fquantum, fclassical, Gamma, dstate, tmp)
+        dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
     end
     x0 = Vector{Complex128}(length(state0))
     recast!(state0, x0)
@@ -127,9 +127,9 @@ function dschroedinger_dynamic(t::Float64, state::State{Ket}, fquantum, fclassic
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 
-function dmaster_h_dynamic(t::Float64, state::State{DenseOperator}, fquantum, fclassical, Gamma, dstate::State{DenseOperator}, tmp::DenseOperator)
+function dmaster_h_dynamic(t::Float64, state::State{DenseOperator}, fquantum, fclassical, rates, dstate::State{DenseOperator}, tmp::DenseOperator)
     fquantum_(t, rho) = fquantum(t, state.quantum, state.classical)
-    timeevolution.timeevolution_master.dmaster_h_dynamic(t, state.quantum, fquantum_, Gamma, dstate.quantum, tmp)
+    timeevolution.timeevolution_master.dmaster_h_dynamic(t, state.quantum, fquantum_, rates, dstate.quantum, tmp)
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 

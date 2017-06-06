@@ -19,13 +19,13 @@ Integrate the master equation with dmaster_h as derivative function.
 Further information can be found at [`master`](@ref).
 """
 function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
-                Gamma::DecayRates=nothing,
+                rates::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    check_master(rho0, H, J, Jdagger, Gamma)
+    check_master(rho0, H, J, Jdagger, rates)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
+    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -41,14 +41,14 @@ H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 Further information can be found at [`master`](@ref).
 """
 function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
-                Gamma::DecayRates=nothing,
+                rates::DecayRates=nothing,
                 Hnhdagger::Operator=dagger(Hnh),
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    check_master(rho0, Hnh, J, Jdagger, Gamma)
+    check_master(rho0, Hnh, J, Jdagger, rates)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
+    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -73,7 +73,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 * `H`: Arbitrary operator specifying the Hamiltonian.
 * `J`: Vector containing all jump operators which can be of any arbitrary
         operator type.
-* `Gamma=nothing`: Vector or matrix specifying the coefficients (decay rates)
+* `rates=nothing`: Vector or matrix specifying the coefficients (decay rates)
         for the jump operators. If nothing is specified all rates are assumed
         to be 1.
 * `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
@@ -85,24 +85,24 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
-                Gamma::DecayRates=nothing,
+                rates::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    isreducible = check_master(rho0, H, J, Jdagger, Gamma)
+    isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
-        dmaster_h_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, Gamma, J, Jdagger, drho, tmp)
+        dmaster_h_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
         Hnh = copy(H)
-        if typeof(Gamma) == Matrix{Float64}
+        if typeof(rates) == Matrix{Float64}
             for i=1:length(J), j=1:length(J)
-                Hnh -= 0.5im*Gamma[i,j]*Jdagger[i]*J[j]
+                Hnh -= 0.5im*rates[i,j]*Jdagger[i]*J[j]
             end
-        elseif typeof(Gamma) == Vector{Float64}
+        elseif typeof(rates) == Vector{Float64}
             for i=1:length(J)
-                Hnh -= 0.5im*Gamma[i]*Jdagger[i]*J[i]
+                Hnh -= 0.5im*rates[i]*Jdagger[i]*J[i]
             end
         else
             for i=1:length(J)
@@ -111,7 +111,7 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
         end
         Hnhdagger = dagger(Hnh)
         tmp = copy(rho0)
-        dmaster_nh_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, Gamma, J, Jdagger, drho, tmp)
+        dmaster_nh_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_nh_, rho0, fout; kwargs...)
     end
 end
@@ -126,15 +126,15 @@ In this case the given Hamiltonian is assumed to be the non-hermitian version.
 H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 ```
 The given function can either be of the form `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger)`
-or `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger, Gamma)` For further information look
+or `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger, rates)` For further information look
 at [`master_dynamic`](@ref).
 """
 function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
-                Gamma::DecayRates=nothing,
+                rates::DecayRates=nothing,
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, Gamma, drho, tmp)
+    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -153,8 +153,8 @@ operators:
 * `tspan`: Vector specifying the points of time for which output should be displayed.
 * `rho0`: Initial density operator. Can also be a state vector which is
         automatically converted into a density operator.
-* `f`: Function `f(t, rho) -> (H, J, Jdagger)` or `f(t, rho) -> (H, J, Jdagger, Gamma)`
-* `Gamma=nothing`: Vector or matrix specifying the coefficients (decay rates)
+* `f`: Function `f(t, rho) -> (H, J, Jdagger)` or `f(t, rho) -> (H, J, Jdagger, rates)`
+* `rates=nothing`: Vector or matrix specifying the coefficients (decay rates)
         for the jump operators. If nothing is specified all rates are assumed
         to be 1.
 * `fout=nothing`: If given, this function `fout(t, rho)` is called every time
@@ -164,11 +164,11 @@ operators:
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master_dynamic(tspan, rho0::DenseOperator, f::Function;
-                Gamma::DecayRates=nothing,
+                rates::DecayRates=nothing,
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, Gamma, drho, tmp)
+    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -207,7 +207,7 @@ end
 # or a matrix.
 
 function dmaster_h(rho::DenseOperator, H::Operator,
-                    Gamma::Void, J::Vector, Jdagger::Vector,
+                    rates::Void, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, H, rho, 0, drho)
     operators.gemm!(1im, rho, H, 1, drho)
@@ -224,41 +224,41 @@ function dmaster_h(rho::DenseOperator, H::Operator,
 end
 
 function dmaster_h(rho::DenseOperator, H::Operator,
-                    Gamma::Vector{Float64}, J::Vector, Jdagger::Vector,
+                    rates::Vector{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, H, rho, 0, drho)
     operators.gemm!(1im, rho, H, 1, drho)
     for i=1:length(J)
-        operators.gemm!(Gamma[i], J[i], rho, 0, tmp)
+        operators.gemm!(rates[i], J[i], rho, 0, tmp)
         operators.gemm!(1, tmp, Jdagger[i], 1, drho)
 
         operators.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
 
-        operators.gemm!(Gamma[i], rho, Jdagger[i], 0, tmp)
+        operators.gemm!(rates[i], rho, Jdagger[i], 0, tmp)
         operators.gemm!(-0.5, tmp, J[i], 1, drho)
     end
     return drho
 end
 
 function dmaster_h(rho::DenseOperator, H::Operator,
-                    Gamma::Matrix{Float64}, J::Vector, Jdagger::Vector,
+                    rates::Matrix{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, H, rho, 0, drho)
     operators.gemm!(1im, rho, H, 1, drho)
     for j=1:length(J), i=1:length(J)
-        operators.gemm!(Gamma[i,j], J[i], rho, 0, tmp)
+        operators.gemm!(rates[i,j], J[i], rho, 0, tmp)
         operators.gemm!(1, tmp, Jdagger[j], 1, drho)
 
         operators.gemm!(-0.5, Jdagger[j], tmp, 1, drho)
 
-        operators.gemm!(Gamma[i,j], rho, Jdagger[j], 0, tmp)
+        operators.gemm!(rates[i,j], rho, Jdagger[j], 0, tmp)
         operators.gemm!(-0.5, tmp, J[i], 1, drho)
     end
     return drho
 end
 
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
-                    Gamma::Void, J::Vector, Jdagger::Vector,
+                    rates::Void, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, Hnh, rho, 0, drho)
     operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
@@ -270,61 +270,61 @@ function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
 end
 
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
-                    Gamma::Vector{Float64}, J::Vector, Jdagger::Vector,
+                    rates::Vector{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, Hnh, rho, 0, drho)
     operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
     for i=1:length(J)
-        operators.gemm!(Gamma[i], J[i], rho, 0, tmp)
+        operators.gemm!(rates[i], J[i], rho, 0, tmp)
         operators.gemm!(1, tmp, Jdagger[i], 1, drho)
     end
     return drho
 end
 
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
-                    Gamma::Matrix{Float64}, J::Vector, Jdagger::Vector,
+                    rates::Matrix{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, Hnh, rho, 0, drho)
     operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
     for j=1:length(J), i=1:length(J)
-        operators.gemm!(Gamma[i,j], J[i], rho, 0, tmp)
+        operators.gemm!(rates[i,j], J[i], rho, 0, tmp)
         operators.gemm!(1, tmp, Jdagger[j], 1, drho)
     end
     return drho
 end
 
 function dmaster_h_dynamic(t::Float64, rho::DenseOperator, f::Function,
-                    Gamma::DecayRates,
+                    rates::DecayRates,
                     drho::DenseOperator, tmp::DenseOperator)
     result = f(t, rho)
     @assert 3 <= length(result) <= 4
     if length(result) == 3
         H, J, Jdagger = result
-        Gamma_ = Gamma
+        rates_ = rates
     else
-        H, J, Jdagger, Gamma_ = result
+        H, J, Jdagger, rates_ = result
     end
-    check_master(rho, H, J, Jdagger, Gamma_)
-    dmaster_h(rho, H, Gamma_, J, Jdagger, drho, tmp)
+    check_master(rho, H, J, Jdagger, rates_)
+    dmaster_h(rho, H, rates_, J, Jdagger, drho, tmp)
 end
 
 function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
-                    Gamma::DecayRates,
+                    rates::DecayRates,
                     drho::DenseOperator, tmp::DenseOperator)
     result = f(t, rho)
     @assert 4 <= length(result) <= 5
     if length(result) == 4
         Hnh, Hnh_dagger, J, Jdagger = result
-        Gamma_ = Gamma
+        rates_ = rates
     else
-        Hnh, Hnh_dagger, J, Jdagger, Gamma_ = result
+        Hnh, Hnh_dagger, J, Jdagger, rates_ = result
     end
-    check_master(rho, Hnh, J, Jdagger, Gamma_)
-    dmaster_nh(rho, Hnh, Hnh_dagger, Gamma_, J, Jdagger, drho, tmp)
+    check_master(rho, Hnh, J, Jdagger, rates_)
+    dmaster_nh(rho, Hnh, Hnh_dagger, rates_, J, Jdagger, drho, tmp)
 end
 
 
-function check_master(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vector, Gamma::DecayRates)
+function check_master(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vector, rates::DecayRates)
     isreducible = true # test if all operators are sparse or dense
     check_samebases(rho0, H)
     if !(isa(H, DenseOperator) || isa(H, SparseOperator))
@@ -345,10 +345,10 @@ function check_master(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vect
         check_samebases(rho0, j)
     end
     @assert length(J)==length(Jdagger)
-    if typeof(Gamma) == Matrix{Float64}
-        @assert size(Gamma, 1) == size(Gamma, 2) == length(J)
-    elseif typeof(Gamma) == Vector{Float64}
-        @assert length(Gamma) == length(J)
+    if typeof(rates) == Matrix{Float64}
+        @assert size(rates, 1) == size(rates, 2) == length(J)
+    elseif typeof(rates) == Vector{Float64}
+        @assert length(rates) == length(J)
     end
     isreducible
 end

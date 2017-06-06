@@ -24,7 +24,7 @@ Calculate steady state using long time master equation evolution.
         ``|0⟩⟨0|`` state in respect to the choosen basis is used.
 * `eps=1e-3`: Tracedistance used as termination criterion.
 * `hmin=1e-7`: Minimal time step used in the time evolution.
-* `Gamma=ones(N)`: Vector or matrix specifying the coefficients for the
+* `rates=ones(N)`: Vector or matrix specifying the coefficients for the
         jump operators.
 * `Jdagger=dagger.(Jdagger)`: Vector containing the hermitian conjugates of the
         jump operators. If they are not given they are calculated automatically.
@@ -36,7 +36,7 @@ Calculate steady state using long time master equation evolution.
 function master(H::Operator, J::Vector;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 eps::Float64=1e-3, hmin=1e-7,
-                Gamma::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
@@ -55,7 +55,7 @@ function master(H::Operator, J::Vector;
         end
     end
     try
-        timeevolution.master([0., Inf], rho0, H, J; Gamma=Gamma, Jdagger=Jdagger,
+        timeevolution.master([0., Inf], rho0, H, J; rates=rates, Jdagger=Jdagger,
                             hmin=hmin, hmax=Inf,
                             display_initialvalue=false,
                             display_finalvalue=false,
