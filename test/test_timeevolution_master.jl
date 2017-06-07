@@ -152,23 +152,6 @@ tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh_dense, Jrotated_dense; rates=r
 @test tracedistance(ρt[end], ρ) < 1e-5
 
 
-# Test simple timeevolution
-tout, ρt = timeevolution_simple.master(T, ρ₀, Hdense, Jdense; reltol=1e-6)
-@test tracedistance(ρt[end], ρ) < 1e-5
-
-tout, ρt = timeevolution_simple.master(T, ρ₀, H, J; reltol=1e-6)
-@test tracedistance(ρt[end], ρ) < 1e-5
-
-tout, ρt = timeevolution_simple.master(T, ρ₀, H, Jdense; reltol=1e-6)
-@test tracedistance(ρt[end], ρ) < 1e-5
-
-tout, ρt = timeevolution_simple.master(T, ρ₀, Hdense, J; reltol=1e-6)
-@test tracedistance(ρt[end], ρ) < 1e-5
-
-tout, ρt = timeevolution_simple.master(T, Ψ₀, Hdense, Jdense; reltol=1e-6)
-@test tracedistance(ρt[end], ρ) < 1e-5
-
-
 # Test special cases
 tout, ρt = timeevolution.master(T, ρ₀, Hdense, []; reltol=1e-7)
 ρ = ρt[end]
@@ -178,13 +161,6 @@ tout, ρt = timeevolution.master_h(T, ρ₀, Hdense, []; reltol=1e-7)
 
 tout, ρt = timeevolution.master_nh(T, ρ₀, Hdense, []; reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
-
-tout, ρt = timeevolution_simple.master(T, ρ₀, Hdense, []; reltol=1e-7)
-@test tracedistance(ρt[end], ρ) < 1e-5
-
-tout, Ψket_t = timeevolution_simple.schroedinger(T, Ψ₀, Hdense; reltol=1.e-7)
-tout, Ψbra_t = timeevolution_simple.schroedinger(T, dagger(Ψ₀), Hdense; reltol=1.e-7)
-@test tracedistance(Ψket_t[end]⊗Ψbra_t[end], ρ) < 1e-5
 
 tout, Ψket_t = timeevolution.schroedinger(T, Ψ₀, Hdense; reltol=1.e-7)
 tout, Ψbra_t = timeevolution.schroedinger(T, dagger(Ψ₀), Hdense; reltol=1.e-7)

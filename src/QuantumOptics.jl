@@ -28,7 +28,6 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         metrics, tracenorm, tracenorm_general, tracedistance, tracedistance_general,
                 entropy_vn, fidelity,
         spectralanalysis, eigenstates, eigenenergies, simdiag,
-        timeevolution_simple,
         timeevolution, diagonaljumps,
         steadystate,
         timecorrelations,
@@ -58,7 +57,6 @@ include("transformations.jl")
 include("phasespace.jl")
 include("metrics.jl")
 include("ode_dopri.jl")
-include("timeevolution_simple.jl")
 module timeevolution
     export diagonaljumps
     include("timeevolution_base.jl")
