@@ -95,7 +95,6 @@ bases.samebases(a::SuperOperator, b::SuperOperator) = samebases(a.basis_l[1], b.
                                                       samebases(a.basis_r[1], b.basis_r[1]) && samebases(a.basis_r[2], b.basis_r[2])
 bases.multiplicable(a::SuperOperator, b::SuperOperator) = multiplicable(a.basis_r[1], b.basis_l[1]) && multiplicable(a.basis_r[2], b.basis_l[2])
 bases.multiplicable(a::SuperOperator, b::Operator) = multiplicable(a.basis_r[1], b.basis_l) && multiplicable(a.basis_r[2], b.basis_r)
-bases.multiplicable(a::Operator, b::SuperOperator) = multiplicable(a.basis_r, b.basis_l[1]) && multiplicable(a.basis_l, b.basis_l[2])
 
 
 # Arithmetic operations
