@@ -90,15 +90,13 @@ identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1
 
 trace(op::DenseOperator) = (check_samebases(op); trace(op.data))
 
-const RANKS = [zeros(Int, [0 for i=1:N]...) for N=1:20]
-
 function ptrace(a::DenseOperator, indices::Vector{Int})
     operators.check_ptrace_arguments(a, indices)
     if length(a.basis_l.shape) == length(indices)
         return trace(a)
     end
-    rank = RANKS[length(a.basis_l.shape)]
-    result = _ptrace(rank, a.data, a.basis_l.shape, a.basis_r.shape, indices)
+    rank = length(a.basis_l.shape)
+    result = _ptrace(Val{rank}(), a.data, a.basis_l.shape, a.basis_r.shape, indices)
     return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
 end
 
@@ -178,7 +176,7 @@ function _strides(shape::Vector{Int})
     return S
 end
 
-@generated function _ptrace{RANK}(rank::Array{Int,RANK}, a::Matrix{Complex128},
+@generated function _ptrace{RANK}(::Val{RANK}, a::Matrix{Complex128},
                                   shape_l::Vector{Int}, shape_r::Vector{Int},
                                   indices::Vector{Int})
     return quote
