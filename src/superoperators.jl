@@ -17,13 +17,11 @@ basis to operators, possibly given in respect to another, different basis.
 To embed super operators in an algebraic framework they are defined with a
 left hand basis `basis_l` and a right hand basis `basis_r` where each of
 them again consists of a left and right hand basis.
-
 ```math
 A_{bl_1,bl_2} = S_{(bl_1,bl_2) ↔ (br_1,br_2)} B_{br_1,br_2}
 \\\\
 A_{br_1,br_2} = B_{bl_1,bl_2} S_{(bl_1,bl_2) ↔ (br_1,br_2)}
 ```
-
 """
 @compat abstract type SuperOperator end
 
@@ -37,7 +35,7 @@ type DenseSuperOperator <: SuperOperator
     basis_r::Tuple{Basis, Basis}
     data::Matrix{Complex128}
     function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::Matrix{Complex128})
-        if length(basis_l[1])*length(basis_l[1]) != size(data, 1) ||
+        if length(basis_l[1])*length(basis_l[2]) != size(data, 1) ||
            length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
         end
@@ -46,7 +44,9 @@ type DenseSuperOperator <: SuperOperator
 end
 
 function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis})
-    data = zeros(Complex128, length(basis_l), length(basis_r))
+    Nl = length(basis_l[1])*length(basis_l[2])
+    Nr = length(basis_r[1])*length(basis_r[2])
+    data = zeros(Complex128, Nl, Nr)
     DenseSuperOperator(basis_l, basis_r, data)
 end
 
@@ -61,7 +61,7 @@ type SparseSuperOperator <: SuperOperator
     basis_r::Tuple{Basis, Basis}
     data::SparseMatrixCSC{Complex128, Int}
     function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::SparseMatrixCSC{Complex128, Int})
-        if length(basis_l[1])*length(basis_l[1]) != size(data, 1) ||
+        if length(basis_l[1])*length(basis_l[2]) != size(data, 1) ||
            length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
         end
@@ -70,15 +70,23 @@ type SparseSuperOperator <: SuperOperator
 end
 
 function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis})
-    data = spzeros(Complex128, length(basis_l), length(basis_r))
+    Nl = length(basis_l[1])*length(basis_l[2])
+    Nr = length(basis_r[1])*length(basis_r[2])
+    data = spzeros(Complex128, Nl, Nr)
     SparseSuperOperator(basis_l, basis_r, data)
 end
 
+SuperOperator(basis_l, basis_r, data::SparseMatrixCSC{Complex128, Int}) = SparseSuperOperator(basis_l, basis_r, data)
+SuperOperator(basis_l, basis_r, data::Matrix{Complex128}) = DenseSuperOperator(basis_l, basis_r, data)
 
-Base.copy{T<:SuperOperator}(a::T) = T(a.basis_l, a.basis_r, a.data)
+
+Base.copy{T<:SuperOperator}(a::T) = T(a.basis_l, a.basis_r, copy(a.data))
 
 Base.full(a::SparseSuperOperator) = DenseSuperOperator(a.basis_l, a.basis_r, full(a.data))
 Base.full(a::DenseSuperOperator) = copy(a)
+
+Base.sparse(a::DenseSuperOperator) = SparseSuperOperator(a.basis_l, a.basis_r, sparse(a.data))
+Base.sparse(a::SparseSuperOperator) = copy(a)
 
 =={T<:SuperOperator}(a::T, b::T) = samebases(a, b) && (a.data == b.data)
 
@@ -91,32 +99,26 @@ bases.multiplicable(a::Operator, b::SuperOperator) = multiplicable(a.basis_r, b.
 
 
 # Arithmetic operations
-function *{T<:SuperOperator}(a::T, b::DenseOperator)
+function *(a::SuperOperator, b::DenseOperator)
     check_multiplicable(a, b)
     data = a.data*reshape(b.data, length(b.data))
     return DenseOperator(a.basis_l[1], a.basis_l[2], reshape(data, length(a.basis_l[1]), length(a.basis_l[2])))
 end
 
-function *{T<:SuperOperator}(a::DenseOperator, b::T)
-    check_multiplicable(a, b)
-    data = reshape(b.data, length(b.data))*a.data
-    return DenseOperator(b.basis_r[1], b.basis_r[2], reshape(data, length(a.basis_r[1]), length(a.basis_r[2])))
-end
-
 function *(a::SuperOperator, b::SuperOperator)
     check_multiplicable(a, b)
-    return T(a.basis_l, b.basis_r, a.data*b.data)
+    return SuperOperator(a.basis_l, b.basis_r, a.data*b.data)
 end
 
-*{T<:SuperOperator}(a::T, b::Number) = T(a.basis_l, a.basis_r, a.data*complex(b))
-*{T<:SuperOperator}(b::Number, a::T) = *(a, b)
+*(a::SuperOperator, b::Number) = SuperOperator(a.basis_l, a.basis_r, a.data*b)
+*(a::Number, b::SuperOperator) = SuperOperator(b.basis_l, b.basis_r, a*b.data)
 
-/{T<:SuperOperator}(a::T, b::Number) = T(a.basis_l, a.basis_r, a.data/complex(b))
+/(a::SuperOperator, b::Number) = SuperOperator(a.basis_l, a.basis_r, a.data/b)
 
-+{T<:SuperOperator}(a::T, b::T) = (check_samebases(a, b); T(a.basis_l, a.basis_r, a.data+b.data))
++(a::SuperOperator, b::SuperOperator) = (check_samebases(a, b); SuperOperator(a.basis_l, a.basis_r, a.data+b.data))
 
--{T<:SuperOperator}(a::T) = T(a.basis_l, a.basis_r, -a.data)
--{T<:SuperOperator}(a::T, b::T) = (check_samebases(a, b); T(a.basis_l, a.basis_r, a.data-b.data))
+-(a::SuperOperator) = SuperOperator(a.basis_l, a.basis_r, -a.data)
+-(a::SuperOperator, b::SuperOperator) = (check_samebases(a, b); SuperOperator(a.basis_l, a.basis_r, a.data-b.data))
 
 """
     spre(op)
@@ -131,8 +133,7 @@ For operators ``A``, ``B`` the relation
 
 holds. `op` can be a dense or a sparse operator.
 """
-spre(op::DenseOperator) = DenseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r), tensor(op, identityoperator(op)).data)
-spre(op::SparseOperator) = SparseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r), tensor(op, identityoperator(op)).data)
+spre(op::Operator) = SuperOperator((op.basis_l, op.basis_l), (op.basis_r, op.basis_r), tensor(op, identityoperator(op)).data)
 
 """
 Create a super-operator equivalent for left side operator multiplication.
@@ -145,8 +146,7 @@ For operators ``A``, ``B`` the relation
 
 holds. `op` can be a dense or a sparse operator.
 """
-spost(op::DenseOperator) = DenseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r), kron(transpose(op.data), identityoperator(op).data))
-spost(op::SparseOperator) = SparseSuperOperator((op.basis_l, op.basis_r), (op.basis_l, op.basis_r),  kron(transpose(op.data), identityoperator(op).data))
+spost(op::Operator) = SuperOperator((op.basis_r, op.basis_r), (op.basis_l, op.basis_l), kron(transpose(op.data), identityoperator(op).data))
 
 
 function _check_input(H::Operator, J::Vector, Jdagger::Vector, rates::Union{Vector{Float64}, Matrix{Float64}})
