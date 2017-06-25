@@ -1,13 +1,9 @@
 module timecorrelations
 
-using ..operators
-using ..operators_dense
-using ..timeevolution
-using ..metrics
-using ..steadystate
-using ..states
-
 export correlation, spectrum, correlation2spectrum
+
+using ..states, ..operators, ..operators_dense
+using ..metrics, ..timeevolution, ..steadystate
 
 
 """

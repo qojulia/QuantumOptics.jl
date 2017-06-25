@@ -1,13 +1,14 @@
 module superoperators
 
+export SuperOperator, DenseSuperOperator, SparseSuperOperator,
+        spre, spost, liouvillian, expm
+
 import Base: ==, *, /, +, -
 import ..bases
 
 using Compat
 using ..bases, ..operators, ..operators_dense, ..operators_sparse
 
-export SuperOperator, DenseSuperOperator, SparseSuperOperator,
-        spre, spost, liouvillian
 
 """
 Base class for all super operator classes.

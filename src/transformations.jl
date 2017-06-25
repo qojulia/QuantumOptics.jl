@@ -1,9 +1,11 @@
 module transformations
 
+export transform
+
 import ..particle: transform
+
 using ..polynomials, ..particle, ..operators_dense, ..fock
 
-export transform
 
 """
     transform(b1::PositionBasis, b2::FockBasis; x0=1)

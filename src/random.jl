@@ -1,8 +1,9 @@
 module random
 
+export randstate, randoperator
+
 using ..bases, ..states, ..operators_dense
 
-export randstate, randoperator
 
 """
     randstate(basis)

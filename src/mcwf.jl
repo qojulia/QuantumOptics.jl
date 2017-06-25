@@ -2,10 +2,8 @@ module timeevolution_mcwf
 
 export mcwf, mcwf_h, mcwf_nh, diagonaljumps
 
-using ...bases
-using ...states
-using ...operators
-using ...ode_dopri
+using ...bases, ...states, ...operators, ...ode_dopri
+
 
 """
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed; fout, kwargs...)

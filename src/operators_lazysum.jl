@@ -1,12 +1,12 @@
 module operators_lazysum
 
+export LazySum
+
 import Base: ==, *, /, +, -
-import ..operators: dagger, identityoperator,
-                    trace, ptrace, normalize!, tensor, permutesystems
+import ..operators
 
 using ..bases, ..states, ..operators, ..operators_dense
 
-export LazySum
 
 """
     LazySum([factors,] operators)
@@ -43,26 +43,22 @@ Base.sparse(op::LazySum) = sum(op.factors .* sparse.(op.operators))
 
 ==(x::LazySum, y::LazySum) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factors==y.factors
 
-*(a::LazySum, b::Number) = LazySum(b*a.factors, a.operators)
-*(a::Number, b::LazySum) = LazySum(a*b.factors, b.operators)
-
-/(a::LazySum, b::Number) = LazySum(a.factors/b, a.operators)
-
+# Arithmetic operations
 +(a::LazySum, b::LazySum) = (check_samebases(a,b); LazySum([a.factors; b.factors], [a.operators; b.operators]))
 
 -(a::LazySum) = LazySum(-a.factors, a.operators)
 -(a::LazySum, b::LazySum) = (check_samebases(a,b); LazySum([a.factors; -b.factors], [a.operators; b.operators]))
 
+*(a::LazySum, b::Number) = LazySum(b*a.factors, a.operators)
+*(a::Number, b::LazySum) = LazySum(a*b.factors, b.operators)
 
-identityoperator(::Type{LazySum}, b1::Basis, b2::Basis) = LazySum(identityoperator(b1, b2))
+/(a::LazySum, b::Number) = LazySum(a.factors/b, a.operators)
 
-dagger(op::LazySum) = LazySum(conj.(op.factors), dagger.(op.operators))
+operators.dagger(op::LazySum) = LazySum(conj.(op.factors), dagger.(op.operators))
 
-trace(op::LazySum) = sum(op.factors .* trace.(op.operators))
+operators.trace(op::LazySum) = sum(op.factors .* trace.(op.operators))
 
-normalize!(op::LazySum) = (op.factors /= trace(op))
-
-function ptrace(op::LazySum, indices::Vector{Int})
+function operators.ptrace(op::LazySum, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)
     rank = length(op.basis_l.shape) - length(indices)
     if rank==0
@@ -72,9 +68,14 @@ function ptrace(op::LazySum, indices::Vector{Int})
     LazySum(op.factors, D)
 end
 
+operators.normalize!(op::LazySum) = (op.factors /= trace(op))
+
 operators.permutesystems(op::LazySum, perm::Vector{Int}) = LazySum(op.factors, Operator[permutesystems(op_i, perm) for op_i in op.operators])
 
+operators.identityoperator(::Type{LazySum}, b1::Basis, b2::Basis) = LazySum(identityoperator(b1, b2))
 
+
+# Fast in-place multiplication
 function operators.gemv!(alpha, a::LazySum, b::Ket, beta, result::Ket)
     operators.gemv!(alpha*a.factors[1], a.operators[1], b, beta, result)
     for i=2:length(a.operators)

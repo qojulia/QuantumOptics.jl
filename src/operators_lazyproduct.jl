@@ -1,12 +1,12 @@
 module operators_lazyproduct
 
+export LazyProduct
+
 import Base: ==, *, /, +, -
-import ..operators: dagger, identityoperator,
-                    trace, ptrace, normalize!, tensor, permutesystems
+import ..operators
 
 using ..bases, ..states, ..operators, ..operators_dense
 
-export LazyProduct
 
 """
     LazyProduct(operators[, factor=1])
@@ -44,24 +44,29 @@ Base.sparse(op::LazyProduct) = op.factor*prod(sparse.(op.operators))
 
 ==(x::LazyProduct, y::LazyProduct) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor == y.factor
 
+
+# Arithmetic operations
+-(a::LazyProduct) = LazyProduct(a.operators, -a.factor)
+
 *(a::LazyProduct, b::LazyProduct) = (check_multiplicable(a, b); LazyProduct([a.operators; b.operators], a.factor*b.factor))
 *(a::LazyProduct, b::Number) = LazyProduct(a.operators, a.factor*b)
 *(a::Number, b::LazyProduct) = LazyProduct(b.operators, a*b.factor)
 
 /(a::LazyProduct, b::Number) = LazyProduct(a.operators, a.factor/b)
 
--(a::LazyProduct) = LazyProduct(a.operators, -a.factor)
 
-identityoperator(::Type{LazyProduct}, b1::Basis, b2::Basis) = LazyProduct(identityoperator(b1, b2))
+operators.dagger(op::LazyProduct) = LazyProduct(dagger.(reverse(op.operators)), conj(op.factor))
 
-dagger(op::LazyProduct) = LazyProduct(dagger.(reverse(op.operators)), conj(op.factor))
+operators.trace(op::LazyProduct) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
 
-trace(op::LazyProduct) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
-
-ptrace(op::LazyProduct, indices::Vector{Int}) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
+operators.ptrace(op::LazyProduct, indices::Vector{Int}) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
 
 operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(Operator[permutesystems(op_i, perm) for op_i in op.operators], op.factor)
 
+operators.identityoperator(::Type{LazyProduct}, b1::Basis, b2::Basis) = LazyProduct(identityoperator(b1, b2))
+
+
+# Fast in-place multiplication
 function operators.gemv!(alpha, a::LazyProduct, b::Ket, beta, result::Ket)
     tmp1 = Ket(a.operators[end].basis_l)
     operators.gemv!(a.factor, a.operators[end], b, 0, tmp1)

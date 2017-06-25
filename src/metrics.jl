@@ -1,9 +1,10 @@
 module metrics
 
-using ..bases, ..operators, ..operators_dense
-
 export tracedistance, tracedistance_general, tracenorm, tracenorm_general,
         entropy_vn, fidelity
+
+using ..bases, ..operators, ..operators_dense
+
 
 """
     tracenorm(rho)

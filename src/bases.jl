@@ -1,14 +1,14 @@
 module bases
 
-using Compat
-import Base.==
-
 export Basis, GenericBasis, CompositeBasis, basis,
        tensor, ⊗, ptrace, permutesystems,
        IncompatibleBases,
        samebases, multiplicable,
        check_samebases, check_multiplicable
 
+import Base: ==
+
+using Compat
 
 """
 Abstract base class for all specialized bases.
@@ -26,6 +26,26 @@ class.
 @compat abstract type Basis end
 
 
+==(b1::Basis, b2::Basis) = false
+
+"""
+    length(b::Basis)
+
+Total dimension of the Hilbert space.
+"""
+Base.length(b::Basis) = prod(b.shape)
+
+"""
+    basis(a)
+
+Return the basis of an object.
+
+If it's ambiguous, e.g. if an operator has a different left and right basis,
+an [`IncompatibleBases`](@ref) error is thrown.
+"""
+function basis end
+
+
 """
     GenericBasis(N)
 
@@ -40,6 +60,8 @@ type GenericBasis <: Basis
 end
 
 GenericBasis(N::Int) = GenericBasis(Int[N])
+
+==(b1::GenericBasis, b2::GenericBasis) = equal_shape(b1.shape, b2.shape)
 
 
 """
@@ -57,6 +79,8 @@ type CompositeBasis <: Basis
 end
 CompositeBasis(bases::Vector{Basis}) = CompositeBasis(Int[prod(b.shape) for b in bases], bases)
 CompositeBasis(bases::Basis...) = CompositeBasis(Basis[bases...])
+
+==(b1::CompositeBasis, b2::CompositeBasis) = equal_shape(b1.shape, b2.shape) && equal_bases(b1.bases, b2.bases)
 
 """
     tensor(x, y, z...)
@@ -105,13 +129,6 @@ tensor(bases::Basis...) = reduce(tensor, bases)
 ⊗(a,b) = tensor(a,b)
 
 """
-    length(b::Basis)
-
-Total dimension of the Hilbert space.
-"""
-Base.length(b::Basis) = prod(b.shape)
-
-"""
     equal_shape(a, b)
 
 Check if two shape vectors are the same.
@@ -131,7 +148,6 @@ function equal_shape(a::Vector{Int}, b::Vector{Int})
     return true
 end
 
-
 """
     equal_bases(a, b)
 
@@ -148,12 +164,6 @@ function equal_bases(a::Vector{Basis}, b::Vector{Basis})
     end
     return true
 end
-
-
-==(b1::Basis, b2::Basis) = false
-==(b1::GenericBasis, b2::GenericBasis) = equal_shape(b1.shape,b2.shape)
-==(b1::CompositeBasis, b2::CompositeBasis) = equal_shape(b1.shape,b2.shape) && equal_bases(b1.bases,b2.bases)
-
 
 """
 Exception that should be raised for an illegal algebraic operation.
@@ -210,16 +220,6 @@ function check_multiplicable(b1, b2)
         throw(IncompatibleBases())
     end
 end
-
-"""
-    basis(a)
-
-Return the basis of an object.
-
-If it's ambiguous, e.g. if an operator has a different left and right basis,
-an [`IncompatibleBases`](@ref) error is thrown.
-"""
-function basis end
 
 
 """

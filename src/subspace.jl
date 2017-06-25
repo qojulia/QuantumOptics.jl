@@ -1,11 +1,12 @@
 module subspace
 
+export SubspaceBasis, projector
+
 import Base.==
 import ..operators_dense: projector
 
 using ..bases, ..states, ..operators, ..operators_dense
 
-export SubspaceBasis, projector
 
 """
     SubspaceBasis(basisstates)

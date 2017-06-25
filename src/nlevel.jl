@@ -1,10 +1,11 @@
 module nlevel
 
-import Base.==
+export NLevelBasis, transition, nlevelstate
+
+import Base: ==
 
 using ..bases, ..states, ..operators, ..operators_sparse
 
-export NLevelBasis, transition, nlevelstate
 
 """
     NLevelBasis(N)

@@ -1,13 +1,13 @@
 module operators_lazytensor
 
-import Base: ==, *, /, +, -
-import ..operators: dagger, identityoperator,
-                    trace, ptrace, normalize!, tensor, permutesystems
-
-using ..sortedindices
-using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-
 export LazyTensor
+
+import Base: ==, *, /, +, -
+import ..operators
+
+using ..sortedindices, ..bases, ..states, ..operators
+using ..operators_dense, ..operators_sparse
+
 
 """
     LazyTensor(b1[, b2], indices, operators[, factor=1])
@@ -84,6 +84,9 @@ Base.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices
 ==(x::LazyTensor, y::LazyTensor) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor==y.factor
 
 
+# Arithmetic operations
+-(a::LazyTensor) = LazyTensor(a, -a.factor)
+
 function *(a::LazyTensor, b::LazyTensor)
     check_multiplicable(a, b)
     indices = sortedindices.union(a.indices, b.indices)
@@ -121,14 +124,14 @@ end
 
 /(a::LazyTensor, b::Number) = LazyTensor(a, a.factor/b)
 
--(a::LazyTensor) = LazyTensor(a, -a.factor)
 
-identityoperator(::Type{LazyTensor}, b1::Basis, b2::Basis) = LazyTensor(b1, b2, Int[], Operator[])
+operators.dagger(op::LazyTensor) = LazyTensor(op.basis_r, op.basis_l, op.indices, Operator[dagger(x) for x in op.operators], conj(op.factor))
 
+_identitylength(op::LazyTensor, i::Int) = min(length(op.basis_l.bases[i]), length(op.basis_r.bases[i]))
 
-dagger(op::LazyTensor) = LazyTensor(op.basis_r, op.basis_l, op.indices, Operator[dagger(x) for x in op.operators], conj(op.factor))
+operators.tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices+length(a.basis_l.bases)], Operator[a.operators; b.operators], a.factor*b.factor)
 
-function trace(op::LazyTensor)
+function operators.trace(op::LazyTensor)
     b = basis(op)
     result = op.factor
     for i in 1:length(b.bases)
@@ -141,11 +144,7 @@ function trace(op::LazyTensor)
     result
 end
 
-normalize!(op::LazyTensor) = (op.factor /= trace(op))
-
-_identitylength(op::LazyTensor, i::Int) = min(length(op.basis_l.bases[i]), length(op.basis_r.bases[i]))
-
-function ptrace(op::LazyTensor, indices::Vector{Int})
+function operators.ptrace(op::LazyTensor, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)
     N = length(op.basis_l.shape)
     rank = N - length(indices)
@@ -177,15 +176,17 @@ function ptrace(op::LazyTensor, indices::Vector{Int})
     LazyTensor(b_l, b_r, sortedindices.shiftremove(op.indices, indices), ops, factor)
 end
 
-tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices+length(a.basis_l.bases)], Operator[a.operators; b.operators], a.factor*b.factor)
+operators.normalize!(op::LazyTensor) = (op.factor /= trace(op))
 
-function permutesystems(op::LazyTensor, perm::Vector{Int})
+function operators.permutesystems(op::LazyTensor, perm::Vector{Int})
     b_l = permutesystems(op.basis_l, perm)
     b_r = permutesystems(op.basis_r, perm)
     indices = [findfirst(perm, i) for i in op.indices]
     perm_ = sortperm(indices)
     LazyTensor(b_l, b_r, indices[perm_], op.operators[perm_], op.factor)
 end
+
+operators.identityoperator(::Type{LazyTensor}, b1::Basis, b2::Basis) = LazyTensor(b1, b2, Int[], Operator[])
 
 
 # Recursively calculate result_{IK} = \\sum_J op_{IJ} h_{JK}

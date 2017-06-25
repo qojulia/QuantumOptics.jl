@@ -4,9 +4,7 @@ export schroedinger, schroedinger_dynamic
 
 import ..integrate, ..recast!
 
-using ...bases
-using ...states
-using ...operators
+using ...bases, ...states, ...operators
 
 
 """

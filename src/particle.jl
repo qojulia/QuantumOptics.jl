@@ -1,15 +1,16 @@
 module particle
 
-import Base: ==, position
-import ..operators
-
-using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-
 export PositionBasis, MomentumBasis,
         gaussianstate,
         spacing, samplepoints,
         position, momentum, potentialoperator,
         transform
+
+import Base: ==, position
+import ..operators
+
+using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
+
 
 """
     PositionBasis(xmin, xmax, Npoints)

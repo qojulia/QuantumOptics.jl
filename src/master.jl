@@ -3,11 +3,10 @@ module timeevolution_master
 export master, master_nh, master_h, master_dynamic, master_nh_dynamic
 
 import ..integrate, ..recast!
-using ...bases
-using ...states
-using ...operators
-using ...operators_dense
-using ...operators_sparse
+
+using ...bases, ...states, ...operators
+using ...operators_dense, ...operators_sparse
+
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
 

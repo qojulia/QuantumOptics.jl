@@ -1,10 +1,10 @@
 module fock
 
-import Base.==
+export FockBasis, number, destroy, create, displace, fockstate, coherentstate
+
+import Base: ==
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-
-export FockBasis, number, destroy, create, displace, fockstate, coherentstate
 
 
 """

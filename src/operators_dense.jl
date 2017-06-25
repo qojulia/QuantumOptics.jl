@@ -1,15 +1,13 @@
 module operators_dense
 
-import Base: trace, ==, +, -, *, /, ishermitian
-import ..operators: dagger, identityoperator,
-                    trace, ptrace, normalize!, tensor, permutesystems,
-                    gemv!, gemm!
+export DenseOperator, full, projector, dm
 
-using Base.LinAlg
-using Base.Cartesian
+import Base: ==, +, -, *, /
+import ..operators
+
+using Base.LinAlg, Base.Cartesian
 using ..bases, ..states, ..operators
 
-export DenseOperator, projector, dm
 
 """
     DenseOperator(b1[, b2, data])
@@ -37,13 +35,18 @@ Base.copy(x::DenseOperator) = DenseOperator(x.basis_l, x.basis_r, copy(x.data))
 
 Convert an arbitrary Operator into a [`DenseOperator`](@ref).
 """
-Base.full(x::Operator) = throw(ArgumentError("Conversion from $(typeof(a)) to a DenseOperator not implemented."))
+Base.full(x::Operator) = throw(ArgumentError("Conversion from $(typeof(x)) to a DenseOperator not implemented."))
 Base.full(x::DenseOperator) = copy(x)
 
 ==(x::DenseOperator, y::DenseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
 
 
 # Arithmetic operations
++(a::DenseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data+b.data))
+
+-(a::DenseOperator) = DenseOperator(a.basis_l, a.basis_r, -a.data)
+-(a::DenseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
+
 *(a::DenseOperator, b::Ket) = (check_multiplicable(a, b); Ket(a.basis_l, a.data*b.data))
 *(a::Bra, b::DenseOperator) = (check_multiplicable(a, b); Bra(b.basis_r, b.data.'*a.data))
 *(a::DenseOperator, b::DenseOperator) = (check_multiplicable(a, b); DenseOperator(a.basis_l, b.basis_r, a.data*b.data))
@@ -52,45 +55,47 @@ Base.full(x::DenseOperator) = copy(x)
 function *(op1::Operator, op2::DenseOperator)
     check_multiplicable(op1, op2)
     result = DenseOperator(op1.basis_l, op2.basis_r)
-    gemm!(Complex(1.), op1, op2, Complex(0.), result)
+    operators.gemm!(Complex(1.), op1, op2, Complex(0.), result)
     return result
 end
-
 function *(op1::DenseOperator, op2::Operator)
     check_multiplicable(op1, op2)
     result = DenseOperator(op1.basis_l, op2.basis_r)
-    gemm!(Complex(1.), op1, op2, Complex(0.), result)
+    operators.gemm!(Complex(1.), op1, op2, Complex(0.), result)
     return result
 end
-
 function *(op::Operator, psi::Ket)
     check_multiplicable(op, psi)
     result = Ket(op.basis_l)
-    gemv!(Complex(1.), op, psi, Complex(0.), result)
+    operators.gemv!(Complex(1.), op, psi, Complex(0.), result)
     return result
 end
-
 function *(psi::Bra, op::Operator)
     check_multiplicable(psi, op)
     result = Bra(op.basis_r)
-    gemv!(Complex(1.), psi, op, Complex(0.), result)
+    operators.gemv!(Complex(1.), psi, op, Complex(0.), result)
     return result
 end
 
 /(a::DenseOperator, b::Number) = DenseOperator(a.basis_l, a.basis_r, a.data/complex(b))
 
-+(a::DenseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data+b.data))
 
--(a::DenseOperator) = DenseOperator(a.basis_l, a.basis_r, -a.data)
--(a::DenseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
+operators.dagger(x::DenseOperator) = DenseOperator(x.basis_r, x.basis_l, x.data')
 
-dagger(x::DenseOperator) = DenseOperator(x.basis_r, x.basis_l, x.data')
+operators.ishermitian(A::DenseOperator) = ishermitian(A.data)
 
-identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(Complex128, length(b1), length(b2)))
+operators.tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
+"""
+    tensor(x::Ket, y::Bra)
 
-trace(op::DenseOperator) = (check_samebases(op); trace(op.data))
+Outer product ``|x⟩⟨y|`` of the given states.
+"""
+operators.tensor(a::Ket, b::Bra) = DenseOperator(a.basis, b.basis, reshape(kron(b.data, a.data), prod(a.basis.shape), prod(b.basis.shape)))
 
-function ptrace(a::DenseOperator, indices::Vector{Int})
+
+operators.trace(op::DenseOperator) = (check_samebases(op); trace(op.data))
+
+function operators.ptrace(a::DenseOperator, indices::Vector{Int})
     operators.check_ptrace_arguments(a, indices)
     if length(a.basis_l.shape) == length(indices)
         return trace(a)
@@ -100,10 +105,10 @@ function ptrace(a::DenseOperator, indices::Vector{Int})
     return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
 end
 
-ptrace(a::Ket, indices::Vector{Int}) = ptrace(tensor(a, dagger(a)), indices)
-ptrace(a::Bra, indices::Vector{Int}) = ptrace(tensor(dagger(a), a), indices)
+operators.ptrace(a::Ket, indices::Vector{Int}) = ptrace(tensor(a, dagger(a)), indices)
+operators.ptrace(a::Bra, indices::Vector{Int}) = ptrace(tensor(dagger(a), a), indices)
 
-states.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
+operators.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
 
 function operators.expect(op::DenseOperator, state::Operator)
     check_samebases(op.basis_r, state.basis_l)
@@ -115,15 +120,12 @@ function operators.expect(op::DenseOperator, state::Operator)
     result
 end
 
-tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
-"""
-    tensor(x::Ket, y::Bra)
+function operators.expm(op::DenseOperator)
+    check_samebases(op)
+    return DenseOperator(op.basis_l, op.basis_r, expm(op.data))
+end
 
-Outer product ``|x⟩⟨y|`` of the given states.
-"""
-tensor(a::Ket, b::Bra) = DenseOperator(a.basis, b.basis, reshape(kron(b.data, a.data), prod(a.basis.shape), prod(b.basis.shape)))
-
-function permutesystems(a::DenseOperator, perm::Vector{Int})
+function operators.permutesystems(a::DenseOperator, perm::Vector{Int})
     @assert length(a.basis_l.bases) == length(a.basis_r.bases) == length(perm)
     @assert isperm(perm)
     data = reshape(a.data, [a.basis_l.shape; a.basis_r.shape]...)
@@ -131,6 +133,8 @@ function permutesystems(a::DenseOperator, perm::Vector{Int})
     data = reshape(data, length(a.basis_l), length(a.basis_r))
     DenseOperator(permutesystems(a.basis_l, perm), permutesystems(a.basis_r, perm), data)
 end
+
+operators.identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(Complex128, length(b1), length(b2)))
 
 """
     projector(a::Ket, b::Bra)
@@ -159,13 +163,8 @@ Create density matrix ``|a⟩⟨a|``. Same as `projector(a)`.
 dm(x::Ket) = tensor(x, dagger(x))
 dm(x::Bra) = tensor(dagger(x), x)
 
-function Base.expm(op::DenseOperator)
-    check_samebases(op)
-    return DenseOperator(op.basis_l, op.basis_r, expm(op.data))
-end
 
-
-# Partial trace for dense operators.
+# Partial trace implementation for dense operators.
 function _strides(shape::Vector{Int})
     N = length(shape)
     S = zeros(Int, N)
@@ -203,35 +202,33 @@ end
     end
 end
 
-# Fast in-place multiplication with dense operators
-gemm!(alpha, a::Matrix{Complex128}, b::Matrix{Complex128}, beta, result::Matrix{Complex128}) = BLAS.gemm!('N', 'N', convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
-gemv!(alpha, a::Matrix{Complex128}, b::Vector{Complex128}, beta, result::Vector{Complex128}) = BLAS.gemv!('N', convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
-gemv!(alpha, a::Vector{Complex128}, b::Matrix{Complex128}, beta, result::Vector{Complex128}) = BLAS.gemv!('T', convert(Complex128, alpha), b, a, convert(Complex128, beta), result)
+# Fast in-place multiplication
+operators.gemm!(alpha, a::Matrix{Complex128}, b::Matrix{Complex128}, beta, result::Matrix{Complex128}) = BLAS.gemm!('N', 'N', convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
+operators.gemv!(alpha, a::Matrix{Complex128}, b::Vector{Complex128}, beta, result::Vector{Complex128}) = BLAS.gemv!('N', convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
+operators.gemv!(alpha, a::Vector{Complex128}, b::Matrix{Complex128}, beta, result::Vector{Complex128}) = BLAS.gemv!('T', convert(Complex128, alpha), b, a, convert(Complex128, beta), result)
 
-gemm!(alpha, a::DenseOperator, b::DenseOperator, beta, result::DenseOperator) = gemm!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
-gemv!(alpha, a::DenseOperator, b::Ket, beta, result::Ket) = gemv!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
-gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = gemv!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
+operators.gemm!(alpha, a::DenseOperator, b::DenseOperator, beta, result::DenseOperator) = operators.gemm!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
+operators.gemv!(alpha, a::DenseOperator, b::Ket, beta, result::Ket) = operators.gemv!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
+operators.gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = operators.gemv!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
 
 
 # Multiplication for Operators in terms of their gemv! implementation
-function gemm!(alpha, M::Operator, b::DenseOperator, beta, result::DenseOperator)
+function operators.gemm!(alpha, M::Operator, b::DenseOperator, beta, result::DenseOperator)
     for i=1:size(b.data, 2)
         bket = Ket(b.basis_l, b.data[:,i])
         resultket = Ket(M.basis_l, result.data[:,i])
-        gemv!(alpha, M, bket, beta, resultket)
+        operators.gemv!(alpha, M, bket, beta, resultket)
         result.data[:,i] = resultket.data
     end
 end
 
-function gemm!(alpha, b::DenseOperator, M::Operator, beta, result::DenseOperator)
+function operators.gemm!(alpha, b::DenseOperator, M::Operator, beta, result::DenseOperator)
     for i=1:size(b.data, 1)
         bbra = Bra(b.basis_r, vec(b.data[i,:]))
         resultbra = Bra(M.basis_r, vec(result.data[i,:]))
-        gemv!(alpha, bbra, M, beta, resultbra)
+        operators.gemv!(alpha, bbra, M, beta, resultbra)
         result.data[i,:] = resultbra.data
     end
 end
-
-ishermitian(A::DenseOperator) = ishermitian(A.data)
 
 end # module

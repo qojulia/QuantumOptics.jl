@@ -1,11 +1,11 @@
 module spin
 
-import Base.==
+export SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown
+
+import Base: ==
 
 using Compat
 using ..bases, ..states, ..operators, ..operators_sparse
-
-export SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown
 
 
 """

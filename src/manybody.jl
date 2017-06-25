@@ -3,7 +3,7 @@ module manybody
 export ManyBodyBasis, fermionstates, bosonstates,
         manybodyoperator, onebodyexpect, occupation
 
-import Base.==
+import Base: ==
 import ..states: basisstate
 import ..fock: number, create, destroy
 import ..nlevel: transition

@@ -1,8 +1,8 @@
 module spectralanalysis
 
-using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-
 export eigenstates, eigenenergies, simdiag
+
+using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
 
 const nonhermitian_warning = "The given operator is not hermitian. If this is due to a numerical error make the operator hermitian first by calculating (x+dagger(x))/2 first."
