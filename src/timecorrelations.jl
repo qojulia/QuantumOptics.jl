@@ -151,7 +151,7 @@ function correlation2spectrum{T <: Number}(tspan::Vector{Float64}, corr::Vector{
 
   dt = tspan[2] - tspan[1]
   for i=2:length(tspan)-1
-    if tspan[i+1] - tspan[i] != dt
+    if !isapprox(tspan[i+1] - tspan[i], dt)
       throw(ArgumentError("tspan must be equidistant!"))
     end
   end
