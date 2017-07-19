@@ -146,10 +146,16 @@ Calculate spectrum as Fourier transform of a correlation function with a given c
 function correlation2spectrum{T <: Number}(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false)
   n = length(tspan)
   if length(corr) != n
-    error("tspan and corr must be of same length!")
+    ArgumentError("tspan and corr must be of same length!")
   end
 
   dt = tspan[2] - tspan[1]
+  for i=2:length(tspan)-1
+    if tspan[i+1] - tspan[i] != dt
+      throw(ArgumentError("tspan must be equidistant!"))
+    end
+  end
+
   tmax = tspan[end] - tspan[1]
   omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
   omega .*= 2pi/tmax
