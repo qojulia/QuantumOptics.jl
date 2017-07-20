@@ -6,7 +6,7 @@ export Basis, GenericBasis, CompositeBasis, basis,
        samebases, multiplicable,
        check_samebases, check_multiplicable
 
-import Base: ==
+import Base: ==, ^
 
 using Compat
 
@@ -126,7 +126,14 @@ function tensor(b1::Basis, b2::CompositeBasis)
     CompositeBasis(shape, bases)
 end
 tensor(bases::Basis...) = reduce(tensor, bases)
-⊗(a,b) = tensor(a,b)
+⊗(a, b) = tensor(a, b)
+
+function ^(b::Basis, N::Int)
+    if N < 1
+        throw(ArgumentError("Power of a basis is only defined for positive integers."))
+    end
+    tensor([b for i=1:N]...)
+end
 
 """
     equal_shape(a, b)

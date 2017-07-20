@@ -23,6 +23,10 @@ comp_b2 = tensor(b1, b1, b2)
 @test comp_b1.shape == [prod(shape1), prod(shape2)]
 @test comp_b2.shape == [prod(shape1), prod(shape1), prod(shape2)]
 
+@test b1^3 == CompositeBasis(b1, b1, b1)
+@test (b1⊗b2)^2 == CompositeBasis(b1, b2, b1, b2)
+@test_throws ArgumentError b1^(0)
+
 comp_b1_b2 = tensor(comp_b1, comp_b2)
 @test comp_b1_b2.shape == [prod(shape1), prod(shape2), prod(shape1), prod(shape1), prod(shape2)]
 @test comp_b1_b2 == CompositeBasis(b1, b2, b1, b1, b2)
