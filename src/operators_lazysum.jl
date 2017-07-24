@@ -61,9 +61,6 @@ operators.trace(op::LazySum) = sum(op.factors .* trace.(op.operators))
 function operators.ptrace(op::LazySum, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)
     rank = length(op.basis_l.shape) - length(indices)
-    if rank==0
-        return trace(op)
-    end
     D = Operator[ptrace(op_i, indices) for op_i in op.operators]
     LazySum(op.factors, D)
 end

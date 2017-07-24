@@ -182,6 +182,8 @@ psi123 = psi1 ⊗ psi2 ⊗ psi3
 @test 1e-13 > D(ptrace(psi123, [1, 2]), dagger(ptrace(dagger(psi123), [1, 2])))
 @test 1e-13 > D(ptrace(psi123, 3), dagger(ptrace(dagger(psi123), 3)))
 
+@test_throws ArgumentError ptrace(psi123, [1, 2, 3])
+
 # Test partial trace of operators
 b1 = GenericBasis(3)
 b2 = GenericBasis(5)
@@ -199,7 +201,15 @@ op123 = op1 ⊗ op2 ⊗ op3
 @test 1e-13 > D(op2*trace(op1)*trace(op3), ptrace(op123, [1,3]))
 @test 1e-13 > D(op3*trace(op1)*trace(op2), ptrace(op123, [1,2]))
 
-@test 1e-13 > abs(trace(op1)*trace(op2)*trace(op3) - ptrace(op123, [1,2,3]))
+@test_throws ArgumentError ptrace(op123, [1,2,3])
+x = randoperator(b1, b1⊗b2)
+@test_throws ArgumentError ptrace(x, [1])
+x = randoperator(b1⊗b1⊗b2, b1⊗b2)
+@test_throws ArgumentError ptrace(x, [1, 2])
+x = randoperator(b1⊗b2)
+@test_throws ArgumentError ptrace(x, [1, 2])
+x = randoperator(b1⊗b2, b2⊗b1)
+@test_throws ArgumentError ptrace(x, [1])
 
 op1 = randoperator(b1, b2)
 op2 = randoperator(b3)

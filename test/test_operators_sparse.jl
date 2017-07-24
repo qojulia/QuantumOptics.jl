@@ -132,7 +132,7 @@ op123_ = full(op123)
 @test 1e-14 > D(ptrace(op123_, [1,3]), ptrace(op123, [1,3]))
 @test 1e-14 > D(ptrace(op123_, [1,2]), ptrace(op123, [1,2]))
 
-@test 1e-14 > abs(ptrace(op123_, [1,2,3]) - ptrace(op123, [1,2,3]))
+@test_throws ArgumentError ptrace(op123, [1,2,3])
 
 # Test expect
 state = randstate(b_l)

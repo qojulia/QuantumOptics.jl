@@ -97,16 +97,27 @@ operators.trace(op::DenseOperator) = (check_samebases(op); trace(op.data))
 
 function operators.ptrace(a::DenseOperator, indices::Vector{Int})
     operators.check_ptrace_arguments(a, indices)
-    if length(a.basis_l.shape) == length(indices)
-        return trace(a)
-    end
     rank = length(a.basis_l.shape)
-    result = _ptrace(Val{rank}(), a.data, a.basis_l.shape, a.basis_r.shape, indices)
+    result = _ptrace(Val{rank}, a.data, a.basis_l.shape, a.basis_r.shape, indices)
     return DenseOperator(ptrace(a.basis_l, indices), ptrace(a.basis_r, indices), result)
 end
 
-operators.ptrace(a::Ket, indices::Vector{Int}) = ptrace(tensor(a, dagger(a)), indices)
-operators.ptrace(a::Bra, indices::Vector{Int}) = ptrace(tensor(dagger(a), a), indices)
+function operators.ptrace(psi::Ket, indices::Vector{Int})
+    operators.check_ptrace_arguments(psi, indices)
+    b = basis(psi)
+    b_ = ptrace(b, indices)
+    rank = length(b.shape)
+    result = _ptrace_ket(Val{rank}, psi.data, b.shape, indices)
+    return DenseOperator(b_, b_, result)
+end
+function operators.ptrace(psi::Bra, indices::Vector{Int})
+    operators.check_ptrace_arguments(psi, indices)
+    b = basis(psi)
+    b_ = ptrace(b, indices)
+    rank = length(b.shape)
+    result = _ptrace_bra(Val{rank}, psi.data, b.shape, indices)
+    return DenseOperator(b_, b_, result)
+end
 
 operators.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
 
@@ -175,7 +186,8 @@ function _strides(shape::Vector{Int})
     return S
 end
 
-@generated function _ptrace{RANK}(::Val{RANK}, a::Matrix{Complex128},
+# Dense operator version
+@generated function _ptrace{RANK}(::Type{Val{RANK}}, a::Matrix{Complex128},
                                   shape_l::Vector{Int}, shape_r::Vector{Int},
                                   indices::Vector{Int})
     return quote
@@ -194,8 +206,47 @@ end
         @nloops $RANK ir (d->1:shape_r[d]) (d->(Ir_{d-1}=Ir_d; Jr_{d-1}=Jr_d)) (d->(Ir_d+=a_strides_r[d]; if !(d in indices) Jr_d+=result_strides_r[d] end)) begin
             @nexprs 1 (d->(Jl_{$RANK}=1;Il_{$RANK}=1))
             @nloops $RANK il (k->1:shape_l[k]) (k->(Il_{k-1}=Il_k; Jl_{k-1}=Jl_k; if (k in indices && il_k!=ir_k) Il_k+=a_strides_l[k]; continue end)) (k->(Il_k+=a_strides_l[k]; if !(k in indices) Jl_k+=result_strides_l[k] end)) begin
-                #println("Jl_0: ", Jl_0, "; Jr_0: ", Jr_0, "; Il_0: ", Il_0, "; Ir_0: ", Ir_0)
                 result[Jl_0, Jr_0] += a[Il_0, Ir_0]
+            end
+        end
+        return result
+    end
+end
+
+@generated function _ptrace_ket{RANK}(::Type{Val{RANK}}, a::Vector{Complex128},
+                                  shape::Vector{Int}, indices::Vector{Int})
+    return quote
+        a_strides = _strides(shape)
+        result_shape = copy(shape)
+        result_shape[indices] = 1
+        result_strides = _strides(result_shape)
+        N_result = prod(result_shape)
+        result = zeros(Complex128, N_result, N_result)
+        @nexprs 1 (d->(Jr_{$RANK}=1;Ir_{$RANK}=1))
+        @nloops $RANK ir (d->1:shape[d]) (d->(Ir_{d-1}=Ir_d; Jr_{d-1}=Jr_d)) (d->(Ir_d+=a_strides[d]; if !(d in indices) Jr_d+=result_strides[d] end)) begin
+            @nexprs 1 (d->(Jl_{$RANK}=1;Il_{$RANK}=1))
+            @nloops $RANK il (k->1:shape[k]) (k->(Il_{k-1}=Il_k; Jl_{k-1}=Jl_k; if (k in indices && il_k!=ir_k) Il_k+=a_strides[k]; continue end)) (k->(Il_k+=a_strides[k]; if !(k in indices) Jl_k+=result_strides[k] end)) begin
+                result[Jl_0, Jr_0] += a[Il_0]*conj(a[Ir_0])
+            end
+        end
+        return result
+    end
+end
+
+@generated function _ptrace_bra{RANK}(::Type{Val{RANK}}, a::Vector{Complex128},
+                                  shape::Vector{Int}, indices::Vector{Int})
+    return quote
+        a_strides = _strides(shape)
+        result_shape = copy(shape)
+        result_shape[indices] = 1
+        result_strides = _strides(result_shape)
+        N_result = prod(result_shape)
+        result = zeros(Complex128, N_result, N_result)
+        @nexprs 1 (d->(Jr_{$RANK}=1;Ir_{$RANK}=1))
+        @nloops $RANK ir (d->1:shape[d]) (d->(Ir_{d-1}=Ir_d; Jr_{d-1}=Jr_d)) (d->(Ir_d+=a_strides[d]; if !(d in indices) Jr_d+=result_strides[d] end)) begin
+            @nexprs 1 (d->(Jl_{$RANK}=1;Il_{$RANK}=1))
+            @nloops $RANK il (k->1:shape[k]) (k->(Il_{k-1}=Il_k; Jl_{k-1}=Jl_k; if (k in indices && il_k!=ir_k) Il_k+=a_strides[k]; continue end)) (k->(Il_k+=a_strides[k]; if !(k in indices) Jl_k+=result_strides[k] end)) begin
+                result[Jl_0, Jr_0] += conj(a[Il_0])*a[Ir_0]
             end
         end
         return result

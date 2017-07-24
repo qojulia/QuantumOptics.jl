@@ -144,7 +144,7 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 @test 1e-14 > D(ptrace(op_, [1,3]), ptrace(op, [1,3]))
 @test 1e-14 > D(ptrace(op_, [1,2]), ptrace(op, [1,2]))
 
-@test 1e-14 > abs(ptrace(op_, [1,2,3]) - ptrace(op, [1,2,3]))
+@test_throws ArgumentError ptrace(op, [1,2,3])
 
 # Test expect
 state = Ket(b_l, rand(Complex128, length(b_l)))
