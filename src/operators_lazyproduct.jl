@@ -59,7 +59,7 @@ operators.dagger(op::LazyProduct) = LazyProduct(dagger.(reverse(op.operators)), 
 
 operators.trace(op::LazyProduct) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
 
-operators.ptrace(op::LazyProduct, indices::Vector{Int}) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
+operators.ptrace(op::LazyProduct, indices::Vector{Int}) = throw(ArgumentError("Partial trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
 
 operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(Operator[permutesystems(op_i, perm) for op_i in op.operators], op.factor)
 

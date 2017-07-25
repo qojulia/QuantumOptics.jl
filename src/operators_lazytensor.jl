@@ -127,8 +127,6 @@ end
 
 operators.dagger(op::LazyTensor) = LazyTensor(op.basis_r, op.basis_l, op.indices, Operator[dagger(x) for x in op.operators], conj(op.factor))
 
-_identitylength(op::LazyTensor, i::Int) = min(length(op.basis_l.bases[i]), length(op.basis_r.bases[i]))
-
 operators.tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices+length(a.basis_l.bases)], Operator[a.operators; b.operators], a.factor*b.factor)
 
 function operators.trace(op::LazyTensor)
@@ -148,18 +146,14 @@ function operators.ptrace(op::LazyTensor, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)
     N = length(op.basis_l.shape)
     rank = N - length(indices)
-    if rank==0
-        return trace(op)
-    end
     factor = op.factor
     for i in indices
         if i in op.indices
             factor *= trace(suboperator(op, i))
         else
-            factor *= _identitylength(op, i)
+            factor *= length(op.basis_l.bases[i])
         end
     end
-
     remaining_indices = sortedindices.remove(op.indices, indices)
     if rank==1 && length(remaining_indices)==1
         return factor * suboperator(op, remaining_indices[1])
