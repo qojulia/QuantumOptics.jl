@@ -14,7 +14,7 @@ Trace norm of `rho`
 It uses the identity
 
 ```math
-T(ρ) = \\frac{1}{2} \\sum_i |λ_i|
+T(ρ) = \\sum_i |λ_i|
 ```
 """
 function tracenorm(rho::DenseOperator)
@@ -24,7 +24,7 @@ function tracenorm(rho::DenseOperator)
         data[i,i] = real(data[i,i])
     end
     s = eigvals(Hermitian(data))
-    return 0.5*sum(abs.(s))
+    return sum(abs.(s))
 end
 
 function tracenorm{T<:Operator}(rho::T)
@@ -40,10 +40,10 @@ Trace norm of `rho`.
 It uses the identity
 
 ```math
-    T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{ρ^† ρ}\\}
+    T(ρ) = Tr\\{\\sqrt{ρ^† ρ}\\}
 ```
 """
-tracenorm_general(rho::DenseOperator) = 0.5*trace(sqrtm((dagger(rho)*rho).data))
+tracenorm_general(rho::DenseOperator) = trace(sqrtm((dagger(rho)*rho).data))
 
 function tracenorm_general{T<:Operator}(rho::T)
     throw(ArgumentError("tracenorm_general not implemented for $(T). Use dense operators instead."))
@@ -66,7 +66,7 @@ where ``λ_i`` are the eigenvalues of the matrix ``ρ - σ``. This works only
 if `rho` and `sigma` are density operators. For trace distances between
 general operators use [`tracedistance_general`](@ref).
 """
-tracedistance(rho::DenseOperator, sigma::DenseOperator) = tracenorm(rho - sigma)
+tracedistance(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm(rho - sigma)
 
 function tracedistance{T<:Operator}(rho::T, sigma::T)
     throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
@@ -84,7 +84,7 @@ It uses the identity
     T(ρ, σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ-σ)^† (ρ-σ)}\\}
 ```
 """
-tracedistance_general(rho::DenseOperator, sigma::DenseOperator) = tracenorm_general(rho - sigma)
+tracedistance_general(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_general(rho - sigma)
 
 function tracedistance_general{T<:Operator}(rho::T, sigma::T)
     throw(ArgumentError("tracedistance_general not implemented for $(T). Use dense operators instead."))

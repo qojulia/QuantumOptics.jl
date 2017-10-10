@@ -14,10 +14,12 @@ sigma = tensor(psi2, dagger(psi2))
 
 # tracenorm
 @test tracenorm(0*rho) ≈ 0.
+@test tracenorm(rho) ≈ 1.
 @test_throws ArgumentError tracenorm(sparse(rho))
 
 # tracenorm_general
 @test tracenorm_general(0*rho) ≈ 0.
+@test 1e-6 > abs(tracenorm_general(rho) - 1.)
 @test_throws ArgumentError tracenorm_general(sparse(rho))
 
 # tracedistance
