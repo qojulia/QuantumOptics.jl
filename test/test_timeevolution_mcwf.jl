@@ -160,8 +160,21 @@ d, diagJ = diagonaljumps(rates, J3)
 ψ3 = spindown(spinbasis) ⊗ spindown(spinbasis) ⊗ spindown(spinbasis)
 tout, ρ3_nondiag = timeevolution.master(T, ψ3, H, J3; rates=rates)
 tout, ρ3_diag = timeevolution.master(T, ψ3, H, diagJ; rates=d)
+
+ρ3_avg = DenseOperator[0*ρ3_diag[1] for i=1:length(T)]
+for i=1:Ntrajectories
+    tout, ψ3t = timeevolution.mcwf(T, ψ3, H, diagJ; rates=d)
+    for j=1:length(T)
+        ρ3_avg[j] += (ψ3t[j] ⊗ dagger(ψ3t[j]))/Ntrajectories
+    end
+end
+
+dist = []
 for i=1:length(tout)
   @test tracedistance(ρ3_nondiag[i], ρ3_diag[i]) < 1e-14
+  @test tracedistance(ρ3_avg[i], ρ3_diag[i]) < 0.1
 end
+
+@test_throws ArgumentError timeevolution.mcwf(T, ψ3, H, J3; rates=rates)
 
 end # testset

@@ -5,6 +5,8 @@ export mcwf, mcwf_h, mcwf_nh, diagonaljumps
 using ...bases, ...states, ...operators, ...ode_dopri
 
 
+const DecayRates = Union{Vector{Float64}, Matrix{Float64}}
+
 """
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed; fout, kwargs...)
 
@@ -127,12 +129,14 @@ Calculate MCWF trajectory where the Hamiltonian is given in hermitian form.
 For more information see: [`mcwf`](@ref)
 """
 function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
-                seed=rand(UInt), fout=nothing, Jdagger::Vector=map(dagger, J),
+                seed=rand(UInt), rates::DecayRates=ones(length(J)),
+                fout=nothing, Jdagger::Vector=dagger.(J),
                 tmp::Ket=copy(psi0),
                 display_beforeevent=false, display_afterevent=false,
                 kwargs...)
-    f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new)
+    check_rates(rates, J)
+    f(t, psi, dpsi) = dmcwf_h(psi, H, sqrt.(rates).*J, sqrt.(rates).*Jdagger, dpsi, tmp)
+    j(rng, t, psi, psi_new) = jump(rng, t, psi, sqrt.(rates).*J, psi_new)
     return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
                 display_beforeevent=display_beforeevent,
                 display_afterevent=display_afterevent,
@@ -186,6 +190,7 @@ slightly faster.
 * `J`: Vector containing all jump operators which can be of any arbitrary
         operator type.
 * `seed=rand()`: Seed used for the random number generator.
+* `rates=ones()`: Vector or matrix of decay rates.
 * `fout`: If given, this function `fout(t, psi)` is called every time an
         output should be displayed. ATTENTION: The state `psi` is neither
         normalized nor permanent! It is still in use by the ode solve
@@ -197,20 +202,39 @@ slightly faster.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
-                seed=rand(UInt), fout=nothing, Jdagger::Vector=map(dagger, J),
+                seed=rand(UInt), rates::DecayRates=ones(length(J)),
+                fout=nothing, Jdagger::Vector=dagger.(J),
                 display_beforeevent=false, display_afterevent=false,
                 kwargs...)
+    check_rates(rates, J)
     Hnh = copy(H)
     for i=1:length(J)
-        Hnh -= 0.5im*Jdagger[i]*J[i]
+        Hnh -= 0.5im*rates[i]*Jdagger[i]*J[i]
     end
     f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new)
+    j(rng, t, psi, psi_new) = jump(rng, t, psi, sqrt.(rates).*J, psi_new)
     return integrate_mcwf(f, j, tspan, psi0, seed;
                 fout=fout,
                 display_beforeevent=display_beforeevent,
                 display_afterevent=display_afterevent,
                 kwargs...)
+end
+
+"""
+    check_rates(rates, J)
+
+Check if the `rates` kwarg is a Vector.
+
+If it is a matrix, throw error that points the user towards using
+`diagonaljumps(rates, J)`.
+"""
+function check_rates(rates::DecayRates, J::Vector)
+    if typeof(rates) == Matrix{Float64}
+        throw(ArgumentError("Matrix of decay rates not supported for MCWF!
+            Use diagonaljumps(rates, J) to calculate new rates and jump operators."))
+    else
+        @assert length(rates) == length(J)
+    end
 end
 
 """
@@ -220,8 +244,13 @@ Diagonalize jump operators.
 
 The given matrix `rates` of decay rates is diagonalized and the
 corresponding set of jump operators is calculated.
+
+# Arguments
+* `rates`: Matrix of decay rates.
+* `J`: Vector of jump operators.
 """
-function diagonaljumps(rates::Array{Float64}, J::Vector)
+function diagonaljumps(rates::Matrix{Float64}, J::Vector)
+  @assert length(J) == size(rates)[1] == size(rates)[2]
   d, v = eig(rates)
   d, [sum([v[j, i]*J[j] for j=1:length(d)]) for i=1:length(d)]
 end
