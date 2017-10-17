@@ -1,93 +1,135 @@
 module metrics
 
-export tracedistance, tracedistance_general, tracenorm, tracenorm_general,
+export tracenorm, tracenorm_h, tracenorm_nh,
+        tracedistance, tracedistance_h, tracedistance_nh,
         entropy_vn, fidelity
 
 using ..bases, ..operators, ..operators_dense
 
-
 """
     tracenorm(rho)
 
-Trace norm of `rho`
+Trace norm of `rho`.
 
-It uses the identity
+It is defined as
 
 ```math
-T(ρ) = \\sum_i |λ_i|
+T(ρ) = Tr\\{\\sqrt{ρ^† ρ}\\}.
 ```
+
+Depending if `rho` is hermitian either [`tracenorm_h`](@ref) or
+[`tracenorm_nh`](@ref) is called.
 """
 function tracenorm(rho::DenseOperator)
     check_samebases(rho)
-    data = rho.data
-    for i=1:size(data,1)
-        data[i,i] = real(data[i,i])
-    end
-    s = eigvals(Hermitian(data))
-    return sum(abs.(s))
+    ishermitian(rho) ? tracenorm_h(rho) : tracenorm_nh(rho)
 end
-
 function tracenorm{T<:Operator}(rho::T)
     throw(ArgumentError("tracenorm not implemented for $(T). Use dense operators instead."))
 end
 
-
 """
-    tracenorm_general(rho)
+    tracenorm_h(rho)
 
 Trace norm of `rho`.
 
 It uses the identity
 
 ```math
-    T(ρ) = Tr\\{\\sqrt{ρ^† ρ}\\}
+T(ρ) = Tr\\{\\sqrt{ρ^† ρ}\\} = \\sum_i |λ_i|
 ```
-"""
-tracenorm_general(rho::DenseOperator) = trace(sqrtm((dagger(rho)*rho).data))
 
-function tracenorm_general{T<:Operator}(rho::T)
-    throw(ArgumentError("tracenorm_general not implemented for $(T). Use dense operators instead."))
+where ``λ_i`` are the eigenvalues of `rho`.
+"""
+function tracenorm_h(rho::DenseOperator)
+    check_samebases(rho)
+    s = eigvals(Hermitian(rho.data))
+    sum(abs.(s))
+end
+function tracenorm_h{T<:Operator}(rho::T)
+    throw(ArgumentError("tracenorm_h not implemented for $(T). Use dense operators instead."))
 end
 
+
+"""
+    tracenorm_nh(rho)
+
+Trace norm of `rho`.
+
+Note that in this case `rho` doesn't have to be represented by a square
+matrix (i.e. it can have different left-hand and right-hand bases).
+
+It uses the identity
+
+```math
+    T(ρ) = Tr\\{\\sqrt{ρ^† ρ}\\} = \\sum_i σ_i
+```
+
+where ``σ_i`` are the singular values of `rho`.
+"""
+tracenorm_nh(rho::DenseOperator) = sum(svdvals(rho.data))
+function tracenorm_nh{T<:Operator}(rho::T)
+    throw(ArgumentError("tracenorm_nh not implemented for $(T). Use dense operators instead."))
+end
 
 
 """
     tracedistance(rho, sigma)
 
-Trace distance between two density operators.
+Trace distance between `rho` and `sigma`.
 
-It uses the identity
+It is defined as
 
 ```math
-T(ρ, σ) = \\frac{1}{2} \\sum_i |λ_i|
+T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ}}\\}.
 ```
 
-where ``λ_i`` are the eigenvalues of the matrix ``ρ - σ``. This works only
-if `rho` and `sigma` are density operators. For trace distances between
-general operators use [`tracedistance_general`](@ref).
+It calls [`tracenorm`](@ref) which in turn either uses [`tracenorm_h`](@ref)
+or [`tracenorm_nh`](@ref) depending if ``ρ-σ`` is hermitian or not.
 """
 tracedistance(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm(rho - sigma)
-
 function tracedistance{T<:Operator}(rho::T, sigma::T)
     throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
 end
 
-
 """
-    tracedistance_general(rho, sigma)
+    tracedistance_h(rho, sigma)
 
-Trace distance between two operators.
+Trace distance between `rho` and `sigma`.
 
 It uses the identity
 
 ```math
-    T(ρ, σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ-σ)^† (ρ-σ)}\\}
+T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{ρ^† ρ}\\} = \\frac{1}{2} \\sum_i |λ_i|
 ```
-"""
-tracedistance_general(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_general(rho - sigma)
 
-function tracedistance_general{T<:Operator}(rho::T, sigma::T)
-    throw(ArgumentError("tracedistance_general not implemented for $(T). Use dense operators instead."))
+where ``λ_i`` are the eigenvalues of `rho`.
+"""
+tracedistance_h(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_h(rho - sigma)
+function tracedistance_h{T<:Operator}(rho::T, sigma::T)
+    throw(ArgumentError("tracedistance_h not implemented for $(T). Use dense operators instead."))
+end
+
+"""
+    tracedistance_nh(rho, sigma)
+
+Trace distance between `rho` and `sigma`.
+
+Note that in this case `rho` and `sigma` don't have to be represented by square
+matrices (i.e. they can have different left-hand and right-hand bases).
+
+It uses the identity
+
+```math
+    T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\}
+         = \\frac{1}{2} \\sum_i σ_i
+```
+
+where ``σ_i`` are the singular values of `rho` - `sigma`.
+"""
+tracedistance_nh(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_nh(rho - sigma)
+function tracedistance_nh{T<:Operator}(rho::T, sigma::T)
+    throw(ArgumentError("tracedistance_nh not implemented for $(T). Use dense operators instead."))
 end
 
 

@@ -5,7 +5,7 @@ using QuantumOptics
 
 srand(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
+D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
 
 N = 200
 xmin = -32.5

@@ -5,7 +5,7 @@ using QuantumOptics
 
 srand(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
+D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
 randstate(b) = normalize(Ket(b, rand(Complex128, length(b))))
 randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
 randop(b) = randop(b, b)

@@ -10,7 +10,7 @@ type TestOperator <: Operator; end
 
 srand(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_general(full(op1), full(op2)))
+D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 sprandop(b1, b2) = sparse(randoperator(b1, b2))
 sprandop(b) = sprandop(b, b)
