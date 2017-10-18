@@ -30,12 +30,14 @@ Hc = embed(basis, 2, ωc*number(fockbasis))
 Hint = sm ⊗ create(fockbasis) + sp ⊗ destroy(fockbasis)
 H = Ha + Hc + Hint
 Hdense = full(H)
+Hlazy = LazySum(Ha, Hc, Hint)
 
 # Jump operators
 Ja = embed(basis, 1, sqrt(γ)*sm)
 Jc = embed(basis, 2, sqrt(κ)*destroy(fockbasis))
 J = [Ja, Jc]
 Jdense = map(full, J)
+Jlazy = [LazyTensor(basis, 1, sqrt(γ)*sm), LazyTensor(basis, 2, sqrt(κ)*destroy(fockbasis))]
 
 # Initial conditions
 Ψ₀ = spinup(spinbasis) ⊗ fockstate(fockbasis, 5)
@@ -63,6 +65,13 @@ end
 timeevolution.mcwf(T, Ψ₀, H, J; seed=UInt(2), reltol=1e-6, fout=fout)
 @test tout == t_fout && Ψt == Ψ_fout
 
+
+# Test mcwf for irreducible input
+tout, Ψt = timeevolution.mcwf(T, Ψ₀, Hlazy, J; seed=UInt(1), reltol=1e-6)
+@test norm(Ψt[end] - Ψ) < 1e-5
+
+tout, Ψt = timeevolution.mcwf(T, Ψ₀, H, Jlazy; seed=UInt(1), reltol=1e-6)
+@test norm(Ψt[end] - Ψ) < 1e-5
 
 # Test mcwf_h
 tout, Ψt = timeevolution.mcwf_h(T, Ψ₀, H, J; seed=UInt(1), reltol=1e-6)
