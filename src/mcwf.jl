@@ -77,7 +77,7 @@ Default jump function.
 * `J`: List of jump operators.
 * `psi_new`: Result of jump.
 """
-function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket)
+function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket, rates::Void)
     if length(J)==1
         operators.gemv!(complex(1.), J[1], psi, complex(0.), psi_new)
         psi_new.data ./= norm(psi_new)
@@ -91,6 +91,24 @@ function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket)
         r = rand(rng)
         i = findfirst(cumprobs.>r)
         operators.gemv!(complex(1.)/sqrt(probs[i]), J[i], psi, complex(0.), psi_new)
+    end
+    return nothing
+end
+
+function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket, rates::Vector{Float64})
+    if length(J)==1
+        operators.gemv!(sqrt(rates[1]), J[1], psi, complex(0.), psi_new)
+        psi_new.data ./= norm(psi_new)
+    else
+        probs = zeros(Float64, length(J))
+        for i=1:length(J)
+            operators.gemv!(sqrt(rates[i]), J[i], psi, complex(0.), psi_new)
+            probs[i] = dot(psi_new.data, psi_new.data)
+        end
+        cumprobs = cumsum(probs./sum(probs))
+        r = rand(rng)
+        i = findfirst(cumprobs.>r)
+        operators.gemv!(sqrt(rates[i]/probs[i]), J[i], psi, complex(0.), psi_new)
     end
     return nothing
 end
@@ -140,14 +158,14 @@ Calculate MCWF trajectory where the Hamiltonian is given in hermitian form.
 For more information see: [`mcwf`](@ref)
 """
 function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
-                seed=rand(UInt), rates::DecayRates=ones(length(J)),
+                seed=rand(UInt), rates::DecayRates=nothing,
                 fout=nothing, Jdagger::Vector=dagger.(J),
                 tmp::Ket=copy(psi0),
                 display_beforeevent=false, display_afterevent=false,
                 kwargs...)
     check_mcwf(psi0, H, J, Jdagger, rates)
     f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, sqrt.(rates).*J, psi_new)
+    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
     return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
                 display_beforeevent=display_beforeevent,
                 display_afterevent=display_afterevent,
@@ -171,7 +189,7 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector;
                 kwargs...)
     check_mcwf(psi0, Hnh, J, J, nothing)
     f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new)
+    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
     return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
                 display_beforeevent=display_beforeevent,
                 display_afterevent=display_afterevent,
@@ -222,7 +240,7 @@ function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
     if !isreducible
         tmp = copy(psi0)
         dmcwf_h_(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
-        j_h(rng, t, psi, psi_new) = typeof(rates) == Void ? jump(rng, t, psi, J, psi_new) : jump(rng, t, psi, sqrt.(rates).*J, psi_new)
+        j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
         return integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed;
             fout=fout,
             display_beforeevent=display_beforeevent,
@@ -240,8 +258,7 @@ function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
             end
         end
         dmcwf_nh_(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
-        j_nh(rng, t, psi, psi_new) = typeof(rates) == Void ? jump(rng, t, psi, J, psi_new) : jump(rng, t, psi, sqrt.(rates).*J, psi_new)
-        # j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new)
+        j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
         return integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed;
             fout=fout,
             display_beforeevent=display_beforeevent,

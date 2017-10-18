@@ -131,17 +131,21 @@ tout_master, ρt_master = timeevolution.master(T, ρ₀, Hdense, J1_dense)
 
 ρ_average_1 = DenseOperator[0 * ρ₀ for i=1:length(T)]
 ρ_average_2 = DenseOperator[0 * ρ₀ for i=1:length(T)]
+ρ_average_3 = DenseOperator[0 * ρ₀ for i=1:length(T)]
 for i=1:Ntrajectories
     tout, Ψt_1 = timeevolution.mcwf(T, Ψ₀, Hdense, J1_dense; seed=UInt(i))
     tout, Ψt_2 = timeevolution.mcwf(T, Ψ₀, Hdense, J2_dense; seed=UInt(i))
+    tout, Ψt_3 = timeevolution.mcwf(T, Ψ₀, Hdense, [J1_dense[1]/sqrt(γ)]; seed=UInt(i), rates=[γ])
     for j=1:length(T)
         ρ_average_1[j] += (Ψt_1[j] ⊗ dagger(Ψt_1[j]))/Ntrajectories
         ρ_average_2[j] += (Ψt_2[j] ⊗ dagger(Ψt_2[j]))/Ntrajectories
+        ρ_average_3[j] += (Ψt_3[j] ⊗ dagger(Ψt_3[j]))/Ntrajectories
     end
 end
 for i=1:length(T)
     @test tracedistance(ρt_master[i], ρ_average_1[i]) < 0.1
     @test tracedistance(ρt_master[i], ρ_average_2[i]) < 0.1
+    @test tracedistance(ρt_master[i], ρ_average_3[i]) < 0.1
 end
 
 
