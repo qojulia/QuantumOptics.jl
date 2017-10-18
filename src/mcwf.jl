@@ -3,9 +3,10 @@ module timeevolution_mcwf
 export mcwf, mcwf_h, mcwf_nh, diagonaljumps
 
 using ...bases, ...states, ...operators, ...ode_dopri
+using ...operators_dense, ...operators_sparse
 
 
-const DecayRates = Union{Vector{Float64}, Matrix{Float64}}
+const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
 
 """
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed; fout, kwargs...)
@@ -101,10 +102,20 @@ The non-hermitian Hamiltonian is given in two parts - the hermitian part H and
 the jump operators J.
 """
 function dmcwf_h(psi::Ket, H::Operator,
-                 J::Vector, Jdagger::Vector, dpsi::Ket, tmp::Ket)
+                 J::Vector, Jdagger::Vector, dpsi::Ket, tmp::Ket, rates::Void)
     operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
     for i=1:length(J)
         operators.gemv!(complex(1.), J[i], psi, complex(0.), tmp)
+        operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
+    end
+    return dpsi
+end
+
+function dmcwf_h(psi::Ket, H::Operator,
+                 J::Vector, Jdagger::Vector, dpsi::Ket, tmp::Ket, rates::Vector{Float64})
+    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    for i=1:length(J)
+        operators.gemv!(rates[i], J[i], psi, complex(0.), tmp)
         operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
     end
     return dpsi
@@ -134,8 +145,8 @@ function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
                 tmp::Ket=copy(psi0),
                 display_beforeevent=false, display_afterevent=false,
                 kwargs...)
-    check_rates(rates, J)
-    f(t, psi, dpsi) = dmcwf_h(psi, H, sqrt.(rates).*J, sqrt.(rates).*Jdagger, dpsi, tmp)
+    check_mcwf(psi0, H, J, Jdagger, rates)
+    f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, sqrt.(rates).*J, psi_new)
     return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
                 display_beforeevent=display_beforeevent,
@@ -158,6 +169,7 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector;
                 seed=rand(UInt), fout=nothing,
                 display_beforeevent=false, display_afterevent=false,
                 kwargs...)
+    check_mcwf(psi0, Hnh, J, J, nothing)
     f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new)
     return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
@@ -202,39 +214,75 @@ slightly faster.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
-                seed=rand(UInt), rates::DecayRates=ones(length(J)),
+                seed=rand(UInt), rates::DecayRates=nothing,
                 fout=nothing, Jdagger::Vector=dagger.(J),
                 display_beforeevent=false, display_afterevent=false,
                 kwargs...)
-    check_rates(rates, J)
-    Hnh = copy(H)
-    for i=1:length(J)
-        Hnh -= 0.5im*rates[i]*Jdagger[i]*J[i]
+    isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
+    if !isreducible
+        tmp = copy(psi0)
+        dmcwf_h_(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+        j_h(rng, t, psi, psi_new) = typeof(rates) == Void ? jump(rng, t, psi, J, psi_new) : jump(rng, t, psi, sqrt.(rates).*J, psi_new)
+        return integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed;
+            fout=fout,
+            display_beforeevent=display_beforeevent,
+            display_afterevent=display_afterevent,
+            kwargs...)
+    else
+        Hnh = copy(H)
+        if typeof(rates) == Void
+            for i=1:length(J)
+                Hnh -= 0.5im*Jdagger[i]*J[i]
+            end
+        else
+            for i=1:length(J)
+                Hnh -= 0.5im*rates[i]*Jdagger[i]*J[i]
+            end
+        end
+        dmcwf_nh_(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+        j_nh(rng, t, psi, psi_new) = typeof(rates) == Void ? jump(rng, t, psi, J, psi_new) : jump(rng, t, psi, sqrt.(rates).*J, psi_new)
+        # j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new)
+        return integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed;
+            fout=fout,
+            display_beforeevent=display_beforeevent,
+            display_afterevent=display_afterevent,
+            kwargs...)
     end
-    f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, sqrt.(rates).*J, psi_new)
-    return integrate_mcwf(f, j, tspan, psi0, seed;
-                fout=fout,
-                display_beforeevent=display_beforeevent,
-                display_afterevent=display_afterevent,
-                kwargs...)
 end
 
 """
-    check_rates(rates, J)
+    check_mcwf(psi0, H, J, Jdagger, rates)
 
-Check if the `rates` kwarg is a Vector.
-
-If it is a matrix, throw error that points the user towards using
-`diagonaljumps(rates, J)`.
+Check input of mcwf.
 """
-function check_rates(rates::DecayRates, J::Vector)
+function check_mcwf(psi0::Ket, H::Operator, J::Vector, Jdagger::Vector, rates::DecayRates)
+    isreducible = true
+    check_samebases(basis(psi0), basis(H))
+    if !(isa(H, DenseOperator) || isa(H, SparseOperator))
+        isreducible = false
+    end
+    for j=J
+        @assert isa(j, Operator)
+        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+            isreducible = false
+        end
+        check_samebases(H, j)
+    end
+    for j=Jdagger
+        @assert isa(j, Operator)
+        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+            isreducible = false
+        end
+        check_samebases(H, j)
+    end
+    @assert length(J) == length(Jdagger)
     if typeof(rates) == Matrix{Float64}
         throw(ArgumentError("Matrix of decay rates not supported for MCWF!
             Use diagonaljumps(rates, J) to calculate new rates and jump operators."))
-    else
+    elseif typeof(rates) == Vector{Float64}
         @assert length(rates) == length(J)
     end
+    isreducible
 end
 
 """
