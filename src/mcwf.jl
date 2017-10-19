@@ -97,18 +97,18 @@ end
 
 function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket, rates::Vector{Float64})
     if length(J)==1
-        operators.gemv!(sqrt(rates[1]), J[1], psi, complex(0.), psi_new)
+        operators.gemv!(complex(sqrt(rates[1])), J[1], psi, complex(0.), psi_new)
         psi_new.data ./= norm(psi_new)
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
-            operators.gemv!(sqrt(rates[i]), J[i], psi, complex(0.), psi_new)
+            operators.gemv!(complex(sqrt(rates[i])), J[i], psi, complex(0.), psi_new)
             probs[i] = dot(psi_new.data, psi_new.data)
         end
         cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
         i = findfirst(cumprobs.>r)
-        operators.gemv!(sqrt(rates[i]/probs[i]), J[i], psi, complex(0.), psi_new)
+        operators.gemv!(complex(sqrt(rates[i]/probs[i])), J[i], psi, complex(0.), psi_new)
     end
     return nothing
 end
@@ -133,7 +133,7 @@ function dmcwf_h(psi::Ket, H::Operator,
                  J::Vector, Jdagger::Vector, dpsi::Ket, tmp::Ket, rates::Vector{Float64})
     operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
     for i=1:length(J)
-        operators.gemv!(rates[i], J[i], psi, complex(0.), tmp)
+        operators.gemv!(complex(rates[i]), J[i], psi, complex(0.), tmp)
         operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
     end
     return dpsi

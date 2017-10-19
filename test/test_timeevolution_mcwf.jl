@@ -73,6 +73,9 @@ tout, Ψt = timeevolution.mcwf(T, Ψ₀, Hlazy, J; seed=UInt(1), reltol=1e-6)
 tout, Ψt = timeevolution.mcwf(T, Ψ₀, H, Jlazy; seed=UInt(1), reltol=1e-6)
 @test norm(Ψt[end] - Ψ) < 1e-5
 
+tout, Ψt = timeevolution.mcwf(T, Ψ₀, H, Jlazy./[sqrt(γ), sqrt(κ)]; seed=UInt(1), rates=[γ, κ], reltol=1e-6)
+@test norm(Ψt[end] - Ψ) < 1e-5
+
 # Test mcwf_h
 tout, Ψt = timeevolution.mcwf_h(T, Ψ₀, H, J; seed=UInt(1), reltol=1e-6)
 @test norm(Ψt[end]-Ψ) < 1e-5
