@@ -72,8 +72,7 @@ Calculate spectrum as Fourier transform of a correlation function
 This is done with the Wiener-Khinchin theorem
 
 ```math
-S(ω, t) = \\int_{-∞}^{∞} dτ e^{-iωτ}⟨A^†(t+τ) A(t)⟩ =
-    2\\Re\\left\\{\\int_0^{∞} dτ e^{-iωτ}⟨A^†(t+τ)A(t)⟩\\right\\}
+S(ω, t) = 2\\Re\\left\\{\\int_0^{∞} dτ e^{-iωτ}⟨A^†(t+τ)A(t)⟩\\right\\}
 ```
 
 The argument `omega_samplepoints` gives the list of frequencies where ``S(ω)``
