@@ -220,7 +220,7 @@ slightly faster.
 * `J`: Vector containing all jump operators which can be of any arbitrary
         operator type.
 * `seed=rand()`: Seed used for the random number generator.
-* `rates=ones()`: Vector or matrix of decay rates.
+* `rates=ones()`: Vector of decay rates.
 * `fout`: If given, this function `fout(t, psi)` is called every time an
         output should be displayed. ATTENTION: The state `psi` is neither
         normalized nor permanent! It is still in use by the ode solve
