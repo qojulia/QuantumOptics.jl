@@ -154,7 +154,7 @@ entropy_vn(rho::DenseOperator) = sum([d == 0 ? 0 : -d*log(d) for d=eigvals(rho.d
 
 Fidelity of two density operators.
 
-The fidelity of two density operators ``\ρ`` and ``σ`` is defined by
+The fidelity of two density operators ``ρ`` and ``σ`` is defined by
 
 ```math
 F(ρ, σ) = Tr\\left(\\sqrt{\\sqrt{ρ}σ\\sqrt{ρ}}\\right),
@@ -163,5 +163,70 @@ F(ρ, σ) = Tr\\left(\\sqrt{\\sqrt{ρ}σ\\sqrt{ρ}}\\right),
 where ``\\sqrt{ρ}=\\sum_n\\sqrt{λ_n}|ψ⟩⟨ψ|``.
 """
 fidelity(rho::DenseOperator, sigma::DenseOperator) = trace(sqrtm(sqrtm(rho.data)*sigma.data*sqrtm(rho.data)))
+
+
+"""
+    ptranspose(rho, index)
+
+Partial transpose of rho with respect to subspace specified by index.
+"""
+function ptranspose(rho::DenseOperator, index::Int=1)
+    @assert rho.basis_l == rho.basis_r
+    @assert typeof(rho.basis_l) == CompositeBasis
+
+    # Define permutation
+    N = length(rho.basis_l.bases)
+    perm = [1:N;]
+    perm[index] = N
+    perm[N] = index
+
+    # Permute indexed subsystem to last position
+    rho_perm = permutesystems(rho, perm)
+
+    # Transpose corresponding blocks
+    m = Int(prod(rho_perm.basis_l.shape[1:N-1]))
+    n = rho_perm.basis_l.shape[N]
+    for i=1:n, j=1:n
+        rho_perm.data[m*(i-1)+1:m*i, m*(j-1)+1:m*j] = transpose(rho_perm.data[m*(i-1)+1:m*i, m*(j-1)+1:m*j])
+    end
+
+    return permutesystems(rho_perm, perm)
+end
+
+
+"""
+    PPT(rho, index)
+
+Peres-Horodecki criterion of partial transpose.
+"""
+PPT(rho::DenseOperator, index::Int) = real.(eigvals(ptranspose(rho, index).data)) .>= 0.0
+
+
+"""
+    negativity(rho, index)
+
+Negativity of rho with respect to subsystem index.
+
+The negativity of a density matrix ρ is defined as
+
+```math
+N(ρ) = \|ρᵀ\|,
+```
+where `ρᵀ` is the partial transpose.
+"""
+negativity(rho::DenseOperator, index::Int) = 0.5*(tracenorm(ptranspose(rho, index)) - 1.0)
+
+
+"""
+    logarithmic_negativity(rho, index)
+
+The logarithmic negativity of a density matrix ρ is defined as
+
+```math
+N(ρ) = \log₂\|ρᵀ\|,
+```
+where `ρᵀ` is the partial transpose.
+"""
+logarithmic_negativity(rho::DenseOperator, index::Int) = log(2, tracenorm(ptranspose(rho, index)))
 
 end # module
