@@ -35,7 +35,7 @@ end
 
 
 """
-    timeevolution.schroedinger(tspan, psi0, f; fout)
+    timeevolution.schroedinger_dynamic(tspan, psi0, f; fout)
 
 Integrate time-dependent Schroedinger equation.
 
