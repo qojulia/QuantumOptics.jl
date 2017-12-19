@@ -2,7 +2,8 @@ module metrics
 
 export tracenorm, tracenorm_h, tracenorm_nh,
         tracedistance, tracedistance_h, tracedistance_nh,
-        entropy_vn, fidelity
+        entropy_vn, fidelity, ptranspose, PPT, negativity,
+        logarithmic_negativity
 
 using ..bases, ..operators, ..operators_dense
 
@@ -199,7 +200,7 @@ end
 
 Peres-Horodecki criterion of partial transpose.
 """
-PPT(rho::DenseOperator, index::Int) = real.(eigvals(ptranspose(rho, index).data)) .>= 0.0
+PPT(rho::DenseOperator, index::Int) = all(real.(eigvals(ptranspose(rho, index).data)) .>= 0.0)
 
 
 """
