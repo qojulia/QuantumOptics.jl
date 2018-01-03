@@ -19,8 +19,10 @@ b3 = GenericBasis(shape3)
 
 @test tensor(b1) == b1
 comp_b1 = tensor(b1, b2)
+comp_uni = b1 ⊗ b2
 comp_b2 = tensor(b1, b1, b2)
 @test comp_b1.shape == [prod(shape1), prod(shape2)]
+@test comp_uni.shape == [prod(shape1), prod(shape2)]
 @test comp_b2.shape == [prod(shape1), prod(shape1), prod(shape2)]
 
 @test b1^3 == CompositeBasis(b1, b1, b1)
