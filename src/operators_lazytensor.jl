@@ -309,16 +309,19 @@ end
 operators.gemm!(alpha, h::LazyTensor, op::DenseOperator, beta, result::DenseOperator) = gemm(convert(Complex128, alpha), h, op.data, convert(Complex128, beta), result.data)
 operators.gemm!(alpha, op::DenseOperator, h::LazyTensor, beta, result::DenseOperator) = gemm(convert(Complex128, alpha), op.data, h, convert(Complex128, beta), result.data)
 
-function operators.gemv!(alpha, a::LazyTensor, b::Ket, beta, result::Ket)
+function operators.gemv!(alpha::Complex128, a::LazyTensor, b::Ket, beta::Complex128, result::Ket)
     b_data = reshape(b.data, length(b.data), 1)
     result_data = reshape(result.data, length(result.data), 1)
     gemm(alpha, a, b_data, beta, result_data)
 end
 
-function operators.gemv!(alpha, a::Bra, b::LazyTensor, beta, result::Bra)
+function operators.gemv!(alpha::Complex128, a::Bra, b::LazyTensor, beta::Complex128, result::Bra)
     a_data = reshape(a.data, 1, length(a.data))
     result_data = reshape(result.data, 1, length(result.data))
     gemm(alpha, a_data, b, beta, result_data)
 end
+
+operators.gemv!(alpha, a::LazyTensor, b::Ket, beta, result::Ket) = operators.gemv!(convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
+operators.gemv!(alpha, a::Bra, b::LazyTensor, beta, result::Bra) = operators.gemv!(convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
 
 end # module
