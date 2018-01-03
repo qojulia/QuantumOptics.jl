@@ -34,7 +34,8 @@ The content associated with **QuantumOptics.jl** is distributed over several rep
 ### Questions & Contributions
 
 Contributions of any kind are always welcome! Be it as questions, ideas for new features, bug reports or, our favorite case, sending pull requests.
-Additionally, you can contact us on Gitter [![Chat on Gitter][gitter-img]][gitter-url]
+
+Additionally, you can contact us on Gitter: [![Chat on Gitter][gitter-img]][gitter-url]
 
 
 [Julia]: http://julialang.org
