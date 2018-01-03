@@ -34,6 +34,7 @@ The content associated with **QuantumOptics.jl** is distributed over several rep
 ### Questions & Contributions
 
 Contributions of any kind are always welcome! Be it as questions, ideas for new features, bug reports or, our favorite case, sending pull requests.
+Additionally, you can contact us on Gitter [![Chat on Gitter][gitter-img]][gitter-url]
 
 
 [Julia]: http://julialang.org
@@ -61,3 +62,6 @@ Contributions of any kind are always welcome! Be it as questions, ideas for new 
 
 [pkg-0.6-url]: http://pkg.julialang.org/?pkg=QuantumOptics&ver=0.6
 [pkg-0.6-img]: http://pkg.julialang.org/badges/QuantumOptics_0.6.svg
+
+[gitter-url]: https://gitter.im/QuantumOptics-jl/Lobby
+[gitter-img]: https://img.shields.io/gitter/room/nwjs/nw.js.svg
