@@ -1,6 +1,12 @@
 using Base.Test
 using QuantumOptics
 
+type test_lazytensor <: Operator
+    basis_l::Basis
+    basis_r::Basis
+    data::Matrix{Complex128}
+    test_lazytensor(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
+end
 
 @testset "operators-lazytensor" begin
 
@@ -233,5 +239,26 @@ alpha = complex(1.5)
 beta = complex(2.1)
 operators.gemm!(alpha, state, op, beta, result)
 @test 1e-12 > D(result, alpha*state*op_ + beta*result_)
+
+# Test calling gemv with non-complex factors
+state = Ket(b_r, rand(Complex128, length(b_r)))
+result_ = Ket(b_l, rand(Complex128, length(b_l)))
+result = deepcopy(result_)
+operators.gemv!(1, op, state, 0, result)
+@test 1e-13 > D(result, op_*state)
+
+state = Bra(b_l, rand(Complex128, length(b_l)))
+result_ = Bra(b_r, rand(Complex128, length(b_r)))
+result = deepcopy(result_)
+operators.gemv!(1, state, op, 0, result)
+@test 1e-13 > D(result, state*op_)
+
+# Test gemm errors
+test_op = test_lazytensor(b1a, b1a, rand(2, 2))
+test_lazy = LazyTensor(tensor(b1a, b1a), [1, 2], [test_op, test_op])
+test_ket = Ket(tensor(b1a, b1a), rand(4))
+
+@test_throws ArgumentError operators.gemv!(alpha, test_lazy, test_ket, beta, copy(test_ket))
+@test_throws ArgumentError operators.gemv!(alpha, dagger(test_ket), test_lazy, beta, copy(dagger(test_ket)))
 
 end # testset
