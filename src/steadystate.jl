@@ -2,7 +2,7 @@ module steadystate
 
 using ..states, ..operators, ..operators_dense, ..superoperators
 using ..timeevolution, ..metrics
-
+import OrdinaryDiffEq
 
 type ConvergenceReached <: Exception end
 
@@ -36,33 +36,29 @@ function master(H::Operator, J::Vector;
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    t0 = 0.
-    rho0 = copy(rho0)
-    function fout_steady(t, rho)
-        if fout!=nothing
-            fout(t, rho)
-        end
-        dt = t - t0
-        drho = metrics.tracedistance(rho0, rho)
-        t0 = t
-        rho0.data[:] = rho.data
-        if drho/dt < eps
-            throw(ConvergenceReached())
-        end
-    end
-    try
-        timeevolution.master([0., Inf], rho0, H, J; rates=rates, Jdagger=Jdagger,
-                            hmin=hmin, hmax=Inf,
-                            display_initialvalue=false,
-                            display_finalvalue=false,
-                            display_intermediatesteps=true,
-                            fout=fout_steady, kwargs...)
-    catch e
-        if !isa(e, ConvergenceReached)
-            rethrow(e)
-        end
-    end
+    cb = OrdinaryDiffEq.DiscreteCallback(SteadyStateCondtion(rho0,eps),
+                     (integrator)->OrdinaryDiffEq.terminate!(integrator),
+                     save_positions=(false,false))
+
+    timeevolution.master([0., Inf], rho0, H, J; rates=rates, Jdagger=Jdagger,
+                        hmin=hmin, hmax=Inf,
+                        display_initialvalue=false,
+                        display_finalvalue=false,
+                        display_intermediatesteps=true,
+                        fout=fout,
+                        callback = cb, kwargs...)
     return rho0
+end
+
+struct SteadyStateCondtion{T,T2}
+    rho0::T
+    eps::T2
+end
+function (c::SteadyStateCondtion)(t,rho,integrator)
+    dt = integrator.dt
+    drho = metrics.tracedistance(c.rho0, rho)
+    c.rho0.data[:] = rho.data
+    drho/dt < c.eps
 end
 
 """
