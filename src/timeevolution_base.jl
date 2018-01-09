@@ -1,5 +1,7 @@
 using ..ode_dopri
 
+import OrdinaryDiffEq, DiffEqCallbacks
+
 function recast! end
 
 """
@@ -13,21 +15,32 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
         df(t, state, dstate)
         recast!(dstate, dx)
     end
-    function fout_(t::Float64, x::Vector{Complex128})
+    function fout_(t::Float64, x::Vector{Complex128},integrator)
         recast!(x, state)
         fout(t, state)
     end
-    ode(df_, tspan, x0, fout_; kwargs...)
+
+    # TODO: Infer the output of `fout` instead of computing it
+    recast!(x0, state)
+    out = DiffEqCallbacks.SavedValues(Float64,typeof(fout(tspan[1], state)))
+
+    # Build callback solve with DP5
+    # TODO: Expose algorithm choice
+    cb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan)
+    sol = OrdinaryDiffEq.solve(
+                OrdinaryDiffEq.ODEProblem(df_, x0,(tspan[1],tspan[end])),
+                OrdinaryDiffEq.DP5();
+                reltol = 1.0e-6,
+                abstol = 1.0e-8,
+                save_everystep = false, save_start = false, save_end = false,
+                callback=cb, kwargs...)
+    out.t,out.saveval
 end
 
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
             state::T, dstate::T, ::Void; kwargs...)
-    tout = Float64[]
-    xout = T[]
     function fout(t::Float64, state::T)
-        push!(tout, t)
-        push!(xout, copy(state))
+        copy(state)
     end
     integrate(tspan, df, x0, state, dstate, fout; kwargs...)
-    (tout, xout)
 end

@@ -61,13 +61,10 @@ for (i, t) in enumerate(tout)
     @test tracedistance(rho_rot, full(R)*rho*dagger(full(R))) < 1e-5
 end
 
-t_fout = Float64[]
-psi_fout = []
 function fout(t, psi)
-  push!(t_fout, t)
-  push!(psi_fout, deepcopy(psi))
+ deepcopy(psi)
 end
-timeevolution.schroedinger(T, psi0, Hrot; fout=fout)
+t_fout, psi_fout = timeevolution.schroedinger(T, psi0, Hrot; fout=fout)
 @test t_fout == tout && psi_fout == psi_rot_t
 
 end # testset
