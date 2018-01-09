@@ -28,7 +28,7 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
     # TODO: Expose algorithm choice
     cb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan)
     sol = OrdinaryDiffEq.solve(
-                OrdinaryDiffEq.ODEProblem(df_, x0,(tspan[1],tspan[end])),
+                OrdinaryDiffEq.ODEProblem{true}(df_, x0,(tspan[1],tspan[end])),
                 OrdinaryDiffEq.DP5();
                 reltol = 1.0e-6,
                 abstol = 1.0e-8,
