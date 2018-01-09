@@ -1,10 +1,7 @@
 module steadystate
 
 using ..states, ..operators, ..operators_dense, ..superoperators
-using ..timeevolution, ..metrics
-import OrdinaryDiffEq
-
-type ConvergenceReached <: Exception end
+using ..timeevolution
 
 
 """
@@ -31,34 +28,21 @@ Calculate steady state using long time master equation evolution.
 """
 function master(H::Operator, J::Vector;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
-                eps::Float64=1e-3, hmin=1e-7,
+                hmin=1e-7,
                 rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
-    cb = OrdinaryDiffEq.DiscreteCallback(SteadyStateCondtion(rho0,eps),
-                     (integrator)->OrdinaryDiffEq.terminate!(integrator),
-                     save_positions=(false,false))
-
-    timeevolution.master([0., Inf], rho0, H, J; rates=rates, Jdagger=Jdagger,
+    t,u = timeevolution.master([0., Inf], rho0, H, J; rates=rates, Jdagger=Jdagger,
                         hmin=hmin, hmax=Inf,
                         display_initialvalue=false,
                         display_finalvalue=false,
                         display_intermediatesteps=true,
                         fout=fout,
-                        callback = cb, kwargs...)
-    return rho0
-end
-
-struct SteadyStateCondtion{T,T2}
-    rho0::T
-    eps::T2
-end
-function (c::SteadyStateCondtion)(t,rho,integrator)
-    dt = integrator.dt
-    drho = metrics.tracedistance(c.rho0, rho)
-    c.rho0.data[:] = rho.data
-    drho/dt < c.eps
+                        steady_state = true,
+                        eps = eps, kwargs...)
+    timeevolution.recast!(u[end],rho0)
+    rho0
 end
 
 """
