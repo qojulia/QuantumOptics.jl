@@ -36,13 +36,12 @@ function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J
                      rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                      Jdagger::Vector=dagger.(J),
                      kwargs...)
-    exp_values = Complex128[]
     function fout(t, rho)
-        push!(exp_values, expect(op1, rho))
+        expect(op1, rho)
     end
-    timeevolution.master(tspan, op2*rho0, H, J; rates=rates, Jdagger=Jdagger,
+    t,u = timeevolution.master(tspan, op2*rho0, H, J; rates=rates, Jdagger=Jdagger,
                         fout=fout, kwargs...)
-    return exp_values
+    u
 end
 
 function correlation(rho0::DenseOperator, H::Operator, J::Vector,
@@ -52,15 +51,12 @@ function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      Jdagger::Vector=dagger.(J),
                      kwargs...)
     op2rho0 = op2*rho0
-    tout = Float64[0.]
-    exp_values = Complex128[expect(op1, op2rho0)]
+    exp1 = expect(op1, op2rho0)
     function fout(t, rho)
-        push!(tout, t)
-        push!(exp_values, expect(op1, rho))
+        expect(op1, rho)
     end
-    steadystate.master(H, J; rho0=op2rho0, eps=eps, h0=h0, fout=fout,
-                       rates=rates, Jdagger=Jdagger, kwargs...)
-    return tout, exp_values
+    t,u = steadystate.master(H, J; rho0=op2rho0, eps=eps, h0=h0, fout=fout,
+                       rates=rates, Jdagger=Jdagger, save_everystep=true,kwargs...)
 end
 
 
@@ -115,7 +111,7 @@ end
 function spectrum(H::Operator, J::Vector, op::Operator;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 eps::Float64=1e-4, h0=10.,
-                rho_ss::DenseOperator=steadystate.master(H, J; eps=eps),
+                rho_ss::DenseOperator=steadystate.master(H, J; eps=eps)[end][end],
                 kwargs...)
     tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, eps=eps, h0=h0, kwargs...)
     dtmin = minimum(diff(tspan))

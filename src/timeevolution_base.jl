@@ -9,7 +9,8 @@ df(t, state::T, dstate::T)
 """
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
             state::T, dstate::T, fout::Function;
-            steady_state = false, eps = 1e-3, kwargs...)
+            steady_state = false, eps = 1e-3, save_everystep = false,
+            kwargs...)
 
     function df_(t, x::Vector{Complex128}, dx::Vector{Complex128})
         recast!(x, state)
@@ -25,7 +26,12 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
     # TODO: Infer the output of `fout` instead of computing it
     recast!(x0, state)
     out = DiffEqCallbacks.SavedValues(Float64,typeof(fout(tspan[1], state)))
-    scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan)
+
+    scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan,
+                                         save_everystep=save_everystep,
+                                         save_start = false)
+
+
 
     # Build callback solve with DP5
     # TODO: Expose algorithm choice
@@ -33,30 +39,27 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
     prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(tspan[1],tspan[end]))
 
     if steady_state
+        affect! = function (integrator)
+            !save_everystep && scb.affect!(integrator,true)
+            OrdinaryDiffEq.terminate!(integrator)
+        end
         _cb = OrdinaryDiffEq.DiscreteCallback(
                                 SteadyStateCondtion(copy(state),eps,state),
-                                (integrator)->OrdinaryDiffEq.terminate!(integrator),
+                                affect!;
                                 save_positions = (false,false))
         cb = OrdinaryDiffEq.CallbackSet(_cb,scb)
-        sol = OrdinaryDiffEq.solve(
-                    prob,
-                    OrdinaryDiffEq.DP5();
-                    reltol = 1.0e-6,
-                    abstol = 1.0e-8,
-                    save_everystep = false, save_start = false,
-                    callback=cb, kwargs...)
-        # TODO: On v0.7 it's type-stable to return only sol.u[end]!
-        return sol.t,sol.u
     else
-        sol = OrdinaryDiffEq.solve(
-                    prob,
-                    OrdinaryDiffEq.DP5();
-                    reltol = 1.0e-6,
-                    abstol = 1.0e-8,
-                    save_everystep = false, save_start = false, save_end = false,
-                    callback=scb, kwargs...)
-        return out.t,out.saveval
+        cb = scb
     end
+    sol = OrdinaryDiffEq.solve(
+                prob,
+                OrdinaryDiffEq.DP5();
+                reltol = 1.0e-6,
+                abstol = 1.0e-8,
+                save_everystep = false, save_start = false,
+                save_end = false,
+                callback=cb, kwargs...)
+    out.t,out.saveval
 end
 
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},

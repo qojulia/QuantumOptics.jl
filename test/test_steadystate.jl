@@ -42,8 +42,8 @@ Jdense = map(full, J)
 
 tout, ρt = timeevolution.master([0,100], ρ₀, Hdense, Jdense; reltol=1e-7)
 
-ρss = steadystate.master(Hdense, Jdense; eps=1e-4)
-@test tracedistance(ρss, ρt[end]) < 1e-3
+tss, ρss = steadystate.master(Hdense, Jdense; eps=1e-4)
+@test tracedistance(ρss[end], ρt[end]) < 1e-3
 
 ρss = steadystate.eigenvector(Hdense, Jdense)
 @test tracedistance(ρss, ρt[end]) < 1e-6
@@ -57,8 +57,8 @@ Hp = η*(destroy(fockbasis) + create(fockbasis))
 Jp = [sqrt(2κ)*destroy(fockbasis)]
 n_an = η^2/κ^2
 
-ρss = steadystate.master(Hp, Jp; rho0=ρ0_p, eps=1e-4)
-nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
+tss,ρss = steadystate.master(Hp, Jp; rho0=ρ0_p, eps=1e-4)
+nss = expect(create(fockbasis)*destroy(fockbasis), ρss[end])
 @test n_an - real(nss) < 1e-3
 
 ρss = steadystate.eigenvector(Hp, Jp)

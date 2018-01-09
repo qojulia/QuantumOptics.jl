@@ -41,8 +41,6 @@ function master(H::Operator, J::Vector;
                         fout=fout,
                         steady_state = true,
                         eps = eps, kwargs...)
-    timeevolution.recast!(u[end],rho0)
-    rho0
 end
 
 """
