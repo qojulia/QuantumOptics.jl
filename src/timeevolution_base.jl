@@ -8,10 +8,10 @@ function recast! end
 df(t, state::T, dstate::T)
 """
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
-            state::T, dstate::T, fout::Function,
-            alg::OrdinaryDiffEq.OrdinaryDiffEqAlgorithm = OrdinaryDiffEq.DP5();
+            state::T, dstate::T, fout::Function;
+            alg::OrdinaryDiffEq.OrdinaryDiffEqAlgorithm = OrdinaryDiffEq.DP5(),
             steady_state = false, eps = 1e-3, save_everystep = false,
-            kwargs...)
+            callback = nothing, kwargs...)
 
     function df_(t, x::Vector{Complex128}, dx::Vector{Complex128})
         recast!(x, state)
@@ -51,6 +51,8 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
         cb = scb
     end
 
+    full_cb = OrdinaryDiffEq.CallbackSet(callback,cb)
+
     # TODO: Expose algorithm choice
     sol = OrdinaryDiffEq.solve(
                 prob,
@@ -59,12 +61,12 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
                 abstol = 1.0e-8,
                 save_everystep = false, save_start = false,
                 save_end = false,
-                callback=cb, kwargs...)
+                callback=full_cb, kwargs...)
     out.t,out.saveval
 end
 
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
-            state::T, dstate::T, ::Void, args...; kwargs...)
+            state::T, dstate::T, ::Void; kwargs...)
     function fout(t::Float64, state::T)
         copy(state)
     end

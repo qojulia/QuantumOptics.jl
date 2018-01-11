@@ -4,7 +4,8 @@ export mcwf, mcwf_h, mcwf_nh, diagonaljumps
 
 using ...bases, ...states, ...operators, ...ode_dopri
 using ...operators_dense, ...operators_sparse
-
+using ..timeevolution
+import OrdinaryDiffEq
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
 
@@ -29,40 +30,40 @@ Integrate a single Monte Carlo wave function trajectory.
         and therefore must not be changed.
 * `kwargs`: Further arguments are passed on to the ode solver.
 """
-function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan, psi0::Ket, seed;
-                fout=nothing,
-                kwargs...)
+function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
+                        psi0::Ket, seed; fout=nothing,
+                        display_beforeevent=false, display_afterevent=false,
+                        kwargs...)
     tmp = copy(psi0)
     as_ket(x::Vector{Complex128}) = Ket(psi0.basis, x)
     as_vector(psi::Ket) = psi.data
     rng = MersenneTwister(convert(UInt, seed))
-    jumpnorm = Float64[rand(rng)]
-    djumpnorm(t, x::Vector{Complex128}) = norm(as_ket(x))^2 - (1-jumpnorm[1])
-    function dojump(t, x::Vector{Complex128})
+    jumpnorm = Ref(rand(rng))
+    djumpnorm(t, x::Vector{Complex128},integrator) = norm(as_ket(x))^2 - (1-jumpnorm[])
+    function dojump(integrator)
+        x = integrator.u
+        t = integrator.t
         jumpfun(rng, t, as_ket(x), tmp)
         x .= tmp.data
-        jumpnorm[1] = rand(rng)
-        return ode_dopri.jump
+        jumpnorm[] = rand(rng)
     end
+    cb = OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
+                     save_positions = (display_beforeevent,display_afterevent))
 
-    tout = Float64[]
-    xout = Ket[]
-    function fout_(t, x::Vector{Complex128})
+    function fout_(t, x::Ket)
         if fout==nothing
-            psi = copy(as_ket(x))
+            psi = copy(x)
             psi /= norm(psi)
-            push!(tout, t)
-            push!(xout, psi)
-            return nothing
+            return psi
         else
-            return fout(t, as_ket(x))
+            return fout(t, x)
         end
     end
-    dmcwf_(t, x::Vector{Complex128}, dx::Vector{Complex128}) = dmcwf(t, as_ket(x), as_ket(dx))
-    ode_event(dmcwf_, float(tspan), as_vector(psi0), fout_,
-        djumpnorm, dojump;
-        kwargs...)
-    return fout==nothing ? (tout, xout) : nothing
+
+    timeevolution.integrate(float(tspan), dmcwf, as_vector(psi0),
+                copy(psi0), copy(psi0), fout_;
+                callback = cb,
+                kwargs...)
 end
 
 """
