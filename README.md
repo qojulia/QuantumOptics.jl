@@ -8,8 +8,6 @@ More information, documentation and examples can be found on our website http://
 ### Development status
 
 **Latest release:**
-  * [![Status of latest release on julia 0.4][pkg-0.4-img]][pkg-0.4-url]
-  * [![Status of latest release on julia 0.5][pkg-0.5-img]][pkg-0.5-url]
   * [![Status of latest release on julia 0.6][pkg-0.6-img]][pkg-0.6-url]
 
 **Master branch:**
@@ -54,12 +52,6 @@ Additionally, you can contact us on Gitter: [![Chat on Gitter][gitter-img]][gitt
 
 [codecov-url]: https://codecov.io/gh/qojulia/QuantumOptics.jl
 [codecov-img]: https://codecov.io/gh/qojulia/QuantumOptics.jl/branch/master/graph/badge.svg
-
-[pkg-0.4-url]: http://pkg.julialang.org/?pkg=QuantumOptics&ver=0.4
-[pkg-0.4-img]: http://pkg.julialang.org/badges/QuantumOptics_0.4.svg
-
-[pkg-0.5-url]: http://pkg.julialang.org/?pkg=QuantumOptics&ver=0.5
-[pkg-0.5-img]: http://pkg.julialang.org/badges/QuantumOptics_0.5.svg
 
 [pkg-0.6-url]: http://pkg.julialang.org/?pkg=QuantumOptics&ver=0.6
 [pkg-0.6-img]: http://pkg.julialang.org/badges/QuantumOptics_0.6.svg
