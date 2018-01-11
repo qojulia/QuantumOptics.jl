@@ -2,4 +2,4 @@ julia 0.6
 Compat 0.17
 Roots
 OrdinaryDiffEq 2.34.0
-DiffEqCallbacks 0.7.0
+DiffEqCallbacks 0.7.1
