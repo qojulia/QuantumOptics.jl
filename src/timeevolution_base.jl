@@ -8,7 +8,8 @@ function recast! end
 df(t, state::T, dstate::T)
 """
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
-            state::T, dstate::T, fout::Function;
+            state::T, dstate::T, fout::Function,
+            alg::OrdinaryDiffEq.OrdinaryDiffEqAlgorithm = OrdinaryDiffEq.DP5();
             steady_state = false, eps = 1e-3, save_everystep = false,
             kwargs...)
 
@@ -25,16 +26,14 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
 
     # TODO: Infer the output of `fout` instead of computing it
     recast!(x0, state)
-    out = DiffEqCallbacks.SavedValues(Float64,typeof(fout(tspan[1], state)))
+
+    out_type = pure_inference(fout, Tuple{eltype(tspan),typeof(state)})
+
+    out = DiffEqCallbacks.SavedValues(Float64,out_type)
 
     scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan,
                                          save_everystep=save_everystep,
                                          save_start = false)
-
-
-
-    # Build callback solve with DP5
-    # TODO: Expose algorithm choice
 
     prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(tspan[1],tspan[end]))
 
@@ -51,9 +50,11 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
     else
         cb = scb
     end
+
+    # TODO: Expose algorithm choice
     sol = OrdinaryDiffEq.solve(
                 prob,
-                OrdinaryDiffEq.DP5();
+                alg;
                 reltol = 1.0e-6,
                 abstol = 1.0e-8,
                 save_everystep = false, save_start = false,
@@ -63,7 +64,7 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
 end
 
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
-            state::T, dstate::T, ::Void; kwargs...)
+            state::T, dstate::T, ::Void, args...; kwargs...)
     function fout(t::Float64, state::T)
         copy(state)
     end
@@ -82,3 +83,5 @@ function (c::SteadyStateCondtion)(t,rho,integrator)
     c.rho0.data[:] = c.state.data
     drho/dt < c.eps
 end
+
+Base.@pure pure_inference(fout,T) = Core.Inference.return_type(fout, T)

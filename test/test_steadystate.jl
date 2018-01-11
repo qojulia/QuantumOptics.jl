@@ -75,6 +75,6 @@ nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 function fout_wrong(t, x)
   @assert x == t
 end
-@test_throws AssertionError steadystate.master(Hdense, Jdense; fout=fout_wrong)
+@test_throws MethodError steadystate.master(Hdense, Jdense; fout=fout_wrong)
 
 end # testset
