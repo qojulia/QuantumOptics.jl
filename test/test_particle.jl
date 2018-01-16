@@ -229,4 +229,55 @@ Tpx_dense = DenseOperator(Tpx)
 @test isa(Tpx_dense, DenseOperator)
 @test 1e-5 > D(Txp_dense*rho0_pp*Tpx_dense, rho0_xx)
 
+# Test FFT in 2D
+N = [50, 40]
+xmin = [-32.5, -10π]
+xmax = [24.1, 9π]
+
+basis_position = [PositionBasis(xmin[i], xmax[i], N[i]) for i=1:2]
+basis_momentum = MomentumBasis.(basis_position)
+
+x0 = [5.1, -0.2]
+p0 = [-3.2, 1.33]
+sigma = [1., 0.9]
+sigma_x = sigma./sqrt(2)
+sigma_p = 1./(sigma.*sqrt(2))
+
+Txp = transform(tensor(basis_position...), tensor(basis_momentum...))
+Tpx = transform(tensor(basis_momentum...), tensor(basis_position...))
+
+Txp_sub = [transform(basis_position[i], basis_momentum[i]) for i=1:2]
+Tpx_sub = dagger.(Txp_sub)
+Txp_full = full.(Txp_sub)
+Txp_comp = tensor(Txp_full...)
+
+difference = (full(Txp) - Txp_comp).data
+@test isapprox(difference, zeros(difference); atol=1e-12)
+
+psi0_x = gaussianstate.(basis_position, x0, p0, sigma_x)
+psi0_p = gaussianstate.(basis_momentum, x0, p0, sigma_p)
+
+psi_p_fft = Tpx*tensor(psi0_x...)
+psi_p_fft2 = tensor((Tpx_sub.*psi0_x)...)
+@test norm(psi_p_fft - psi_p_fft2) < 1e-15
+
+psi_x_fft = Txp*tensor(psi0_p...)
+psi_x_fft2 = tensor((Txp_sub.*psi0_p)...)
+@test norm(psi_p_fft - psi_p_fft2) < 1e-15
+
+psi_p_fft = dagger(tensor(psi0_x...))*Txp
+psi_p_fft2 = tensor((dagger.(psi0_x).*Txp_sub)...)
+@test norm(psi_p_fft - psi_p_fft2) < 1e-15
+
+psi_x_fft = dagger(tensor(psi0_p...))*Tpx
+psi_x_fft2 = tensor((dagger.(psi0_p).*Tpx_sub)...)
+@test norm(psi_p_fft - psi_p_fft2) < 1e-15
+
+difference = (full(Txp) - identityoperator(DenseOperator, Txp.basis_l)*Txp).data
+@test isapprox(difference, zeros(difference); atol=1e-12)
+@test_throws AssertionError transform(tensor(basis_position...), tensor(basis_position...))
+@test_throws particle.IncompatibleBases transform(SpinBasis(1//2)^2, SpinBasis(1//2)^2)
+
+@test full(Txp) == full(Txp_sub[1] ⊗ Txp_sub[2])
+
 end # testset
