@@ -280,4 +280,27 @@ difference = (full(Txp) - identityoperator(DenseOperator, Txp.basis_l)*Txp).data
 
 @test full(Txp) == full(Txp_sub[1] ⊗ Txp_sub[2])
 
+# Test ket only FFTs
+Txp = transform(tensor(basis_position...), tensor(basis_momentum...); ket_only=true)
+Tpx = transform(tensor(basis_momentum...), tensor(basis_position...); ket_only=true)
+
+Txp_sub = [transform(basis_position[i], basis_momentum[i]; ket_only=true) for i=1:2]
+Tpx_sub = dagger.(Txp_sub)
+
+psi_p_fft = Tpx*tensor(psi0_x...)
+psi_p_fft2 = tensor((Tpx_sub.*psi0_x)...)
+@test norm(psi_p_fft - psi_p_fft2) < 1e-15
+
+psi_x_fft = Txp*tensor(psi0_p...)
+psi_x_fft2 = tensor((Txp_sub.*psi0_p)...)
+@test norm(psi_p_fft - psi_p_fft2) < 1e-15
+
+psi_p_fft = dagger(tensor(psi0_x...))*Txp
+psi_p_fft2 = tensor((dagger.(psi0_x).*Txp_sub)...)
+@test norm(psi_p_fft - psi_p_fft2) < 1e-15
+
+psi_x_fft = dagger(tensor(psi0_p...))*Tpx
+psi_x_fft2 = tensor((dagger.(psi0_p).*Tpx_sub)...)
+@test norm(psi_p_fft - psi_p_fft2) < 1e-15
+
 end # testset
