@@ -216,6 +216,8 @@ Abstract type for all implementations of FFT operators.
 """
 abstract type FFTOperator <: Operator end
 
+PlanFFT = Base.DFT.FFTW.cFFTWPlan
+
 """
     FFTOperators
 
@@ -225,10 +227,10 @@ that is a Ket or an Operator.
 type FFTOperators <: FFTOperator
     basis_l::Basis
     basis_r::Basis
-    fft_l!
-    fft_r!
-    fft_l2!
-    fft_r2!
+    fft_l!::PlanFFT
+    fft_r!::PlanFFT
+    fft_l2!::PlanFFT
+    fft_r2!::PlanFFT
     mul_before::Array{Complex128}
     mul_after::Array{Complex128}
 end
@@ -242,8 +244,8 @@ This is much more memory efficient when only working with Kets.
 type FFTKets <: FFTOperator
     basis_l::Basis
     basis_r::Basis
-    fft_l!
-    fft_r!
+    fft_l!::PlanFFT
+    fft_r!::PlanFFT
     mul_before::Array{Complex128}
     mul_after::Array{Complex128}
 end
