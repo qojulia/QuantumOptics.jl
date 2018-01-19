@@ -303,4 +303,16 @@ psi_x_fft = dagger(tensor(psi0_p...))*Tpx
 psi_x_fft2 = tensor((dagger.(psi0_p).*Tpx_sub)...)
 @test norm(psi_p_fft - psi_p_fft2) < 1e-15
 
+# Test composite basis of mixed type
+bc = FockBasis(2)
+psi_fock = fockstate(FockBasis(2), 1)
+psi1 = tensor(psi0_p[1], psi_fock, psi0_p[2])
+
+basis_l = tensor(basis_position[1], bc, basis_position[2])
+basis_r = tensor(basis_momentum[1], bc, basis_momentum[2])
+Txp = transform(basis_l, basis_r; ket_only=true)
+
+psi1_fft = Txp*psi1
+psi1_fft2 = tensor(Txp_sub[1]*psi0_p[1], psi_fock, Txp_sub[2]*psi0_p[2])
+@test norm(psi1_fft - psi1_fft2) < 1e-15
 end # testset

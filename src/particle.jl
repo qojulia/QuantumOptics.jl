@@ -301,44 +301,61 @@ end
 
 function transform(basis_l::CompositeBasis, basis_r::CompositeBasis; ket_only::Bool=false)
     @assert length(basis_l.bases) == length(basis_r.bases)
-    if all(typeof.(basis_l.bases) .== PositionBasis)
-        @assert all(typeof.(basis_r.bases) .== MomentumBasis)
-        transform_xp(basis_l, basis_r; ket_only=ket_only)
-    elseif all(typeof.(basis_l.bases) .== MomentumBasis)
-        @assert all(typeof.(basis_r.bases) .== PositionBasis)
+    check_pos = typeof.(basis_l.bases) .== PositionBasis
+    check_mom = typeof.(basis_l.bases) .== MomentumBasis
+    if any(check_pos) && !any(check_mom)
+        @assert all(typeof.(basis_r.bases[check_pos]) .== MomentumBasis)
+        transform_xp(basis_l, basis_r, [1:length(basis_l.bases);][check_pos]; ket_only=ket_only)
+    elseif any(check_mom) && !any(check_pos)
+        @assert all(typeof.(basis_r.bases[check_pos]) .== PositionBasis)
         transform_px(basis_l, basis_r)
     else
         throw(IncompatibleBases())
     end
 end
 
-function transform_xp(basis_l::CompositeBasis, basis_r::CompositeBasis; ket_only::Bool=false)
+function transform_xp(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Vector{Int}; ket_only::Bool=false)
     n = length(basis_l.bases)
-    Lx = [(b.xmax - b.xmin) for b=basis_l.bases]
-    dp = [spacing(b) for b=basis_r.bases]
-    dx = [spacing(b) for b=basis_l.bases]
-    N = [b.N for b=basis_l.bases]
+    Lx = [(b.xmax - b.xmin) for b=basis_l.bases[index]]
+    dp = [spacing(b) for b=basis_r.bases[index]]
+    dx = [spacing(b) for b=basis_l.bases[index]]
+    N = [length(b) for b=basis_l.bases]
     for i=1:n
-        if N[i] != basis_r.bases[i].N || abs(2*pi/dp[i] - Lx[i])/Lx[i] > 1e-12
+        if N[i] != length(basis_r.bases[i])
+            throw(IncompatibleBases())
+        end
+    end
+    for i=1:length(index)
+        if abs(2*pi/dp[i] - Lx[i])/Lx[i] > 1e-12
             throw(IncompatibleBases())
         end
     end
 
-    mul_before = exp.(1im*basis_l.bases[1].xmin*(samplepoints(basis_r.bases[1])-basis_r.bases[1].pmin))
-    mul_after = exp.(1im*basis_r.bases[1].pmin*samplepoints(basis_l.bases[1]))/sqrt(basis_r.bases[1].N)
+    if index[1] == 1
+        mul_before = exp.(1im*basis_l.bases[1].xmin*(samplepoints(basis_r.bases[1])-basis_r.bases[1].pmin))
+        mul_after = exp.(1im*basis_r.bases[1].pmin*samplepoints(basis_l.bases[1]))/sqrt(basis_r.bases[1].N)
+    else
+        mul_before = ones(N[1])
+        mul_after = ones(N[1])
+    end
     for i=2:n
-        mul_before = kron(exp.(1im*basis_l.bases[i].xmin*(samplepoints(basis_r.bases[i])-basis_r.bases[i].pmin)), mul_before)
-        mul_after = kron(exp.(1im*basis_r.bases[i].pmin*samplepoints(basis_l.bases[i]))/sqrt(basis_r.bases[i].N), mul_after)
+        if any(i .== index)
+            mul_before = kron(exp.(1im*basis_l.bases[i].xmin*(samplepoints(basis_r.bases[i])-basis_r.bases[i].pmin)), mul_before)
+            mul_after = kron(exp.(1im*basis_r.bases[i].pmin*samplepoints(basis_l.bases[i]))/sqrt(basis_r.bases[i].N), mul_after)
+        else
+            mul_before = kron(ones(N[i]), mul_before)
+            mul_after = kron(ones(N[i]), mul_after)
+        end
     end
     mul_before = reshape(mul_before, (N...))
     mul_after = reshape(mul_after, (N...))
 
     x = Array{Complex128}(N...)
     if ket_only
-        FFTKets(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), mul_before, mul_after)
+        FFTKets(basis_l, basis_r, plan_fft!(x, index), plan_bfft!(x, index), mul_before, mul_after)
     else
         A = Array{Complex128}([N, N;]...)
-        FFTOperators(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), plan_fft!(A, [n + 1:2n;]), plan_bfft!(A, [1:n;]), mul_before, mul_after)
+        FFTOperators(basis_l, basis_r, plan_fft!(x, index), plan_bfft!(x, index), plan_fft!(A, [n + 1:2n;][index]), plan_bfft!(A, [1:n;][index]), mul_before, mul_after)
     end
 end
 
