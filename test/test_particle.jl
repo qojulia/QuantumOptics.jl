@@ -230,7 +230,7 @@ Tpx_dense = DenseOperator(Tpx)
 @test 1e-5 > D(Txp_dense*rho0_pp*Tpx_dense, rho0_xx)
 
 # Test FFT in 2D
-N = [50, 40]
+N = [40, 30]
 xmin = [-32.5, -10π]
 xmax = [24.1, 9π]
 
@@ -307,12 +307,24 @@ psi_x_fft2 = tensor((dagger.(psi0_p).*Tpx_sub)...)
 bc = FockBasis(2)
 psi_fock = fockstate(FockBasis(2), 1)
 psi1 = tensor(psi0_p[1], psi_fock, psi0_p[2])
+psi2 = tensor(psi0_x[1], psi_fock, psi0_x[2])
 
 basis_l = tensor(basis_position[1], bc, basis_position[2])
 basis_r = tensor(basis_momentum[1], bc, basis_momentum[2])
 Txp = transform(basis_l, basis_r; ket_only=true)
+Tpx = transform(basis_r, basis_l; ket_only=true)
 
 psi1_fft = Txp*psi1
 psi1_fft2 = tensor(Txp_sub[1]*psi0_p[1], psi_fock, Txp_sub[2]*psi0_p[2])
 @test norm(psi1_fft - psi1_fft2) < 1e-15
+
+psi2_fft = Tpx*psi2
+psi2_fft2 = tensor(Tpx_sub[1]*psi0_x[1], psi_fock, Tpx_sub[2]*psi0_x[2])
+@test norm(psi2_fft - psi2_fft2) < 1e-15
+
+Txp = transform(basis_l, basis_r)
+Txp_sub = [transform(basis_position[i], basis_momentum[i]) for i=1:2]
+difference = (full(Txp) - tensor(full(Txp_sub[1]), full(one(bc)), full(Txp_sub[2]))).data
+@test isapprox(difference, zeros(difference); atol=1e-12)
+
 end # testset
