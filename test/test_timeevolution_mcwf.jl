@@ -193,4 +193,11 @@ end
 
 @test_throws ArgumentError timeevolution.mcwf(T, ψ3, H, J3; rates=rates)
 
+# Test dynamic
+Jdagger = dagger.(diagJ)
+function Ht(t, psi)
+    H, diagJ, Jdagger, d
+end
+tout, ψt = timeevolution.mcwf_dynamic(T, ψ3, Ht; rates=nothing)
+
 end # testset

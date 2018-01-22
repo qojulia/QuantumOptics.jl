@@ -1,6 +1,6 @@
 module timeevolution_mcwf
 
-export mcwf, mcwf_h, mcwf_nh, diagonaljumps
+export mcwf, mcwf_h, mcwf_nh, mcwf_dynamic, diagonaljumps
 
 using ...bases, ...states, ...operators, ...ode_dopri
 using ...operators_dense, ...operators_sparse
@@ -8,6 +8,191 @@ using ..timeevolution
 import OrdinaryDiffEq
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
+
+"""
+mcwf_h(tspan, rho0, Hnh, J; <keyword arguments>)
+
+Calculate MCWF trajectory where the Hamiltonian is given in hermitian form.
+
+For more information see: [`mcwf`](@ref)
+"""
+function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
+    seed=rand(UInt), rates::DecayRates=nothing,
+    fout=nothing, Jdagger::Vector=dagger.(J),
+    tmp::Ket=copy(psi0),
+    display_beforeevent=false, display_afterevent=false,
+    kwargs...)
+    check_mcwf(psi0, H, J, Jdagger, rates)
+    f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
+    return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
+    display_beforeevent=display_beforeevent,
+    display_afterevent=display_afterevent,
+    kwargs...)
+end
+
+"""
+mcwf_nh(tspan, rho0, Hnh, J; <keyword arguments>)
+
+Calculate MCWF trajectory where the Hamiltonian is given in non-hermitian form.
+
+```math
+H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
+```
+
+For more information see: [`mcwf`](@ref)
+"""
+function mcwf_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector;
+    seed=rand(UInt), fout=nothing,
+    display_beforeevent=false, display_afterevent=false,
+    kwargs...)
+    check_mcwf(psi0, Hnh, J, J, nothing)
+    f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
+    return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
+    display_beforeevent=display_beforeevent,
+    display_afterevent=display_afterevent,
+    kwargs...)
+end
+
+"""
+    mcwf(tspan, psi0, H, J; <keyword arguments>)
+
+Integrate the master equation using the MCWF method.
+
+There are two implementations for integrating the non-hermitian
+schroedinger equation:
+
+* [`mcwf_h`](@ref): Usual formulation with Hamiltonian + jump operators
+separately.
+* [`mcwf_nh`](@ref): Variant with non-hermitian Hamiltonian.
+
+The `mcwf` function takes a normal Hamiltonian, calculates the
+non-hermitian Hamiltonian and then calls [`mcwf_nh`](@ref) which is
+slightly faster.
+
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should
+be displayed.
+* `psi0`: Initial state vector.
+* `H`: Arbitrary Operator specifying the Hamiltonian.
+* `J`: Vector containing all jump operators which can be of any arbitrary
+operator type.
+* `seed=rand()`: Seed used for the random number generator.
+* `rates=ones()`: Vector of decay rates.
+* `fout`: If given, this function `fout(t, psi)` is called every time an
+output should be displayed. ATTENTION: The state `psi` is neither
+normalized nor permanent! It is still in use by the ode solve
+and therefore must not be changed.
+* `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
+operators. If they are not given they are calculated automatically.
+* `display_beforeevent=false`: `fout` is called before every jump.
+* `display_afterevent=false`: `fout` is called after every jump.
+* `kwargs...`: Further arguments are passed on to the ode solver.
+"""
+function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
+    seed=rand(UInt), rates::DecayRates=nothing,
+    fout=nothing, Jdagger::Vector=dagger.(J),
+    display_beforeevent=false, display_afterevent=false,
+    kwargs...)
+    isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
+    if !isreducible
+        tmp = copy(psi0)
+        dmcwf_h_(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+        j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
+        return integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed;
+        fout=fout,
+        display_beforeevent=display_beforeevent,
+        display_afterevent=display_afterevent,
+        kwargs...)
+    else
+        Hnh = copy(H)
+        if typeof(rates) == Void
+            for i=1:length(J)
+                Hnh -= 0.5im*Jdagger[i]*J[i]
+            end
+        else
+            for i=1:length(J)
+                Hnh -= 0.5im*rates[i]*Jdagger[i]*J[i]
+            end
+        end
+        dmcwf_nh_(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+        j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
+        return integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed;
+        fout=fout,
+        display_beforeevent=display_beforeevent,
+        display_afterevent=display_afterevent,
+        kwargs...)
+    end
+end
+
+"""
+    mcwf_dynamic(tspan, psi0, f; <keyword arguments>)
+
+Integrate the master equation using the MCWF method with dynamic
+Hamiltonian and Jump operators.
+
+The `mcwf` function takes a normal Hamiltonian, calculates the
+non-hermitian Hamiltonian and then calls [`mcwf_nh`](@ref) which is
+slightly faster.
+
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should
+be displayed.
+* `psi0`: Initial state vector.
+* `f`: Function `f(t, psi) -> (H, J, Jdagger)` or `f(t, psi) -> (H, J, Jdagger, rates)`
+    that returns the time-dependent Hamiltonian and Jump operators.
+* `seed=rand()`: Seed used for the random number generator.
+* `rates=ones()`: Vector of decay rates.
+* `fout`: If given, this function `fout(t, psi)` is called every time an
+output should be displayed. ATTENTION: The state `psi` is neither
+normalized nor permanent! It is still in use by the ode solve
+and therefore must not be changed.
+* `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
+operators. If they are not given they are calculated automatically.
+* `display_beforeevent=false`: `fout` is called before every jump.
+* `display_afterevent=false`: `fout` is called after every jump.
+* `kwargs...`: Further arguments are passed on to the ode solver.
+"""
+function mcwf_dynamic(tspan, psi0::Ket, f::Function;
+    seed=rand(UInt), rates::DecayRates=nothing,
+    fout=nothing, display_beforeevent=false, display_afterevent=false,
+    kwargs...)
+    tmp = copy(psi0)
+    dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic(t, psi, f, rates, dpsi, tmp)
+    j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
+    integrate_mcwf(dmcwf_, j_, tspan, psi0, seed;
+        fout=fout,
+        display_beforeevent=display_beforeevent,
+        display_afterevent=display_afterevent,
+        kwargs...)
+end
+
+function dmcwf_h_dynamic(t::Float64, psi::Ket, f::Function, rates::DecayRates,
+                    dpsi::Ket, tmp::Ket)
+    result = f(t, psi)
+    @assert 3 <= length(result) <= 4
+    if length(result) == 3
+        H, J, Jdagger = result
+        rates_ = rates
+    else
+        H, J, Jdagger, rates_ = result
+    end
+    check_mcwf(psi, H, J, Jdagger, rates_)
+    dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+end
+
+function jump_dynamic(rng, t::Float64, psi::Ket, f::Function, psi_new::Ket, rates::DecayRates)
+    result = f(t, psi)
+    @assert 3 <= length(result) <= 4
+    J = result[2]
+    if length(result) == 3
+        rates_ = rates
+    else
+        rates_ = result[4]
+    end
+    jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket, rates::DecayRates)
+end
 
 """
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed; fout, kwargs...)
@@ -149,123 +334,6 @@ The given Hamiltonian is already the non-hermitian version.
 function dmcwf_nh(psi::Ket, Hnh::Operator, dpsi::Ket)
     operators.gemv!(complex(0,-1.), Hnh, psi, complex(0.), dpsi)
     return dpsi
-end
-
-"""
-    mcwf_h(tspan, rho0, Hnh, J; <keyword arguments>)
-
-Calculate MCWF trajectory where the Hamiltonian is given in hermitian form.
-
-For more information see: [`mcwf`](@ref)
-"""
-function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
-                seed=rand(UInt), rates::DecayRates=nothing,
-                fout=nothing, Jdagger::Vector=dagger.(J),
-                tmp::Ket=copy(psi0),
-                display_beforeevent=false, display_afterevent=false,
-                kwargs...)
-    check_mcwf(psi0, H, J, Jdagger, rates)
-    f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
-    return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
-                display_beforeevent=display_beforeevent,
-                display_afterevent=display_afterevent,
-                kwargs...)
-end
-
-"""
-    mcwf_nh(tspan, rho0, Hnh, J; <keyword arguments>)
-
-Calculate MCWF trajectory where the Hamiltonian is given in non-hermitian form.
-
-```math
-H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
-```
-
-For more information see: [`mcwf`](@ref)
-"""
-function mcwf_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector;
-                seed=rand(UInt), fout=nothing,
-                display_beforeevent=false, display_afterevent=false,
-                kwargs...)
-    check_mcwf(psi0, Hnh, J, J, nothing)
-    f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
-    return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
-                display_beforeevent=display_beforeevent,
-                display_afterevent=display_afterevent,
-                kwargs...)
-end
-
-"""
-    mcwf(tspan, rho0, H, J; <keyword arguments>)
-
-Integrate the master equation using the MCWF method.
-
-There are two implementations for integrating the non-hermitian
-schroedinger equation:
-
-* [`mcwf_h`](@ref): Usual formulation with Hamiltonian + jump operators
-        separately.
-* [`mcwf_nh`](@ref): Variant with non-hermitian Hamiltonian.
-
-The `mcwf` function takes a normal Hamiltonian, calculates the
-non-hermitian Hamiltonian and then calls [`mcwf_nh`](@ref) which is
-slightly faster.
-
-# Arguments
-* `tspan`: Vector specifying the points of time for which output should
-        be displayed.
-* `psi0`: Initial state vector.
-* `H`: Arbitrary Operator specifying the Hamiltonian.
-* `J`: Vector containing all jump operators which can be of any arbitrary
-        operator type.
-* `seed=rand()`: Seed used for the random number generator.
-* `rates=ones()`: Vector of decay rates.
-* `fout`: If given, this function `fout(t, psi)` is called every time an
-        output should be displayed. ATTENTION: The state `psi` is neither
-        normalized nor permanent! It is still in use by the ode solve
-        and therefore must not be changed.
-* `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
-        operators. If they are not given they are calculated automatically.
-* `display_beforeevent=false`: `fout` is called before every jump.
-* `display_afterevent=false`: `fout` is called after every jump.
-* `kwargs...`: Further arguments are passed on to the ode solver.
-"""
-function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
-                seed=rand(UInt), rates::DecayRates=nothing,
-                fout=nothing, Jdagger::Vector=dagger.(J),
-                display_beforeevent=false, display_afterevent=false,
-                kwargs...)
-    isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
-    if !isreducible
-        tmp = copy(psi0)
-        dmcwf_h_(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
-        j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
-        return integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed;
-            fout=fout,
-            display_beforeevent=display_beforeevent,
-            display_afterevent=display_afterevent,
-            kwargs...)
-    else
-        Hnh = copy(H)
-        if typeof(rates) == Void
-            for i=1:length(J)
-                Hnh -= 0.5im*Jdagger[i]*J[i]
-            end
-        else
-            for i=1:length(J)
-                Hnh -= 0.5im*rates[i]*Jdagger[i]*J[i]
-            end
-        end
-        dmcwf_nh_(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
-        j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
-        return integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed;
-            fout=fout,
-            display_beforeevent=display_beforeevent,
-            display_afterevent=display_afterevent,
-            kwargs...)
-    end
 end
 
 """
