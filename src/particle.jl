@@ -299,16 +299,25 @@ function transform(basis_l::PositionBasis, basis_r::MomentumBasis; ket_only::Boo
     end
 end
 
-function transform(basis_l::CompositeBasis, basis_r::CompositeBasis; ket_only::Bool=false)
+function transform(basis_l::CompositeBasis, basis_r::CompositeBasis; ket_only::Bool=false, index::Vector{Int}=Int[])
     @assert length(basis_l.bases) == length(basis_r.bases)
-    check_pos = typeof.(basis_l.bases) .== PositionBasis
-    check_mom = typeof.(basis_l.bases) .== MomentumBasis
-    if any(check_pos) && !any(check_mom)
-        @assert all(typeof.(basis_r.bases[check_pos]) .== MomentumBasis)
-        transform_xp(basis_l, basis_r, [1:length(basis_l.bases);][check_pos]; ket_only=ket_only)
-    elseif any(check_mom) && !any(check_pos)
-        @assert all(typeof.(basis_r.bases[check_pos]) .== PositionBasis)
-        transform_px(basis_l, basis_r, [1:length(basis_l.bases);][check_mom]; ket_only=ket_only)
+    if length(index) == 0
+        check_pos = typeof.(basis_l.bases) .== PositionBasis
+        check_mom = typeof.(basis_l.bases) .== MomentumBasis
+        if any(check_pos) && !any(check_mom)
+            index = [1:length(basis_l.bases);][check_pos]
+        elseif any(check_mom) && !any(check_pos)
+            index = [1:length(basis_l.bases);][check_mom]
+        else
+            throw(IncompatibleBases())
+        end
+    end
+    if all(typeof.(basis_l.bases[index]) .== PositionBasis)
+        @assert all(typeof.(basis_r.bases[index]) .== MomentumBasis)
+        transform_xp(basis_l, basis_r, index; ket_only=ket_only)
+    elseif all(typeof.(basis_l.bases[index]) .== MomentumBasis)
+        @assert all(typeof.(basis_r.bases[index]) .== PositionBasis)
+        transform_px(basis_l, basis_r, index; ket_only=ket_only)
     else
         throw(IncompatibleBases())
     end

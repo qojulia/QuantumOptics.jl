@@ -303,6 +303,10 @@ psi_x_fft = dagger(tensor(psi0_p...))*Tpx
 psi_x_fft2 = tensor((dagger.(psi0_p).*Tpx_sub)...)
 @test norm(psi_p_fft - psi_p_fft2) < 1e-15
 
+psi_x_fft = Txp*tensor(psi0_p...)
+psi_x_fft2 = tensor(Txp_sub...)*tensor(psi0_p...)
+@test norm(psi_x_fft - psi_x_fft2) < 1e-15
+
 # Test composite basis of mixed type
 bc = FockBasis(2)
 psi_fock = fockstate(FockBasis(2), 1)
@@ -326,5 +330,38 @@ Txp = transform(basis_l, basis_r)
 Txp_sub = [transform(basis_position[i], basis_momentum[i]) for i=1:2]
 difference = (full(Txp) - tensor(full(Txp_sub[1]), full(one(bc)), full(Txp_sub[2]))).data
 @test isapprox(difference, zeros(difference); atol=1e-12)
+
+basis_l = tensor(bc, basis_position[1], basis_position[2])
+basis_r = tensor(bc, basis_momentum[1], basis_momentum[2])
+Txp2 = transform(basis_l, basis_r)
+Tpx2 = transform(basis_r, basis_l)
+difference = (full(Txp) - permutesystems(full(Txp2), [2, 1, 3])).data
+@test isapprox(difference, zeros(difference); atol=1e-13)
+difference = (full(dagger(Txp)) - permutesystems(full(Tpx2), [2, 1, 3])).data
+@test isapprox(difference, zeros(difference); atol=1e-13)
+
+# Test error messages
+b1 = PositionBasis(-1, 1, 50)
+b2 = MomentumBasis(-1, 1, 30)
+@test_throws bases.IncompatibleBases transform(b1, b2)
+@test_throws bases.IncompatibleBases transform(b2, b1)
+
+bc1 = b1 ⊗ bc
+bc2 = b2 ⊗ bc
+@test_throws bases.IncompatibleBases transform(bc1, bc2)
+@test_throws bases.IncompatibleBases transform(bc2, bc1)
+
+b1 = PositionBasis(-1, 1, 50)
+b2 = MomentumBasis(-1, 1, 50)
+bc1 = b1 ⊗ bc
+bc2 = b2 ⊗ bc
+@test_throws bases.IncompatibleBases transform(bc1, bc2)
+@test_throws bases.IncompatibleBases transform(bc2, bc1)
+@test_throws bases.IncompatibleBases transform(bc1, bc2; index=[2])
+
+bc1 = b1 ⊗ b2
+bc2 = b1 ⊗ b2
+@test_throws bases.IncompatibleBases transform(bc1, bc2)
+@test_throws bases.IncompatibleBases transform(bc2, bc1)
 
 end # testset
