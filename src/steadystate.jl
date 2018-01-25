@@ -15,7 +15,7 @@ Calculate steady state using long time master equation evolution.
         operator type.
 * `rho0=dm(basisstate(b))`: Initial density operator. If not given the
         ``|0⟩⟨0|`` state in respect to the choosen basis is used.
-* `eps=1e-3`: Tracedistance used as termination criterion.
+* `tol=1e-3`: Tracedistance used as termination criterion.
 * `hmin=1e-7`: Minimal time step used in the time evolution.
 * `rates=ones(N)`: Vector or matrix specifying the coefficients for the
         jump operators.
@@ -28,7 +28,7 @@ Calculate steady state using long time master equation evolution.
 """
 function master(H::Operator, J::Vector;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
-                hmin=1e-7,
+                hmin=1e-7, tol=1e-3,
                 rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Void}=nothing,
@@ -40,7 +40,7 @@ function master(H::Operator, J::Vector;
                         display_intermediatesteps=true,
                         fout=fout,
                         steady_state = true,
-                        eps = eps, kwargs...)
+                        tol = tol, kwargs...)
 end
 
 """

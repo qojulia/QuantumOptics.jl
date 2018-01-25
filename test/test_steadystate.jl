@@ -42,7 +42,7 @@ Jdense = map(full, J)
 
 tout, ρt = timeevolution.master([0,100], ρ₀, Hdense, Jdense; reltol=1e-7)
 
-tss, ρss = steadystate.master(Hdense, Jdense; eps=1e-4)
+tss, ρss = steadystate.master(Hdense, Jdense; tol=1e-4)
 @test tracedistance(ρss[end], ρt[end]) < 1e-3
 
 ρss = steadystate.eigenvector(Hdense, Jdense)
@@ -57,7 +57,7 @@ Hp = η*(destroy(fockbasis) + create(fockbasis))
 Jp = [sqrt(2κ)*destroy(fockbasis)]
 n_an = η^2/κ^2
 
-tss,ρss = steadystate.master(Hp, Jp; rho0=ρ0_p, eps=1e-4)
+tss,ρss = steadystate.master(Hp, Jp; rho0=ρ0_p, tol=1e-4)
 nss = expect(create(fockbasis)*destroy(fockbasis), ρss[end])
 @test n_an - real(nss) < 1e-3
 
@@ -75,6 +75,6 @@ nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 function fout_wrong(t, x)
   @assert x == t
 end
-@test_throws MethodError steadystate.master(Hdense, Jdense; fout=fout_wrong)
+@test_throws AssertionError steadystate.master(Hdense, Jdense; fout=fout_wrong)
 
 end # testset

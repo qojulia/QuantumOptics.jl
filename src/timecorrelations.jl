@@ -46,7 +46,7 @@ end
 
 function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
-                     eps::Float64=1e-4, h0=10.,
+                     tol::Float64=1e-4, h0=10.,
                      rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
                      Jdagger::Vector=dagger.(J),
                      kwargs...)
@@ -55,7 +55,7 @@ function correlation(rho0::DenseOperator, H::Operator, J::Vector,
     function fout(t, rho)
         expect(op1, rho)
     end
-    t,u = steadystate.master(H, J; rho0=op2rho0, eps=eps, h0=h0, fout=fout,
+    t,u = steadystate.master(H, J; rho0=op2rho0, tol=tol, h0=h0, fout=fout,
                        rates=rates, Jdagger=Jdagger, save_everystep=true,kwargs...)
 end
 
@@ -86,7 +86,7 @@ automatically.
 * `J`: Vector of jump operators.
 * `op`: Operator for which the auto-correlation function is calculated.
 * `rho0`: Initial density operator.
-* `eps=1e-4`: Tracedistance used as termination criterion.
+* `tol=1e-4`: Tracedistance used as termination criterion.
 * `rates=ones(N)`: Vector or matrix specifying the coefficients for the
         jump operators.
 * `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the
@@ -96,8 +96,8 @@ automatically.
 function spectrum(omega_samplepoints::Vector{Float64},
                 H::Operator, J::Vector, op::Operator;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
-                eps::Float64=1e-4,
-                rho_ss::DenseOperator=steadystate.master(H, J; eps=eps, rho0=rho0),
+                tol::Float64=1e-4,
+                rho_ss::DenseOperator=steadystate.master(H, J; tol=tol, rho0=rho0),
                 kwargs...)
     domega = minimum(diff(omega_samplepoints))
     dt = 2*pi/abs(omega_samplepoints[end] - omega_samplepoints[1])
@@ -110,17 +110,17 @@ end
 
 function spectrum(H::Operator, J::Vector, op::Operator;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
-                eps::Float64=1e-4, h0=10.,
-                rho_ss::DenseOperator=steadystate.master(H, J; eps=eps)[end][end],
+                tol::Float64=1e-4, h0=10.,
+                rho_ss::DenseOperator=steadystate.master(H, J; tol=tol)[end][end],
                 kwargs...)
-    tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, eps=eps, h0=h0, kwargs...)
+    tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, tol=tol, h0=h0, kwargs...)
     dtmin = minimum(diff(tspan))
     T = tspan[end] - tspan[1]
     tspan = Float64[0.:dtmin:T;]
     n = length(tspan)
     omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
     omega .*= 2pi/T
-    return spectrum(omega, H, J, op; eps=eps, rho_ss=rho_ss, kwargs...)
+    return spectrum(omega, H, J, op; tol=tol, rho_ss=rho_ss, kwargs...)
 end
 
 

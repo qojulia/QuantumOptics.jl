@@ -39,7 +39,7 @@ exp_values = timecorrelations.correlation(tspan, ρ₀, H, J, dagger(op), op)
 
 ρ₀ = dm(Ψ₀)
 
-tout, exp_values2 = timecorrelations.correlation(ρ₀, H, J, dagger(op), op; eps=1e-5)
+tout, exp_values2 = timecorrelations.correlation(ρ₀, H, J, dagger(op), op; tol=1e-5)
 
 @test length(exp_values) == length(tspan)
 @test length(exp_values2) == length(tout)

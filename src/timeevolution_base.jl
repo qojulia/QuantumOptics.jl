@@ -10,7 +10,7 @@ df(t, state::T, dstate::T)
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
             state::T, dstate::T, fout::Function;
             alg::OrdinaryDiffEq.OrdinaryDiffEqAlgorithm = OrdinaryDiffEq.DP5(),
-            steady_state = false, eps = 1e-3, save_everystep = false,
+            steady_state = false, tol = 1e-3, save_everystep = false,
             callback = nothing, kwargs...)
 
     function df_(t, x::Vector{Complex128}, dx::Vector{Complex128})
@@ -43,7 +43,7 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
             OrdinaryDiffEq.terminate!(integrator)
         end
         _cb = OrdinaryDiffEq.DiscreteCallback(
-                                SteadyStateCondtion(copy(state),eps,state),
+                                SteadyStateCondtion(copy(state),tol,state),
                                 affect!;
                                 save_positions = (false,false))
         cb = OrdinaryDiffEq.CallbackSet(_cb,scb)
@@ -75,7 +75,7 @@ end
 
 struct SteadyStateCondtion{T,T2,T3}
     rho0::T
-    eps::T2
+    tol::T2
     state::T3
 end
 function (c::SteadyStateCondtion)(t,rho,integrator)
@@ -83,7 +83,7 @@ function (c::SteadyStateCondtion)(t,rho,integrator)
     dt = integrator.dt
     drho = metrics.tracedistance(c.rho0, c.state)
     c.rho0.data[:] = c.state.data
-    drho/dt < c.eps
+    drho/dt < c.tol
 end
 
 Base.@pure pure_inference(fout,T) = Core.Inference.return_type(fout, T)
