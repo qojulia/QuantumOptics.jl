@@ -97,7 +97,7 @@ function spectrum(omega_samplepoints::Vector{Float64},
                 H::Operator, J::Vector, op::Operator;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol::Float64=1e-4,
-                rho_ss::DenseOperator=steadystate.master(H, J; tol=tol, rho0=rho0),
+                rho_ss::DenseOperator=steadystate.master(H, J; tol=tol, rho0=rho0)[end][end],
                 kwargs...)
     domega = minimum(diff(omega_samplepoints))
     dt = 2*pi/abs(omega_samplepoints[end] - omega_samplepoints[1])
