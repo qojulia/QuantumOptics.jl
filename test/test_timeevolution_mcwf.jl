@@ -193,11 +193,40 @@ end
 
 @test_throws ArgumentError timeevolution.mcwf(T, ψ3, H, J3; rates=rates)
 
+
 # Test dynamic
-Jdagger = dagger.(diagJ)
+H = sp + sm
+J = [sm]
+Jdagger = dagger.(J)
 function Ht(t, psi)
-    H, diagJ, Jdagger, d
+    H*exp(-(5-t)^2), J, Jdagger
 end
-tout, ψt = timeevolution.mcwf_dynamic(T, ψ3, Ht; rates=nothing)
+function Ht2(t, psi)
+    H*exp(-(5-t)^2), J./sqrt(γ), Jdagger./sqrt(γ), [γ]
+end
+
+ψ0 = spindown(spinbasis)
+ρ0 = dm(ψ0)
+tout_master, ρt_master = timeevolution.master_dynamic(T, ρ0, Ht)
+
+ρ_average_1 = DenseOperator[0 * ρ0 for i=1:length(T)]
+ρ_average_2 = DenseOperator[0 * ρ0 for i=1:length(T)]
+ρ_average_3 = DenseOperator[0 * ρ0 for i=1:length(T)]
+for i=1:Ntrajectories
+    tout, Ψt_1 = timeevolution.mcwf_dynamic(T, ψ0, Ht; seed=UInt(i))
+    tout, Ψt_2 = timeevolution.mcwf_dynamic(T, ψ0, Ht; seed=UInt(i))
+    tout, Ψt_3 = timeevolution.mcwf_dynamic(T, ψ0, Ht2; seed=UInt(i), rates=[γ])
+    for j=1:length(T)
+        ρ_average_1[j] += (Ψt_1[j] ⊗ dagger(Ψt_1[j]))/Ntrajectories
+        ρ_average_2[j] += (Ψt_2[j] ⊗ dagger(Ψt_2[j]))/Ntrajectories
+        ρ_average_3[j] += (Ψt_3[j] ⊗ dagger(Ψt_3[j]))/Ntrajectories
+    end
+end
+for i=1:length(T)
+    @test tracedistance(ρt_master[i], ρ_average_1[i]) < 0.1
+    @test tracedistance(ρt_master[i], ρ_average_2[i]) < 0.1
+    @test tracedistance(ρt_master[i], ρ_average_3[i]) < 0.1
+end
+
 
 end # testset

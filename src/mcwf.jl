@@ -148,8 +148,6 @@ be displayed.
 output should be displayed. ATTENTION: The state `psi` is neither
 normalized nor permanent! It is still in use by the ode solve
 and therefore must not be changed.
-* `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
-operators. If they are not given they are calculated automatically.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
 * `kwargs...`: Further arguments are passed on to the ode solver.
