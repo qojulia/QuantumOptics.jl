@@ -202,9 +202,8 @@ function Ht(t, psi)
     H*exp(-(5-t)^2), J, Jdagger
 end
 function Ht2(t, psi)
-    H*exp(-(5-t)^2), J./sqrt(γ), Jdagger./sqrt(γ), [γ]
+    H*exp(-(5-t)^2), J, Jdagger, [1.0]
 end
-
 ψ0 = spindown(spinbasis)
 ρ0 = dm(ψ0)
 tout_master, ρt_master = timeevolution.master_dynamic(T, ρ0, Ht)
@@ -215,17 +214,32 @@ tout_master, ρt_master = timeevolution.master_dynamic(T, ρ0, Ht)
 for i=1:Ntrajectories
     tout, Ψt_1 = timeevolution.mcwf_dynamic(T, ψ0, Ht; seed=UInt(i))
     tout, Ψt_2 = timeevolution.mcwf_dynamic(T, ψ0, Ht; seed=UInt(i))
-    tout, Ψt_3 = timeevolution.mcwf_dynamic(T, ψ0, Ht2; seed=UInt(i), rates=[γ])
+    tout, Ψt_3 = timeevolution.mcwf_dynamic(T, ψ0, Ht2; seed=UInt(i))
     for j=1:length(T)
         ρ_average_1[j] += (Ψt_1[j] ⊗ dagger(Ψt_1[j]))/Ntrajectories
         ρ_average_2[j] += (Ψt_2[j] ⊗ dagger(Ψt_2[j]))/Ntrajectories
         ρ_average_3[j] += (Ψt_3[j] ⊗ dagger(Ψt_3[j]))/Ntrajectories
     end
 end
+
+# Test non-hermitian dynamic
+H_nh = -0.5im*sum(Jdagger.*J)
+function Ht_nh(t, psi)
+    H*exp(-(5-t)^2) + H_nh, J, Jdagger
+end
+
+ρ_average_4 = DenseOperator[0 * ρ0 for i=1:length(T)]
+for i=1:Ntrajectories
+    tout, Ψt_4 = timeevolution.mcwf_nh_dynamic(T, ψ0, Ht_nh; seed=UInt(i))
+    for j=1:length(T)
+        ρ_average_4[j] += (Ψt_4[j] ⊗ dagger(Ψt_4[j]))/Ntrajectories
+    end
+end
 for i=1:length(T)
     @test tracedistance(ρt_master[i], ρ_average_1[i]) < 0.1
     @test tracedistance(ρt_master[i], ρ_average_2[i]) < 0.1
     @test tracedistance(ρt_master[i], ρ_average_3[i]) < 0.1
+    @test tracedistance(ρt_master[i], ρ_average_4[i]) < 0.1
 end
 
 

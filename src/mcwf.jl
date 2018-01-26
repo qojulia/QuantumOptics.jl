@@ -1,6 +1,6 @@
 module timeevolution_mcwf
 
-export mcwf, mcwf_h, mcwf_nh, mcwf_dynamic, diagonaljumps
+export mcwf, mcwf_h, mcwf_nh, mcwf_dynamic, mcwf_nh_dynamic, diagonaljumps
 
 using ...bases, ...states, ...operators, ...ode_dopri
 using ...operators_dense, ...operators_sparse
@@ -166,6 +166,19 @@ function mcwf_dynamic(tspan, psi0::Ket, f::Function;
         kwargs...)
 end
 
+function mcwf_nh_dynamic(tspan, psi0::Ket, f::Function;
+    seed=rand(UInt), rates::DecayRates=nothing,
+    fout=nothing, display_beforeevent=false, display_afterevent=false,
+    kwargs...)
+    dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic(t, psi, f, dpsi)
+    j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
+    integrate_mcwf(dmcwf_, j_, tspan, psi0, seed;
+        fout=fout,
+        display_beforeevent=display_beforeevent,
+        display_afterevent=display_afterevent,
+        kwargs...)
+end
+
 function dmcwf_h_dynamic(t::Float64, psi::Ket, f::Function, rates::DecayRates,
                     dpsi::Ket, tmp::Ket)
     result = f(t, psi)
@@ -178,6 +191,14 @@ function dmcwf_h_dynamic(t::Float64, psi::Ket, f::Function, rates::DecayRates,
     end
     check_mcwf(psi, H, J, Jdagger, rates_)
     dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+end
+
+function dmcwf_nh_dynamic(t::Float64, psi::Ket, f::Function, dpsi::Ket)
+    result = f(t, psi)
+    @assert 3 <= length(result) <= 4
+    H, J, Jdagger = result[1:3]
+    check_mcwf(psi, H, J, Jdagger, nothing)
+    dmcwf_nh(psi, H, dpsi)
 end
 
 function jump_dynamic(rng, t::Float64, psi::Ket, f::Function, psi_new::Ket, rates::DecayRates)
