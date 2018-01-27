@@ -91,7 +91,7 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
-        dmaster_h_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
+        dmaster_h_(drho::DenseOperator, rho::DenseOperator, p, t) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
         Hnh = copy(H)
