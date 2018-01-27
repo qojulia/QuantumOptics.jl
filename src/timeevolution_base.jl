@@ -16,7 +16,7 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
     function df_(dx::Vector{Complex128}, x::Vector{Complex128}, p, t)
         recast!(x, state)
         recast!(dx, dstate)
-        df(t, state, dstate)
+        df(dstate, state, p, t)
         recast!(dstate, dx)
     end
     function fout_(x::Vector{Complex128}, t::Float64, integrator)
