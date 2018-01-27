@@ -18,7 +18,7 @@ The factors of the product are stored in the `operators` field. Additionally a
 complex factor is stored in the `factor` field which allows for fast
 multiplication with numbers.
 """
-type LazyProduct <: Operator
+mutable struct LazyProduct <: Operator
     basis_l::Basis
     basis_r::Basis
     factor::Complex128

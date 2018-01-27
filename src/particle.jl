@@ -27,7 +27,7 @@ of ``x_{min}`` and ``x_{max}`` are due to the periodic boundary conditions
 more or less arbitrary and are chosen to be
 ``-\\pi/dp`` and ``\\pi/dp`` with ``dp=(p_{max}-p_{min})/N``.
 """
-type PositionBasis <: Basis
+mutable struct PositionBasis <: Basis
     shape::Vector{Int}
     xmin::Float64
     xmax::Float64
@@ -49,7 +49,7 @@ of ``p_{min}`` and ``p_{max}`` are due to the periodic boundary conditions
 more or less arbitrary and are chosen to be
 ``-\\pi/dx`` and ``\\pi/dx`` with ``dx=(x_{max}-x_{min})/N``.
 """
-type MomentumBasis <: Basis
+mutable struct MomentumBasis <: Basis
     shape::Vector{Int}
     pmin::Float64
     pmax::Float64
@@ -224,7 +224,7 @@ PlanFFT = Base.DFT.FFTW.cFFTWPlan
 Operator performing a fast fourier transformation when multiplied with a state
 that is a Ket or an Operator.
 """
-type FFTOperators <: FFTOperator
+mutable struct FFTOperators <: FFTOperator
     basis_l::Basis
     basis_r::Basis
     fft_l!::PlanFFT
@@ -241,7 +241,7 @@ end
 Operator that can only perform fast fourier transformations on Kets.
 This is much more memory efficient when only working with Kets.
 """
-type FFTKets <: FFTOperator
+mutable struct FFTKets <: FFTOperator
     basis_l::Basis
     basis_r::Basis
     fft_l!::PlanFFT

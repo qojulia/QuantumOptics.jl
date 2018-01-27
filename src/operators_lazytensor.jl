@@ -19,7 +19,7 @@ specifies in which subsystem the corresponding operator lives. Additionally,
 a complex factor is stored in the `factor` field which allows for fast
 multiplication with numbers.
 """
-type LazyTensor <: Operator
+mutable struct LazyTensor <: Operator
     basis_l::CompositeBasis
     basis_r::CompositeBasis
     factor::Complex128

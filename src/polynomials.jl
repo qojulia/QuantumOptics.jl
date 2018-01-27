@@ -11,7 +11,7 @@ Evaluate the given polynomial at position x using the Horner scheme.
 p(x) = \\sum_{n=0}^N c_n x^n
 ```
 """
-function horner{T<:Number}(coefficients::Vector{T}, x::Number)
+function horner(coefficients::Vector{T}, x::Number) where T<:Number
     bn = coefficients[end]
     for n=length(coefficients)-1:-1:1
         bn = coefficients[n] + bn*x

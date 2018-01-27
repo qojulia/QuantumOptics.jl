@@ -16,7 +16,7 @@ Dense array implementation of Operator.
 
 The matrix consisting of complex floats is stored in the `data` field.
 """
-type DenseOperator <: Operator
+mutable struct DenseOperator <: Operator
     basis_l::Basis
     basis_r::Basis
     data::Matrix{Complex128}
@@ -187,9 +187,9 @@ function _strides(shape::Vector{Int})
 end
 
 # Dense operator version
-@generated function _ptrace{RANK}(::Type{Val{RANK}}, a::Matrix{Complex128},
-                                  shape_l::Vector{Int}, shape_r::Vector{Int},
-                                  indices::Vector{Int})
+@generated function _ptrace(::Type{Val{RANK}}, a::Matrix{Complex128},
+                            shape_l::Vector{Int}, shape_r::Vector{Int},
+                            indices::Vector{Int}) where RANK
     return quote
         a_strides_l = _strides(shape_l)
         result_shape_l = copy(shape_l)
@@ -213,8 +213,8 @@ end
     end
 end
 
-@generated function _ptrace_ket{RANK}(::Type{Val{RANK}}, a::Vector{Complex128},
-                                  shape::Vector{Int}, indices::Vector{Int})
+@generated function _ptrace_ket(::Type{Val{RANK}}, a::Vector{Complex128},
+                            shape::Vector{Int}, indices::Vector{Int}) where RANK
     return quote
         a_strides = _strides(shape)
         result_shape = copy(shape)
@@ -233,8 +233,8 @@ end
     end
 end
 
-@generated function _ptrace_bra{RANK}(::Type{Val{RANK}}, a::Vector{Complex128},
-                                  shape::Vector{Int}, indices::Vector{Int})
+@generated function _ptrace_bra(::Type{Val{RANK}}, a::Vector{Complex128},
+                            shape::Vector{Int}, indices::Vector{Int}) where RANK
     return quote
         a_strides = _strides(shape)
         result_shape = copy(shape)

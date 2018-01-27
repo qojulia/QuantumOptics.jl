@@ -30,8 +30,8 @@ function show(stream::IO, x::CompositeBasis)
 end
 
 function show(stream::IO, x::SpinBasis)
-    d = @compat denominator(x.spinnumber)
-    n = @compat numerator(x.spinnumber)
+    d = denominator(x.spinnumber)
+    n = numerator(x.spinnumber)
     if d == 1
         write(stream, "Spin($n)")
     else

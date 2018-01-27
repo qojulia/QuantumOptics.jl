@@ -138,7 +138,7 @@ function gemv!(alpha::Complex128, v::Vector{Complex128}, M::SparseMatrix, beta::
     end
 end
 
-function sub2sub{N, M}(shape1::NTuple{N, Int}, shape2::NTuple{M, Int}, I::CartesianIndex{N})
+function sub2sub(shape1::NTuple{N, Int}, shape2::NTuple{M, Int}, I::CartesianIndex{N}) where {N, M}
     linearindex = sub2ind(shape1, I.I...)
     CartesianIndex(ind2sub(shape2, linearindex)...)
 end

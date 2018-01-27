@@ -24,14 +24,14 @@ A_{bl_1,bl_2} = S_{(bl_1,bl_2) ↔ (br_1,br_2)} B_{br_1,br_2}
 A_{br_1,br_2} = B_{bl_1,bl_2} S_{(bl_1,bl_2) ↔ (br_1,br_2)}
 ```
 """
-@compat abstract type SuperOperator end
+abstract type SuperOperator end
 
 """
     DenseSuperOperator(b1[, b2, data])
 
 SuperOperator stored as dense matrix.
 """
-type DenseSuperOperator <: SuperOperator
+mutable struct DenseSuperOperator <: SuperOperator
     basis_l::Tuple{Basis, Basis}
     basis_r::Tuple{Basis, Basis}
     data::Matrix{Complex128}
@@ -57,7 +57,7 @@ end
 
 SuperOperator stored as sparse matrix.
 """
-type SparseSuperOperator <: SuperOperator
+mutable struct SparseSuperOperator <: SuperOperator
     basis_l::Tuple{Basis, Basis}
     basis_r::Tuple{Basis, Basis}
     data::SparseMatrixCSC{Complex128, Int}
@@ -81,7 +81,7 @@ SuperOperator(basis_l, basis_r, data::SparseMatrixCSC{Complex128, Int}) = Sparse
 SuperOperator(basis_l, basis_r, data::Matrix{Complex128}) = DenseSuperOperator(basis_l, basis_r, data)
 
 
-Base.copy{T<:SuperOperator}(a::T) = T(a.basis_l, a.basis_r, copy(a.data))
+Base.copy(a::T) where {T<:SuperOperator} = T(a.basis_l, a.basis_r, copy(a.data))
 
 Base.full(a::SparseSuperOperator) = DenseSuperOperator(a.basis_l, a.basis_r, full(a.data))
 Base.full(a::DenseSuperOperator) = copy(a)
@@ -89,7 +89,7 @@ Base.full(a::DenseSuperOperator) = copy(a)
 Base.sparse(a::DenseSuperOperator) = SparseSuperOperator(a.basis_l, a.basis_r, sparse(a.data))
 Base.sparse(a::SparseSuperOperator) = copy(a)
 
-=={T<:SuperOperator}(a::T, b::T) = samebases(a, b) && (a.data == b.data)
+==(a::T, b::T) where {T<:SuperOperator} = samebases(a, b) && (a.data == b.data)
 
 Base.length(a::SuperOperator) = length(a.basis_l[1])*length(a.basis_l[2])*length(a.basis_r[1])*length(a.basis_r[2])
 bases.samebases(a::SuperOperator, b::SuperOperator) = samebases(a.basis_l[1], b.basis_l[1]) && samebases(a.basis_l[2], b.basis_l[2]) &&
@@ -183,9 +183,9 @@ The super-operator ``S`` is defined by
 * `Jdagger`: Vector containing the hermitian conjugates of the jump operators. If they
              are not given they are calculated automatically.
 """
-function liouvillian{T<:Operator}(H::T, J::Vector{T};
+function liouvillian(H::T, J::Vector{T};
             rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
-            Jdagger::Vector{T}=dagger.(J))
+            Jdagger::Vector{T}=dagger.(J)) where T<:Operator
     _check_input(H, J, Jdagger, rates)
     L = spre(-1im*H) + spost(1im*H)
     if typeof(rates) == Matrix{Float64}

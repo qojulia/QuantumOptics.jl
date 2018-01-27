@@ -24,7 +24,7 @@ For fast time evolution also at least the function
 implemented. Many other generic multiplication functions can be defined in
 terms of this function and are provided automatically.
 """
-@compat abstract type Operator end
+abstract type Operator end
 
 
 # Common error messages
@@ -73,8 +73,8 @@ tensor(operators::Operator...) = reduce(tensor, operators)
 
 Tensor product of operators where missing indices are filled up with identity operators.
 """
-function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
-                            indices::Vector{Int}, operators::Vector{T})
+function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
+               indices::Vector{Int}, operators::Vector{T}) where T<:Operator
     N = length(basis_l.bases)
     @assert length(basis_r.bases) == N
     @assert length(indices) == length(operators)
@@ -83,7 +83,7 @@ function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
 end
 embed(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Int, op::Operator) = embed(basis_l, basis_r, Int[index], [op])
 embed(basis::CompositeBasis, index::Int, op::Operator) = embed(basis, basis, Int[index], [op])
-embed{T<:Operator}(basis::CompositeBasis, indices::Vector{Int}, operators::Vector{T}) = embed(basis, basis, indices, operators)
+embed(basis::CompositeBasis, indices::Vector{Int}, operators::Vector{T}) where {T<:Operator} = embed(basis, basis, indices, operators)
 
 """
     embed(basis1[, basis2], operators::Dict)
@@ -91,8 +91,8 @@ embed{T<:Operator}(basis::CompositeBasis, indices::Vector{Int}, operators::Vecto
 `operators` is a dictionary `Dict{Vector{Int}, Operator}`. The integer vector
 specifies in which subsystems the corresponding operator is defined.
 """
-function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
-                            operators::Dict{Vector{Int}, T})
+function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
+               operators::Dict{Vector{Int}, T}) where T<:Operator
     @assert length(basis_l.bases) == length(basis_r.bases)
     N = length(basis_l.bases)
     if length(operators) == 0
@@ -120,9 +120,9 @@ function embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis,
         return permutesystems(op, perm)
     end
 end
-embed{T<:Operator}(basis_l::CompositeBasis, basis_r::CompositeBasis, operators::Dict{Int, T}; kwargs...) = embed(basis_l, basis_r, Dict([i]=>op_i for (i, op_i) in operators); kwargs...)
-embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Int, T}; kwargs...) = embed(basis, basis, operators; kwargs...)
-embed{T<:Operator}(basis::CompositeBasis, operators::Dict{Vector{Int}, T}; kwargs...) = embed(basis, basis, operators; kwargs...)
+embed(basis_l::CompositeBasis, basis_r::CompositeBasis, operators::Dict{Int, T}; kwargs...) where {T<:Operator} = embed(basis_l, basis_r, Dict([i]=>op_i for (i, op_i) in operators); kwargs...)
+embed(basis::CompositeBasis, operators::Dict{Int, T}; kwargs...) where {T<:Operator} = embed(basis, basis, operators; kwargs...)
+embed(basis::CompositeBasis, operators::Dict{Vector{Int}, T}; kwargs...) where {T<:Operator} = embed(basis, basis, operators; kwargs...)
 
 
 """
@@ -227,9 +227,9 @@ permutesystems(a::Operator, perm::Vector{Int}) = arithmetic_unary_error("Permuta
 
 Return an identityoperator in the given bases.
 """
-identityoperator{T<:Operator}(::Type{T}, b1::Basis, b2::Basis) = throw(ArgumentError("Identity operator not defined for operator type $T."))
-identityoperator{T<:Operator}(::Type{T}, b::Basis) = identityoperator(T, b, b)
-identityoperator{T<:Operator}(op::T) = identityoperator(T, op.basis_l, op.basis_r)
+identityoperator(::Type{T}, b1::Basis, b2::Basis) where {T<:Operator} = throw(ArgumentError("Identity operator not defined for operator type $T."))
+identityoperator(::Type{T}, b::Basis) where {T<:Operator} = identityoperator(T, b, b)
+identityoperator(op::T) where {T<:Operator} = identityoperator(T, op.basis_l, op.basis_r)
 
 one(b::Basis) = identityoperator(b)
 one(op::Operator) = identityoperator(op)

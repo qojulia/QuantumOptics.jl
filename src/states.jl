@@ -18,14 +18,14 @@ in respect to a certain basis. These coefficients are stored in the
 `data` field and the basis is defined in the `basis`
 field.
 """
-@compat abstract type StateVector end
+abstract type StateVector end
 
 """
     Bra(b::Basis[, data])
 
 Bra state defined by coefficients in respect to the basis.
 """
-type Bra <: StateVector
+mutable struct Bra <: StateVector
     basis::Basis
     data::Vector{Complex128}
     function Bra(b::Basis, data)
@@ -41,7 +41,7 @@ end
 
 Ket state defined by coefficients in respect to the given basis.
 """
-type Ket <: StateVector
+mutable struct Ket <: StateVector
     basis::Basis
     data::Vector{Complex128}
     function Ket(b::Basis, data)
@@ -55,23 +55,23 @@ end
 Bra(b::Basis) = Bra(b, zeros(Complex128, length(b)))
 Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
 
-copy{T<:StateVector}(a::T) = T(a.basis, copy(a.data))
+copy(a::T) where {T<:StateVector} = T(a.basis, copy(a.data))
 length(a::StateVector) = length(a.basis)::Int
 basis(a::StateVector) = a.basis
 
-=={T<:StateVector}(x::T, y::T) = samebases(x, y) && x.data==y.data
+==(x::T, y::T) where {T<:StateVector} = samebases(x, y) && x.data==y.data
 
 # Arithmetic operations
-+{T<:StateVector}(a::T, b::T) = (check_samebases(a, b); T(a.basis, a.data+b.data))
++(a::T, b::T) where {T<:StateVector} = (check_samebases(a, b); T(a.basis, a.data+b.data))
 
--{T<:StateVector}(a::T) = T(a.basis, -a.data)
--{T<:StateVector}(a::T, b::T) = (check_samebases(a, b); T(a.basis, a.data-b.data))
+-(a::T) where {T<:StateVector} = T(a.basis, -a.data)
+-(a::T, b::T) where {T<:StateVector} = (check_samebases(a, b); T(a.basis, a.data-b.data))
 
 *(a::Bra, b::Ket) = (check_multiplicable(a, b); sum(a.data.*b.data))
-*{T<:StateVector}(a::Number, b::T) = T(b.basis, a*b.data)
-*{T<:StateVector}(a::T, b::Number) = T(a.basis, b*a.data)
+*(a::Number, b::T) where {T<:StateVector} = T(b.basis, a*b.data)
+*(a::T, b::Number) where {T<:StateVector} = T(a.basis, b*a.data)
 
-/{T<:StateVector}(a::T, b::Number) = T(a.basis, a.data/b)
+/(a::T, b::Number) where {T<:StateVector} = T(a.basis, a.data/b)
 
 
 """
@@ -87,9 +87,9 @@ dagger(x::Ket) = Bra(x.basis, conj(x.data))
 
 Tensor product ``|x⟩⊗|y⟩⊗|z⟩⊗…`` of the given states.
 """
-tensor{T<:StateVector}(a::T, b::T) = T(tensor(a.basis, b.basis), kron(b.data, a.data))
+tensor(a::T, b::T) where {T<:StateVector} = T(tensor(a.basis, b.basis), kron(b.data, a.data))
 tensor(state::StateVector) = state
-tensor{T<:StateVector}(states::T...) = reduce(tensor, states)
+tensor(states::T...) where {T<:StateVector} = reduce(tensor, states)
 
 # Normalization functions
 """
@@ -111,7 +111,7 @@ In-place normalization of the given bra or ket so that `norm(x)` is one.
 """
 normalize!(x::StateVector) = scale!(x.data, 1./norm(x))
 
-function permutesystems{T<:StateVector}(state::T, perm::Vector{Int})
+function permutesystems(state::T, perm::Vector{Int}) where T<:StateVector
     @assert length(state.basis.bases) == length(perm)
     @assert isperm(perm)
     data = reshape(state.data, state.basis.shape...)
@@ -150,6 +150,6 @@ function check_multiplicable(a::Bra, b::Ket)
     end
 end
 
-samebases{T<:StateVector}(a::T, b::T) = samebases(a.basis, b.basis)::Bool
+samebases(a::T, b::T) where {T<:StateVector} = samebases(a.basis, b.basis)::Bool
 
 end # module

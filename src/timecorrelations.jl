@@ -134,7 +134,7 @@ Calculate spectrum as Fourier transform of a correlation function with a given c
 * `corr`: Correlation function of which the Fourier transform is to be calculated.
 * `normalize`: Specify if spectrum should be normalized to its maximum.
 """
-function correlation2spectrum{T <: Number}(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false)
+function correlation2spectrum(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false) where T <: Number
   n = length(tspan)
   if length(corr) != n
     ArgumentError("tspan and corr must be of same length!")

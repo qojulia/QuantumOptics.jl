@@ -23,7 +23,7 @@ shape vector `Int[2 2]`.
 Composite systems can be defined with help of the [`CompositeBasis`](@ref)
 class.
 """
-@compat abstract type Basis end
+abstract type Basis end
 
 
 ==(b1::Basis, b2::Basis) = false
@@ -55,7 +55,7 @@ Should only be used rarely since it defeats the purpose of checking that the
 bases of state vectors and operators are correct for algebraic operations.
 The preferred way is to specify special bases for different systems.
 """
-type GenericBasis <: Basis
+mutable struct GenericBasis <: Basis
     shape::Vector{Int}
 end
 
@@ -73,7 +73,7 @@ Stores the subbases in a vector and creates the shape vector directly
 from the shape vectors of these subbases. Instead of creating a CompositeBasis
 directly `tensor(b1, b2...)` or `b1 ⊗ b2 ⊗ …` can be used.
 """
-type CompositeBasis <: Basis
+mutable struct CompositeBasis <: Basis
     shape::Vector{Int}
     bases::Vector{Basis}
 end
@@ -175,7 +175,7 @@ end
 """
 Exception that should be raised for an illegal algebraic operation.
 """
-type IncompatibleBases <: Exception end
+mutable struct IncompatibleBases <: Exception end
 
 """
     samebases(a, b)

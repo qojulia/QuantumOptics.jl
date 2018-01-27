@@ -13,7 +13,7 @@ using ..bases, ..states, ..operators, ..operators_dense
 
 A basis describing a subspace embedded a higher dimensional Hilbert space.
 """
-type SubspaceBasis <: Basis
+mutable struct SubspaceBasis <: Basis
     shape::Vector{Int}
     superbasis::Basis
     basisstates::Vector{Ket}

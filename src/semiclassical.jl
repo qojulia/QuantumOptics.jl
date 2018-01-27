@@ -15,7 +15,7 @@ Semi-classical state.
 It consists of a quantum part, which is either a `Ket` or a `DenseOperator` and
 a classical part that is specified as a complex vector of arbitrary length.
 """
-type State{T<:QuantumState}
+mutable struct State{T<:QuantumState}
     quantum::T
     classical::Vector{Complex128}
 end
@@ -23,7 +23,7 @@ end
 Base.length(state::State) = length(state.quantum) + length(state.classical)
 Base.copy(state::State) = State(copy(state.quantum), copy(state.classical))
 
-function =={T<:QuantumState}(a::State{T}, b::State{T})
+function ==(a::State{T}, b::State{T}) where T<:QuantumState
     samebases(a.quantum, b.quantum) &&
     length(a.classical)==length(b.classical) &&
     (a.classical==b.classical) &&

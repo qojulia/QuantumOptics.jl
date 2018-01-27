@@ -1,7 +1,7 @@
 using Base.Test
 using QuantumOptics
 
-type test_lazytensor <: Operator
+mutable struct test_lazytensor <: Operator
     basis_l::Basis
     basis_r::Basis
     data::Matrix{Complex128}

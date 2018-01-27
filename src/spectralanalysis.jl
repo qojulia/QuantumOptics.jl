@@ -113,7 +113,7 @@ the equation ``A|ψ⟩ = a|ψ⟩``.
         by the eigenvalues of the first operator.
 * `v`: Common eigenvectors.
 """
-function simdiag{T<:DenseOperator}(ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14)
+function simdiag(ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14) where T<:DenseOperator
     # Check input
     for A=ops
         if !ishermitian(A)

@@ -3,7 +3,7 @@ using QuantumOptics
 
 
 # Custom operator type for testing error msg
-type TestOperator <: Operator; end
+mutable struct TestOperator <: Operator; end
 
 
 @testset "operators-sparse" begin

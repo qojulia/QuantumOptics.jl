@@ -21,9 +21,9 @@ Integrate Schroedinger equation.
         normalized nor permanent! It is still in use by the ode solver and
         therefore must not be changed.
 """
-function schroedinger{T<:StateVector}(tspan, psi0::T, H::Operator;
+function schroedinger(tspan, psi0::T, H::Operator;
                 fout::Union{Function,Void}=nothing,
-                kwargs...)
+                kwargs...) where T<:StateVector
     tspan_ = convert(Vector{Float64}, tspan)
     check_schroedinger(psi0, H)
     dschroedinger_(t::Float64, psi::T, dpsi::T) = dschroedinger(psi, H, dpsi)
@@ -48,9 +48,9 @@ Integrate time-dependent Schroedinger equation.
         normalized nor permanent! It is still in use by the ode solver and
         therefore must not be changed.
 """
-function schroedinger_dynamic{T<:StateVector}(tspan, psi0::T, f::Function;
+function schroedinger_dynamic(tspan, psi0::T, f::Function;
                 fout::Union{Function,Void}=nothing,
-                kwargs...)
+                kwargs...) where T<:StateVector
     tspan_ = convert(Vector{Float64}, tspan)
     dschroedinger_(t::Float64, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, f, dpsi)
     x0 = psi0.data
@@ -75,7 +75,7 @@ function dschroedinger(psi::Bra, H::Operator, dpsi::Bra)
 end
 
 
-function dschroedinger_dynamic{T<:StateVector}(t::Float64, psi0::T, f::Function, dpsi::T)
+function dschroedinger_dynamic(t::Float64, psi0::T, f::Function, dpsi::T) where T<:StateVector
     H = f(t, psi0)
     check_schroedinger(psi0, H)
     dschroedinger(psi0, H, dpsi)

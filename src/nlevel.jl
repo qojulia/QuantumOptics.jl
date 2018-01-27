@@ -12,7 +12,7 @@ using ..bases, ..states, ..operators, ..operators_sparse
 
 Basis for a system consisting of N states.
 """
-type NLevelBasis <: Basis
+mutable struct NLevelBasis <: Basis
     shape::Vector{Int}
     N::Int
     function NLevelBasis(N::Int)

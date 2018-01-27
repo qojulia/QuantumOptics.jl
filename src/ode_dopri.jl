@@ -41,7 +41,7 @@ Arguments:
     * coeffs: Runge-kutta coefficents for the nth substep.
     * k: Function derivatives at the previous substep points.
 """
-function substep{T}(x::Vector{T}, x0::Vector{T}, h::Float64, coeffs::Vector{Float64}, k::Vector{Vector{T}})
+function substep(x::Vector{T}, x0::Vector{T}, h::Float64, coeffs::Vector{Float64}, k::Vector{Vector{T}}) where T
     N = length(x)
     c_1 = h*coeffs[1]
     k_1 = k[1]
@@ -72,8 +72,8 @@ Arguments:
     * xs: Final state after the Runge-Kutta step. (4th order)
     * k: States at the substeps.
 """
-function step{T}(F::Function, t0::Float64, h::Float64,
-                x0::Vector{T}, xp::Vector{T}, xs::Vector{T}, k::Vector{Vector{T}})
+function step(F::Function, t0::Float64, h::Float64,
+             x0::Vector{T}, xp::Vector{T}, xs::Vector{T}, k::Vector{Vector{T}}) where T
     @inbounds for i=2:length(c)
         substep(xp, x0, h, a[i], k)
         F(t0 + h*c[i], xp, k[i])
@@ -86,7 +86,7 @@ end
 """
 Allocate necessary memory.
 """
-function allocate_memory{T}(x::Vector{T})
+function allocate_memory(x::Vector{T}) where T
     xp = zeros(T, length(x))
     xs = zeros(T, length(x))
     k = Vector{T}[]
@@ -109,7 +109,7 @@ Arguments:
     * t: Time at which the state should be interpolated.
     * x: Resulting state at the given point of time.
 """
-function interpolate{T}(t0::Float64, x0::Vector{T}, h::Float64, k::Vector{Vector{T}}, t::Float64, x::Vector{T})
+function interpolate(t0::Float64, x0::Vector{T}, h::Float64, k::Vector{Vector{T}}, t::Float64, x::Vector{T}) where T
     θ = (t-t0)/h
     b1_ = b1(θ); b3_ = b3(θ); b4_ = b4(θ); b5_ = b5(θ); b6_ = b6(θ); b7_ = b7(θ)
     for i=1:length(x0)
@@ -182,7 +182,7 @@ end
 """
 Display states at the given times which are in the current Runge-Kutta step.
 """
-function display_steps{T}(fout::Function, tspan::Vector{Float64}, t::Float64, x::Vector{T}, h::Float64, k::Vector{Vector{T}}, xs::Vector{T})
+function display_steps(fout::Function, tspan::Vector{Float64}, t::Float64, x::Vector{T}, h::Float64, k::Vector{Vector{T}}, xs::Vector{T}) where T
     for tout=tspan
         if t<tout<=t+h
             interpolate(t, x, h, k, tout, xs)
@@ -232,19 +232,19 @@ Optional Arguments:
     * display_beforeevent: Call fout function immediately before an event.
     * display_afterevent: Call fout function immediately after an event.
 """
-function ode_event{T}(F, tspan::Vector{Float64}, x0::Vector{T}, fout::Function,
-                    event_locator::Function, event_callback::Function;
-                    reltol::Float64 = 1.0e-6,
-                    abstol::Float64 = 1.0e-8,
-                    h0::Float64 = NaN,
-                    hmin::Float64 = (tspan[end]-tspan[1])/1e9,
-                    hmax::Float64 = (tspan[end]-tspan[1]),
-                    display_initialvalue::Bool = true,
-                    display_finalvalue::Bool = true,
-                    display_intermediatesteps::Bool = false,
-                    display_beforeevent::Bool = false,
-                    display_afterevent::Bool = false
-                    )
+function ode_event(F, tspan::Vector{Float64}, x0::Vector{T}, fout::Function,
+                 event_locator::Function, event_callback::Function;
+                 reltol::Float64 = 1.0e-6,
+                 abstol::Float64 = 1.0e-8,
+                 h0::Float64 = NaN,
+                 hmin::Float64 = (tspan[end]-tspan[1])/1e9,
+                 hmax::Float64 = (tspan[end]-tspan[1]),
+                 display_initialvalue::Bool = true,
+                 display_finalvalue::Bool = true,
+                 display_intermediatesteps::Bool = false,
+                 display_beforeevent::Bool = false,
+                 display_afterevent::Bool = false
+                 ) where T
     t, tfinal = tspan[1], tspan[end]
     display_initialvalue && fout(t, x0)
 
@@ -313,9 +313,9 @@ function ode_event{T}(F, tspan::Vector{Float64}, x0::Vector{T}, fout::Function,
 end
 
 
-function ode_event{T}(F, tspan::Vector{Float64}, x0::Vector{T},
-                    event_locator::Function, event_callback::Function;
-                    args...)
+function ode_event(F, tspan::Vector{Float64}, x0::Vector{T},
+                 event_locator::Function, event_callback::Function;
+                 args...) where T
     tout = Float64[]
     xout = Vector{T}[]
     fout = (t, x) -> (push!(tout, t); push!(xout, copy(x)); nothing)
@@ -349,16 +349,16 @@ Optional Arguments:
     * display_finalvalue: Call fout function at tspan[end].
     * display_intermediatesteps: Call fout function after every Runge-Kutta step.
 """
-function ode{T}(F, tspan::Vector{Float64}, x0::Vector{T}, fout::Function;
-                    reltol::Float64 = 1.0e-6,
-                    abstol::Float64 = 1.0e-8,
-                    h0::Float64 = NaN,
-                    hmin::Float64 = (tspan[end]-tspan[1])/1e9,
-                    hmax::Float64 = (tspan[end]-tspan[1]),
-                    display_initialvalue::Bool = true,
-                    display_finalvalue::Bool = true,
-                    display_intermediatesteps::Bool = false,
-                    )
+function ode(F, tspan::Vector{Float64}, x0::Vector{T}, fout::Function;
+                 reltol::Float64 = 1.0e-6,
+                 abstol::Float64 = 1.0e-8,
+                 h0::Float64 = NaN,
+                 hmin::Float64 = (tspan[end]-tspan[1])/1e9,
+                 hmax::Float64 = (tspan[end]-tspan[1]),
+                 display_initialvalue::Bool = true,
+                 display_finalvalue::Bool = true,
+                 display_intermediatesteps::Bool = false,
+                 ) where T
     t, tfinal = tspan[1], tspan[end]
     display_initialvalue && fout(t, x0)
 
@@ -395,7 +395,7 @@ function ode{T}(F, tspan::Vector{Float64}, x0::Vector{T}, fout::Function;
 end
 
 
-function ode{T}(F, tspan::Vector{Float64}, x0::Vector{T}; args...)
+function ode(F, tspan::Vector{Float64}, x0::Vector{T}; args...) where T
     tout = Float64[]
     xout = Vector{T}[]
     fout = (t, x) -> (push!(tout, t); push!(xout, copy(x)); nothing)

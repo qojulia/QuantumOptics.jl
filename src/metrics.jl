@@ -25,7 +25,7 @@ function tracenorm(rho::DenseOperator)
     check_samebases(rho)
     ishermitian(rho) ? tracenorm_h(rho) : tracenorm_nh(rho)
 end
-function tracenorm{T<:Operator}(rho::T)
+function tracenorm(rho::T) where T<:Operator
     throw(ArgumentError("tracenorm not implemented for $(T). Use dense operators instead."))
 end
 
@@ -47,7 +47,7 @@ function tracenorm_h(rho::DenseOperator)
     s = eigvals(Hermitian(rho.data))
     sum(abs.(s))
 end
-function tracenorm_h{T<:Operator}(rho::T)
+function tracenorm_h(rho::T) where T<:Operator
     throw(ArgumentError("tracenorm_h not implemented for $(T). Use dense operators instead."))
 end
 
@@ -69,7 +69,7 @@ It uses the identity
 where ``σ_i`` are the singular values of `rho`.
 """
 tracenorm_nh(rho::DenseOperator) = sum(svdvals(rho.data))
-function tracenorm_nh{T<:Operator}(rho::T)
+function tracenorm_nh(rho::T) where T<:Operator
     throw(ArgumentError("tracenorm_nh not implemented for $(T). Use dense operators instead."))
 end
 
@@ -89,7 +89,7 @@ It calls [`tracenorm`](@ref) which in turn either uses [`tracenorm_h`](@ref)
 or [`tracenorm_nh`](@ref) depending if ``ρ-σ`` is hermitian or not.
 """
 tracedistance(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm(rho - sigma)
-function tracedistance{T<:Operator}(rho::T, sigma::T)
+function tracedistance(rho::T, sigma::T) where T<:Operator
     throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
 end
 
@@ -107,7 +107,7 @@ T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{ρ^† ρ}\\} = \\frac{1}{2} \\sum_i |λ_i|
 where ``λ_i`` are the eigenvalues of `rho`.
 """
 tracedistance_h(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_h(rho - sigma)
-function tracedistance_h{T<:Operator}(rho::T, sigma::T)
+function tracedistance_h(rho::T, sigma::T) where T<:Operator
     throw(ArgumentError("tracedistance_h not implemented for $(T). Use dense operators instead."))
 end
 
@@ -129,7 +129,7 @@ It uses the identity
 where ``σ_i`` are the singular values of `rho` - `sigma`.
 """
 tracedistance_nh(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_nh(rho - sigma)
-function tracedistance_nh{T<:Operator}(rho::T, sigma::T)
+function tracedistance_nh(rho::T, sigma::T) where T<:Operator
     throw(ArgumentError("tracedistance_nh not implemented for $(T). Use dense operators instead."))
 end
 

@@ -2,7 +2,7 @@ using Base.Test
 using QuantumOptics
 
 
-type test_operators <: Operator
+mutable struct test_operators <: Operator
   basis_l::Basis
   basis_r::Basis
   data::Matrix{Complex128}

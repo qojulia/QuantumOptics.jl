@@ -16,7 +16,7 @@ Sparse array implementation of Operator.
 The matrix is stored as the julia built-in type `SparseMatrixCSC`
 in the `data` field.
 """
-type SparseOperator <: Operator
+mutable struct SparseOperator <: Operator
     basis_l::Basis
     basis_r::Basis
     data::SparseMatrixCSC{Complex128, Int}
@@ -114,7 +114,7 @@ operators.identityoperator(b::Basis) = identityoperator(b, b)
 
 Create a diagonal operator of type [`SparseOperator`](@ref).
 """
-function diagonaloperator{T <: Number}(b::Basis, diag::Vector{T})
+function diagonaloperator(b::Basis, diag::Vector{T}) where T <: Number
   @assert 1 <= length(diag) <= prod(b.shape)
   SparseOperator(b, spdiagm(convert(Vector{Complex128}, diag)))
 end
