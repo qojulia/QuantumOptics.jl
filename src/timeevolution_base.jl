@@ -78,7 +78,7 @@ struct SteadyStateCondtion{T,T2,T3}
     tol::T2
     state::T3
 end
-function (c::SteadyStateCondtion)(t,rho,integrator)
+function (c::SteadyStateCondtion)(rho,t,integrator)
     timeevolution.recast!(rho,c.state)
     dt = integrator.dt
     drho = metrics.tracedistance(c.rho0, c.state)
