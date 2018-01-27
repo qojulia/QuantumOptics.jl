@@ -24,7 +24,7 @@ function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 kwargs...)
     check_master(rho0, H, J, Jdagger, rates)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
+    dmaster_(drho::DenseOperator, rho::DenseOperator, p, t) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -47,7 +47,7 @@ function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
                 kwargs...)
     check_master(rho0, Hnh, J, Jdagger, rates)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
+    dmaster_(drho::DenseOperator, rho::DenseOperator, p, t) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -91,7 +91,7 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
-        dmaster_h_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
+        dmaster_h_(drho::DenseOperator, rho::DenseOperator, p, t) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
         Hnh = copy(H)
@@ -110,7 +110,7 @@ function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
         end
         Hnhdagger = dagger(Hnh)
         tmp = copy(rho0)
-        dmaster_nh_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
+        dmaster_nh_(drho::DenseOperator, rho::DenseOperator, p, t) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_nh_, rho0, fout; kwargs...)
     end
 end
@@ -133,7 +133,7 @@ function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
+    dmaster_(drho::DenseOperator, rho::DenseOperator, p, t) = dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -167,7 +167,7 @@ function master_dynamic(tspan, rho0::DenseOperator, f::Function;
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
+    dmaster_(drho::DenseOperator, rho::DenseOperator, p, t) = dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 

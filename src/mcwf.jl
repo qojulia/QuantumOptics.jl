@@ -23,7 +23,7 @@ function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
     display_beforeevent=false, display_afterevent=false,
     kwargs...)
     check_mcwf(psi0, H, J, Jdagger, rates)
-    f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+    f(dpsi, psi, p, t) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
     return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
     display_beforeevent=display_beforeevent,
@@ -47,7 +47,7 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector;
     display_beforeevent=false, display_afterevent=false,
     kwargs...)
     check_mcwf(psi0, Hnh, J, J, nothing)
-    f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+    f(dpsi, psi, p, t) = dmcwf_nh(psi, Hnh, dpsi)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
     return integrate_mcwf(f, j, tspan, psi0, seed; fout=fout,
     display_beforeevent=display_beforeevent,
@@ -98,7 +98,7 @@ function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
     isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(psi0)
-        dmcwf_h_(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+        dmcwf_h_(dpsi, psi, p, t) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
         j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
         return integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed;
         fout=fout,
@@ -116,7 +116,7 @@ function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
                 Hnh -= 0.5im*rates[i]*Jdagger[i]*J[i]
             end
         end
-        dmcwf_nh_(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+        dmcwf_nh_(dpsi, psi, p, t) = dmcwf_nh(psi, Hnh, dpsi)
         j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
         return integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed;
         fout=fout,
@@ -157,7 +157,7 @@ function mcwf_dynamic(tspan, psi0::Ket, f::Function;
     fout=nothing, display_beforeevent=false, display_afterevent=false,
     kwargs...)
     tmp = copy(psi0)
-    dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic(t, psi, f, rates, dpsi, tmp)
+    dmcwf_(dpsi, psi, p, t) = dmcwf_h_dynamic(t, psi, f, rates, dpsi, tmp)
     j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed;
         fout=fout,
@@ -170,7 +170,7 @@ function mcwf_nh_dynamic(tspan, psi0::Ket, f::Function;
     seed=rand(UInt), rates::DecayRates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
     kwargs...)
-    dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic(t, psi, f, dpsi)
+    dmcwf_(dpsi, psi, p, t) = dmcwf_nh_dynamic(t, psi, f, dpsi)
     j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed;
         fout=fout,
@@ -219,8 +219,8 @@ end
 Integrate a single Monte Carlo wave function trajectory.
 
 # Arguments
-* `dmcwf`: A function `f(t, psi, dpsi)` that calculates the time-derivative of
-        `psi` at time `t` and stores the result in `dpsi`.
+* `dmcwf`: A function `f(dpsi, psi, p, t)` that calculates the time-derivative of
+        `psi` at time `t` and stores the result in `dpsi` (`p` is not used).
 * `jumpfun`: A function `f(rng, t, psi, dpsi)` that uses the random number
         generator `rng` to determine if a jump is performed and stores the
         result in `dpsi`.
@@ -243,7 +243,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     as_vector(psi::Ket) = psi.data
     rng = MersenneTwister(convert(UInt, seed))
     jumpnorm = Ref(rand(rng))
-    djumpnorm(t, x::Vector{Complex128},integrator) = norm(as_ket(x))^2 - (1-jumpnorm[])
+    djumpnorm(x::Vector{Complex128}, t, integrator) = norm(as_ket(x))^2 - (1-jumpnorm[])
     function dojump(integrator)
         x = integrator.u
         t = integrator.t

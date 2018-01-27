@@ -26,7 +26,7 @@ function schroedinger{T<:StateVector}(tspan, psi0::T, H::Operator;
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
     check_schroedinger(psi0, H)
-    dschroedinger_(t::Float64, psi::T, dpsi::T) = dschroedinger(psi, H, dpsi)
+    dschroedinger_(dpsi::T, psi::T, p, t::Float64) = dschroedinger(psi, H, dpsi)
     x0 = psi0.data
     state = T(psi0.basis, psi0.data)
     dstate = T(psi0.basis, psi0.data)
@@ -52,7 +52,7 @@ function schroedinger_dynamic{T<:StateVector}(tspan, psi0::T, f::Function;
                 fout::Union{Function,Void}=nothing,
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
-    dschroedinger_(t::Float64, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, f, dpsi)
+    dschroedinger_(dpsi::T, psi::T, p, t::Float64) = dschroedinger_dynamic(t, psi, f, dpsi)
     x0 = psi0.data
     state = Ket(psi0.basis, psi0.data)
     dstate = Ket(psi0.basis, psi0.data)
