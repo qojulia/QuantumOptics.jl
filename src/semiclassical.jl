@@ -93,7 +93,7 @@ function master_dynamic(tspan, state0::State{DenseOperator}, fquantum, fclassica
                 tmp::DenseOperator=copy(state0.quantum),
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
-    function dmaster_(t, state::State{DenseOperator}, dstate::State{DenseOperator})
+    function dmaster_(dstate::State{DenseOperator}, state::State{DenseOperator}, p, t)
         dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
     end
     x0 = Vector{Complex128}(length(state0))
