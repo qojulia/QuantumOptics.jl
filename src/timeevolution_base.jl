@@ -5,7 +5,10 @@ import OrdinaryDiffEq, DiffEqCallbacks
 function recast! end
 
 """
-df(t, state::T, dstate::T)
+    integrate(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
+            state::T, dstate::T, fout::Function; kwargs...)
+
+Integrate using OrdinaryDiffEq
 """
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
             state::T, dstate::T, fout::Function;
@@ -13,18 +16,17 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
             steady_state = false, tol = 1e-3, save_everystep = false,
             callback = nothing, kwargs...)
 
-    function df_(t, x::Vector{Complex128}, dx::Vector{Complex128})
+    function df_(dx::Vector{Complex128}, x::Vector{Complex128}, p, t)
         recast!(x, state)
         recast!(dx, dstate)
         df(t, state, dstate)
         recast!(dstate, dx)
     end
-    function fout_(t::Float64, x::Vector{Complex128},integrator)
+    function fout_(x::Vector{Complex128}, t::Float64, integrator)
         recast!(x, state)
         fout(t, state)
     end
 
-    # TODO: Infer the output of `fout` instead of computing it
     recast!(x0, state)
 
     out_type = pure_inference(fout, Tuple{eltype(tspan),typeof(state)})
@@ -53,7 +55,6 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
 
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb)
 
-    # TODO: Expose algorithm choice
     sol = OrdinaryDiffEq.solve(
                 prob,
                 alg;
@@ -78,7 +79,7 @@ struct SteadyStateCondtion{T,T2,T3}
     tol::T2
     state::T3
 end
-function (c::SteadyStateCondtion)(t,rho,integrator)
+function (c::SteadyStateCondtion)(rho,t,integrator)
     timeevolution.recast!(rho,c.state)
     dt = integrator.dt
     drho = metrics.tracedistance(c.rho0, c.state)

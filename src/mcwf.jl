@@ -243,7 +243,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     as_vector(psi::Ket) = psi.data
     rng = MersenneTwister(convert(UInt, seed))
     jumpnorm = Ref(rand(rng))
-    djumpnorm(t, x::Vector{Complex128},integrator) = norm(as_ket(x))^2 - (1-jumpnorm[])
+    djumpnorm(x::Vector{Complex128}, t, integrator) = norm(as_ket(x))^2 - (1-jumpnorm[])
     function dojump(integrator)
         x = integrator.u
         t = integrator.t
