@@ -193,6 +193,11 @@ end
 
 @test_throws ArgumentError timeevolution.mcwf(T, ψ3, H, J3; rates=rates)
 
+J3_lazy = [LazyTensor(threespinbasis, i, sm) for i=1:3]
+d, diagJ_lazy = diagonaljumps(rates, J3_lazy)
+for i=1:3
+    @test full(diagJ_lazy[i]) == full(diagJ[i])
+end
 
 # Test dynamic
 H = sp + sm

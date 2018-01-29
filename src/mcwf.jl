@@ -5,6 +5,7 @@ export mcwf, mcwf_h, mcwf_nh, mcwf_dynamic, mcwf_nh_dynamic, diagonaljumps
 using ...bases, ...states, ...operators, ...ode_dopri
 using ...operators_dense, ...operators_sparse
 using ..timeevolution
+using ...operators_lazysum, ...operators_lazytensor, ...operators_lazyproduct
 import OrdinaryDiffEq
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
@@ -409,11 +410,16 @@ corresponding set of jump operators is calculated.
 * `rates`: Matrix of decay rates.
 * `J`: Vector of jump operators.
 """
-function diagonaljumps(rates::Matrix{Float64}, J::Vector)
-  @assert length(J) == size(rates)[1] == size(rates)[2]
-  d, v = eig(rates)
-  d, [sum([v[j, i]*J[j] for j=1:length(d)]) for i=1:length(d)]
+function diagonaljumps(rates::Matrix{Float64}, J::Vector{T}) where T <: Operator
+    @assert length(J) == size(rates)[1] == size(rates)[2]
+    d, v = eig(rates)
+    d, [sum([v[j, i]*J[j] for j=1:length(d)]) for i=1:length(d)]
 end
 
+function diagonaljumps(rates::Matrix{Float64}, J::Vector{T}) where T <: Union{LazySum, LazyTensor, LazyProduct}
+    @assert length(J) == size(rates)[1] == size(rates)[2]
+    d, v = eig(rates)
+    d, [LazySum([v[j, i]*J[j] for j=1:length(d)]...) for i=1:length(d)]
+end
 
 end #module
