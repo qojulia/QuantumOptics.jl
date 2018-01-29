@@ -10,7 +10,7 @@ import OrdinaryDiffEq
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
 
 """
-mcwf_h(tspan, rho0, Hnh, J; <keyword arguments>)
+    mcwf_h(tspan, rho0, Hnh, J; <keyword arguments>)
 
 Calculate MCWF trajectory where the Hamiltonian is given in hermitian form.
 
@@ -32,7 +32,7 @@ function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
 end
 
 """
-mcwf_nh(tspan, rho0, Hnh, J; <keyword arguments>)
+    mcwf_nh(tspan, rho0, Hnh, J; <keyword arguments>)
 
 Calculate MCWF trajectory where the Hamiltonian is given in non-hermitian form.
 
@@ -166,6 +166,13 @@ function mcwf_dynamic(tspan, psi0::Ket, f::Function;
         kwargs...)
 end
 
+"""
+    mcwf_nh_dynamic(tspan, rho0, f; <keyword arguments>)
+
+Calculate MCWF trajectory where the dynamic Hamiltonian is given in non-hermitian form.
+
+For more information see: [`mcwf_dynamic`](@ref)
+"""
 function mcwf_nh_dynamic(tspan, psi0::Ket, f::Function;
     seed=rand(UInt), rates::DecayRates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
