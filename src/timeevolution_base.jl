@@ -61,7 +61,7 @@ function integrate(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
                 reltol = 1.0e-6,
                 abstol = 1.0e-8,
                 save_everystep = false, save_start = false,
-                save_end = false,
+                save_end = false, calck=true,
                 callback=full_cb, kwargs...)
     out.t,out.saveval
 end
