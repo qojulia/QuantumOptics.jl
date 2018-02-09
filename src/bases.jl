@@ -160,7 +160,7 @@ end
 
 Check if two subbases vectors are identical.
 """
-function equal_bases(a::Vector{Basis}, b::Vector{Basis})
+function equal_bases(a::Vector{T}, b::Vector{T}) where T <: Basis
     if a===b
         return true
     end

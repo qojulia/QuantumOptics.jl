@@ -48,9 +48,10 @@ tss, ρss = steadystate.master(Hdense, Jdense; tol=1e-4)
 ρss = steadystate.eigenvector(Hdense, Jdense)
 @test tracedistance(ρss, ρt[end]) < 1e-6
 
-ρss = steadystate.eigenvector(H, J)
+ρss = steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)))
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
+@test_throws TypeError steadystate.eigenvector(H, J; ncv="a")
 
 # Compute steady-state photon number of a driven cavity (analytically: η^2/κ^2)
 Hp = η*(destroy(fockbasis) + create(fockbasis))

@@ -32,4 +32,12 @@ u2 = Ket[1.5*fockstate(b, 1), fockstate(b, 1) + fockstate(b, 2)]
 bu2_orth = subspace.orthonormalize(SubspaceBasis(u))
 @test bu2_orth.basisstates == bu.basisstates
 
+# Test errors
+b2 = FockBasis(4)
+@test_throws ArgumentError SubspaceBasis(b2, u)
+@test_throws ArgumentError projector(bu, b2)
+@test_throws ArgumentError projector(b2, bu)
+b2_sub = SubspaceBasis(b2, [fockstate(b2, 1)])
+@test_throws ArgumentError projector(bu, b2_sub)
+
 end # testset

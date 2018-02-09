@@ -22,7 +22,7 @@ mutable struct SubspaceBasis <: Basis
     function SubspaceBasis(superbasis::Basis, basisstates::Vector{Ket})
         for state = basisstates
             if state.basis != superbasis
-                raise(ArgumentError("The basis of the basisstates has to be the superbasis."))
+                throw(ArgumentError("The basis of the basisstates has to be the superbasis."))
             end
         end
         basisstates_hash = hash([hash(x.data) for x=basisstates])

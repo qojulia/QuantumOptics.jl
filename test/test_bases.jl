@@ -46,4 +46,6 @@ comp1 = tensor(b1, b2, b3)
 comp2 = tensor(b2, b1, b3)
 @test permutesystems(comp1, [2,1,3]) == comp2
 
+@test !QuantumOptics.bases.equal_bases([b1, b2], [b1, b3])
+
 end # testset

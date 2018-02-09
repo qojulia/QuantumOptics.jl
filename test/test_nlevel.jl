@@ -9,6 +9,7 @@ b = NLevelBasis(N)
 # Test basis equality
 @test b == NLevelBasis(N)
 @test b != NLevelBasis(N+1)
+@test_throws DimensionMismatch NLevelBasis(0)
 
 # Test transition operator
 @test_throws BoundsError transition(b, 0, 1)
