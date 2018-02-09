@@ -1,4 +1,4 @@
-using ..ode_dopri, ..metrics
+using ..metrics
 
 import OrdinaryDiffEq, DiffEqCallbacks
 

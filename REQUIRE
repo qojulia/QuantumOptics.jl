@@ -1,5 +1,4 @@
 julia 0.6
-Compat 0.17
-Roots
-OrdinaryDiffEq 3.0.1
+Compat 0.52.0
+OrdinaryDiffEq 3.1.0
 DiffEqCallbacks 1.0

@@ -2,7 +2,7 @@ module timeevolution_mcwf
 
 export mcwf, mcwf_h, mcwf_nh, mcwf_dynamic, mcwf_nh_dynamic, diagonaljumps
 
-using ...bases, ...states, ...operators, ...ode_dopri
+using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse
 using ..timeevolution
 using ...operators_lazysum, ...operators_lazytensor, ...operators_lazyproduct

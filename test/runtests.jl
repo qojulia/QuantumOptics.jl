@@ -27,7 +27,6 @@ names = [
     "test_embed.jl",
     "test_spectralanalysis.jl",
 
-    "test_odedopri.jl",
     "test_timeevolution_schroedinger.jl",
     "test_timeevolution_master.jl",
     "test_timeevolution_mcwf.jl",
