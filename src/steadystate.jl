@@ -49,17 +49,17 @@ end
 
 Find steady state by calculating the eigenstate of the Liouvillian matrix `l`.
 """
-function eigenvector(L::DenseSuperOperator)
-    d, v = Base.eig(L.data)
+function eigenvector(L::DenseSuperOperator; kwargs...)
+    d, v = Base.eig(L.data; kwargs...)
     index = findmin(abs.(d))[2]
     data = reshape(v[:,index], length(L.basis_r[1]), length(L.basis_r[2]))
     op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
     return op/trace(op)
 end
 
-function eigenvector(L::SparseSuperOperator)
+function eigenvector(L::SparseSuperOperator; sigma::Float64=1e-30, kwargs...)
     d, v, nconv, niter, nmult, resid = try
-      Base.eigs(L.data; nev=1, sigma=1e-30)
+      Base.eigs(L.data; nev=1, sigma=sigma, kwargs...)
     catch err
       if isa(err, LinAlg.SingularException)
         error("Base.LinAlg.eigs() algorithm failed; try using DenseOperators")
@@ -72,7 +72,7 @@ function eigenvector(L::SparseSuperOperator)
     return op/trace(op)
 end
 
-eigenvector(H::Operator, J::Vector) = eigenvector(liouvillian(H, J))
+eigenvector(H::Operator, J::Vector; rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)), kwargs...) = eigenvector(liouvillian(H, J; rates=rates); kwargs...)
 
 
 end # module
