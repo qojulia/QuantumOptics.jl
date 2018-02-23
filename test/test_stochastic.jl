@@ -128,8 +128,8 @@ end
 
 # Test master
 tout, ρt_det = timeevolution.master(T, ψ0, H, J; rates=rates)
-tout, ρt1 = stochastic.master(T, ψ0, H, J; Js=0 .*J, rates=rates, dt=dt)
-tout, ρt2 = stochastic.master(T, ρ0, LazyProduct(H, one(H)), sqrt.(rates).*J; Js=0 .* J, Hs=0 .* Hs, dt=dt)
+tout, ρt1 = stochastic.master(T, ψ0, H, J, 0 .*J; rates=rates, dt=dt)
+tout, ρt2 = stochastic.master(T, ρ0, LazyProduct(H, one(H)), sqrt.(rates).*J, 0 .* J; Hs=0 .* Hs, dt=dt)
 tout, ρt3 = stochastic.master_dynamic(T, ρ0, fdeterm_master, fstoch1_master; rates=rates, dt=dt)
 for i=1:length(tout)
     @test tracedistance(ρt1[i], ρt_det[i]) < dt
@@ -143,9 +143,9 @@ tout, ψt = stochastic.schroedinger(T_short, ψ0, H, noise_op; dt=dt)
 tout, ψt = stochastic.schroedinger_dynamic(T_short, ψ0, fdeterm, fstoch_3; dt=dt)
 
 # Master
-tout, ρt = stochastic.master(T_short, ρ0, H, J; Js=0.*J, dt=dt)
-tout, ρt = stochastic.master(T_short, ψ0, H, [sm, sm]; rates=rates_mat, dt=dt)
-tout, ρt = stochastic.master(T_short, ρ0, H, J; rates_s=[0.1], Hs=Hs, dt=dt)
+tout, ρt = stochastic.master(T_short, ρ0, H, J, 0.*J; dt=dt)
+tout, ρt = stochastic.master(T_short, ψ0, H, [sm, sm], [sm, sm]; rates=rates_mat, dt=dt)
+tout, ρt = stochastic.master(T_short, ρ0, H, J, J; rates_s=[0.1], Hs=Hs, dt=dt)
 
 # Test master dynamic
 tout, ρt = stochastic.master_dynamic(T_short, ψ0, fdeterm_master, fstoch1_master; dt=dt, noise_processes=1)
@@ -188,7 +188,7 @@ tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fcl
             fstoch_H=fquantum_stoch, fstoch_J=fstoch_J, dt=dt)
 
 # Test error messages
-@test_throws ArgumentError stochastic.master(T, ψ0, H, [sm, sm]; rates_s=rates_mat, dt=dt)
+@test_throws ArgumentError stochastic.master(T, ψ0, H, [sm, sm], [sm, sm]; rates_s=rates_mat, dt=dt)
 @test_throws ArgumentError stochastic.master_dynamic(T, ψ0, fdeterm_master, fstoch1_master; rates_s=rates_mat, dt=dt)
 @test_throws ArgumentError stochastic.schroedinger_semiclassical(T, ψ_sc, fquantum, fclassical)
 @test_throws ArgumentError stochastic.master_semiclassical(T, ρ_sc, fquantum_master, fclassical)

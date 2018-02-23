@@ -28,7 +28,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
         Hamiltonian.
 * `J`: Vector containing all deterministic
         jump operators which can be of any arbitrary operator type.
-* `Js=J`: Vector containing the stochastic jump operators for a superoperator
+* `Js`: Vector containing the stochastic jump operators for a superoperator
         describing a measurement which has the form of the standard linear
         stochastic master equation, `Js[i]*rho + rho*Jsdagger[i]`.
 * `Hs=nothing`: Vector containing additional stochastic terms of the Hamiltonian.
@@ -49,7 +49,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master(tspan, rho0::DenseOperator, H::Operator,
-                J::Vector; Js::Vector=J, Hs::Union{Void, Vector}=nothing,
+                J::Vector, Js::Vector; Hs::Union{Void, Vector}=nothing,
                 rates::DecayRates=nothing, rates_s::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J), Jsdagger::Vector=dagger.(Js),
                 fout::Union{Function,Void}=nothing,
