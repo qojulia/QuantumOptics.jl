@@ -6,7 +6,7 @@ using Compat
 using ..bases, ..states
 using ..operators, ..operators_dense, ..operators_sparse
 using ..operators_lazytensor, ..operators_lazysum, ..operators_lazyproduct
-using ..spin, ..fock, ..nlevel, ..particle, ..subspace, ..manybody
+using ..spin, ..fock, ..nlevel, ..particle, ..subspace, ..manybody, ..sparsematrix
 
 
 function show(stream::IO, x::GenericBasis)
@@ -65,12 +65,12 @@ end
 
 function show(stream::IO, x::Ket)
     write(stream, "Ket(dim=$(length(x.basis)))\n  basis: $(x.basis)\n")
-    Base.showarray(stream, x.data, false; header=false)
+    showquantumstatebody(stream, x)
 end
 
 function show(stream::IO, x::Bra)
     write(stream, "Bra(dim=$(length(x.basis)))\n  basis: $(x.basis)\n")
-    Base.showarray(stream, x.data, false; header=false)
+   showquantumstatebody(stream, x)
 end
 
 function showoperatorheader(stream::IO, x::Operator)
@@ -88,10 +88,53 @@ end
 
 show(stream::IO, x::Operator) = showoperatorheader(stream, x)
 
+function showquantumstatebody(stream::IO, x::Union{Ket,Bra})
+    machineprecorder = Int32(round(-log10(eps())-1,0))
+    #the permutation is used to invert the order A x B = B.data x A.data to A.data x B.data
+    perm = collect(length(basis(x).shape):-1:1) 
+    if length(perm) == 1
+      Base.showarray(stream, round.(x.data,machineprecorder), false; header=false)
+    else
+      Base.showarray(stream, 
+      round.(permutesystems(x,perm).data,machineprecorder), false; header=false)
+    end
+end
+
+function permuted_densedata(x::DenseOperator)
+    lbn = length(x.basis_l.shape)
+    rbn = length(x.basis_r.shape)
+    perm = collect(max(lbn,rbn):-1:1)
+    #padd the shape with additional x1 subsystems s.t. x has symmetric number of subsystems
+    decomp = lbn > rbn ? [x.basis_l.shape; x.basis_r.shape; fill(1,lbn-rbn)] :
+                         [x.basis_l.shape; fill(1,rbn-lbn); x.basis_r.shape]
+                         
+    data = reshape(x.data, decomp...)
+    data = permutedims(data, [perm; perm + length(perm)])
+    data = reshape(data, length(x.basis_l), length(x.basis_r))
+    
+    machineprecorder = Int32(round(-log10(eps())-1,0))
+    return round.(data, machineprecorder)
+end
+
+function permuted_sparsedata(x::SparseOperator)
+    lbn = length(x.basis_l.shape)
+    rbn = length(x.basis_r.shape)
+    perm = collect(max(lbn,rbn):-1:1)
+    #padd the shape with additional x1 subsystems s.t. x has symmetric number of subsystems
+    decomp = lbn > rbn ? [x.basis_l.shape; x.basis_r.shape; fill(1,lbn-rbn)] :
+                         [x.basis_l.shape; fill(1,rbn-lbn); x.basis_r.shape]
+                         
+    data = sparsematrix.permutedims(x.data, decomp, [perm; perm + length(perm)])
+    
+    machineprecorder = Int32(round(-log10(eps())-1,0))
+    return round.(data, machineprecorder)
+end
+
+
 function show(stream::IO, x::DenseOperator)
     showoperatorheader(stream, x)
     write(stream, "\n")
-    Base.showarray(stream, x.data, false; header=false)
+    Base.showarray(stream, permuted_densedata(x), false; header=false)
 end
 
 function show(stream::IO, x::SparseOperator)
@@ -99,7 +142,7 @@ function show(stream::IO, x::SparseOperator)
     if nnz(x.data) == 0
         write(stream, "\n    []")
     else
-        show(stream, x.data)
+        show(stream, permuted_sparsedata(x))
     end
 end
 
