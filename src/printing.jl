@@ -1,5 +1,7 @@
 module printing
 
+export set_printing
+
 import Base: show
 
 using Compat
@@ -8,6 +10,25 @@ using ..operators, ..operators_dense, ..operators_sparse
 using ..operators_lazytensor, ..operators_lazysum, ..operators_lazyproduct
 using ..spin, ..fock, ..nlevel, ..particle, ..subspace, ..manybody, ..sparsematrix
 
+
+"""
+    QuantumOptics.set_printing(; standard_order, rounding_tol)
+
+Set options for REPL output.
+
+# Arguments
+* `standard_order=false`: For performance reasons, the order of the tensor
+    product is inverted, i.e. `tensor(a, b)=kron(b, a)`. When changing this
+    to `true`, the output shown in the REPL will exhibit the correct order.
+* `rounding_tol=1e-17`: Tolerance for floating point errors shown in the output.
+"""
+function set_printing(; standard_order::Bool=_std_order, rounding_tol::Real=_round_tol)
+    global _std_order = standard_order
+    global _round_tol = rounding_tol
+    global machineprecorder = Int32(round(-log10(_round_tol), 0))
+    nothing
+end
+set_printing(standard_order=false, rounding_tol=1e-17)
 
 function show(stream::IO, x::GenericBasis)
     if length(x.shape) == 1
@@ -65,12 +86,20 @@ end
 
 function show(stream::IO, x::Ket)
     write(stream, "Ket(dim=$(length(x.basis)))\n  basis: $(x.basis)\n")
-    showquantumstatebody(stream, x)
+    if !_std_order
+        Base.showarray(stream, x.data, false; header=false)
+    else
+        showquantumstatebody(stream, x)
+    end
 end
 
 function show(stream::IO, x::Bra)
     write(stream, "Bra(dim=$(length(x.basis)))\n  basis: $(x.basis)\n")
-   showquantumstatebody(stream, x)
+    if !_std_order
+        Base.showarray(stream, x.data, false; header=false)
+    else
+        showquantumstatebody(stream, x)
+    end
 end
 
 function showoperatorheader(stream::IO, x::Operator)
@@ -89,14 +118,13 @@ end
 show(stream::IO, x::Operator) = showoperatorheader(stream, x)
 
 function showquantumstatebody(stream::IO, x::Union{Ket,Bra})
-    machineprecorder = Int32(round(-log10(eps())-1,0))
     #the permutation is used to invert the order A x B = B.data x A.data to A.data x B.data
-    perm = collect(length(basis(x).shape):-1:1) 
-    if length(perm) == 1
-      Base.showarray(stream, round.(x.data,machineprecorder), false; header=false)
+    perm = collect(length(basis(x).shape):-1:1)
+    if length(perm) == 1 || !_std_order
+        Base.showarray(stream, round.(x.data, machineprecorder), false; header=false)
     else
-      Base.showarray(stream, 
-      round.(permutesystems(x,perm).data,machineprecorder), false; header=false)
+        Base.showarray(stream,
+        round.(permutesystems(x,perm).data, machineprecorder), false; header=false)
     end
 end
 
@@ -107,12 +135,11 @@ function permuted_densedata(x::DenseOperator)
     #padd the shape with additional x1 subsystems s.t. x has symmetric number of subsystems
     decomp = lbn > rbn ? [x.basis_l.shape; x.basis_r.shape; fill(1,lbn-rbn)] :
                          [x.basis_l.shape; fill(1,rbn-lbn); x.basis_r.shape]
-                         
+
     data = reshape(x.data, decomp...)
     data = permutedims(data, [perm; perm + length(perm)])
     data = reshape(data, length(x.basis_l), length(x.basis_r))
-    
-    machineprecorder = Int32(round(-log10(eps())-1,0))
+
     return round.(data, machineprecorder)
 end
 
@@ -123,10 +150,9 @@ function permuted_sparsedata(x::SparseOperator)
     #padd the shape with additional x1 subsystems s.t. x has symmetric number of subsystems
     decomp = lbn > rbn ? [x.basis_l.shape; x.basis_r.shape; fill(1,lbn-rbn)] :
                          [x.basis_l.shape; fill(1,rbn-lbn); x.basis_r.shape]
-                         
+
     data = sparsematrix.permutedims(x.data, decomp, [perm; perm + length(perm)])
-    
-    machineprecorder = Int32(round(-log10(eps())-1,0))
+
     return round.(data, machineprecorder)
 end
 
@@ -134,7 +160,11 @@ end
 function show(stream::IO, x::DenseOperator)
     showoperatorheader(stream, x)
     write(stream, "\n")
-    Base.showarray(stream, permuted_densedata(x), false; header=false)
+    if !_std_order
+        Base.showarray(stream, x.data, false; header=false)
+    else
+        Base.showarray(stream, permuted_densedata(x), false; header=false)
+    end
 end
 
 function show(stream::IO, x::SparseOperator)
@@ -142,7 +172,11 @@ function show(stream::IO, x::SparseOperator)
     if nnz(x.data) == 0
         write(stream, "\n    []")
     else
-        show(stream, permuted_sparsedata(x))
+        if !_std_order
+            show(stream, x.data)
+        else
+            show(stream, permuted_sparsedata(x))
+        end
     end
 end
 

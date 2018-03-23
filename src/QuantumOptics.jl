@@ -102,6 +102,7 @@ using .timeevolution
 using .metrics
 using .spectralanalysis
 using .timecorrelations
+using .printing
 
 
 end # module
