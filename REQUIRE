@@ -1,6 +1,6 @@
 julia 0.6
 Compat 0.52.0
-OrdinaryDiffEq 3.1.0
+OrdinaryDiffEq 3.7.0
 DiffEqCallbacks 1.0
-StochasticDiffEq 3.0.0
+StochasticDiffEq 3.2.0
 RecursiveArrayTools
