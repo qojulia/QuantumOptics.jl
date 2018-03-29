@@ -286,7 +286,7 @@ function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, r
     else
         J, Jdagger, rates_ = result
     end
-    dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, tmp, index)
+    dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, index)
     drho.data .-= rates[index]*(expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
 end
 
