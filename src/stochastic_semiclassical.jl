@@ -125,6 +125,9 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
         If unset, the number is calculated automatically from the function outputs.
         NOTE: Set this number if you want to avoid an initial calculation of
         function outputs!
+* `nonlinear=true`: Specify whether or not to include the nonlinear term
+        `expect(Js[i] + Jsdagger[i],rho)*rho` in the equation. This ensures
+        the trace of `rho` is conserved.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master_semiclassical(tspan::Vector{Float64}, rho0::State{DenseOperator},
