@@ -44,6 +44,9 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
         an output should be displayed. ATTENTION: The given state rho is not
         permanent! It is still in use by the ode solver and therefore must not
         be changed.
+* `nonlinear=true`: Specify whether or not to include the nonlinear term
+        `expect(Js[i] + Jsdagger[i],rho)*rho` in the equation. This ensures
+        the trace of `rho` is conserved.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master(tspan, rho0::DenseOperator, H::Operator,
@@ -51,6 +54,7 @@ function master(tspan, rho0::DenseOperator, H::Operator,
                 rates::DecayRates=nothing, rates_s::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J), Jsdagger::Vector=dagger.(Js),
                 fout::Union{Function,Void}=nothing,
+                nonlinear::Bool=true,
                 kwargs...)
 
     tmp = copy(rho0)
@@ -61,13 +65,24 @@ function master(tspan, rho0::DenseOperator, H::Operator,
     end
 
     n = length(Js) + (isa(Hs, Void) ? 0 : length(Hs))
-    dmaster_stoch(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) = dmaster_stochastic(rho, Hs, rates_s, Js, Jsdagger, drho, tmp, index)
+
+    # TODO: Remove tmp from functions where it's unused
+    if nonlinear
+        X = Js .+ Jsdagger
+        dmaster_stoch_nl(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) = dmaster_stochastic_nl(rho, Hs, rates_s, Js, Jsdagger, X, drho, tmp, index)
+    else
+        dmaster_stoch_lin(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) = dmaster_stochastic(rho, Hs, rates_s, Js, Jsdagger, drho, tmp, index)
+    end
 
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     check_master(rho0, H, Js, Jsdagger, rates_s)
     if !isreducible
         dmaster_h_determ(t::Float64, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
-        integrate_master_stoch(tspan, dmaster_h_determ, dmaster_stoch, rho0, fout, n; kwargs...)
+        if nonlinear
+            integrate_master_stoch(tspan, dmaster_h_determ, dmaster_stoch_nl, rho0, fout, n; kwargs...)
+        else
+            integrate_master_stoch(tspan, dmaster_h_determ, dmaster_stoch_lin, rho0, fout, n; kwargs...)
+        end
     else
         Hnh = copy(H)
         if typeof(rates) == Matrix{Float64}
@@ -86,7 +101,11 @@ function master(tspan, rho0::DenseOperator, H::Operator,
         Hnhdagger = dagger(Hnh)
 
         dmaster_nh_determ(t::Float64, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
-        integrate_master_stoch(tspan, dmaster_nh_determ, dmaster_stoch, rho0, fout, n; kwargs...)
+        if nonlinear
+            integrate_master_stoch(tspan, dmaster_nh_determ, dmaster_stoch_nl, rho0, fout, n; kwargs...)
+        else
+            integrate_master_stoch(tspan, dmaster_nh_determ, dmaster_stoch_lin, rho0, fout, n; kwargs...)
+        end
     end
 end
 master(tspan, psi0::Ket, args...; kwargs...) = master(tspan, dm(psi0), args...; kwargs...)
@@ -208,6 +227,25 @@ function dmaster_stochastic(rho::DenseOperator, H::Vector, rates::Vector{Float64
     else
         operators.gemm!(rates[index], J[index], rho, 0, drho)
         operators.gemm!(rates[index], rho, Jdagger[index], 1, drho)
+    end
+    return drho
+end
+
+function dmaster_stochastic_nl(rho::DenseOperator, H::Union{Void, Vector}, rates::Void,
+            J::Vector, Jdagger::Vector, X::Vector, drho::DenseOperator, tmp::DenseOperator,
+            index::Int)
+    dmaster_stochastic(rho, H, rates, J, Jdagger, drho, tmp, index)
+    for i=1:length(X)
+        drho.data .-= expect(X[i], rho)*rho.data
+    end
+    return drho
+end
+function dmaster_stochastic_nl(rho::DenseOperator, H::Union{Void, Vector}, rates::Vector{Float64},
+            J::Vector, Jdagger::Vector, X::Vector, drho::DenseOperator, tmp::DenseOperator,
+            index::Int)
+    dmaster_stochastic(rho, H, rates, J, Jdagger, drho, tmp, index)
+    for i=1:length(X)
+        drho.data .-= rates[i]*expect(X[i], rho)*rho.data
     end
     return drho
 end
