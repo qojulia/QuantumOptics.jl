@@ -52,16 +52,27 @@ tout, ρt_det = timeevolution.master(T, ψ0, H, J; rates=rates)
 tout, ρt1 = stochastic.master(T, ψ0, H, J, 0 .*J; rates=rates, dt=dt)
 tout, ρt2 = stochastic.master(T, ρ0, LazyProduct(H, one(H)), sqrt.(rates).*J, 0 .* J; Hs=0 .* Hs, dt=dt)
 tout, ρt3 = stochastic.master_dynamic(T, ρ0, fdeterm_master, fstoch1_master; rates=rates, dt=dt)
+tout, ρt4 = stochastic.master(T, ψ0, H, J, 0 .*J; rates=rates, dt=dt, nonlinear=false)
+tout, ρt5 = stochastic.master(T, ρ0, LazyProduct(H, one(H)), sqrt.(rates).*J, 0 .* J; Hs=0 .* Hs, dt=dt, nonlinear=false)
+tout, ρt6 = stochastic.master_dynamic(T, ρ0, fdeterm_master, fstoch1_master; rates=rates, dt=dt, nonlinear=false)
 for i=1:length(tout)
     @test tracedistance(ρt1[i], ρt_det[i]) < dt
     @test tracedistance(ρt2[i], ρt_det[i]) < dt
     @test tracedistance(ρt3[i], ρt_det[i]) < dt
+    @test tracedistance(ρt4[i], ρt_det[i]) < dt
+    @test tracedistance(ρt5[i], ρt_det[i]) < dt
+    @test tracedistance(ρt6[i], ρt_det[i]) < dt
 end
 
 # Test remaining function calls for short times to test whether they work in principle
 tout, ρt = stochastic.master(T_short, ρ0, H, J, 0.*J; dt=dt)
 tout, ρt = stochastic.master(T_short, ψ0, H, [sm, sm], [sm, sm]; rates=rates_mat, dt=dt)
 tout, ρt = stochastic.master(T_short, ρ0, H, J, J; rates_s=[0.1], Hs=Hs, dt=dt)
+
+# Linear version
+tout, ρt = stochastic.master(T_short, ρ0, H, J, 0.*J; dt=dt, nonlinear=false)
+tout, ρt = stochastic.master(T_short, ψ0, H, [sm, sm], [sm, sm]; rates=rates_mat, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master(T_short, ρ0, H, J, J; rates_s=[0.1], Hs=Hs, dt=dt, nonlinear=false)
 
 # Test master dynamic
 tout, ρt = stochastic.master_dynamic(T_short, ψ0, fdeterm_master, fstoch1_master; dt=dt, noise_processes=1)
@@ -73,6 +84,18 @@ tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch2_mast
             fstoch_H=fstoch3_master, fstoch_J=fstoch4_master, dt=dt)
 tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch2_master;
             fstoch_H=fstoch3_master, fstoch_J=fstoch2_master, dt=dt)
+
+# Linear version
+tout, ρt = stochastic.master_dynamic(T_short, ψ0, fdeterm_master, fstoch1_master; dt=dt, noise_processes=1, nonlinear=false)
+tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch2_master; dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch2_master; fstoch_H=fstoch3_master, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch2_master; fstoch_J=fstoch4_master, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch2_master; fstoch_J=fstoch2_master, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch2_master;
+            fstoch_H=fstoch3_master, fstoch_J=fstoch4_master, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch2_master;
+            fstoch_H=fstoch3_master, fstoch_J=fstoch2_master, dt=dt, nonlinear=false)
+
 
 # Test error messages
 @test_throws ArgumentError stochastic.master(T, ψ0, H, [sm, sm], [sm, sm]; rates_s=rates_mat, dt=dt)

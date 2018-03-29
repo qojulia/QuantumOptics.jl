@@ -91,6 +91,27 @@ tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fcl
 tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
             fstoch_H=fquantum_stoch, fstoch_J=fstoch_J, dt=dt)
 
+# Test linear version
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical; fstoch_quantum=fstoch_q_master, dt=dt, noise_processes=1, nonlinear=false)
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical; fstoch_classical=fclassical_stoch, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_semiclassical(T_short, ψ_sc, fquantum_master, fclassical;
+            fstoch_quantum=fstoch_q_master2, fstoch_classical=fclassical_stoch, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_semiclassical(T_short, ψ_sc, fquantum_master, fclassical;
+            fstoch_quantum=fstoch_q_master, fstoch_classical=fclassical_stoch, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
+            fstoch_classical=fclassical_stoch,
+            fstoch_H=fquantum_stoch, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
+            fstoch_classical=fclassical_stoch,
+            fstoch_J=fstoch_J, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
+            fstoch_classical=fclassical_stoch,
+            fstoch_J=fstoch_q_master2, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
+            fstoch_quantum=fstoch_q_master2, dt=dt, nonlinear=false)
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
+            fstoch_H=fquantum_stoch, fstoch_J=fstoch_J, dt=dt, nonlinear=false)
+
 # Test error messages
 @test_throws ArgumentError stochastic.schroedinger_semiclassical(T, ψ_sc, fquantum, fclassical)
 @test_throws ArgumentError stochastic.master_semiclassical(T, ρ_sc, fquantum_master, fclassical)
