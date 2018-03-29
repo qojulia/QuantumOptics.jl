@@ -250,8 +250,8 @@ function dmaster_stochastic_nl(rho::DenseOperator, H::Union{Void, Vector}, rates
             J::Vector, Jdagger::Vector, X::Vector, drho::DenseOperator, tmp::DenseOperator,
             index::Int)
     dmaster_stochastic(rho, H, rates, J, Jdagger, drho, tmp, index)
-    for i=1:length(X)
-        drho.data .-= expect(X[i], rho)*rho.data
+    if index <= length(X)
+        drho.data .-= expect(X[index], rho)*rho.data
     end
     return drho
 end
@@ -259,8 +259,8 @@ function dmaster_stochastic_nl(rho::DenseOperator, H::Union{Void, Vector}, rates
             J::Vector, Jdagger::Vector, X::Vector, drho::DenseOperator, tmp::DenseOperator,
             index::Int)
     dmaster_stochastic(rho, H, rates, J, Jdagger, drho, tmp, index)
-    for i=1:length(X)
-        drho.data .-= rates[i]*expect(X[i], rho)*rho.data
+    if index <= length(X)
+        drho.data .-= rates[index]*expect(X[index], rho)*rho.data
     end
     return drho
 end
@@ -288,9 +288,7 @@ function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, r
         J, Jdagger, rates_ = result
     end
     dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, tmp, index)
-    for i=1:length(J)
-        drho.data .-= (expect(J[i], rho) + expect(Jdagger[i], rho))*rho.data
-    end
+    drho.data .-= (expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
     return drho
 end
 function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, rates::Vector{Float64},
@@ -304,9 +302,7 @@ function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, r
         J, Jdagger, rates_ = result
     end
     dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, tmp, index)
-    for i=1:length(J)
-        drho.data .-= rates[i]*(expect(J[i], rho) + expect(Jdagger[i], rho))*rho.data
-    end
+    drho.data .-= rates[index]*(expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
     return drho
 end
 
