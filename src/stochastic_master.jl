@@ -263,7 +263,7 @@ function dmaster_stoch_dynamic(t::Float64, rho::DenseOperator, f::Function, rate
     end
     dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, index)
 end
-function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, rates::Void,
+function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, rates::DecayRates,
             drho::DenseOperator, index::Int)
     result = f(t, rho)
     @assert 2 <= length(result) <= 3
@@ -274,20 +274,11 @@ function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, r
         J, Jdagger, rates_ = result
     end
     dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, index)
-    drho.data .-= (expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
-end
-function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, rates::Vector{Float64},
-            drho::DenseOperator, index::Int)
-    result = f(t, rho)
-    @assert 2 <= length(result) <= 3
-    if length(result) == 2
-        J, Jdagger = result
-        rates_ = rates
+    if isa(rates_, Void)
+        drho.data .-= (expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
     else
-        J, Jdagger, rates_ = result
+        drho.data .-= rates_[index]*(expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
     end
-    dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, index)
-    drho.data .-= rates[index]*(expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
 end
 
 function dmaster_stoch_dynamic_general(t::Float64, rho::DenseOperator, fstoch::Function,
