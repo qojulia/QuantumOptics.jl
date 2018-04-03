@@ -44,9 +44,6 @@ end
 function fstoch_2(t, psi)
     [zero_op, zero_op, zero_op]
 end
-function fstoch_3(t, psi)
-    noise_op, noise_op
-end
 
 # Non-dynamic Schrödinger
 tout, ψt4 = stochastic.schroedinger(T, ψ0, H, [zero_op, zero_op]; dt=dt)
@@ -69,6 +66,5 @@ end
 
 # Test remaining function calls for short times to test whether they work in principle
 tout, ψt = stochastic.schroedinger(T_short, ψ0, H, noise_op; dt=dt)
-tout, ψt = stochastic.schroedinger_dynamic(T_short, ψ0, fdeterm, fstoch_3; dt=dt)
 
 end # testset

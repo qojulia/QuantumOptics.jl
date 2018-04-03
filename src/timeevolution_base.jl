@@ -138,9 +138,9 @@ function integrate_stoch_scalar(tspan::Vector{Float64}, df_::Function, dg::Funct
 
     function dg_(dx::Vector{Complex128}, x::Vector{Complex128}, p, t)
         recast!(x, state)
-        recast!(dx, dstate)
-        dg(t, state, dstate, 1)
-        recast!(dstate, dx)
+        # recast!(dx, dstate)
+        dg(dx, t, state, dstate, 1)
+        # recast!(dstate, dx)
     end
 
     prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),
@@ -171,12 +171,13 @@ function integrate_stoch_ndiag(tspan::Vector{Float64}, df_::Function, dg::Functi
 
     function dg_(dx::Array{Complex128, 2}, x::Vector{Complex128}, p, t)
         recast!(x, state)
-        @inbounds for i=1:n
-            dx_i = @view dx[:, i]
-            recast!(dx_i, dstate)
-            dg(t, state, dstate, i)
-            recast!(dstate, dx_i)
-        end
+        # @inbounds for i=1:n
+        #     dx_i = @view dx[:, i]
+        #     recast!(dx_i, dstate)
+        #     dg(t, state, dstate, i)
+        #     recast!(dstate, dx_i)
+        # end
+        dg(dx, t, state, dstate, n)
     end
 
     prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),

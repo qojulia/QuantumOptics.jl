@@ -37,7 +37,8 @@ function schroedinger(tspan, psi0::Ket, H::Operator, Hs::Vector;
 
     check_schroedinger(psi0, H)
     dschroedinger_determ(t::Float64, psi::Ket, dpsi::Ket) = dschroedinger(psi, H, dpsi)
-    dschroedinger_stoch(t::Float64, psi::Ket, dpsi::Ket, index::Int) = dschroedinger_stochastic(psi, Hs, dpsi, index)
+    dschroedinger_stoch(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+            t::Float64, psi::Ket, dpsi::Ket, n::Int) = dschroedinger_stochastic(dx, psi, Hs, dpsi, n)
 
     integrate_stoch(tspan_, dschroedinger_determ, dschroedinger_stoch, x0, state, dstate, fout, n; kwargs...)
 end
@@ -84,21 +85,34 @@ function schroedinger_dynamic(tspan, psi0::Ket, fdeterm::Function, fstoch::Funct
     state = copy(psi0)
 
     dschroedinger_determ(t::Float64, psi::Ket, dpsi::Ket) = dschroedinger_dynamic(t, psi, fdeterm, dpsi)
-    dschroedinger_stoch(t::Float64, psi::Ket, dpsi::Ket, index::Int) =
-        dschroedinger_stochastic(t, psi, fstoch, dpsi, index)
+    dschroedinger_stoch(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+            t::Float64, psi::Ket, dpsi::Ket, n::Int) =
+        dschroedinger_stochastic(dx, t, psi, fstoch, dpsi, n)
 
     integrate_stoch(tspan, dschroedinger_determ, dschroedinger_stoch, x0, state, dstate, fout, n; kwargs...)
 end
 
-function dschroedinger_stochastic(psi::Ket, Hs::Vector{T}, dpsi::Ket, index::Int) where T <: Operator
+function dschroedinger_stochastic(dx::Vector{Complex128}, psi::Ket, Hs::Vector{T},
+            dpsi::Ket, index::Int) where T <: Operator
     check_schroedinger(psi, Hs[index])
+    recast!(dx, dpsi)
     dschroedinger(psi, Hs[index], dpsi)
+    recast!(dpsi, dx)
 end
-
-function dschroedinger_stochastic(t::Float64, psi::Ket, f::Function, dpsi::Ket, index::Int)
+function dschroedinger_stochastic(dx::Array{Complex128, 2}, psi::Ket, Hs::Vector{T},
+            dpsi::Ket, n::Int) where T <: Operator
+    for i=1:n
+        check_schroedinger(psi, Hs[i])
+        dx_i = @view dx[:, i]
+        recast!(dx_i, dpsi)
+        dschroedinger(psi, Hs[i], dpsi)
+        recast!(dpsi, dx_i)
+    end
+end
+function dschroedinger_stochastic(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+            t::Float64, psi::Ket, f::Function, dpsi::Ket, n::Int)
     ops = f(t, psi)
-    check_schroedinger(psi, ops[index])
-    dschroedinger(psi, ops[index], dpsi)
+    dschroedinger_stochastic(dx, psi, ops, dpsi, n)
 end
 
 recast!(psi::StateVector, x::SubArray{Complex128, 1}) = (x .= psi.data)
