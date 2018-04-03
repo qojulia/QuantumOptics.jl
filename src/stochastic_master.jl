@@ -9,6 +9,7 @@ import ...timeevolution: integrate_stoch, recast!
 import ...timeevolution.timeevolution_master: dmaster_h, dmaster_nh, dmaster_h_dynamic, check_master
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
+const DiffArray = Union{Vector{Complex128}, Array{Complex128, 2}}
 
 """
     stochastic.master(tspan, rho0, H, J, Js; <keyword arguments>)
@@ -67,11 +68,11 @@ function master(tspan, rho0::DenseOperator, H::Operator,
     n = length(Js) + (isa(Hs, Void) ? 0 : length(Hs))
 
     if nonlinear
-        dmaster_stoch_nl(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+        dmaster_stoch_nl(dx::DiffArray,
                 t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
             dmaster_stochastic_nl(dx, rho, Hs, rates_s, Js, Jsdagger, drho, n)
     else
-        dmaster_stoch_lin(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+        dmaster_stoch_lin(dx::DiffArray,
                 t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
             dmaster_stochastic(dx, rho, Hs, rates_s, Js, Jsdagger, drho, n)
     end
@@ -183,25 +184,25 @@ function master_dynamic(tspan::Vector{Float64}, rho0::DenseOperator, fdeterm::Fu
     dmaster_determ(t::Float64, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, fdeterm, rates, drho, tmp)
     if isa(fstoch_H, Void) && isa(fstoch_J, Void)
         if nonlinear
-            dmaster_stoch_std_nl(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+            dmaster_stoch_std_nl(dx::DiffArray,
                     t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
                 dmaster_stoch_dynamic_nl(dx, t, rho, fstoch, rates_s, drho, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_std_nl, rho0, fout, n; kwargs...)
         else
-            dmaster_stoch_std(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+            dmaster_stoch_std(dx::DiffArray,
                     t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
                 dmaster_stoch_dynamic(dx, t, rho, fstoch, rates_s, drho, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_std, rho0, fout, n; kwargs...)
         end
     else
         if nonlinear
-            dmaster_stoch_gen_nl(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+            dmaster_stoch_gen_nl(dx::DiffArray,
                     t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
                 dmaster_stoch_dynamic_general_nl(dx, t, rho, fstoch, fstoch_H, fstoch_J,
                         rates, rates_s, drho, tmp, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_gen_nl, rho0, fout, n; kwargs...)
         else
-            dmaster_stoch_gen(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+            dmaster_stoch_gen(dx::DiffArray,
                     t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
                 dmaster_stoch_dynamic_general(dx, t, rho, fstoch, fstoch_H, fstoch_J,
                         rates, rates_s, drho, tmp, n)
@@ -307,7 +308,7 @@ function dmaster_stochastic_nl(dx::Array{Complex128, 2}, rho::DenseOperator, H::
     dmaster_stochastic_nl(dx, rho, nothing, rates, J, Jdagger, drho, n-m)
 end
 
-function dmaster_stoch_dynamic(dx::Union{Vector{Complex128}, Array{Complex128, 2}}, t::Float64, rho::DenseOperator,
+function dmaster_stoch_dynamic(dx::DiffArray, t::Float64, rho::DenseOperator,
             f::Function, rates::DecayRates, drho::DenseOperator, n::Int)
     result = f(t, rho)
     @assert 2 <= length(result) <= 3
@@ -319,7 +320,7 @@ function dmaster_stoch_dynamic(dx::Union{Vector{Complex128}, Array{Complex128, 2
     end
     dmaster_stochastic(dx, rho, nothing, rates_, J, Jdagger, drho, n)
 end
-function dmaster_stoch_dynamic_nl(dx::Union{Vector{Complex128}, Array{Complex128, 2}}, t::Float64, rho::DenseOperator,
+function dmaster_stoch_dynamic_nl(dx::DiffArray, t::Float64, rho::DenseOperator,
             f::Function, rates::DecayRates, drho::DenseOperator, n::Int)
     result = f(t, rho)
     @assert 2 <= length(result) <= 3

@@ -8,6 +8,8 @@ using ...timeevolution
 import ...timeevolution: integrate_stoch, recast!
 import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic, check_schroedinger
 
+const DiffArray = Union{Vector{Complex128}, Array{Complex128, 2}}
+
 """
     stochastic.schroedinger(tspan, state0, H, Hs[; fout, ...])
 
@@ -37,7 +39,7 @@ function schroedinger(tspan, psi0::Ket, H::Operator, Hs::Vector;
 
     check_schroedinger(psi0, H)
     dschroedinger_determ(t::Float64, psi::Ket, dpsi::Ket) = dschroedinger(psi, H, dpsi)
-    dschroedinger_stoch(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+    dschroedinger_stoch(dx::DiffArray,
             t::Float64, psi::Ket, dpsi::Ket, n::Int) = dschroedinger_stochastic(dx, psi, Hs, dpsi, n)
 
     integrate_stoch(tspan_, dschroedinger_determ, dschroedinger_stoch, x0, state, dstate, fout, n; kwargs...)
@@ -85,7 +87,7 @@ function schroedinger_dynamic(tspan, psi0::Ket, fdeterm::Function, fstoch::Funct
     state = copy(psi0)
 
     dschroedinger_determ(t::Float64, psi::Ket, dpsi::Ket) = dschroedinger_dynamic(t, psi, fdeterm, dpsi)
-    dschroedinger_stoch(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+    dschroedinger_stoch(dx::DiffArray,
             t::Float64, psi::Ket, dpsi::Ket, n::Int) =
         dschroedinger_stochastic(dx, t, psi, fstoch, dpsi, n)
 
@@ -109,7 +111,7 @@ function dschroedinger_stochastic(dx::Array{Complex128, 2}, psi::Ket, Hs::Vector
         recast!(dpsi, dx_i)
     end
 end
-function dschroedinger_stochastic(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+function dschroedinger_stochastic(dx::DiffArray,
             t::Float64, psi::Ket, f::Function, dpsi::Ket, n::Int)
     ops = f(t, psi)
     dschroedinger_stochastic(dx, psi, ops, dpsi, n)
