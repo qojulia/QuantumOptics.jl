@@ -67,10 +67,13 @@ function master(tspan, rho0::DenseOperator, H::Operator,
     n = length(Js) + (isa(Hs, Void) ? 0 : length(Hs))
 
     if nonlinear
-        X = Js .+ Jsdagger
-        dmaster_stoch_nl(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) = dmaster_stochastic_nl(rho, Hs, rates_s, Js, Jsdagger, X, drho, index)
+        dmaster_stoch_nl(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+                t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
+            dmaster_stochastic_nl(dx, rho, Hs, rates_s, Js, Jsdagger, drho, n)
     else
-        dmaster_stoch_lin(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) = dmaster_stochastic(rho, Hs, rates_s, Js, Jsdagger, drho, index)
+        dmaster_stoch_lin(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+                t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
+            dmaster_stochastic(dx, rho, Hs, rates_s, Js, Jsdagger, drho, n)
     end
 
     isreducible = check_master(rho0, H, J, Jdagger, rates)
@@ -180,217 +183,350 @@ function master_dynamic(tspan::Vector{Float64}, rho0::DenseOperator, fdeterm::Fu
     dmaster_determ(t::Float64, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, fdeterm, rates, drho, tmp)
     if isa(fstoch_H, Void) && isa(fstoch_J, Void)
         if nonlinear
-            dmaster_stoch_std_nl(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) =
-                dmaster_stoch_dynamic_nl(t, rho, fstoch, rates_s, drho, index)
+            dmaster_stoch_std_nl(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+                    t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
+                dmaster_stoch_dynamic_nl(dx, t, rho, fstoch, rates_s, drho, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_std_nl, rho0, fout, n; kwargs...)
         else
-            dmaster_stoch_std(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) =
-                dmaster_stoch_dynamic(t, rho, fstoch, rates_s, drho, index)
+            dmaster_stoch_std(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+                    t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
+                dmaster_stoch_dynamic(dx, t, rho, fstoch, rates_s, drho, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_std, rho0, fout, n; kwargs...)
         end
     else
         if nonlinear
-            dmaster_stoch_gen_nl(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) =
-                dmaster_stoch_dynamic_general_nl(t, rho, fstoch, fstoch_H, fstoch_J,
-                        rates, rates_s, drho, tmp, index)
+            dmaster_stoch_gen_nl(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+                    t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
+                dmaster_stoch_dynamic_general_nl(dx, t, rho, fstoch, fstoch_H, fstoch_J,
+                        rates, rates_s, drho, tmp, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_gen_nl, rho0, fout, n; kwargs...)
         else
-            dmaster_stoch_gen(t::Float64, rho::DenseOperator, drho::DenseOperator, index::Int) =
-                dmaster_stoch_dynamic_general(t, rho, fstoch, fstoch_H, fstoch_J,
-                        rates, rates_s, drho, tmp, index)
+            dmaster_stoch_gen(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
+                    t::Float64, rho::DenseOperator, drho::DenseOperator, n::Int) =
+                dmaster_stoch_dynamic_general(dx, t, rho, fstoch, fstoch_H, fstoch_J,
+                        rates, rates_s, drho, tmp, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_gen, rho0, fout, n; kwargs...)
         end
     end
 end
 master_dynamic(tspan::Vector{Float64}, psi0::Ket, args...; kwargs...) = master_dynamic(tspan, dm(psi0), args...; kwargs...)
 
-function dmaster_stochastic(rho::DenseOperator, H::Void, rates::Void,
-            J::Vector, Jdagger::Vector, drho::DenseOperator, index::Int)
-    operators.gemm!(1, J[index], rho, 0, drho)
-    operators.gemm!(1, rho, Jdagger[index], 1, drho)
+# Terms in SME
+function dneumann(rho::DenseOperator, H::Operator, drho::DenseOperator)
+    operators.gemm!(-1.0im, H, rho, 0.0, drho)
+    operators.gemm!(1.0im, rho, H, 1.0, drho)
 end
-function dmaster_stochastic(rho::DenseOperator, H::Void, rates::Vector{Float64},
-            J::Vector, Jdagger::Vector, drho::DenseOperator, index::Int)
-    operators.gemm!(rates[index], J[index], rho, 0, drho)
-    operators.gemm!(rates[index], rho, Jdagger[index], 1, drho)
-end
-
-function dmaster_stochastic(rho::DenseOperator, H::Vector, rates::Void,
-            J::Vector, Jdagger::Vector, drho::DenseOperator, index::Int)
-    if index > length(J)
-        operators.gemm!(-1.0im, H[index - length(J)], rho, 0.0, drho)
-        operators.gemm!(1.0im, rho, H[index - length(J)], 1.0, drho)
-    else
-        operators.gemm!(1, J[index], rho, 0, drho)
-        operators.gemm!(1, rho, Jdagger[index], 1, drho)
-    end
-end
-function dmaster_stochastic(rho::DenseOperator, H::Vector, rates::Vector{Float64},
-            J::Vector, Jdagger::Vector, drho::DenseOperator, index::Int)
-    if index > length(J)
-        operators.gemm!(-1.0im, H[index - length(J)], rho, 0.0, drho)
-        operators.gemm!(1.0im, rho, H[index - length(J)], 1.0, drho)
-    else
-        operators.gemm!(rates[index], J[index], rho, 0, drho)
-        operators.gemm!(rates[index], rho, Jdagger[index], 1, drho)
-    end
-end
-
-function dmaster_stochastic_nl(rho::DenseOperator, H::Union{Void, Vector}, rates::Void,
-            J::Vector, Jdagger::Vector, X::Vector, drho::DenseOperator,  index::Int)
-    dmaster_stochastic(rho, H, rates, J, Jdagger, drho, index)
-    if index <= length(X)
-        drho.data .-= expect(X[index], rho)*rho.data
-    end
-end
-function dmaster_stochastic_nl(rho::DenseOperator, H::Union{Void, Vector}, rates::Vector{Float64},
-            J::Vector, Jdagger::Vector, X::Vector, drho::DenseOperator, index::Int)
-    dmaster_stochastic(rho, H, rates, J, Jdagger, drho, index)
-    if index <= length(X)
-        drho.data .-= rates[index]*expect(X[index], rho)*rho.data
-    end
-end
-
-function dmaster_stoch_dynamic(t::Float64, rho::DenseOperator, f::Function, rates::DecayRates,
-            drho::DenseOperator, index::Int)
-    result = f(t, rho)
-    @assert 2 <= length(result) <= 3
-    if length(result) == 2
-        J, Jdagger = result
-        rates_ = rates
-    else
-        J, Jdagger, rates_ = result
-    end
-    dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, index)
-end
-function dmaster_stoch_dynamic_nl(t::Float64, rho::DenseOperator, f::Function, rates::DecayRates,
-            drho::DenseOperator, index::Int)
-    result = f(t, rho)
-    @assert 2 <= length(result) <= 3
-    if length(result) == 2
-        J, Jdagger = result
-        rates_ = rates
-    else
-        J, Jdagger, rates_ = result
-    end
-    dmaster_stochastic(rho, nothing, rates_, J, Jdagger, drho, index)
-    if isa(rates_, Void)
-        drho.data .-= (expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
-    else
-        drho.data .-= rates_[index]*(expect(J[index], rho) + expect(Jdagger[index], rho))*rho.data
-    end
-end
-
-function dmaster_stoch_dynamic_general(t::Float64, rho::DenseOperator, fstoch::Function,
-            fstoch_H::Function, fstoch_J::Void, rates::DecayRates, rates_s::DecayRates,
-            drho::DenseOperator, tmp::DenseOperator, index::Int)
-    H = fstoch_H(t, rho)
-    if index <= length(H)
-        operators.gemm!(-1.0im, H[index], rho, 0.0, drho)
-        operators.gemm!(1.0im, rho, H[index], 1.0, drho)
-    else
-        dmaster_stoch_dynamic(t, rho, fstoch, rates_s, drho, index-length(H))
-    end
-end
-function dmaster_stoch_dynamic_general(t::Float64, rho::DenseOperator, fstoch::Function,
-            fstoch_H::Void, fstoch_J::Function, rates::DecayRates, rates_s::DecayRates,
-            drho::DenseOperator, tmp::DenseOperator, index::Int)
-    result_J = fstoch_J(t, rho)
-    if index <= length(result_J[1])
-        @assert 2 <= length(result_J) <= 3
-        if length(result_J) == 2
-            J_stoch, J_stoch_dagger = result_J
-            rates_ = rates
-        else
-            J_stoch, J_stoch_dagger, rates_ = result_J
-        end
-        dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, index)
-    else
-        dmaster_stoch_dynamic(t, rho, fstoch, rates_s, drho, index-length(result_J[1]))
-    end
-end
-function dmaster_stoch_dynamic_general(t::Float64, rho::DenseOperator, fstoch::Function,
-            fstoch_H::Function, fstoch_J::Function, rates::DecayRates, rates_s::DecayRates,
-            drho::DenseOperator, tmp::DenseOperator, index::Int)
-    H = fstoch_H(t, rho)
-    result_J = fstoch_J(t, rho)
-    if index <= length(H)
-        operators.gemm!(-1.0im, H[index], rho, 0.0, drho)
-        operators.gemm!(1.0im, rho, H[index], 1.0, drho)
-    elseif length(H) < index <= length(H) + length(result_J[1])
-        @assert 2 <= length(result_J) <= 3
-        if length(result_J) == 2
-            J_stoch, J_stoch_dagger = result_J
-            rates_ = rates
-        else
-            J_stoch, J_stoch_dagger, rates_ = result_J
-        end
-        dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, index-length(H))
-    else
-        dmaster_stoch_dynamic(t, rho, fstoch, rates_s, drho, index-length(H)-length(result_J[1]))
-    end
-end
-
-function dmaster_stoch_dynamic_general_nl(t::Float64, rho::DenseOperator, fstoch::Function,
-            fstoch_H::Function, fstoch_J::Void, rates::DecayRates, rates_s::DecayRates,
-            drho::DenseOperator, tmp::DenseOperator, index::Int)
-    H = fstoch_H(t, rho)
-    if index <= length(H)
-        operators.gemm!(-1.0im, H[index], rho, 0.0, drho)
-        operators.gemm!(1.0im, rho, H[index], 1.0, drho)
-    else
-        dmaster_stoch_dynamic_nl(t, rho, fstoch, rates_s, drho, index-length(H))
-    end
-end
-function dmaster_stoch_dynamic_general_nl(t::Float64, rho::DenseOperator, fstoch::Function,
-            fstoch_H::Void, fstoch_J::Function, rates::DecayRates, rates_s::DecayRates,
-            drho::DenseOperator, tmp::DenseOperator, index::Int)
-    result_J = fstoch_J(t, rho)
-    if index <= length(result_J[1])
-        @assert 2 <= length(result_J) <= 3
-        if length(result_J) == 2
-            J_stoch, J_stoch_dagger = result_J
-            rates_ = rates
-        else
-            J_stoch, J_stoch_dagger, rates_ = result_J
-        end
-        dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, index)
-    else
-        dmaster_stoch_dynamic_nl(t, rho, fstoch, rates_s, drho, index-length(result_J[1]))
-    end
-end
-function dmaster_stoch_dynamic_general_nl(t::Float64, rho::DenseOperator, fstoch::Function,
-            fstoch_H::Function, fstoch_J::Function, rates::DecayRates, rates_s::DecayRates,
-            drho::DenseOperator, tmp::DenseOperator, index::Int)
-    H = fstoch_H(t, rho)
-    result_J = fstoch_J(t, rho)
-    if index <= length(H)
-        operators.gemm!(-1.0im, H[index], rho, 0.0, drho)
-        operators.gemm!(1.0im, rho, H[index], 1.0, drho)
-    elseif length(H) < index <= length(H) + length(result_J[1])
-        @assert 2 <= length(result_J) <= 3
-        if length(result_J) == 2
-            J_stoch, J_stoch_dagger = result_J
-            rates_ = rates
-        else
-            J_stoch, J_stoch_dagger, rates_ = result_J
-        end
-        dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, index-length(H))
-    else
-        dmaster_stoch_dynamic_nl(t, rho, fstoch, rates_s, drho, index-length(H)-length(result_J[1]))
-    end
-end
-
+# dneumann(rho::DenseOperator, H::Void, args...) = nothing
 
 function dlindblad(rho::DenseOperator, rates::Void, J::Vector, Jdagger::Vector,
-    drho::DenseOperator, tmp::DenseOperator, i::Int)
+        drho::DenseOperator, tmp::DenseOperator, i::Int)
     operators.gemm!(1, J[i], rho, 0, tmp)
     operators.gemm!(1, tmp, Jdagger[i], 1, drho)
 end
 function dlindblad(rho::DenseOperator, rates::Vector{Float64}, J::Vector,
-    Jdagger::Vector, drho::DenseOperator, tmp::DenseOperator, i::Int)
+        Jdagger::Vector, drho::DenseOperator, tmp::DenseOperator, i::Int)
     operators.gemm!(rates[i], J[i], rho, 0, tmp)
     operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+end
+
+function dwiseman(rho::DenseOperator, rates::Void, J::Vector,
+        Jdagger::Vector, drho::DenseOperator, i::Int)
+    operators.gemm!(1, J[i], rho, 0, drho)
+    operators.gemm!(1, rho, Jdagger[i], 1, drho)
+end
+function dwiseman(rho::DenseOperator, rates::Vector{Float64}, J::Vector,
+        Jdagger::Vector, drho::DenseOperator, i::Int)
+    operators.gemm!(rates[i], J[i], rho, 0, drho)
+    operators.gemm!(rates[i], rho, Jdagger[i], 1, drho)
+end
+
+function dwiseman_nl(rho::DenseOperator, rates::Void, J::Vector,
+        Jdagger::Vector, drho::DenseOperator, i::Int)
+    operators.gemm!(1, J[i], rho, 0, drho)
+    operators.gemm!(1, rho, Jdagger[i], 1, drho)
+    drho.data .-= (expect(J[i], rho) + expect(Jdagger[i], rho))*rho.data
+end
+function dwiseman_nl(rho::DenseOperator, rates::Vector{Float64}, J::Vector,
+        Jdagger::Vector, drho::DenseOperator, i::Int)
+    operators.gemm!(rates[i], J[i], rho, 0, drho)
+    operators.gemm!(rates[i], rho, Jdagger[i], 1, drho)
+    drho.data .-= rates[i]*(expect(J[i], rho) + expect(Jdagger[i], rho))*rho.data
+end
+
+# Derivative functions
+function dmaster_stochastic(dx::Vector{Complex128}, rho::DenseOperator, H::Void, rates::DecayRates,
+            J::Vector, Jdagger::Vector, drho::DenseOperator, ::Int)
+    recast!(dx, drho)
+    dwiseman(rho, rates, J, Jdagger, drho, 1)
+    recast!(drho, dx)
+end
+function dmaster_stochastic(dx::Array{Complex128, 2}, rho::DenseOperator, H::Void, rates::DecayRates,
+            J::Vector, Jdagger::Vector, drho::DenseOperator, n::Int)
+    for i=1:n
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dwiseman(rho, rates, J, Jdagger, drho, i)
+    end
+end
+function dmaster_stochastic(dx::Array{Complex128, 2}, rho::DenseOperator, H::Vector,
+            rates::DecayRates, J::Vector, Jdagger::Vector, drho::DenseOperator, n::Int)
+    m = length(H)
+    for i=1:m
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dneumann(rho, H[i], drho)
+        recast!(drho, dx_i)
+    end
+    for i=m+1:n
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dwiseman(rho, rates, J, Jdagger, drho, i-m)
+    end
+end
+
+function dmaster_stochastic_nl(dx::Vector{Complex128}, rho::DenseOperator, H::Void, rates::DecayRates,
+            J::Vector, Jdagger::Vector, drho::DenseOperator, ::Int)
+    recast!(dx, drho)
+    dwiseman_nl(rho, rates, J, Jdagger, drho, 1)
+    recast!(drho, dx)
+end
+function dmaster_stochastic_nl(dx::Array{Complex128, 2}, rho::DenseOperator, H::Void, rates::DecayRates,
+            J::Vector, Jdagger::Vector, drho::DenseOperator, n::Int)
+    for i=1:n
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dwiseman_nl(rho, rates, J, Jdagger, drho, i)
+        recast!(drho, dx_i)
+    end
+end
+function dmaster_stochastic_nl(dx::Array{Complex128, 2}, rho::DenseOperator, H::Vector,
+            rates::DecayRates, J::Vector, Jdagger::Vector, drho::DenseOperator, n::Int)
+    m = length(H)
+    for i=1:m
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dneumann(rho, H[i], drho)
+        recast!(drho, dx_i)
+    end
+    for i=m+1:n
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dwiseman_nl(rho, rates, J, Jdagger, drho, i-m)
+        recast!(drho, dx_i)
+    end
+end
+
+function dmaster_stoch_dynamic(dx::Union{Vector{Complex128}, Array{Complex128, 2}}, t::Float64, rho::DenseOperator,
+            f::Function, rates::DecayRates, drho::DenseOperator, n::Int)
+    result = f(t, rho)
+    @assert 2 <= length(result) <= 3
+    if length(result) == 2
+        J, Jdagger = result
+        rates_ = rates
+    else
+        J, Jdagger, rates_ = result
+    end
+    dmaster_stochastic(dx, rho, nothing, rates_, J, Jdagger, drho, n)
+end
+function dmaster_stoch_dynamic_nl(dx::Union{Vector{Complex128}, Array{Complex128, 2}}, t::Float64, rho::DenseOperator,
+            f::Function, rates::DecayRates, drho::DenseOperator, n::Int)
+    result = f(t, rho)
+    @assert 2 <= length(result) <= 3
+    if length(result) == 2
+        J, Jdagger = result
+        rates_ = rates
+    else
+        J, Jdagger, rates_ = result
+    end
+    dmaster_stochastic_nl(dx, rho, nothing, rates_, J, Jdagger, drho, n)
+end
+
+function dmaster_stoch_dynamic_general(dx::Array{Complex128, 2}, t::Float64, rho::DenseOperator, fstoch::Function,
+            fstoch_H::Function, fstoch_J::Void, rates::DecayRates, rates_s::DecayRates,
+            drho::DenseOperator, tmp::DenseOperator, n::Int)
+    H = fstoch_H(t, rho)
+    result = fstoch(t, rho)
+    @assert 2 <= length(result) <= 3
+    if length(result) == 2
+        J, Jdagger = result
+        rates_ = rates_s
+    else
+        J, Jdagger, rates_ = result
+    end
+    dmaster_stochastic(dx, rho, H, rates_, J, Jdagger, drho, n)
+end
+function dmaster_stoch_dynamic_general(dx::Array{Complex128, 2}, t::Float64, rho::DenseOperator, fstoch::Function,
+            fstoch_H::Void, fstoch_J::Function, rates::DecayRates, rates_s::DecayRates,
+            drho::DenseOperator, tmp::DenseOperator, n::Int)
+    result_J = fstoch_J(t, rho)
+    @assert 2 <= length(result_J) <= 3
+    if length(result_J) == 2
+        J_stoch, J_stoch_dagger = result_J
+        rates_ = rates
+    else
+        J_stoch, J_stoch_dagger, rates_ = result_J
+    end
+    m = length(J_stoch)
+
+    result = fstoch(t, rho)
+    @assert 2 <= length(result) <= 3
+    if length(result) == 2
+        J, Jdagger = result
+        rates_s_ = rates_s
+    else
+        J, Jdagger, rates_s_ = result
+    end
+
+    for i=1:m
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i)
+        recast!(drho, dx_i)
+    end
+    for i=m+1:n
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dwiseman(rho, rates_s_, J, Jdagger, drho, i-m)
+        recast!(drho, dx_i)
+    end
+end
+function dmaster_stoch_dynamic_general(dx::Array{Complex128, 2}, t::Float64, rho::DenseOperator, fstoch::Function,
+            fstoch_H::Function, fstoch_J::Function, rates::DecayRates, rates_s::DecayRates,
+            drho::DenseOperator, tmp::DenseOperator, n::Int)
+    H = fstoch_H(t, rho)
+    m = length(H)
+
+    result_J = fstoch_J(t, rho)
+    @assert 2 <= length(result_J) <= 3
+    if length(result_J) == 2
+        J_stoch, J_stoch_dagger = result_J
+        rates_ = rates
+    else
+        J_stoch, J_stoch_dagger, rates_ = result_J
+    end
+    l = length(J_stoch)
+
+    result = fstoch(t, rho)
+    @assert 2 <= length(result) <= 3
+    if length(result) == 2
+        J, Jdagger = result
+        rates_s_ = rates_s
+    else
+        J, Jdagger, rates_s_ = result
+    end
+
+    for i=1:m
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dneumann(rho, H[i], drho)
+        recast!(drho, dx_i)
+    end
+    for i=m+1:n-l
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i-m)
+        recast!(drho, dx_i)
+    end
+    for i=n-l+1:n
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dwiseman(rho, rates_s_, J, Jdagger, drho, i-n+l)
+        recast!(drho, dx_i)
+    end
+end
+
+function dmaster_stoch_dynamic_general_nl(dx::Array{Complex128, 2}, t::Float64, rho::DenseOperator, fstoch::Function,
+            fstoch_H::Function, fstoch_J::Void, rates::DecayRates, rates_s::DecayRates,
+            drho::DenseOperator, tmp::DenseOperator, n::Int)
+    H = fstoch_H(t, rho)
+    result = fstoch(t, rho)
+    @assert 2 <= length(result) <= 3
+    if length(result) == 2
+        J, Jdagger = result
+        rates_ = rates_s
+    else
+        J, Jdagger, rates_ = result
+    end
+    dmaster_stochastic_nl(dx, rho, H, rates_, J, Jdagger, drho, n)
+end
+function dmaster_stoch_dynamic_general_nl(dx::Array{Complex128, 2}, t::Float64, rho::DenseOperator, fstoch::Function,
+            fstoch_H::Void, fstoch_J::Function, rates::DecayRates, rates_s::DecayRates,
+            drho::DenseOperator, tmp::DenseOperator, n::Int)
+    result_J = fstoch_J(t, rho)
+    @assert 2 <= length(result_J) <= 3
+    if length(result_J) == 2
+        J_stoch, J_stoch_dagger = result_J
+        rates_ = rates
+    else
+        J_stoch, J_stoch_dagger, rates_ = result_J
+    end
+    m = length(J_stoch)
+
+    result = fstoch(t, rho)
+    @assert 2 <= length(result) <= 3
+    if length(result) == 2
+        J, Jdagger = result
+        rates_s_ = rates_s
+    else
+        J, Jdagger, rates_s_ = result
+    end
+
+    for i=1:m
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i)
+        recast!(drho, dx_i)
+    end
+    for i=m+1:n
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dwiseman_nl(rho, rates_s_, J, Jdagger, drho, i-m)
+        recast!(drho, dx_i)
+    end
+end
+function dmaster_stoch_dynamic_general_nl(dx::Array{Complex128, 2}, t::Float64, rho::DenseOperator, fstoch::Function,
+            fstoch_H::Function, fstoch_J::Function, rates::DecayRates, rates_s::DecayRates,
+            drho::DenseOperator, tmp::DenseOperator, n::Int)
+    H = fstoch_H(t, rho)
+    m = length(H)
+
+    result_J = fstoch_J(t, rho)
+    @assert 2 <= length(result_J) <= 3
+    if length(result_J) == 2
+        J_stoch, J_stoch_dagger = result_J
+        rates_ = rates
+    else
+        J_stoch, J_stoch_dagger, rates_ = result_J
+    end
+    l = length(J_stoch)
+
+    result = fstoch(t, rho)
+    @assert 2 <= length(result) <= 3
+    if length(result) == 2
+        J, Jdagger = result
+        rates_s_ = rates_s
+    else
+        J, Jdagger, rates_s_ = result
+    end
+
+    for i=1:m
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dneumann(rho, H[i], drho)
+        recast!(drho, dx_i)
+    end
+    for i=m+1:n-l
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i-m)
+        recast!(drho, dx_i)
+    end
+    for i=n-l+1:n
+        dx_i = @view dx[:, i]
+        recast!(dx_i, drho)
+        dwiseman_nl(rho, rates_s_, J, Jdagger, drho, i-n+l)
+        recast!(drho, dx_i)
+    end
 end
 
 function integrate_master_stoch(tspan, df::Function, dg::Function,
