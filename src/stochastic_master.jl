@@ -421,16 +421,16 @@ function dmaster_stoch_dynamic_general(dx::Array{Complex128, 2}, t::Float64, rho
         dneumann(rho, H[i], drho)
         recast!(drho, dx_i)
     end
-    for i=m+1:n-l
+    for i=m+1:m+l
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
         dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i-m)
         recast!(drho, dx_i)
     end
-    for i=n-l+1:n
+    for i=m+l+1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
-        dwiseman(rho, rates_s_, J, Jdagger, drho, i-n+l)
+        dwiseman(rho, rates_s_, J, Jdagger, drho, i-m-l)
         recast!(drho, dx_i)
     end
 end
@@ -515,16 +515,16 @@ function dmaster_stoch_dynamic_general_nl(dx::Array{Complex128, 2}, t::Float64, 
         dneumann(rho, H[i], drho)
         recast!(drho, dx_i)
     end
-    for i=m+1:n-l
+    for i=m+1:m+l
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
         dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i-m)
         recast!(drho, dx_i)
     end
-    for i=n-l+1:n
+    for i=m+l+1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
-        dwiseman_nl(rho, rates_s_, J, Jdagger, drho, i-n+l)
+        dwiseman_nl(rho, rates_s_, J, Jdagger, drho, i-m-l)
         recast!(drho, dx_i)
     end
 end
