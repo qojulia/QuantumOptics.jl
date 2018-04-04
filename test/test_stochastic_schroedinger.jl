@@ -65,6 +65,7 @@ for i=1:length(tout)
 end
 
 # Test remaining function calls for short times to test whether they work in principle
-tout, ψt = stochastic.schroedinger(T_short, ψ0, H, noise_op; dt=dt)
+tout, ψt = stochastic.schroedinger(T_short, ψ0, H, noise_op; dt=dt,
+        alg=StochasticDiffEq.RKMil(interpretation=:Stratonovich))
 
 end # testset

@@ -299,7 +299,7 @@ end
 function dmaster_stochastic_nl(dx::Array{Complex128, 2}, rho::DenseOperator, H::Vector,
             rates::DecayRates, J::Vector, Jdagger::Vector, drho::DenseOperator, n::Int)
     m = length(H)
-    for i=n-m+1:m
+    for i=n-m+1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
         dneumann(rho, H[i-n+m], drho)
@@ -369,7 +369,7 @@ function dmaster_stoch_dynamic_general(dx::Array{Complex128, 2}, t::Float64, rho
         J, Jdagger, rates_s_ = result
     end
 
-    for i=n-l+1:n-l
+    for i=n-l+1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
         dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i-n+l)
@@ -401,7 +401,7 @@ function dmaster_stoch_dynamic_general(dx::Array{Complex128, 2}, t::Float64, rho
         J, Jdagger, rates_s_ = result
     end
 
-    for i=n-l+1:n-l
+    for i=n-l+1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
         dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i-n+l)
@@ -446,7 +446,7 @@ function dmaster_stoch_dynamic_general_nl(dx::Array{Complex128, 2}, t::Float64, 
         J, Jdagger, rates_s_ = result
     end
 
-    for i=n-l+1:n-l
+    for i=n-l+1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
         dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i-n+l)
@@ -478,7 +478,7 @@ function dmaster_stoch_dynamic_general_nl(dx::Array{Complex128, 2}, t::Float64, 
         J, Jdagger, rates_s_ = result
     end
 
-    for i=n-l+1:n-l
+    for i=n-l+1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
         dlindblad(rho, rates_, J_stoch, J_stoch_dagger, drho, tmp, i-n+l)

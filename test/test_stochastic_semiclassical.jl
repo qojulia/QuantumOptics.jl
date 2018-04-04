@@ -92,6 +92,10 @@ tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fcl
             fstoch_quantum=fstoch_q_master2, dt=dt)
 tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
             fstoch_H=fquantum_stoch, fstoch_J=fstoch_J, dt=dt)
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
+            fstoch_H=fquantum_stoch, dt=dt)
+tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;
+            fstoch_J=fstoch_J, dt=dt)
 
 # Test linear version
 tout, ρt = stochastic.master_semiclassical(T_short, ρ_sc, fquantum_master, fclassical;

@@ -176,31 +176,31 @@ function master_semiclassical(tspan::Vector{Float64}, rho0::State{DenseOperator}
     if isa(fstoch_H, Void) && isa(fstoch_J, Void)
         if nonlinear
             dmaster_stoch_std_nl(dx::DiffArray, t::Float64, rho::State{DenseOperator},
-                            drho::State{DenseOperator}, index::Int) =
+                            drho::State{DenseOperator}, n::Int) =
                 dmaster_stoch_dynamic_nl(dx, t, rho, fstoch_quantum, fstoch_classical,
-                            rates_s, drho, index)
+                            rates_s, drho, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_std_nl, rho0, fout, n; kwargs...)
         else
             dmaster_stoch_std(dx::DiffArray, t::Float64, rho::State{DenseOperator},
-                            drho::State{DenseOperator}, index::Int) =
+                            drho::State{DenseOperator}, n::Int) =
                 dmaster_stoch_dynamic(dx, t, rho, fstoch_quantum, fstoch_classical,
-                            rates_s, drho, index)
+                            rates_s, drho, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_std, rho0, fout, n; kwargs...)
         end
     else
         if nonlinear
             dmaster_stoch_gen_nl(dx::DiffArray, t::Float64, rho::State{DenseOperator},
-                            drho::State{DenseOperator}, index::Int) =
+                            drho::State{DenseOperator}, n::Int) =
                 dmaster_stoch_dynamic_general_nl(dx, t, rho, fstoch_quantum,
                             fstoch_classical, fstoch_H, fstoch_J, rates, rates_s,
-                            drho, tmp, index)
+                            drho, tmp, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_gen_nl, rho0, fout, n; kwargs...)
         else
             dmaster_stoch_gen(dx::DiffArray, t::Float64, rho::State{DenseOperator},
-                            drho::State{DenseOperator}, index::Int) =
+                            drho::State{DenseOperator}, n::Int) =
                 dmaster_stoch_dynamic_general(dx, t, rho, fstoch_quantum,
                             fstoch_classical, fstoch_H, fstoch_J, rates, rates_s,
-                            drho, tmp, index)
+                            drho, tmp, n)
             integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch_gen, rho0, fout, n; kwargs...)
         end
     end
@@ -436,8 +436,8 @@ function dmaster_stoch_dynamic_general(dx::Array{Complex128, 2}, t::Float64,
             nothing, fstoch_J, rates, rates_s, dstate, tmp, n-m)
 end
 
-dmaster_stoch_dynamic_general_nl(dx::Vector{Complex128}, args...) =
-    dmaster_stoch_dynamic_general(dx, args...)
+dmaster_stoch_dynamic_general_nl(dx::Vector{Complex128}, args...; kwargs...) =
+    dmaster_stoch_dynamic_general(dx, args...; kwargs...)
 function dmaster_stoch_dynamic_general_nl(dx::Array{Complex128, 2}, t::Float64, state::State{DenseOperator},
             fstoch_quantum::Union{Function, Void}, fstoch_classical::Union{Function, Void},
             fstoch_H::Function, fstoch_J::Void, rates::DecayRates, rates_s::DecayRates,
