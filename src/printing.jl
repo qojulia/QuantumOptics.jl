@@ -120,7 +120,7 @@ show(stream::IO, x::Operator) = showoperatorheader(stream, x)
 function showquantumstatebody(stream::IO, x::Union{Ket,Bra})
     #the permutation is used to invert the order A x B = B.data x A.data to A.data x B.data
     perm = collect(length(basis(x).shape):-1:1)
-    if length(perm) == 1 || !_std_order
+    if length(perm) == 1
         Base.showarray(stream, round.(x.data, machineprecorder), false; header=false)
     else
         Base.showarray(stream,

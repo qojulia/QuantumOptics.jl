@@ -78,4 +78,47 @@ Tpx = transform(bp, bx)
   basis left:  Momentum(pmin=-3.141592653589793, pmax=3.141592653589793, N=4)
   basis right: Position(xmin=-2.0, xmax=2.0, N=4)"
 
+# Inversed tensor product ordering
+QuantumOptics.set_printing(standard_order=true)
+
+n = fockstate(b_fock, 1)
+@test sprint(show, n) == "Ket(dim=3)\n  basis: Fock(cutoff=2)\n 0.0+0.0im\n 1.0+0.0im\n 0.0+0.0im"
+
+spin1 = spindown(b_spin)
+spin2 = spinup(b_spin)
+state = n ⊗ spin1 ⊗ spin2
+state_data = kron(n.data, spin1.data, spin2.data)
+type_len = length("Complex{Float64}")
+state_data_str = join(split(sprint(show, state_data)[type_len+2:end-1], ','), "\n")
+@test sprint(show, state) == "Ket(dim=12)
+  basis: [Fock(cutoff=2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n "*state_data_str
+
+state_data_str = join(split(sprint(show, state_data')[type_len+2:end-1]), "\n ")
+@test sprint(show, dagger(state)) == "Bra(dim=12)
+  basis: [Fock(cutoff=2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n "*state_data_str
+
+op = dm(state)
+op_data = state_data * state_data'
+op_data_str1 = split(sprint(show, op_data)[type_len+2:end-1], ";")
+for i=1:length(op_data_str1)
+    op_data_str1[i] = join(split(op_data_str1[i]), "  ")
+end
+op_data_str = join(op_data_str1, "\n ")
+@test sprint(show, op) == "DenseOperator(dim=12x12)
+  basis: [Fock(cutoff=2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n "*op_data_str
+
+op = sparse(op)
+op_data = sparse(op_data)
+op_data_str = sprint(show, op_data)[4:end]
+@test sprint(show, op) == "SparseOperator(dim=12x12)
+  basis: [Fock(cutoff=2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n  "*op_data_str
+
+# Test switching back
+QuantumOptics.set_printing(standard_order=false)
+state_data = kron(spin2.data, spin1.data, n.data)
+state_data_str = join(split(sprint(show, state_data)[type_len+2:end-1], ','), "\n")
+@test sprint(show, state) == "Ket(dim=12)
+  basis: [Fock(cutoff=2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n "*state_data_str
+
+
 end # testset
