@@ -137,7 +137,7 @@ function basisstate(b::Basis, indices::Vector{Int})
 end
 
 function basisstate(b::Basis, index::Int)
-    data = zeros(length(b))
+    data = zeros(Complex128, length(b))
     data[index] = Complex(1.)
     Ket(b, data)
 end
