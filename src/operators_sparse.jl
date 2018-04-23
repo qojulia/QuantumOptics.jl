@@ -77,7 +77,6 @@ operators.trace(op::SparseOperator) = (check_samebases(op); trace(op.data))
 
 function operators.ptrace(op::SparseOperator, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)
-    rank = length(op.basis_l.shape) - length(indices)
     shape = [op.basis_l.shape; op.basis_r.shape]
     data = sparsematrix.ptrace(op.data, shape, indices)
     b_l = ptrace(op.basis_l, indices)
