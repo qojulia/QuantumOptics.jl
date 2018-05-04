@@ -113,6 +113,16 @@ op_data_str = sprint(show, op_data)[4:end]
 @test sprint(show, op) == "SparseOperator(dim=12x12)
   basis: [Fock(cutoff=2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n  "*op_data_str
 
+paulix, pauliy = sigmax(b_spin), sigmay(b_spin)
+pauli = paulix ⊗ pauliy
+pauli_data = full(kron(paulix.data, pauliy.data))
+@test sprint(show, full(pauli)) == "DenseOperator(dim=4x4)
+  basis: [Spin(1/2) ⊗ Spin(1/2)]
+ 0.0+0.0im  0.0+0.0im  0.0+0.0im  0.0-1.0im
+ 0.0+0.0im  0.0+0.0im  0.0+1.0im  0.0+0.0im
+ 0.0+0.0im  0.0-1.0im  0.0+0.0im  0.0+0.0im
+ 0.0+1.0im  0.0+0.0im  0.0+0.0im  0.0+0.0im"
+
 # Test switching back
 QuantumOptics.set_printing(standard_order=false)
 state_data = kron(spin2.data, spin1.data, n.data)

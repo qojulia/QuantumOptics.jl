@@ -89,7 +89,7 @@ function show(stream::IO, x::Ket)
     if !_std_order
         Base.showarray(stream, x.data, false; header=false)
     else
-        showquantumstatebody(stream, x)
+        showarray_stdord(stream, x.data, x.basis.shape, false, header=false)
     end
 end
 
@@ -98,7 +98,7 @@ function show(stream::IO, x::Bra)
     if !_std_order
         Base.showarray(stream, x.data, false; header=false)
     else
-        showquantumstatebody(stream, x)
+        showarray_stdord(stream, x.data, x.basis.shape, false, header=false)
     end
 end
 
@@ -163,7 +163,7 @@ function show(stream::IO, x::DenseOperator)
     if !_std_order
         Base.showarray(stream, x.data, false; header=false)
     else
-        Base.showarray(stream, permuted_densedata(x), false; header=false)
+        showarray_stdord(stream, x.data, x.basis_l.shape, x.basis_r.shape, false, header=false)
     end
 end
 
@@ -175,7 +175,7 @@ function show(stream::IO, x::SparseOperator)
         if !_std_order
             show(stream, x.data)
         else
-            show(stream, permuted_sparsedata(x))
+            showsparsearray_stdord(stream, x.data, x.basis_l.shape, x.basis_r.shape)
         end
     end
 end
@@ -192,5 +192,468 @@ function show(stream::IO, x::Union{LazySum, LazyProduct})
     write(stream, "\n  operators: $(length(x.operators))")
 end
 
+"""
+    ind2Nary(m::Int, dims::Vector{Int})
+
+The inverse of `Nary2ind`.
+
+# Example
+```
+julia> dims = [2,2,3];
+
+julia> for i in 1:prod(dims)
+           println(i,": ", ind2Nary(i,dims))
+       end
+1: [0, 0, 0]
+2: [0, 0, 1]
+3: [0, 0, 2]
+4: [0, 1, 0]
+5: [0, 1, 1]
+6: [0, 1, 2]
+7: [1, 0, 0]
+8: [1, 0, 1]
+9: [1, 0, 2]
+10: [1, 1, 0]
+11: [1, 1, 1]
+12: [1, 1, 2]
+```
+"""
+function ind2Nary(m::Int, dims::Vector{Int})
+    m = m - 1
+    nq = length(dims)
+    ar = zeros(Int, nq)
+    product = prod(dims[2:end])
+    for ith in 1:nq-1
+        d = div(m, product)
+        m = m - d * product
+        product = div(product, dims[ith+1])
+        ar[ith] = d
+    end
+    ar[end] = m
+    return ar
+end
+
+"""
+    Nary2ind(x, dims) -> index
+
+Convert composite N-arys to index.
+
+# Example
+```
+julia> dims = [2,2,3];
+
+julia> Nary2ind([1,1,0], dims)
+10
+
+julia> for i in 1:prod(dims)
+           println(i,": ", Nary2ind(ind2Nary(i,dims),dims), ": ", ind2Nary(i,dims))
+       end
+1: 1: [0, 0, 0]
+2: 2: [0, 0, 1]
+3: 3: [0, 0, 2]
+4: 4: [0, 1, 0]
+5: 5: [0, 1, 1]
+6: 6: [0, 1, 2]
+7: 7: [1, 0, 0]
+8: 8: [1, 0, 1]
+9: 9: [1, 0, 2]
+10: 10: [1, 1, 0]
+11: 11: [1, 1, 1]
+12: 12: [1, 1, 2]
+```
+"""
+function Nary2ind(x::Vector{Int}, dims::Vector{Int})
+    tmp = 0
+    if length(x) != length(dims)
+        error()
+    end
+    nterms = length(x)
+    tp = prod(dims[2:end])
+    for i in 1:nterms-1
+        tmp += x[i] * tp
+        tp = div(tp, dims[i+1])
+    end
+    tmp += x[end] + 1
+end
+
+"""
+    mirror_world_index(idx, dims)
+
+Convert index of standard order to that of inversed order.
+This function is named after the book, '鏡の中の物理学' (Physics in the mirror),
+written by Tomonaga Shin'ichirō (Japanese physicist).
+"""
+function mirror_world_index(idx::Int, dims::Vector{Int})
+    return Nary2ind( reverse(ind2Nary(idx, dims)), reverse(dims)  )
+end
+
+# Following program is modified:
+# julia/base/show.jl
+# https://github.com/JuliaLang/julia/blob/5cd144ffa328fdd4cd9e983b616c7205f9bb4f51/base/show.jl
+# and
+# julia/base/sparse/sparsematrix.jl
+# https://github.com/JuliaLang/julia/blob/78831902cc412e298c5fcc94dae1e4382c8e7cd0/base/sparse/sparsematrix.jl
+
+# Copyright (c) 2009-2018: Jeff Bezanson, Stefan Karpinski, Viral B. Shah,
+# and other contributors:
+#
+# https://github.com/JuliaLang/julia/contributors
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+"""
+`alignment_std(X, ldims, rdims, rows, cols, cols_if_complete, cols_otherwise, sep)` returns the
+alignment for specified parts of array `X`, returning the (left,right) info.
+It will look in X's `rows`, `cols` (both lists of indices)
+and figure out what's needed to be fully aligned, for example looking all
+the way down a column and finding out the maximum size of each element.
+Parameter `sep::Integer` is number of spaces to put between elements.
+`cols_if_complete` and `cols_otherwise` indicate screen width to use.
+Alignment is reported as a vector of (left,right) tuples, one for each
+column going across the screen.
+"""
+function alignment_std(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vector,
+        rows::AbstractVector, cols::AbstractVector,
+        cols_if_complete::Integer, cols_otherwise::Integer, sep::Integer)
+    a = Tuple{Int, Int}[]
+    for j in cols # need to go down each column one at a time
+        l = r = 0
+        for i in rows # plumb down and see what largest element sizes are
+            if isassigned(X,mirror_world_index(i, ldims),mirror_world_index(j, rdims))
+                aij = Base.alignment(io, X[mirror_world_index(i, ldims), mirror_world_index(j, rdims)])
+            else
+                aij = undef_ref_alignment
+            end
+            l = max(l, aij[1]) # left characters
+            r = max(r, aij[2]) # right characters
+        end
+        push!(a, (l, r)) # one tuple per column of X, pruned to screen width
+        if length(a) > 1 && sum(map(sum,a)) + sep*length(a) >= cols_if_complete
+            pop!(a) # remove this latest tuple if we're already beyond screen width
+            break
+        end
+    end
+    if 1 < length(a) < length(indices(X,2))
+        while sum(map(sum,a)) + sep*length(a) >= cols_otherwise
+            pop!(a)
+        end
+    end
+    return a
+end
+
+function show_delim_array_std(io::IO, itr::Union{AbstractArray,SimpleVector}, dims::Vector, op, delim, cl,
+                          delim_one, i1=first(linearindices(itr)), l=last(linearindices(itr)))
+    print(io, op)
+    if !Base.show_circular(io, itr)
+        recur_io = IOContext(io, :SHOWN_SET => itr)
+        if !haskey(io, :compact)
+            recur_io = IOContext(recur_io, :compact => true)
+        end
+        first = true
+        i = i1
+        if l >= i1
+            while true
+                if !isassigned(itr, mirror_world_index(i, dims))
+                    print(io, undef_ref_str)
+                else
+                    x = itr[mirror_world_index(i, dims)]
+                    show(recur_io, x)
+                end
+                i += 1
+                if i > l
+                    delim_one && first && print(io, delim)
+                    break
+                end
+                first = false
+                print(io, delim)
+                print(io, ' ')
+            end
+        end
+    end
+    print(io, cl)
+end
+
+function show_vector_std(io::IO, v, dims, opn, cls)
+    compact, prefix = Base.array_eltype_show_how(v)
+    limited = get(io, :limit, false)
+    if compact && !haskey(io, :compact)
+        io = IOContext(io, :compact => compact)
+    end
+    print(io, prefix)
+    if limited && Base._length(v) > 20
+        inds = Base.indices1(v)
+        show_delim_array_std(io, v, dims, opn, ",", "", false, inds[1], inds[1]+9)
+        print(io, "  \u2026  ")
+        show_delim_array_std(io, v, dims, "", ",", cls, false, inds[end-9], inds[end])
+    else
+        show_delim_array_std(io, v, dims, opn, ",", cls, false)
+    end
+end
+
+"""
+`print_matrix_row_std(io, X, A, ldims, rdims, i, cols, sep)` produces the aligned output for
+a single matrix row X[i, cols] where the desired list of columns is given.
+The corresponding alignment A is used, and the separation between elements
+is specified as string sep.
+`print_matrix_row_std` will also respect compact output for elements.
+"""
+function print_matrix_row_std(io::IO,
+        X::AbstractVecOrMat, A::Vector, ldims::Vector, rdims::Vector,
+        i::Integer, cols::AbstractVector, sep::AbstractString)
+    isempty(A) || first(indices(cols,1)) == 1 || throw(DimensionMismatch("indices of cols ($(indices(cols,1))) must start at 1"))
+    for k = 1:length(A)
+        j = cols[k]
+        if isassigned(X,Int(mirror_world_index(i, ldims)),Int(mirror_world_index(j, rdims))) # isassigned accepts only `Int` indices
+            x = X[mirror_world_index(i, ldims), mirror_world_index(j, rdims)]
+            a = Base.alignment(io, x)
+            sx = sprint(0, show, x, env=io)
+        else
+            a = undef_ref_alignment
+            sx = undef_ref_str
+        end
+        l = repeat(" ", A[k][1]-a[1]) # pad on left and right as needed
+        r = repeat(" ", A[k][2]-a[2])
+        prettysx = Base.replace_in_print_matrix(X,mirror_world_index(i, ldims),mirror_world_index(j, rdims),sx)
+        print(io, l, prettysx, r)
+        if k < length(A); print(io, sep); end
+    end
+end
+
+
+function print_matrix_std(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vector,
+                      pre::AbstractString = " ",  # pre-matrix string
+                      sep::AbstractString = "  ", # separator between elements
+                      post::AbstractString = "",  # post-matrix string
+                      hdots::AbstractString = "  \u2026  ",
+                      vdots::AbstractString = "\u22ee",
+                      ddots::AbstractString = "  \u22f1  ",
+                      hmod::Integer = 5, vmod::Integer = 5)
+    if !get(io, :limit, false)
+        screenheight = screenwidth = typemax(Int)
+    else
+        sz = displaysize(io)
+        screenheight, screenwidth = sz[1] - 4, sz[2]
+    end
+    screenwidth -= length(pre) + length(post)
+    presp = repeat(" ", length(pre))  # indent each row to match pre string
+    postsp = ""
+    @assert strwidth(hdots) == strwidth(ddots)
+    sepsize = length(sep)
+    rowsA, colsA = indices(X,1), indices(X,2)
+    m, n = length(rowsA), length(colsA)
+    # To figure out alignments, only need to look at as many rows as could
+    # fit down screen. If screen has at least as many rows as A, look at A.
+    # If not, then we only need to look at the first and last chunks of A,
+    # each half a screen height in size.
+    halfheight = div(screenheight,2)
+    if m > screenheight
+        rowsA = [rowsA[1:halfheight]; rowsA[m-div(screenheight-1,2)+1:m]]
+    end
+    # Similarly for columns, only necessary to get alignments for as many
+    # columns as could conceivably fit across the screen
+    maxpossiblecols = div(screenwidth, 1+sepsize)
+    if n > maxpossiblecols
+        colsA = [colsA[1:maxpossiblecols]; colsA[(n-maxpossiblecols+1):n]]
+    end
+    A = alignment_std(io, X, ldims, rdims, rowsA, colsA, screenwidth, screenwidth, sepsize)
+    # Nine-slicing is accomplished using print_matrix_row_std repeatedly
+    if m <= screenheight # rows fit vertically on screen
+        if n <= length(A) # rows and cols fit so just print whole matrix in one piece
+            for i in rowsA
+                print(io, i == first(rowsA) ? pre : presp)
+                print_matrix_row_std(io, X,A,ldims,rdims,i,colsA,sep)
+                print(io, i == last(rowsA) ? post : postsp)
+                if i != last(rowsA); println(io); end
+            end
+        else # rows fit down screen but cols don't, so need horizontal ellipsis
+            c = div(screenwidth-length(hdots)+1,2)+1  # what goes to right of ellipsis
+            Ralign = reverse(alignment_std(io, X, ldims, rdims, rowsA, reverse(colsA), c, c, sepsize)) # alignments for right
+            c = screenwidth - sum(map(sum,Ralign)) - (length(Ralign)-1)*sepsize - length(hdots)
+            Lalign = alignment_std(io, X, ldims, rdims, rowsA, colsA, c, c, sepsize) # alignments for left of ellipsis
+            for i in rowsA
+                print(io, i == first(rowsA) ? pre : presp)
+                print_matrix_row_std(io, X,Lalign,ldims,rdims,i,colsA[1:length(Lalign)],sep)
+                print(io, (i - first(rowsA)) % hmod == 0 ? hdots : repeat(" ", length(hdots)))
+                print_matrix_row_std(io, X,Ralign,ldims,rdims,i,n-length(Ralign)+colsA,sep)
+                print(io, i == last(rowsA) ? post : postsp)
+                if i != last(rowsA); println(io); end
+            end
+        end
+    else # rows don't fit so will need vertical ellipsis
+        if n <= length(A) # rows don't fit, cols do, so only vertical ellipsis
+            for i in rowsA
+                print(io, i == first(rowsA) ? pre : presp)
+                print_matrix_row_std(io, X,A,ldims, rdims,i,colsA,sep)
+                print(io, i == last(rowsA) ? post : postsp)
+                if i != rowsA[end]; println(io); end
+                if i == rowsA[halfheight]
+                    print(io, i == first(rowsA) ? pre : presp)
+                    Base.print_matrix_vdots(io, vdots,A,sep,vmod,1)
+                    println(io, i == last(rowsA) ? post : postsp)
+                end
+            end
+        else # neither rows nor cols fit, so use all 3 kinds of dots
+            c = div(screenwidth-length(hdots)+1,2)+1
+            Ralign = reverse(alignment_std(io, X, ldims, rdims, rowsA, reverse(colsA), c, c, sepsize))
+            c = screenwidth - sum(map(sum,Ralign)) - (length(Ralign)-1)*sepsize - length(hdots)
+            Lalign = alignment_std(io, X, ldims, rdims, rowsA, colsA, c, c, sepsize)
+            r = mod((length(Ralign)-n+1),vmod) # where to put dots on right half
+            for i in rowsA
+                print(io, i == first(rowsA) ? pre : presp)
+                print_matrix_row_std(io, X,Lalign,ldims, rdims,i,colsA[1:length(Lalign)],sep)
+                print(io, (i - first(rowsA)) % hmod == 0 ? hdots : repeat(" ", length(hdots)))
+                print_matrix_row_std(io, X,Ralign,ldims, rdims,i,n-length(Ralign)+colsA,sep)
+                print(io, i == last(rowsA) ? post : postsp)
+                if i != rowsA[end]; println(io); end
+                if i == rowsA[halfheight]
+                    print(io, i == first(rowsA) ? pre : presp)
+                    Base.print_matrix_vdots(io, vdots,Lalign,sep,vmod,1)
+                    print(io, ddots)
+                    Base.print_matrix_vdots(io, vdots,Ralign,sep,vmod,r)
+                    println(io, i == last(rowsA) ? post : postsp)
+                end
+            end
+        end
+    end
+end
+
+
+"""
+`print_matrix_repr_std(io, X)` prints matrix X with opening and closing square brackets.
+"""
+function print_matrix_repr_std(io, X::AbstractArray, ldims::Vector, rdims::Vector)
+    limit = get(io, :limit, false)::Bool
+    compact, prefix = Base.array_eltype_show_how(X)
+    if compact && !haskey(io, :compact)
+        io = IOContext(io, :compact => compact)
+    end
+    indr, indc = indices(X,1), indices(X,2)
+    nr, nc = length(indr), length(indc)
+    rdots, cdots = false, false
+    rr1, rr2 = UnitRange{Int}(indr), 1:0
+    cr1, cr2 = UnitRange{Int}(indc), 1:0
+    if limit
+        if nr > 4
+            rr1, rr2 = rr1[1:2], rr1[nr-1:nr]
+            rdots = true
+        end
+        if nc > 4
+            cr1, cr2 = cr1[1:2], cr1[nc-1:nc]
+            cdots = true
+        end
+    end
+    print(io, prefix, "[")
+    for rr in (rr1, rr2)
+        for i in rr
+            for cr in (cr1, cr2)
+                for j in cr
+                    j > first(cr) && print(io, " ")
+                    if !isassigned(X,Int(mirror_world_index(i, ldims)),Int(mirror_world_index(j, rdims)))
+                        print(io, undef_ref_str)
+                    else
+                        el = X[mirror_world_index(i, ldims), mirror_world_index(j, rdims)]
+                        show(io, el)
+                    end
+                end
+                if last(cr) == last(indc)
+                    i < last(indr) && print(io, "; ")
+                elseif cdots
+                    print(io, " \u2026 ")
+                end
+            end
+        end
+        last(rr) != nr && rdots && print(io, "\u2026 ; ")
+    end
+    print(io, "]")
+end
+
+
+function showarray_stdord(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vector, repr::Bool = true; header = true)
+    if repr && ndims(X) == 1
+        return show_vector_std(io, X, ldims, "[", "]")
+    end
+    if !haskey(io, :compact)
+        io = IOContext(io, :compact => true)
+    end
+    if !repr && get(io, :limit, false) && eltype(X) === Method
+        # override usual show method for Vector{Method}: don't abbreviate long lists
+        io = IOContext(io, :limit => false)
+    end
+    (!repr && header) && print(io, summary(X))
+    if !isempty(X)
+        (!repr && header) && println(io, ":")
+        if ndims(X) == 0
+            if isassigned(X)
+                return show(io, X[])
+            else
+                return print(io, undef_ref_str)
+            end
+        end
+        if repr
+            print_matrix_repr_std(io, X, ldims, rdims)
+        else
+            punct = (" ", "  ", "")
+            print_matrix_std(io, X, ldims, rdims, punct...)
+        end
+    elseif repr
+        Base.repremptyarray(io, X)
+    end
+end
+showarray_stdord(io::IO, X::Vector, dims::Vector, repr::Bool = true; header = true) = showarray_stdord(io, X, dims, [1], repr; header = header)
+
+
+function showsparsearray_stdord(io::IO, S::SparseMatrixCSC, ldims::Vector, rdims::Vector)
+    if nnz(S) == 0
+        return Base.show(io, MIME("text/plain"), S)
+    end
+
+    limit::Bool = get(io, :limit, false)
+    if limit
+        rows = displaysize(io)[1]
+        half_screen_rows = div(rows - 8, 2)
+    else
+        half_screen_rows = typemax(Int)
+    end
+    pad = ndigits(max(S.m,S.n))
+    k = 0
+    sep = "\n  "
+    if !haskey(io, :compact)
+        io = IOContext(io, :compact => true)
+    end
+    for col = 1:S.n, k = S.colptr[col] : (S.colptr[col+1]-1)
+        if k < half_screen_rows || k > nnz(S)-half_screen_rows
+            print(io, sep, '[',
+                    rpad(mirror_world_index(S.rowval[k], reverse(ldims)), pad),
+                    ", ",
+                    lpad(mirror_world_index(col, reverse(rdims)), pad),
+                    "]  =  ")
+            if isassigned(S.nzval, Int(k))
+                show(io, S.nzval[k])
+            else
+                print(io, Base.undef_ref_str)
+            end
+        elseif k == half_screen_rows
+            print(io, sep, '\u22ee')
+        end
+        k += 1
+    end
+end
 
 end # module
