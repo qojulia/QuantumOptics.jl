@@ -632,27 +632,35 @@ function showsparsearray_stdord(io::IO, S::SparseMatrixCSC, ldims::Vector, rdims
         half_screen_rows = typemax(Int)
     end
     pad = ndigits(max(S.m,S.n))
-    k = 0
     sep = "\n  "
     if !haskey(io, :compact)
         io = IOContext(io, :compact => true)
     end
-    for col = 1:S.n, k = S.colptr[col] : (S.colptr[col+1]-1)
+
+    colval = zeros(Int, nnz(S))
+    for col in 1:S.n, k in S.colptr[col] : (S.colptr[col+1]-1)
+        colval[k] = col
+    end
+    rowval = S.rowval
+    rowval_std = map(x -> mirror_world_index(x, reverse(ldims)), rowval)
+    colval_std = map(x -> mirror_world_index(x, reverse(rdims)), colval)
+    idx_nzval = map((x,y,z) -> (x,y,z), rowval_std, colval_std, S.nzval)
+    sort!(idx_nzval, by = x -> (x[2], x[1]) )
+    rowval_std = map(x -> x[1], idx_nzval)
+    colval_std = map(x -> x[2], idx_nzval)
+    nzval_std = map(x -> x[3], idx_nzval)
+
+    for (k, val) in enumerate(nzval_std)
         if k < half_screen_rows || k > nnz(S)-half_screen_rows
-            print(io, sep, '[',
-                    rpad(mirror_world_index(S.rowval[k], reverse(ldims)), pad),
-                    ", ",
-                    lpad(mirror_world_index(col, reverse(rdims)), pad),
-                    "]  =  ")
-            if isassigned(S.nzval, Int(k))
-                show(io, S.nzval[k])
+            print(io, sep, '[', rpad(rowval_std[k], pad), ", ", lpad(colval_std[k], pad), "]  =  ")
+            if isassigned(nzval_std, Int(k))
+                show(io, nzval_std[k])
             else
                 print(io, Base.undef_ref_str)
             end
         elseif k == half_screen_rows
             print(io, sep, '\u22ee')
         end
-        k += 1
     end
 end
 

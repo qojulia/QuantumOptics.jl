@@ -115,13 +115,16 @@ op_data_str = sprint(show, op_data)[4:end]
 
 paulix, pauliy = sigmax(b_spin), sigmay(b_spin)
 pauli = paulix ⊗ pauliy
-pauli_data = full(kron(paulix.data, pauliy.data))
+@test sprint(show, pauli) == "SparseOperator(dim=4x4)\n  basis: [Spin(1/2) ⊗ Spin(1/2)]\n  [4, 1]  =  0.0+1.0im\n  [3, 2]  =  0.0-1.0im\n  [2, 3]  =  0.0+1.0im\n  [1, 4]  =  0.0-1.0im"
 @test sprint(show, full(pauli)) == "DenseOperator(dim=4x4)
   basis: [Spin(1/2) ⊗ Spin(1/2)]
  0.0+0.0im  0.0+0.0im  0.0+0.0im  0.0-1.0im
  0.0+0.0im  0.0+0.0im  0.0+1.0im  0.0+0.0im
  0.0+0.0im  0.0-1.0im  0.0+0.0im  0.0+0.0im
  0.0+1.0im  0.0+0.0im  0.0+0.0im  0.0+0.0im"
+
+hadamard = DenseOperator(b_spin, 1/sqrt(2) * [1 1; 1 -1])
+@test sprint(show, sigmax(b_spin) ⊗ hadamard) == "SparseOperator(dim=4x4)\n  basis: [Spin(1/2) ⊗ Spin(1/2)]\n  [3, 1]  =  0.707107+0.0im\n  [4, 1]  =  0.707107+0.0im\n  [3, 2]  =  0.707107+0.0im\n  [4, 2]  =  -0.707107+0.0im\n  [1, 3]  =  0.707107+0.0im\n  [2, 3]  =  0.707107+0.0im\n  [1, 4]  =  0.707107+0.0im\n  [2, 4]  =  -0.707107+0.0im"
 
 # Test switching back
 QuantumOptics.set_printing(standard_order=false)
