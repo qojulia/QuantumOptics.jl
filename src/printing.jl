@@ -294,11 +294,7 @@ function alignment_std(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vector
     for j in cols # need to go down each column one at a time
         l = r = 0
         for i in rows # plumb down and see what largest element sizes are
-            if isassigned(X,mirror_world_index(i, ldims),mirror_world_index(j, rdims))
-                aij = Base.alignment(io, X[mirror_world_index(i, ldims), mirror_world_index(j, rdims)])
-            else
-                aij = undef_ref_alignment
-            end
+            aij = Base.alignment(io, X[mirror_world_index(i, ldims), mirror_world_index(j, rdims)])
             l = max(l, aij[1]) # left characters
             r = max(r, aij[2]) # right characters
         end
@@ -316,55 +312,6 @@ function alignment_std(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vector
     return a
 end
 
-function show_delim_array_std(io::IO, itr::Union{AbstractArray,SimpleVector}, dims::Vector, op, delim, cl,
-                          delim_one, i1=first(linearindices(itr)), l=last(linearindices(itr)))
-    print(io, op)
-    if !Base.show_circular(io, itr)
-        recur_io = IOContext(io, :SHOWN_SET => itr)
-        if !haskey(io, :compact)
-            recur_io = IOContext(recur_io, :compact => true)
-        end
-        first = true
-        i = i1
-        if l >= i1
-            while true
-                if !isassigned(itr, mirror_world_index(i, dims))
-                    print(io, undef_ref_str)
-                else
-                    x = itr[mirror_world_index(i, dims)]
-                    show(recur_io, x)
-                end
-                i += 1
-                if i > l
-                    delim_one && first && print(io, delim)
-                    break
-                end
-                first = false
-                print(io, delim)
-                print(io, ' ')
-            end
-        end
-    end
-    print(io, cl)
-end
-
-function show_vector_std(io::IO, v, dims, opn, cls)
-    compact, prefix = Base.array_eltype_show_how(v)
-    limited = get(io, :limit, false)
-    if compact && !haskey(io, :compact)
-        io = IOContext(io, :compact => compact)
-    end
-    print(io, prefix)
-    if limited && Base._length(v) > 20
-        inds = Base.indices1(v)
-        show_delim_array_std(io, v, dims, opn, ",", "", false, inds[1], inds[1]+9)
-        print(io, "  \u2026  ")
-        show_delim_array_std(io, v, dims, "", ",", cls, false, inds[end-9], inds[end])
-    else
-        show_delim_array_std(io, v, dims, opn, ",", cls, false)
-    end
-end
-
 """
 `print_matrix_row_std(io, X, A, ldims, rdims, i, cols, sep)` produces the aligned output for
 a single matrix row X[i, cols] where the desired list of columns is given.
@@ -378,14 +325,9 @@ function print_matrix_row_std(io::IO,
     isempty(A) || first(indices(cols,1)) == 1 || throw(DimensionMismatch("indices of cols ($(indices(cols,1))) must start at 1"))
     for k = 1:length(A)
         j = cols[k]
-        if isassigned(X,Int(mirror_world_index(i, ldims)),Int(mirror_world_index(j, rdims))) # isassigned accepts only `Int` indices
-            x = X[mirror_world_index(i, ldims), mirror_world_index(j, rdims)]
-            a = Base.alignment(io, x)
-            sx = sprint(0, show, x, env=io)
-        else
-            a = undef_ref_alignment
-            sx = undef_ref_str
-        end
+        x = X[mirror_world_index(i, ldims), mirror_world_index(j, rdims)]
+        a = Base.alignment(io, x)
+        sx = sprint(0, show, x, env=io)
         l = repeat(" ", A[k][1]-a[1]) # pad on left and right as needed
         r = repeat(" ", A[k][2]-a[2])
         prettysx = Base.replace_in_print_matrix(X,mirror_world_index(i, ldims),mirror_world_index(j, rdims),sx)
@@ -492,98 +434,20 @@ function print_matrix_std(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vec
     end
 end
 
-
-"""
-`print_matrix_repr_std(io, X)` prints matrix X with opening and closing square brackets.
-"""
-function print_matrix_repr_std(io, X::AbstractArray, ldims::Vector, rdims::Vector)
-    limit = get(io, :limit, false)::Bool
-    compact, prefix = Base.array_eltype_show_how(X)
-    if compact && !haskey(io, :compact)
-        io = IOContext(io, :compact => compact)
-    end
-    indr, indc = indices(X,1), indices(X,2)
-    nr, nc = length(indr), length(indc)
-    rdots, cdots = false, false
-    rr1, rr2 = UnitRange{Int}(indr), 1:0
-    cr1, cr2 = UnitRange{Int}(indc), 1:0
-    if limit
-        if nr > 4
-            rr1, rr2 = rr1[1:2], rr1[nr-1:nr]
-            rdots = true
-        end
-        if nc > 4
-            cr1, cr2 = cr1[1:2], cr1[nc-1:nc]
-            cdots = true
-        end
-    end
-    print(io, prefix, "[")
-    for rr in (rr1, rr2)
-        for i in rr
-            for cr in (cr1, cr2)
-                for j in cr
-                    j > first(cr) && print(io, " ")
-                    if !isassigned(X,Int(mirror_world_index(i, ldims)),Int(mirror_world_index(j, rdims)))
-                        print(io, undef_ref_str)
-                    else
-                        el = X[mirror_world_index(i, ldims), mirror_world_index(j, rdims)]
-                        show(io, el)
-                    end
-                end
-                if last(cr) == last(indc)
-                    i < last(indr) && print(io, "; ")
-                elseif cdots
-                    print(io, " \u2026 ")
-                end
-            end
-        end
-        last(rr) != nr && rdots && print(io, "\u2026 ; ")
-    end
-    print(io, "]")
-end
-
-
 function showarray_stdord(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vector, repr::Bool = true; header = true)
-    if repr && ndims(X) == 1
-        return show_vector_std(io, X, ldims, "[", "]")
-    end
     if !haskey(io, :compact)
         io = IOContext(io, :compact => true)
     end
-    if !repr && get(io, :limit, false) && eltype(X) === Method
-        # override usual show method for Vector{Method}: don't abbreviate long lists
-        io = IOContext(io, :limit => false)
-    end
-    (!repr && header) && print(io, summary(X))
     if !isempty(X)
-        (!repr && header) && println(io, ":")
-        if ndims(X) == 0
-            if isassigned(X)
-                return show(io, X[])
-            else
-                return print(io, undef_ref_str)
-            end
-        end
-        if repr
-            print_matrix_repr_std(io, X, ldims, rdims)
-        else
-            punct = (" ", "  ", "")
-            print_matrix_std(io, X, ldims, rdims, punct...)
-        end
-    elseif repr
-        Base.repremptyarray(io, X)
+        punct = (" ", "  ", "")
+        print_matrix_std(io, X, ldims, rdims, punct...)
     end
 end
 showarray_stdord(io::IO, X::Vector, dims::Vector, repr::Bool = true; header = true) = showarray_stdord(io, X, dims, [1], repr; header = header)
 
 
 function showsparsearray_stdord(io::IO, S::SparseMatrixCSC, ldims::Vector, rdims::Vector)
-    if nnz(S) == 0
-        return Base.show(io, MIME("text/plain"), S)
-    end
-
-    limit::Bool = get(io, :limit, false)
-    if limit
+    if get(io, :limit, false)
         rows = displaysize(io)[1]
         half_screen_rows = div(rows - 8, 2)
     else
@@ -611,11 +475,7 @@ function showsparsearray_stdord(io::IO, S::SparseMatrixCSC, ldims::Vector, rdims
     for (k, val) in enumerate(nzval_std)
         if k < half_screen_rows || k > nnz(S)-half_screen_rows
             print(io, sep, '[', rpad(rowval_std[k], pad), ", ", lpad(colval_std[k], pad), "]  =  ")
-            if isassigned(nzval_std, Int(k))
-                show(io, nzval_std[k])
-            else
-                print(io, Base.undef_ref_str)
-            end
+            show(io, nzval_std[k])
         elseif k == half_screen_rows
             print(io, sep, '\u22ee')
         end

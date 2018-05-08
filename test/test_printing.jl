@@ -116,6 +116,7 @@ op_data_str = sprint(show, op_data)[4:end]
 paulix, pauliy = sigmax(b_spin), sigmay(b_spin)
 pauli = paulix ⊗ pauliy
 @test sprint(show, pauli) == "SparseOperator(dim=4x4)\n  basis: [Spin(1/2) ⊗ Spin(1/2)]\n  [4, 1]  =  0.0+1.0im\n  [3, 2]  =  0.0-1.0im\n  [2, 3]  =  0.0+1.0im\n  [1, 4]  =  0.0-1.0im"
+@test sprint((io, x) -> show(IOContext(io, :limit=>true, :displaysize=>(20,80)), x), pauli ⊗ pauli) == "SparseOperator(dim=16x16)\n  basis: [Spin(1/2) ⊗ Spin(1/2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n  [16,  1]  =  -1.0+0.0im\n  [15,  2]  =  1.0+0.0im\n  [14,  3]  =  -1.0+0.0im\n  [13,  4]  =  1.0+0.0im\n  [12,  5]  =  1.0+0.0im\n  ⋮\n  [6 , 11]  =  -1.0+0.0im\n  [5 , 12]  =  1.0+0.0im\n  [4 , 13]  =  1.0+0.0im\n  [3 , 14]  =  -1.0-0.0im\n  [2 , 15]  =  1.0+0.0im\n  [1 , 16]  =  -1.0-0.0im"
 @test sprint(show, full(pauli)) == "DenseOperator(dim=4x4)
   basis: [Spin(1/2) ⊗ Spin(1/2)]
  0.0+0.0im  0.0+0.0im  0.0+0.0im  0.0-1.0im
@@ -125,6 +126,17 @@ pauli = paulix ⊗ pauliy
 
 hadamard = DenseOperator(b_spin, 1/sqrt(2) * [1 1; 1 -1])
 @test sprint(show, sigmax(b_spin) ⊗ hadamard) == "SparseOperator(dim=4x4)\n  basis: [Spin(1/2) ⊗ Spin(1/2)]\n  [3, 1]  =  0.707107+0.0im\n  [4, 1]  =  0.707107+0.0im\n  [3, 2]  =  0.707107+0.0im\n  [4, 2]  =  -0.707107+0.0im\n  [1, 3]  =  0.707107+0.0im\n  [2, 3]  =  0.707107+0.0im\n  [1, 4]  =  0.707107+0.0im\n  [2, 4]  =  -0.707107+0.0im"
+@test sprint((io, x) -> show(IOContext(io, :limit=>true, :displaysize=>(20,80)), x), full(sigmax(b_spin) ⊗ hadamard ⊗ hadamard ⊗ hadamard)) ==
+"DenseOperator(dim=16x16)\n  basis: [Spin(1/2) ⊗ Spin(1/2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n      0.0+0.0im        0.0+0.0im  …   0.353553+0.0im   0.353553+0.0im\n      0.0+0.0im        0.0+0.0im      0.353553+0.0im  -0.353553+0.0im\n      0.0+0.0im        0.0+0.0im     -0.353553+0.0im  -0.353553+0.0im\n      0.0+0.0im        0.0+0.0im     -0.353553+0.0im   0.353553-0.0im\n      0.0+0.0im        0.0+0.0im     -0.353553+0.0im  -0.353553+0.0im\n      0.0+0.0im        0.0+0.0im  …  -0.353553+0.0im   0.353553-0.0im\n      0.0+0.0im        0.0+0.0im      0.353553+0.0im   0.353553+0.0im\n      0.0+0.0im        0.0+0.0im      0.353553+0.0im  -0.353553+0.0im\n 0.353553+0.0im   0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im  -0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im   0.353553+0.0im  …        0.0+0.0im        0.0+0.0im\n 0.353553+0.0im  -0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im   0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im  -0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im   0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im  -0.353553+0.0im  …        0.0+0.0im        0.0+0.0im"
+
+@test sprint((io, x) -> show(IOContext(io, :limit=>true, :displaysize=>(16,80)), x), full(sigmax(b_spin) ⊗ hadamard ⊗ hadamard ⊗ hadamard)) ==
+"DenseOperator(dim=16x16)\n  basis: [Spin(1/2) ⊗ Spin(1/2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n      0.0+0.0im        0.0+0.0im  …   0.353553+0.0im   0.353553+0.0im\n      0.0+0.0im        0.0+0.0im      0.353553+0.0im  -0.353553+0.0im\n      0.0+0.0im        0.0+0.0im     -0.353553+0.0im  -0.353553+0.0im\n      0.0+0.0im        0.0+0.0im     -0.353553+0.0im   0.353553-0.0im\n      0.0+0.0im        0.0+0.0im     -0.353553+0.0im  -0.353553+0.0im\n      0.0+0.0im        0.0+0.0im  …  -0.353553+0.0im   0.353553-0.0im\n         ⋮                        ⋱                            ⋮     \n 0.353553+0.0im  -0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im   0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im  -0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im   0.353553+0.0im           0.0+0.0im        0.0+0.0im\n 0.353553+0.0im  -0.353553+0.0im  …        0.0+0.0im        0.0+0.0im"
+
+nlevel1 = basisstate(NLevelBasis(4), 1)
+nlevel2 = basisstate(NLevelBasis(4), 2)
+nlevel3 = basisstate(NLevelBasis(3), 3)
+@test sprint((io, x) -> show(IOContext(io, :limit=>true, :displaysize=>(16,80)), x), (nlevel1 ⊗ nlevel2) ⊗ dagger(nlevel3)) ==
+"DenseOperator(dim=16x3)\n  basis left:  [NLevel(N=4) ⊗ NLevel(N=4)]\n  basis right: NLevel(N=3)\n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n 0.0+0.0im  0.0+0.0im  1.0+0.0im\n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n    ⋮                           \n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n 0.0+0.0im  0.0+0.0im  0.0+0.0im\n 0.0+0.0im  0.0+0.0im  0.0+0.0im"
 
 # Test switching back
 QuantumOptics.set_printing(standard_order=false)
