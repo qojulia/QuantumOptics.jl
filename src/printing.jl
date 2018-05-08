@@ -117,46 +117,6 @@ end
 
 show(stream::IO, x::Operator) = showoperatorheader(stream, x)
 
-function showquantumstatebody(stream::IO, x::Union{Ket,Bra})
-    #the permutation is used to invert the order A x B = B.data x A.data to A.data x B.data
-    perm = collect(length(basis(x).shape):-1:1)
-    if length(perm) == 1
-        Base.showarray(stream, round.(x.data, machineprecorder), false; header=false)
-    else
-        Base.showarray(stream,
-        round.(permutesystems(x,perm).data, machineprecorder), false; header=false)
-    end
-end
-
-function permuted_densedata(x::DenseOperator)
-    lbn = length(x.basis_l.shape)
-    rbn = length(x.basis_r.shape)
-    perm = collect(max(lbn,rbn):-1:1)
-    #padd the shape with additional x1 subsystems s.t. x has symmetric number of subsystems
-    decomp = lbn > rbn ? [x.basis_l.shape; x.basis_r.shape; fill(1,lbn-rbn)] :
-                         [x.basis_l.shape; fill(1,rbn-lbn); x.basis_r.shape]
-
-    data = reshape(x.data, decomp...)
-    data = permutedims(data, [perm; perm + length(perm)])
-    data = reshape(data, length(x.basis_l), length(x.basis_r))
-
-    return round.(data, machineprecorder)
-end
-
-function permuted_sparsedata(x::SparseOperator)
-    lbn = length(x.basis_l.shape)
-    rbn = length(x.basis_r.shape)
-    perm = collect(max(lbn,rbn):-1:1)
-    #padd the shape with additional x1 subsystems s.t. x has symmetric number of subsystems
-    decomp = lbn > rbn ? [x.basis_l.shape; x.basis_r.shape; fill(1,lbn-rbn)] :
-                         [x.basis_l.shape; fill(1,rbn-lbn); x.basis_r.shape]
-
-    data = sparsematrix.permutedims(x.data, decomp, [perm; perm + length(perm)])
-
-    return round.(data, machineprecorder)
-end
-
-
 function show(stream::IO, x::DenseOperator)
     showoperatorheader(stream, x)
     write(stream, "\n")
@@ -264,9 +224,7 @@ julia> for i in 1:prod(dims)
 """
 function Nary2ind(x::Vector{Int}, dims::Vector{Int})
     tmp = 0
-    if length(x) != length(dims)
-        error()
-    end
+    @assert length(x) == length(dims)
     nterms = length(x)
     tp = prod(dims[2:end])
     for i in 1:nterms-1
