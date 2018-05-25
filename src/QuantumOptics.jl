@@ -12,7 +12,7 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         operators_lazysum, LazySum,
         operators_lazyproduct, LazyProduct,
         operators_lazytensor, LazyTensor,
-        randstate, randoperator,
+        randstate, randoperator, thermalstate,
         superoperators, SuperOperator, DenseSuperOperator, SparseSuperOperator,
                 spre, spost, liouvillian,
         fock, FockBasis, number, destroy, create,
@@ -48,7 +48,7 @@ include("operators_sparse.jl")
 include("operators_lazysum.jl")
 include("operators_lazyproduct.jl")
 include("operators_lazytensor.jl")
-include("random.jl")
+include("state_definitions.jl")
 include("superoperators.jl")
 include("spin.jl")
 include("fock.jl")
@@ -89,7 +89,7 @@ using .operators_sparse
 using .operators_lazysum
 using .operators_lazyproduct
 using .operators_lazytensor
-using .random
+using .state_definitions
 using .superoperators
 using .spin
 using .fock
