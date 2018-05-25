@@ -12,11 +12,11 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         operators_lazysum, LazySum,
         operators_lazyproduct, LazyProduct,
         operators_lazytensor, LazyTensor,
-        randstate, randoperator, thermalstate,
         superoperators, SuperOperator, DenseSuperOperator, SparseSuperOperator,
                 spre, spost, liouvillian,
         fock, FockBasis, number, destroy, create,
                 fockstate, coherentstate, displace,
+        randstate, randoperator, thermalstate, coherentthermalstate, phase_average, passive_state,
         spin, SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown,
         subspace, SubspaceBasis, projector,
         particle, PositionBasis, MomentumBasis, samplepoints, gaussianstate,
@@ -48,10 +48,10 @@ include("operators_sparse.jl")
 include("operators_lazysum.jl")
 include("operators_lazyproduct.jl")
 include("operators_lazytensor.jl")
-include("state_definitions.jl")
 include("superoperators.jl")
 include("spin.jl")
 include("fock.jl")
+include("state_definitions.jl")
 include("subspace.jl")
 include("particle.jl")
 include("nlevel.jl")
@@ -89,10 +89,10 @@ using .operators_sparse
 using .operators_lazysum
 using .operators_lazyproduct
 using .operators_lazytensor
-using .state_definitions
 using .superoperators
 using .spin
 using .fock
+using .state_definitions
 using .subspace
 using .particle
 using .nlevel
