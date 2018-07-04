@@ -158,7 +158,8 @@ Expectation value of the given operator `op` for the specified `state`.
 
 `state` can either be a (density) operator or a ket.
 """
-expect(op::Operator, state::Ket) = dagger(state)*(op*state)
+
+expect(op::Operator, state::Ket) = dagger(state) * op * state
 expect(op::Operator, state::Operator) = trace(op*state)
 
 """

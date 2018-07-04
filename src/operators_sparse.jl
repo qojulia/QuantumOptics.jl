@@ -87,6 +87,13 @@ function operators.ptrace(op::SparseOperator, indices::Vector{Int})
     SparseOperator(b_l, b_r, data)
 end
 
+function operators.expect(op::SparseOperator, state::Ket)# where T <: Union{Ket, Bra}
+    check_samebases(op.basis_r, state.basis)
+    check_samebases(op.basis_l, state.basis)
+    state.data' * op.data * state.data
+end
+
+
 function operators.expect(op::SparseOperator, state::DenseOperator)
     check_samebases(op.basis_r, state.basis_l)
     check_samebases(op.basis_l, state.basis_r)

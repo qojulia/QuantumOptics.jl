@@ -125,6 +125,12 @@ end
 
 operators.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
 
+function operators.expect(op::DenseOperator, state::Ket)# where T <: Union{Ket, Bra}
+    check_samebases(op.basis_r, state.basis)
+    check_samebases(op.basis_l, state.basis)
+    state.data' * op.data * state.data
+end
+
 function operators.expect(op::DenseOperator, state::Operator)
     check_samebases(op.basis_r, state.basis_l)
     check_samebases(op.basis_l, state.basis_r)
