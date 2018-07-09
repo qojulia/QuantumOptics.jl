@@ -85,4 +85,15 @@ for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     @test 1e-14 > abs(qfunc(rho, c) - q_rho)
 end
 
+# Test SU(2) phasespace
+b = SpinBasis(50)
+theta = π*rand()
+phi =2π*rand()
+css = coherentspinstate(b,theta,phi)
+sx = expect(sigmax(b)/2,css); # eigenstate of jx operator
+sy = expect(sigmay(b)/2,css); # eigenstate of jy
+sz = expect(sigmaz(b)/2,css); # eigenstate of jz operator
+ssq = sx^2 + sy^2 + sz^2
+
+@test ssq ≈ float(b.spinnumber)^2
 end # testset

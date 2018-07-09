@@ -1,8 +1,8 @@
 module phasespace
 
-export qfunc, wigner
+export qfunc, wigner, coherentspinstate
 
-using ..bases, ..states, ..operators, ..operators_dense, ..fock
+using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
 
 
 """
@@ -202,6 +202,23 @@ function _clenshaw(L::Int, abs2_2α::Float64, ρ::Matrix{Complex128})
         end
         return ρ[1, L+1] - (L+1-abs2_2α)*f0_*b0 - f0*f1_*b1
     end
+end
+
+############################ coherent spin state ##############################
+function coherentspinstate(b::SpinBasis, theta::Number, phi::Number,
+        result = Ket(b, Vector{Complex128}(length(b))))
+    #theta = real(theta)
+    #phi = real(phi)
+    data = result.data
+    N = length(b)-1
+    @inbounds for n=0:N
+        data[n+1] =
+        sqrt(factorial(BigInt(N))/(factorial(BigInt(n)) *
+        factorial(BigInt(N-n)))) *
+        (sin(theta/2.)*exp(1im*phi/2.))^n *
+        (cos(theta/2.)*exp(-1im*phi/2.))^(N-n)
+    end
+    return result
 end
 
 end #module
