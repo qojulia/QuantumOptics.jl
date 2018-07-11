@@ -4,3 +4,5 @@ OrdinaryDiffEq 3.12.0
 DiffEqCallbacks 1.1
 StochasticDiffEq 4.4.2
 RecursiveArrayTools
+GSL
+WignerSymbols
