@@ -386,9 +386,9 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
         append!(zeros(N+1-length(BandT[1,1+1])),clebschgordan(1,-1,S,1,S+1,0)*BandT[1,1+1].*BandT[S,1+1]) -
         clebschgordan(1,1,S,-1,S+1,0)*append!(BandT[1,1+1].*BandT[S,1+1],zeros(N+1-length(BandT[1,1+1])))
         for  M=1:S-1
-         BandT[S+1,M+1] = clebschgordan(1, 0, S, M, S+1,M)*BandT[1,0+1][1:N+1-M].*BandT[S,M+1] +
-         clebschgordan(1,1,S,M-1,S+1,M)*BandT[1,1+1][1:N+1-M].*BandT[S,M-1+1][2:end] -
-         clebschgordan(1,-1,S,M+1,S+1,M)*append!(zeros(1),BandT[1,1+1][1:N-M].*BandT[S,M+1+1][1:N-M])
+            BandT[S+1,M+1] = clebschgordan(1, 0, S, M, S+1,M)*BandT[1,0+1][1:N+1-M].*BandT[S,M+1] +
+                clebschgordan(1,1,S,M-1,S+1,M)*BandT[1,1+1][1:N+1-M].*BandT[S,M-1+1][2:end] -
+                clebschgordan(1,-1,S,M+1,S+1,M)*append!(zeros(1),BandT[1,1+1][1:N-M].*BandT[S,M+1+1][1:N-M])
         end
 
     end
@@ -413,7 +413,7 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     for i = 1:Ntheta, j = 1:Nphi
         wignermap[i,j] = _wignersu2int(N,i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi, EVT)
     end
-    return(wignermap)
+    return wignermap
 end
 
 function _wignersu2int(N::Integer, theta::Real, phi::Real, EVT::Array{Complex128, 2})
@@ -421,9 +421,9 @@ function _wignersu2int(N::Integer, theta::Real, phi::Real, EVT::Array{Complex128
     UberBand += sqrt(1/(1+N))*ylm(0,0,theta,phi)
     @inbounds for S = 1:N
         @inbounds for M = 1:S
-            UberBand += 2*real(EVT[S,M+1]*conj(ylm(S,M,theta,phi)))+
-                EVT[S,0+1]*ylm(S,0,theta,phi)
+            UberBand += 2*real(EVT[S,M+1]*conj(ylm(S,M,theta,phi)))
         end
+        UberBand += EVT[S,0+1]*ylm(S,0,theta,phi)
     end
     UberBand
 end
