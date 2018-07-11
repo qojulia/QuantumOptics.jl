@@ -8,6 +8,8 @@ using ...timeevolution
 import ...timeevolution: integrate_stoch, recast!
 import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic, check_schroedinger
 
+import DiffEqCallbacks
+
 const DiffArray = Union{Vector{Complex128}, Array{Complex128, 2}}
 
 """
@@ -25,10 +27,14 @@ Integrate stochastic Schrödinger equation.
 * `fout=nothing`: If given, this function `fout(t, state)` is called every time
         an output should be displayed. ATTENTION: The given state is neither
         normalized nor permanent!
+* `normalize_state=false`: Specify whether or not to normalize the state after
+        each time step taken by the solver.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function schroedinger(tspan, psi0::Ket, H::Operator, Hs::Vector;
                 fout::Union{Function,Void}=nothing,
+                normalize_state::Bool=false,
+                calback=nothing,
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
 
@@ -42,7 +48,18 @@ function schroedinger(tspan, psi0::Ket, H::Operator, Hs::Vector;
     dschroedinger_stoch(dx::DiffArray,
             t::Float64, psi::Ket, dpsi::Ket, n::Int) = dschroedinger_stochastic(dx, psi, Hs, dpsi, n)
 
-    integrate_stoch(tspan_, dschroedinger_determ, dschroedinger_stoch, x0, state, dstate, fout, n; kwargs...)
+    if normalize_state
+        norm_func(u::Vector{Complex128}, t::Float64, integrator) = normalize!(u)
+        ncb = DiffEqCallbacks.FunctionCallingCallback(norm_func;
+                 func_everystep=true,
+                 func_start=false)
+    else
+        ncb = nothing
+    end
+
+    integrate_stoch(tspan_, dschroedinger_determ, dschroedinger_stoch, x0, state, dstate, fout, n;
+                    ncb=ncb,
+                    kwargs...)
 end
 schroedinger(tspan, psi0::Ket, H::Operator, Hs::Operator; kwargs...) = schroedinger(tspan, psi0, H, [Hs]; kwargs...)
 
@@ -68,10 +85,13 @@ Integrate stochastic Schrödinger equation with dynamic Hamiltonian.
         from the function output.
         NOTE: Set this number if you want to avoid an initial calculation of
         the function output!
+* `normalize_state=false`: Specify whether or not to normalize the state after
+        each time step taken by the solver.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function schroedinger_dynamic(tspan, psi0::Ket, fdeterm::Function, fstoch::Function;
                 fout::Union{Function,Void}=nothing, noise_processes::Int=0,
+                normalize_state::Bool=false,
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
 
@@ -91,15 +111,27 @@ function schroedinger_dynamic(tspan, psi0::Ket, fdeterm::Function, fstoch::Funct
             t::Float64, psi::Ket, dpsi::Ket, n::Int) =
         dschroedinger_stochastic(dx, t, psi, fstoch, dpsi, n)
 
-    integrate_stoch(tspan, dschroedinger_determ, dschroedinger_stoch, x0, state, dstate, fout, n; kwargs...)
+    if normalize_state
+        norm_func(u::Vector{Complex128}, t::Float64, integrator) = normalize!(u)
+        ncb = DiffEqCallbacks.FunctionCallingCallback(norm_func;
+                 func_everystep=true,
+                 func_start=false)
+    else
+        ncb = nothing
+    end
+
+    integrate_stoch(tspan, dschroedinger_determ, dschroedinger_stoch, x0, state,
+            dstate, fout, n;
+            ncb=ncb,
+            kwargs...)
 end
+
 
 function dschroedinger_stochastic(dx::Vector{Complex128}, psi::Ket, Hs::Vector{T},
             dpsi::Ket, index::Int) where T <: Operator
     check_schroedinger(psi, Hs[index])
     recast!(dx, dpsi)
     dschroedinger(psi, Hs[index], dpsi)
-    recast!(dpsi, dx)
 end
 function dschroedinger_stochastic(dx::Array{Complex128, 2}, psi::Ket, Hs::Vector{T},
             dpsi::Ket, n::Int) where T <: Operator

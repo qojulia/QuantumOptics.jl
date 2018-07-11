@@ -206,7 +206,6 @@ function _clenshaw(L::Int, abs2_2α::Float64, ρ::Matrix{Complex128})
     end
 end
 
-
 """
     coherentspinstate(b::SpinBasis, θ::Real, ϕ::Real)
 
@@ -444,4 +443,6 @@ wignersu2(psi::Ket, args...) = wignersu2(dm(psi), args...)
 function ylm(l::Integer, m::Integer, theta::Real, phi::Real)
     sf_legendre_sphPlm(l,m,cos(theta))*e^(1im*m*phi)
 end
+
+
 end #module

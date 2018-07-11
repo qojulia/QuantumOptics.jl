@@ -96,6 +96,7 @@ sx = expect(sigmax(b)/2,css); # eigenstate of jx operator
 sy = expect(sigmay(b)/2,css); # eigenstate of jy
 sz = expect(sigmaz(b)/2,css); # eigenstate of jz operator
 ssq = sx^2 + sy^2 + sz^2
+
 qsu2sx = qfuncsu2(csssx,theta,phi)
 res = 1000
 costhetam = Array{Float64}(res,2*res)
@@ -106,4 +107,6 @@ wsu2 = sum(wignersu2(rs,res).*costhetam)*sqrt((2*float(b.spinnumber)+1)/(4pi))*(
 @test ssq ≈ float(b.spinnumber)^2
 @test qsu2sx ≈ (2*float(b.spinnumber)+1)/(4pi)*(0.5*(sin(theta)cos(phi)+1))^(2*float(b.spinnumber))
 @test isapprox(wsu2, 1.0, atol=1e-2)
+@test ssq ≈ float(b.spinnumber)^2
+
 end # testset

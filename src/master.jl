@@ -181,15 +181,15 @@ master_nh_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_nh_dynamic(
 
 
 # Recasting needed for the ODE solver is just providing the underlying data
-function recast!(x::Vector{Complex128}, rho::DenseOperator)
-    rho.data = reshape(x, size(rho.data))
+function recast!(x::Array{Complex128, 2}, rho::DenseOperator)
+    rho.data = x
 end
-recast!(rho::DenseOperator, x::Vector{Complex128}) = nothing
+recast!(rho::DenseOperator, x::Array{Complex128, 2}) = nothing
 
 function integrate_master(tspan, df::Function, rho0::DenseOperator,
                         fout::Union{Void, Function}; kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
-    x0 = reshape(rho0.data, length(rho0))
+    x0 = rho0.data
     state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
     dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
     integrate(tspan_, df, x0, state, dstate, fout; kwargs...)

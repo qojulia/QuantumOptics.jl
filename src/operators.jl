@@ -4,7 +4,7 @@ export Operator, length, basis, dagger, ishermitian, tensor, embed,
         trace, ptrace, normalize, normalize!, expect, variance,
         expm, permutesystems, identityoperator
 
-import Base: ==, +, -, *, /, length, trace, one, ishermitian, expm
+import Base: ==, +, -, *, /, length, trace, one, ishermitian, expm, conj, conj!
 import ..bases: basis, tensor, ptrace, permutesystems,
             samebases, check_samebases, multiplicable
 import ..states: dagger, normalize, normalize!
@@ -49,6 +49,9 @@ basis(a::Operator) = (check_samebases(a); a.basis_l)
 
 
 dagger(a::Operator) = arithmetic_unary_error("Hermitian conjugate", a)
+
+conj(a::Operator) = arithmetic_unary_error("Complex conjugate", a)
+conj!(a::Operator) = conj(a::Operator)
 
 """
     ishermitian(op::Operator)
@@ -155,7 +158,8 @@ Expectation value of the given operator `op` for the specified `state`.
 
 `state` can either be a (density) operator or a ket.
 """
-expect(op::Operator, state::Ket) = dagger(state)*(op*state)
+
+expect(op::Operator, state::Ket) = dagger(state) * op * state
 expect(op::Operator, state::Operator) = trace(op*state)
 
 """

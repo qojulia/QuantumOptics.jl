@@ -41,6 +41,7 @@ names = [
 
     "test_semiclassical.jl",
 
+    "test_stochastic_definitions.jl",
     "test_stochastic_schroedinger.jl",
     "test_stochastic_master.jl",
     "test_stochastic_semiclassical.jl",

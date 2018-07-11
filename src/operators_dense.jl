@@ -85,6 +85,10 @@ operators.dagger(x::DenseOperator) = DenseOperator(x.basis_r, x.basis_l, x.data'
 operators.ishermitian(A::DenseOperator) = ishermitian(A.data)
 
 operators.tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
+
+operators.conj(a::DenseOperator) = DenseOperator(a.basis_l, a.basis_r, conj(a.data))
+operators.conj!(a::DenseOperator) = conj!(a.data)
+
 """
     tensor(x::Ket, y::Bra)
 
@@ -120,6 +124,12 @@ function operators.ptrace(psi::Bra, indices::Vector{Int})
 end
 
 operators.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
+
+function operators.expect(op::DenseOperator, state::Ket)# where T <: Union{Ket, Bra}
+    check_samebases(op.basis_r, state.basis)
+    check_samebases(op.basis_l, state.basis)
+    state.data' * op.data * state.data
+end
 
 function operators.expect(op::DenseOperator, state::Operator)
     check_samebases(op.basis_r, state.basis_l)

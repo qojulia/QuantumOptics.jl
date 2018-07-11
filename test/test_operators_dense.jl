@@ -72,6 +72,10 @@ xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
 @test 1e-12 > D((op1 + op2)*dagger(0.3*op3), 0.3*op1*dagger(op3) + 0.3*op2*dagger(op3))
 @test 1e-12 > D(0.3*(op1*dagger(op2)), op1*(0.3*dagger(op2)))
 
+tmp = copy(op1)
+conj!(tmp)
+@test tmp == conj(op1) && conj(tmp.data) == op1.data
+
 # Internal layout
 b1 = GenericBasis(2)
 b2 = GenericBasis(3)

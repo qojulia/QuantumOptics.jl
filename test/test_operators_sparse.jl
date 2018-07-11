@@ -87,6 +87,11 @@ xbra2 = dagger(randstate(b_l))
 # Test division
 @test 1e-14 > D(op1/7, op1_/7)
 
+# Conjugation
+tmp = copy(op1)
+conj!(tmp)
+@test tmp == conj(op1) && conj(tmp.data) == op1.data
+
 # Test identityoperator
 Idense = identityoperator(DenseOperator, b_r)
 I = identityoperator(SparseOperator, b_r)

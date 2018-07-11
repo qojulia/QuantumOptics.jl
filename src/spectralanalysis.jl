@@ -18,6 +18,10 @@ about the way the calculation is done is needed, use the functions directly.
 More details can be found at
 [http://docs.julialang.org/en/stable/stdlib/linalg/].
 
+NOTE: Especially for small systems full diagonalization with Julia's `eig`
+function is often more desirable. You can convert a sparse operator `A` to a
+dense one using `full(A)`.
+
 If the given operator is non-hermitian a warning is given. This behavior
 can be turned off using the keyword `warning=false`.
 """
@@ -41,15 +45,15 @@ end
 """
 For sparse operators by default it only returns the 6 lowest eigenvalues.
 """
-function eigenstates(op::SparseOperator, n::Int=length(basis(op)); warning=true)
+function eigenstates(op::SparseOperator, n::Int=6; warning::Bool=true,
+        info::Bool=true, kwargs...)
     b = basis(op)
-    if ishermitian(op)
-        data = Hermitian(op.data)
-    else
-        warning && warn(nonhermitian_warning)
-        data = op.data
-    end
-    D, V = eigs(data; nev=n, which=:SR)
+    # TODO: Change to sparese-Hermitian specific algorithm if more efficient
+    ishermitian(op) || (warning && warn(nonhermitian_warning))
+    info && println("INFO: Defaulting to sparse diagonalization.
+        If storing the full operator is possible, it might be faster to do
+        eigenstates(full(op)). Set info=false to turn off this message.")
+    D, V = eigs(op.data; which=:SR, nev=n, kwargs...)
     states = [Ket(b, V[:, k]) for k=1:length(D)]
     D, states
 end
@@ -84,7 +88,7 @@ end
 """
 For sparse operators by default it only returns the 6 lowest eigenvalues.
 """
-eigenenergies(op::SparseOperator, n::Int=6; warning=true) = eigenstates(op, n; warning=warning)[1]
+eigenenergies(op::SparseOperator, n::Int=6; kwargs...) = eigenstates(op, n; kwargs...)[1]
 
 
 arithmetic_unary_error = operators.arithmetic_unary_error

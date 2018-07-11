@@ -1,8 +1,7 @@
 using Base.Test
 using QuantumOptics
 
-mutable struct SpectralanalysisTestOperator <: Operator
-end
+mutable struct SpectralanalysisTestOperator <: Operator end
 
 @testset "spectralanalysis" begin
 
@@ -26,15 +25,15 @@ d = [-3, -2.6, -0.1, 0.0, 0.6]
 D = DenseOperator(b, diagm(d))
 Dsp = sparse(D)
 @test eigenenergies(D) ≈ d
-@test eigenenergies(Dsp, 3) ≈ d[1:3]
+@test eigenenergies(Dsp, 3, info=false) ≈ d[1:3]
 
 R = U*D*dagger(U)
 Rsp = sparse(R)
 @test eigenenergies((R+dagger(R))/2) ≈ d
-@test eigenenergies((Rsp+dagger(Rsp))/2, 3) ≈ d[1:3]
+@test eigenenergies((Rsp+dagger(Rsp))/2, 3; info=false) ≈ d[1:3]
 
 E, states = eigenstates((R+dagger(R))/2, 3)
-Esp, states_sp = eigenstates((Rsp+dagger(Rsp))/2, 3)
+Esp, states_sp = eigenstates((Rsp+dagger(Rsp))/2, 3, info=false)
 for i=1:3
     @test E[i] ≈ d[i]
     @test Esp[i] ≈ d[i]
@@ -54,15 +53,15 @@ d = [-3+0.2im, -2.6-0.1im, -0.1+0.5im, 0.0, 0.6+0.3im]
 D = DenseOperator(b, diagm(d))
 Dsp = sparse(D)
 @test eigenenergies(D; warning=false) ≈ d
-@test eigenenergies(Dsp, 3; warning=false) ≈ d[1:3]
+@test eigenenergies(Dsp, 3; warning=false, info=false) ≈ d[1:3]
 
 R = U*D*dagger(U)
 Rsp = sparse(R)
 @test eigenenergies(R; warning=false) ≈ d
-@test eigenenergies(Rsp, 3; warning=false) ≈ d[1:3]
+@test eigenenergies(Rsp, 3; warning=false, info=false) ≈ d[1:3]
 
 E, states = eigenstates(R, 3; warning=false)
-Esp, states_sp = eigenstates(Rsp, 3; warning=false)
+Esp, states_sp = eigenstates(Rsp, 3; warning=false, info=false)
 for i=1:3
     @test E[i] ≈ d[i]
     @test Esp[i] ≈ d[i]

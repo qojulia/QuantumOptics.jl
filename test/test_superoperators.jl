@@ -156,6 +156,9 @@ op2 = DenseOperator(spinbasis, [0.2+0.1im 0.1+2.3im; 0.8+4.0im 0.3+1.4im])
 @test spre(sparse(op1))*op2 == op1*op2
 @test spost(sparse(op1))*op2 == op2*op1
 
+@test spre(sparse(op1))*sparse(op2) == sparse(op1*op2)
+@test spost(sparse(op1))*sparse(op2) == sparse(op2*op1)
+
 L = liouvillian(H, J)
 ρ = -1im*(H*ρ₀ - ρ₀*H)
 for j=J

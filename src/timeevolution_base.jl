@@ -2,6 +2,8 @@ using ..metrics
 
 import OrdinaryDiffEq, DiffEqCallbacks, StochasticDiffEq
 
+const DiffArray = Union{Vector{Complex128}, Array{Complex128, 2}}
+
 function recast! end
 
 """
@@ -10,19 +12,19 @@ function recast! end
 
 Integrate using OrdinaryDiffEq
 """
-function integrate(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
+function integrate(tspan::Vector{Float64}, df::Function, x0::DiffArray,
             state::T, dstate::T, fout::Function;
             alg::OrdinaryDiffEq.OrdinaryDiffEqAlgorithm = OrdinaryDiffEq.DP5(),
             steady_state = false, tol = 1e-3, save_everystep = false,
             callback = nothing, kwargs...) where T
 
-    function df_(dx::Vector{Complex128}, x::Vector{Complex128}, p, t)
+    function df_(dx::DiffArray, x::DiffArray, p, t)
         recast!(x, state)
         recast!(dx, dstate)
         df(t, state, dstate)
         recast!(dstate, dx)
     end
-    function fout_(x::Vector{Complex128}, t::Float64, integrator)
+    function fout_(x::DiffArray, t::Float64, integrator)
         recast!(x, state)
         fout(t, state)
     end
@@ -64,7 +66,7 @@ function integrate(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
     out.t,out.saveval
 end
 
-function integrate(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
+function integrate(tspan::Vector{Float64}, df::Function, x0::DiffArray,
             state::T, dstate::T, ::Void; kwargs...) where T
     function fout(t::Float64, state::T)
         copy(state)
@@ -96,8 +98,11 @@ Integrate using StochasticDiffEq
 function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0::Vector{Complex128},
             state::T, dstate::T, fout::Function, n::Int;
             save_everystep = false, callback=nothing,
-            alg = nothing, noise_rate_prototype = Array{Complex128}(length(state), n),
-            noise=StochasticDiffEq.RealWienerProcess(0.0, randn(n)),
+            alg::StochasticDiffEq.StochasticDiffEqAlgorithm=StochasticDiffEq.EM(),
+            noise_rate_prototype = nothing,
+            noise_prototype_classical = nothing,
+            noise=nothing,
+            ncb=nothing,
             kwargs...) where T
 
     function df_(dx::Vector{Complex128}, x::Vector{Complex128}, p, t)
@@ -118,6 +123,18 @@ function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0:
         fout(t, state)
     end
 
+    nc = isa(noise_prototype_classical, Void) ? 0 : size(noise_prototype_classical)[2]
+    if isa(noise, Void) && n > 0
+        noise_ = StochasticDiffEq.RealWienerProcess!(0.0, randn(n + nc))
+    else
+        noise_ = noise
+    end
+    if isa(noise_rate_prototype, Void)
+        if n > 1 || nc > 1 || (n > 0 && nc > 0)
+            noise_rate_prototype = zeros(Complex128, length(x0), n + nc)
+        end
+    end
+
     out_type = pure_inference(fout, Tuple{eltype(tspan),typeof(state)})
 
     out = DiffEqCallbacks.SavedValues(Float64,out_type)
@@ -126,32 +143,17 @@ function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0:
                                          save_everystep=save_everystep,
                                          save_start = false)
 
-    full_cb = OrdinaryDiffEq.CallbackSet(callback, scb)
+    full_cb = OrdinaryDiffEq.CallbackSet(callback, ncb, scb)
 
-    if n == 1
-        prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),
-                    noise=noise)
-    else
-        prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),
-                noise=noise, noise_rate_prototype=noise_rate_prototype)
-    end
-
-    if isa(alg, Void)
-        if n == 1
-            alg_ = StochasticDiffEq.RKMil(interpretation=:Stratonovich)
-        else
-            alg_ = StochasticDiffEq.LambaEulerHeun()
-        end
-    else
-        @assert isa(alg, StochasticDiffEq.StochasticDiffEqAlgorithm)
-        alg_ = alg
-    end
+    prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),
+                    noise=noise_,
+                    noise_rate_prototype=noise_rate_prototype)
 
     sol = StochasticDiffEq.solve(
                 prob,
-                alg_;
-                reltol = 1.0e-4,
-                abstol = 1.0e-4,
+                alg;
+                reltol = 1.0e-3,
+                abstol = 1.0e-3,
                 save_everystep = false, save_start = false,
                 save_end = false,
                 callback=full_cb, kwargs...)

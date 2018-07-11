@@ -74,10 +74,12 @@ include("timecorrelations.jl")
 include("spectralanalysis.jl")
 include("semiclassical.jl")
 module stochastic
+    include("stochastic_definitions.jl")
     include("stochastic_schroedinger.jl")
     include("stochastic_master.jl")
     include("stochastic_semiclassical.jl")
     using .stochastic_schroedinger, .stochastic_master, .stochastic_semiclassical
+    using .stochastic_definitions
 end
 include("printing.jl")
 

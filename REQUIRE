@@ -1,8 +1,8 @@
 julia 0.6
 Compat 0.64.0
-OrdinaryDiffEq 3.12.0
+OrdinaryDiffEq 3.19.1
 DiffEqCallbacks 1.1
-StochasticDiffEq 4.4.2
+StochasticDiffEq 4.4.5
 RecursiveArrayTools
 GSL
 WignerSymbols

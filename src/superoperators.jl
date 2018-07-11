@@ -104,6 +104,11 @@ function *(a::SuperOperator, b::DenseOperator)
     data = a.data*reshape(b.data, length(b.data))
     return DenseOperator(a.basis_l[1], a.basis_l[2], reshape(data, length(a.basis_l[1]), length(a.basis_l[2])))
 end
+function *(a::SuperOperator, b::SparseOperator)
+    check_multiplicable(a, b)
+    data = a.data*reshape(b.data, length(b.data))
+    return SparseOperator(a.basis_l[1], a.basis_l[2], reshape(data, length(a.basis_l[1]), length(a.basis_l[2])))
+end
 
 function *(a::SuperOperator, b::SuperOperator)
     check_multiplicable(a, b)
