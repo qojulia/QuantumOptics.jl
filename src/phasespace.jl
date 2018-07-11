@@ -4,7 +4,8 @@ export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2
 
 using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
 
-using WignerSymbols, GSL
+import WignerSymbols: clebschgordan
+import GSL: sf_legendre_sphPlm
 
 
 """
@@ -219,63 +220,60 @@ function coherentspinstate(b::SpinBasis, theta::Real, phi::Real,
     result = Ket(b, Vector{Complex128}(length(b))))
     data = result.data
     N = length(b)-1
+    sinth = sin(0.5theta)
+    costh = cos(0.5theta)
+    expphi = exp(0.5im*phi)
+    expphi_con = conj(expphi)
     @inbounds for n=0:N
-        data[n+1] =
-        sqrt(factorial(BigInt(N))/(factorial(BigInt(n)) *
-        factorial(BigInt(N-n)))) *
-        (sin(theta/2.)*exp(1im*phi/2.))^n *
-        (cos(theta/2.)*exp(-1im*phi/2.))^(N-n)
+        data[n+1] = sqrt(binomial(BigInt(N), n)) * (sinth*expphi)^n * (costh*expphi_con)^(N-n)
     end
     return result
 end
 
 """
-    qfuncsu2(ket,resolution)
-    qfuncsu2(rho,resolution)
+    qfuncsu2(ket,Ntheta;Nphi=2Ntheta)
+    qfuncsu2(rho,Ntheta;Nphi=2Ntheta)
 
 Husimi Q SU(2) representation ``⟨θ,ϕ|ρ|θ,ϕ⟩/π`` for the given state. The
-function calculates the SU(2) Husimi representation of a state on the generalised bloch sphere
-(0 < θ < π and 0 < ϕ < 2 π) with a given resolution
+function calculates the SU(2) Husimi representation of a state on the
+generalised bloch sphere (0 < θ < π and 0 < ϕ < 2 π) with a given
+resolution `(Ntheta, Nphi)`.
 
     qfuncsu2(rho,θ,ϕ)
     qfuncsu2(ket,θ,ϕ)
 
-This version calculates the Husimi Q SU(2) function at a position given by θ and ϕ
+This version calculates the Husimi Q SU(2) function at a position given by θ and ϕ.
 """
-function qfuncsu2(psi::Ket, resolution::Integer)
-    b = basis(psi)
-    psi = dagger(psi)
+function qfuncsu2(psi::Ket, Ntheta::Int; Nphi::Int=2Ntheta)
+    b = psi.basis
+    psi_bra_data = psi.data'
     lb = float(b.spinnumber)
     @assert isa(b, SpinBasis)
-    Nx = 2*resolution
-    Ny = resolution
-    result = Array{Float64}(Ny,Nx)
-    @inbounds  for i = 0:Ny-1, j = 0:Nx-1
-            result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi*coherentspinstate(b,pi-i*1pi/(Ny-1),j*2pi/(Nx-1)-pi))
+    result = Array{Float64}(Ntheta,Nphi)
+    @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
+        result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,pi-i*pi/(Ntheta-1),j*2pi/(Nphi-1)-pi).data)
     end
     return result
 end
 
-function qfuncsu2(rho::DenseOperator, resolution::Integer)
+function qfuncsu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     b = basis(rho)
     lb = float(b.spinnumber)
     @assert isa(b, SpinBasis)
-    Nx = 2*resolution
-    Ny = resolution
-    result = Array{Float64}(Ny,Nx)
-    @inbounds  for i = 0:Ny-1, j = 0:Nx-1
-        c = coherentspinstate(b,pi-i*1pi/(Ny-1),j*2pi/(Nx-1)-pi)
-        result[i+1,j+1] = abs((2*lb+1)/(4pi)*dagger(c)*rho*c)
+    result = Array{Float64}(Ntheta,Nphi)
+    @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
+        c = coherentspinstate(b,pi-i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi)
+        result[i+1,j+1] = abs((2*lb+1)/(4pi)*c.data'*rho.data*c.data)
     end
     return result
 end
 
 function qfuncsu2(psi::Ket, theta::Real, phi::Real)
     b = basis(psi)
-    psi = dagger(psi)
+    psi_bra_data = psi.data'
     lb = float(b.spinnumber)
     @assert isa(b, SpinBasis)
-    result = (2*lb+1)/(4pi)*abs2(psi*coherentspinstate(b,theta,phi))
+    result = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,theta,phi).data)
     return result
 end
 
@@ -284,18 +282,18 @@ function qfuncsu2(rho::DenseOperator, theta::Real, phi::Real)
     lb = float(b.spinnumber)
     @assert isa(b, SpinBasis)
     c = coherentspinstate(b,theta,phi)
-    result = abs((2*lb+1)/(4pi)*dagger(c)*rho*c)
+    result = abs((2*lb+1)/(4pi)*c.data'*rho.data*c.data)
     return result
 end
 
 """
-    wignersu2(ket,resolution)
-    wignersu2(rho,resolution)
+    wignersu2(ket,Ntheta;Nphi=2Ntheta)
+    wignersu2(rho,Ntheta;Nphi=2Ntheta)
 
-Wigner SU(2) representation for the given state. The
-function calculates the SU(2) Wigner representation of a state on the generalised bloch sphere
-(0 < θ < π and 0 < ϕ < 2 π) with a given resolution by decomposing the state into the basis of
-spherical harmonics
+Wigner SU(2) representation for the given state with a resolution `(Ntheta, Nphi)`.
+The function calculates the SU(2) Wigner representation of a state on the
+generalised bloch sphere (0 < θ < π and 0 < ϕ < 2 π) with a given resolution by
+decomposing the state into the basis of spherical harmonics.
 
     wignersu2(rho,θ,ϕ)
     wignersu2(ket,θ,ϕ)
@@ -307,13 +305,10 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
     N = length(basis(rho))-1
 
     ### Tensor generation ###
-    BandT = Matrix(N,N+1)
+    BandT = Array{Vector{Float64}, 2}
     BandT[1,1] = collect(linspace(-N/2, N/2, N+1))
     BandT[1,2] = -collect(sqrt.(linspace(1, N, N)).*sqrt.(linspace((N)/2, 1/2, N)))
-
-    s = 1
-
-    BandT[s+1,s+1+1]=BandT[1,1+1][1:N+1-(s+1)].*BandT[s,s+1][2:end]
+    BandT[2,3]=BandT[1,2][1:N-1].*BandT[1,2][2:end]
 
     BandT[s+1,s+1]=clebschgordan(1,0,s,s,s+1,s)BandT[1, 0+1][1 : N + 1 - s].*BandT[s, s+1]+
     clebschgordan(1,1,s,s-1,s+1,s)*BandT[1, 1+1][1 : N + 1 - s].*BandT[s, s - 1+1][2 : end]
@@ -353,28 +348,19 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
     c = rho.data;
     EVT = Matrix(N,N+1)
     for S = 1:N, M = 0:S
-        EVT[S,M+1] = sum(BandT[S,M+1].*diag(c,M))
+        EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
     end
 
-    function wignersu2int(N::Integer, theta::Real, phi::Real)
-
-    UberBand = Array{Complex128}(N+1)
-    UberBand[1] = sqrt(1/(1+N))*ylm(0,0,theta,phi)
-    @inbounds  for S = 1:N
-        UberBand[S+1] = 2*real(sum([conj(EVT[S,M+1]*ylm(S,M,theta,phi)) for M =1:S]))+conj(EVT[S,0+1])*ylm(S,0,theta,phi)
-    end
-    return sum(UberBand)
-    end
-    wignermap = wignersu2int(N,theta,phi)
+    wignermap = _wignersu2int(N,theta,phi,EVT)
     return(wignermap)
 end
 
-function wignersu2(rho::DenseOperator, res::Integer)
+function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
 
     N = length(basis(rho))-1
 
     ### Tensor generation ###
-    BandT = Matrix(N,N+1)
+    BandT = Array{Vector{Float64}}(N,N+1)
     BandT[1,1] = collect(linspace(-N/2, N/2, N+1))
     BandT[1,2] = -collect(sqrt.(linspace(1, N, N)).*sqrt.(linspace((N)/2, 1/2, N)))
 
@@ -418,25 +404,28 @@ function wignersu2(rho::DenseOperator, res::Integer)
 
     ### State decomposition ###
     c = rho.data;
-    EVT = Matrix(N,N+1)
-    for S = 1:N, M = 0:S
-        EVT[S,M+1] = sum(BandT[S,M+1].*diag(c,M))
+    EVT = Array{Complex128}(N,N+1)
+    @inbounds for S = 1:N, M = 0:S
+        EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
     end
 
-    function wignersu2int(N::Integer, theta::Real, phi::Real)
-
-    UberBand = Array{Complex128}(N+1)
-    UberBand[1] = sqrt(1/(1+N))*ylm(0,0,theta,phi)
-    @inbounds  for S = 1:N
-        UberBand[S+1] = 2*real(sum([conj(EVT[S,M+1]*ylm(S,M,theta,phi)) for M =1:S]))+conj(EVT[S,0+1])*ylm(S,0,theta,phi)
-    end
-    return sum(UberBand)
-    end
-    wignermap = Array{Float64}(res,2*res)
-    for i = 1:res, j = 1:2*res
-        wignermap[i,j] = wignersu2int(N,i*1pi/(res-1),j*2pi/(2*res-1)-pi)
+    wignermap = Array{Float64}(Ntheta,Nphi)
+    for i = 1:Ntheta, j = 1:Nphi
+        wignermap[i,j] = _wignersu2int(N,i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi, EVT)
     end
     return(wignermap)
+end
+
+function _wignersu2int(N::Integer, theta::Real, phi::Real, EVT::Array{Complex128, 2})
+    UberBand = 0.0im
+    UberBand += sqrt(1/(1+N))*ylm(0,0,theta,phi)
+    @inbounds for S = 1:N
+        @inbounds for M = 1:S
+            UberBand += 2*real(EVT[S,M+1]*conj(ylm(S,M,theta,phi)))+
+                EVT[S,0+1]*ylm(S,0,theta,phi)
+        end
+    end
+    UberBand
 end
 
 wignersu2(psi::Ket, args...) = wignersu2(dm(psi), args...)
