@@ -1,11 +1,17 @@
 module phasespace
 
+<<<<<<< HEAD
 export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2
 
 using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
 
 import WignerSymbols: clebschgordan
 import GSL: sf_legendre_sphPlm
+=======
+export qfunc, wigner, coherentspinstate
+
+using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
+>>>>>>> origin
 
 
 """
@@ -207,6 +213,7 @@ function _clenshaw(L::Int, abs2_2α::Float64, ρ::Matrix{Complex128})
     end
 end
 
+<<<<<<< HEAD
 """
     coherentspinstate(b::SpinBasis, θ::Real, ϕ::Real)
 
@@ -219,13 +226,13 @@ Bloch sphere.
 function coherentspinstate(b::SpinBasis, theta::Real, phi::Real,
     result = Ket(b, Vector{Complex128}(length(b))))
     data = result.data
-    N = length(b)-1
+    N = BigInt(length(b)-1)
     sinth = sin(0.5theta)
     costh = cos(0.5theta)
     expphi = exp(0.5im*phi)
     expphi_con = conj(expphi)
     @inbounds for n=0:N
-        data[n+1] = sqrt(binomial(BigInt(N), n)) * (sinth*expphi)^n * (costh*expphi_con)^(N-n)
+        data[n+1] = sqrt(binomial(N, n)) * (sinth*expphi)^n * (costh*expphi_con)^(N-n)
     end
     return result
 end
@@ -252,10 +259,26 @@ function qfuncsu2(psi::Ket, Ntheta::Int; Nphi::Int=2Ntheta)
     result = Array{Float64}(Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
         result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,pi-i*pi/(Ntheta-1),j*2pi/(Nphi-1)-pi).data)
+=======
+############################ coherent spin state ##############################
+function coherentspinstate(b::SpinBasis, theta::Number, phi::Number,
+        result = Ket(b, Vector{Complex128}(length(b))))
+    #theta = real(theta)
+    #phi = real(phi)
+    data = result.data
+    N = length(b)-1
+    @inbounds for n=0:N
+        data[n+1] =
+        sqrt(factorial(BigInt(N))/(factorial(BigInt(n)) *
+        factorial(BigInt(N-n)))) *
+        (sin(theta/2.)*exp(1im*phi/2.))^n *
+        (cos(theta/2.)*exp(-1im*phi/2.))^(N-n)
+>>>>>>> origin
     end
     return result
 end
 
+<<<<<<< HEAD
 function qfuncsu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     b = basis(rho)
     lb = float(b.spinnumber)
@@ -309,23 +332,23 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
     BandT[1,1] = collect(linspace(-N/2, N/2, N+1))
     BandT[1,2] = -collect(sqrt.(linspace(1, N, N)).*sqrt.(linspace((N)/2, 1/2, N)))
     BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
-    clebschgordan(1,-1,1,1,2,0)*append!(zeros(N+1-length(BandT[1,2])),BandT[1,2].*BandT[1,2]) -
-    clebschgordan(1,1,1,-1,2,0)*append!(BandT[1,2].*BandT[1,2],zeros(N+1-length(BandT[1,2])))
+    clebschgordan(1,-1,1,1,2,0)*[zeros(N+1-length(BandT[1,2])); BandT[1,2].*BandT[1,2]] -
+    clebschgordan(1,1,1,-1,2,0)*[BandT[1,2].*BandT[1,2]; zeros(N+1-length(BandT[1,2]))]
     BandT[2,2]=clebschgordan(1,0,1,1,2,1)BandT[1,1][1:N].*BandT[1,2]+
     clebschgordan(1,1,1,0,2,1)*BandT[1,2][1:N].*BandT[1,1][2:end]
     BandT[2,3]=BandT[1,2][1:N+1-(2)].*BandT[1,2][2:end]
 
     for S=2:N-1
         BandT[S+1,1]=clebschgordan(1,0,S,0,S+1,0)*BandT[1,1].*BandT[S,1] -
-        append!(zeros(N+1-length(BandT[1,2])),clebschgordan(1,-1,S,1,S+1,0)*BandT[1,2].*BandT[S,2]) -
-        clebschgordan(1,1,S,-1,S+1,0)*append!(BandT[1,2].*BandT[S,2],zeros(N+1-length(BandT[1,2])))
+        [zeros(N+1-length(BandT[1,2])); clebschgordan(1,-1,S,1,S+1,0)*BandT[1,2].*BandT[S,2]] -
+        clebschgordan(1,1,S,-1,S+1,0)*[BandT[1,2].*BandT[S,2]; zeros(N+1-length(BandT[1,2]))]
         BandT[S+1,S+1]=clebschgordan(1,0,S,S,S+1,S)BandT[1,1][1:N+1-S].*BandT[S,S+1]+
         clebschgordan(1,1,S,S-1,S+1,S)*BandT[1,2][1:N+1-S].*BandT[S,S][2:end]
         BandT[S+1,S+2]=BandT[1,2][1:N+1-(S+1)].*BandT[S,S+1][2:end]
         for  M=1:S-1
             BandT[S+1,M+1] = clebschgordan(1, 0, S, M, S+1,M)*BandT[1,1][1:N+1-M].*BandT[S,M+1] +
             clebschgordan(1,1,S,M-1,S+1,M)*BandT[1,2][1:N+1-M].*BandT[S,M][2:end] -
-            clebschgordan(1,-1,S,M+1,S+1,M)*append!(zeros(1),BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M])
+            clebschgordan(1,-1,S,M+1,S+1,M)*[zeros(1); BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M]]
         end
 
     end
@@ -341,20 +364,13 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
 
     ### State decomposition ###
     c = rho.data;
-    EVT = Matrix(N,N+1)
-    for S = 1:N, M = 0:S
+    EVT = Array{Complex128}(N,N+1)
+    @inbounds for S = 1:N, M = 0:S
         EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
     end
 
-    UberBand = 0.0im
-    UberBand += sqrt(1/(1+N))*ylm(0,0,theta,phi)
-    @inbounds for S = 1:N
-        @inbounds for M = 1:S
-            UberBand += 2*real(EVT[S,M+1]*conj(ylm(S,M,theta,phi)))
-        end
-        UberBand += EVT[S,1]*ylm(S,0,theta,phi)
-    end
-    UberBand
+    wignermap = _wignersu2int(N,theta,phi, EVT)
+    return wignermap*sqrt((N+1)/(4pi))
 end
 
 function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
@@ -366,23 +382,23 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     BandT[1,1] = collect(linspace(-N/2, N/2, N+1))
     BandT[1,2] = -collect(sqrt.(linspace(1, N, N)).*sqrt.(linspace((N)/2, 1/2, N)))
     BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
-    clebschgordan(1,-1,1,1,2,0)*append!(zeros(N+1-length(BandT[1,2])),BandT[1,2].*BandT[1,2]) -
-    clebschgordan(1,1,1,-1,2,0)*append!(BandT[1,2].*BandT[1,2],zeros(N+1-length(BandT[1,2])))
+    clebschgordan(1,-1,1,1,2,0)*[zeros(N+1-length(BandT[1,2])); BandT[1,2].*BandT[1,2]] -
+    clebschgordan(1,1,1,-1,2,0)*[BandT[1,2].*BandT[1,2]; zeros(N+1-length(BandT[1,2]))]
     BandT[2,2]=clebschgordan(1,0,1,1,2,1)BandT[1,1][1:N].*BandT[1,2]+
     clebschgordan(1,1,1,0,2,1)*BandT[1,2][1:N].*BandT[1,1][2:end]
     BandT[2,3]=BandT[1,2][1:N+1-(2)].*BandT[1,2][2:end]
 
     for S=2:N-1
         BandT[S+1,1]=clebschgordan(1,0,S,0,S+1,0)*BandT[1,1].*BandT[S,1] -
-        append!(zeros(N+1-length(BandT[1,2])),clebschgordan(1,-1,S,1,S+1,0)*BandT[1,2].*BandT[S,2]) -
-        clebschgordan(1,1,S,-1,S+1,0)*append!(BandT[1,2].*BandT[S,2],zeros(N+1-length(BandT[1,2])))
+        [zeros(N+1-length(BandT[1,2])); clebschgordan(1,-1,S,1,S+1,0)*BandT[1,2].*BandT[S,2]] -
+        clebschgordan(1,1,S,-1,S+1,0)*[BandT[1,2].*BandT[S,2]; zeros(N+1-length(BandT[1,2]))]
         BandT[S+1,S+1]=clebschgordan(1,0,S,S,S+1,S)BandT[1,1][1:N+1-S].*BandT[S,S+1]+
         clebschgordan(1,1,S,S-1,S+1,S)*BandT[1,2][1:N+1-S].*BandT[S,S][2:end]
         BandT[S+1,S+2]=BandT[1,2][1:N+1-(S+1)].*BandT[S,S+1][2:end]
         for  M=1:S-1
             BandT[S+1,M+1] = clebschgordan(1, 0, S, M, S+1,M)*BandT[1,1][1:N+1-M].*BandT[S,M+1] +
             clebschgordan(1,1,S,M-1,S+1,M)*BandT[1,2][1:N+1-M].*BandT[S,M][2:end] -
-            clebschgordan(1,-1,S,M+1,S+1,M)*append!(zeros(1),BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M])
+            clebschgordan(1,-1,S,M+1,S+1,M)*[0.0im; BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M]]
         end
     end
     NormT =[]
@@ -404,7 +420,7 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     for i = 1:Ntheta, j = 1:Nphi
         wignermap[i,j] = _wignersu2int(N,i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi, EVT)
     end
-    return(wignermap)
+    return wignermap*sqrt((N+1)/(4pi))
 end
 
 function _wignersu2int(N::Integer, theta::Real, phi::Real, EVT::Array{Complex128, 2})
@@ -426,4 +442,6 @@ function ylm(l::Integer, m::Integer, theta::Real, phi::Real)
 end
 
 
+=======
+>>>>>>> origin
 end #module
