@@ -118,7 +118,6 @@ qsu2dm = sum(qfuncsu2(dmrs,res).*costhetam)*(π/res)^2
 @test isapprox(qsu2sx, (2*float(b.spinnumber)+1)/(4pi)*(0.5*(sin(theta)cos(phi)+1))^(2*float(b.spinnumber)))
 @test isapprox(qsu2, 1.0, atol=1e-2)
 @test isapprox(qsu2dm, 1.0, atol=1e-2)
-wignersu2(csssx,π/2,0)
 @test isapprox(wignersu2(csssx,π/2,0), (4*float(b.spinnumber)+1)/(4pi), atol=1e-2)
 @test isapprox(wignersu2(dmcsssx,π/2,0), (4*float(b.spinnumber)+1)/(4pi),atol=1e-2)
 @test isapprox(wsu2, 1.0, atol=1e-2)
