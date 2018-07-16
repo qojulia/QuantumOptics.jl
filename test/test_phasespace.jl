@@ -86,7 +86,6 @@ for (i,x)=enumerate(X), (j,y)=enumerate(Y)
 end
 
 # Test SU(2) phasespace
-<<<<<<< HEAD
 b = SpinBasis(20)
 theta = π*rand()
 phi =2π*rand()
@@ -96,18 +95,11 @@ csssx = coherentspinstate(b,π/2,0)
 dmcsssx = dm(csssx)
 rs = randstate(b)
 dmrs = dm(rs)
-=======
-b = SpinBasis(50)
-theta = π*rand()
-phi =2π*rand()
-css = coherentspinstate(b,theta,phi)
->>>>>>> origin
 sx = expect(sigmax(b)/2,css); # eigenstate of jx operator
 sy = expect(sigmay(b)/2,css); # eigenstate of jy
 sz = expect(sigmaz(b)/2,css); # eigenstate of jz operator
 ssq = sx^2 + sy^2 + sz^2
 
-<<<<<<< HEAD
 qsu2sx = qfuncsu2(csssx,theta,phi)
 qsu2sxdm = qfuncsu2(dmcsssx,theta,phi)
 res = 400
@@ -132,7 +124,4 @@ qsu2dm = sum(qfuncsu2(dmrs,res).*costhetam)*(π/res)^2
 @test isapprox(wsu2, 1.0, atol=1e-2)
 @test isapprox(wsu2dm, 1.0, atol=1e-2)
 
-=======
-@test ssq ≈ float(b.spinnumber)^2
->>>>>>> origin
 end # testset

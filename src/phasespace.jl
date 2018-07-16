@@ -1,18 +1,11 @@
 module phasespace
 
-<<<<<<< HEAD
 export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2
 
 using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
 
 import WignerSymbols: clebschgordan
 import GSL: sf_legendre_sphPlm
-=======
-export qfunc, wigner, coherentspinstate
-
-using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
->>>>>>> origin
-
 
 """
     qfunc(a, α)
@@ -213,7 +206,6 @@ function _clenshaw(L::Int, abs2_2α::Float64, ρ::Matrix{Complex128})
     end
 end
 
-<<<<<<< HEAD
 """
     coherentspinstate(b::SpinBasis, θ::Real, ϕ::Real)
 
@@ -259,26 +251,10 @@ function qfuncsu2(psi::Ket, Ntheta::Int; Nphi::Int=2Ntheta)
     result = Array{Float64}(Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
         result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,pi-i*pi/(Ntheta-1),j*2pi/(Nphi-1)-pi).data)
-=======
-############################ coherent spin state ##############################
-function coherentspinstate(b::SpinBasis, theta::Number, phi::Number,
-        result = Ket(b, Vector{Complex128}(length(b))))
-    #theta = real(theta)
-    #phi = real(phi)
-    data = result.data
-    N = length(b)-1
-    @inbounds for n=0:N
-        data[n+1] =
-        sqrt(factorial(BigInt(N))/(factorial(BigInt(n)) *
-        factorial(BigInt(N-n)))) *
-        (sin(theta/2.)*exp(1im*phi/2.))^n *
-        (cos(theta/2.)*exp(-1im*phi/2.))^(N-n)
->>>>>>> origin
     end
     return result
 end
 
-<<<<<<< HEAD
 function qfuncsu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     b = basis(rho)
     lb = float(b.spinnumber)
@@ -441,7 +417,4 @@ function ylm(l::Integer, m::Integer, theta::Real, phi::Real)
     sf_legendre_sphPlm(l,m,cos(theta))*e^(1im*m*phi)
 end
 
-
-=======
->>>>>>> origin
 end #module
