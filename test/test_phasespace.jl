@@ -102,7 +102,7 @@ ssq = sx^2 + sy^2 + sz^2
 
 qsu2sx = qfuncsu2(csssx,theta,phi)
 qsu2sxdm = qfuncsu2(dmcsssx,theta,phi)
-res = 200
+res = 250
 costhetam = Array{Float64}(res,2*res)
 for i = 1:res, j = 1:2*res
     costhetam[i,j] = sin(i*1pi/(res-1))
@@ -114,10 +114,11 @@ qsu2dm = sum(qfuncsu2(dmrs,res).*costhetam)*(π/res)^2
 
 @test ssq ≈ float(b.spinnumber)^2
 
-@test isapprox(qsu2sxdm, (2*float(b.spinnumber)+1)/(4pi)*(0.5*(sin(theta)cos(phi)+1))^(2*float(b.spinnumber)))
-@test isapprox(qsu2sx, (2*float(b.spinnumber)+1)/(4pi)*(0.5*(sin(theta)cos(phi)+1))^(2*float(b.spinnumber)))
+@test isapprox(qsu2sxdm, (2*float(b.spinnumber)+1)/(4pi)*(0.5*(sin(theta)cos(phi)+1))^(2*float(b.spinnumber)),atol=1e-2)
+@test isapprox(qsu2sx, (2*float(b.spinnumber)+1)/(4pi)*(0.5*(sin(theta)cos(phi)+1))^(2*float(b.spinnumber)),atol=1e-2)
 @test isapprox(qsu2, 1.0, atol=1e-2)
 @test isapprox(qsu2dm, 1.0, atol=1e-2)
+
 @test isapprox(wignersu2(csssx,π/2,0), (4*float(b.spinnumber)+1)/(4pi), atol=1e-2)
 @test isapprox(wignersu2(dmcsssx,π/2,0), (4*float(b.spinnumber)+1)/(4pi),atol=1e-2)
 @test isapprox(wsu2, 1.0, atol=1e-2)
