@@ -1,6 +1,6 @@
 module phasespace
 
-export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2
+export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2, YLM
 
 using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
 
