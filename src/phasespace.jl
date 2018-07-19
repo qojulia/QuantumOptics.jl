@@ -419,35 +419,34 @@ function ylm(l::Integer, m::Integer, theta::Real, phi::Real)
 end
 
 function YLM(l::Integer,m::Integer,theta::Real,phi::Real)
-    norm = (sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m)))/sqrt(factorial(BigInt(l+m)))*(-1)^m)
-    arg = Float64(cos(theta))
-    phase = Complex(e^(1im*m*phi))
     if l == 0
         return 1;
-        else
-        p_ll = BigFloat(1);
-        fact = 1.0;
+    else
+        norm = Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m)))/sqrt(factorial(BigInt(l+m)))*(-1)^m)
+        arg = cos(theta)
+        phase = e^(1.0im*m*phi)
+        p_ll = 1.0
+        fact = 1.0
         @inbounds for i = 1:l
-          p_ll *= 1/((2*fact))*sqrt(1-arg^2)
-          fact += 1.0;
+            p_ll *= 1/((2*fact))*sqrt(1-arg^2)
+            fact += 1.0
         end
         if m==l
             return p_ll/norm*phase
         end
-        mr=-l
-        p_llp2 = 0
         p_llp1 = 2*l*arg/sqrt(1-arg^2)*p_ll
         if l-m == 1
             return p_llp1/norm*phase
-            else
-            @inbounds  for i =1:l-m-1
+        else
+            mr=-l
+            @inbounds for i =1:l-m-1
                 p_llp2 = -2*(mr+1)*arg/sqrt(1-arg^2)*p_llp1-(l-mr)*(l+mr+1)*p_ll;
                 p_ll = p_llp1
                 p_llp1 = p_llp2
-                mr = mr+1
+                mr += 1
             end
             return p_llp1/norm*phase
-    end
+        end
     end
 end
 
