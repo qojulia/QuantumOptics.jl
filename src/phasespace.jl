@@ -422,7 +422,12 @@ function YLM(l::Integer,m::Integer,theta::Real,phi::Real)
     if l == 0
         return 1;
     else
-        norm = Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m)))/sqrt(factorial(BigInt(l+m)))*(-1)^m)
+        if m >0
+            sign = (-1)^abs(m)
+        else
+            sign = 1
+        end
+        norm = Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-abs(m))))/sqrt(factorial(BigInt(l+abs(m)))))
         arg = cos(theta)
         phase = e^(1.0im*m*phi)
         p_ll = 1.0
@@ -431,12 +436,13 @@ function YLM(l::Integer,m::Integer,theta::Real,phi::Real)
             p_ll *= 1/((2*fact))*sqrt(1-arg^2)
             fact += 1.0
         end
+        m = abs(m)
         if m==l
-            return p_ll/norm*phase
+            return p_ll/norm*phase*sign
         end
         p_llp1 = 2*l*arg/sqrt(1-arg^2)*p_ll
         if l-m == 1
-            return p_llp1/norm*phase
+            return p_llp1/norm*phase*sign
         else
             mr=-l
             @inbounds for i =1:l-m-1
@@ -445,7 +451,7 @@ function YLM(l::Integer,m::Integer,theta::Real,phi::Real)
                 p_llp1 = p_llp2
                 mr += 1
             end
-            return p_llp1/norm*phase
+            return p_llp1/norm*phase*sign
         end
     end
 end
