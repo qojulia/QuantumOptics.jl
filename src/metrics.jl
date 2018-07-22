@@ -82,7 +82,7 @@ Trace distance between `rho` and `sigma`.
 It is defined as
 
 ```math
-T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ}}\\}.
+T(ρ,σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\}.
 ```
 
 It calls [`tracenorm`](@ref) which in turn either uses [`tracenorm_h`](@ref)
@@ -101,10 +101,10 @@ Trace distance between `rho` and `sigma`.
 It uses the identity
 
 ```math
-T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{ρ^† ρ}\\} = \\frac{1}{2} \\sum_i |λ_i|
+T(ρ,σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\} = \\frac{1}{2} \\sum_i |λ_i|
 ```
 
-where ``λ_i`` are the eigenvalues of `rho`.
+where ``λ_i`` are the eigenvalues of `rho` - `sigma`.
 """
 tracedistance_h(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_h(rho - sigma)
 function tracedistance_h(rho::T, sigma::T) where T<:Operator
@@ -122,7 +122,7 @@ matrices (i.e. they can have different left-hand and right-hand bases).
 It uses the identity
 
 ```math
-    T(ρ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\}
+    T(ρ,σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\}
          = \\frac{1}{2} \\sum_i σ_i
 ```
 
