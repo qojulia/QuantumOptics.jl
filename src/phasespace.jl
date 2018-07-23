@@ -419,6 +419,8 @@ function YLM(l::Integer, m::Integer, theta::Real, phi::Real)
 end
 
 function ylm(l::Integer,m::Integer,theta::Real,phi::Real)
+    phi = mod(phi,2pi)
+    theta = mod(theta,pi)
     phase = e^(1.0im*m*phi)
     if theta ≈ 0
         if m == 0
