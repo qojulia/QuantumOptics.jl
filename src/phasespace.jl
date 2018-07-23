@@ -414,17 +414,20 @@ function _wignersu2int(N::Integer, theta::Real, phi::Real, EVT::Array{Complex128
 end
 wignersu2(psi::Ket, args...) = wignersu2(dm(psi), args...)
 
-function ylm(l::Integer, m::Integer, theta::Real, phi::Real)
+function YLM(l::Integer, m::Integer, theta::Real, phi::Real)
     sf_legendre_sphPlm(l,m,cos(theta))*e^(1im*m*phi)
 end
 
-function YLM(l::Integer,m::Integer,theta::Real,phi::Real)
+function ylm(l::Integer,m::Integer,theta::Real,phi::Real)
     if l == 0
         return 1.0
     else
         m_ = abs(m)
-        if 0 < l <= 33
+        # TODO: Clean up Int types
+        if 0 < l+m_ <= 33
             norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(Int128(l+m_))))
+        elseif 0 < l-m_ <= 33 && l+m_ > 33
+            norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(BigInt(l+m_))))
         else
             norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m_)))/sqrt(factorial(BigInt(l+m_))))
         end
