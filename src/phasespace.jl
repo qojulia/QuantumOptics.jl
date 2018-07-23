@@ -1,6 +1,6 @@
 module phasespace
 
-export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2, YLM
+export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2, ylm
 
 using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
 
@@ -414,13 +414,18 @@ function _wignersu2int(N::Integer, theta::Real, phi::Real, EVT::Array{Complex128
 end
 wignersu2(psi::Ket, args...) = wignersu2(dm(psi), args...)
 
-function YLM(l::Integer, m::Integer, theta::Real, phi::Real)
-    sf_legendre_sphPlm(l,m,cos(theta))*e^(1im*m*phi)
-end
+"""
+    ylm(l::Integer,m::Integer,theta::Real,phi::Real)
 
+Spherical harmonics Y(l,m)(θ,ϕ) where l ∈ N,  m = -l,-l+1,...,l-1,l, θ ∈ [0,π],
+and ϕ ∈ [0,2π).
+
+This function calculates the value of Y(l,m) spherical harmonic at position θ and
+    ϕ. 
+"""
 function ylm(l::Integer,m::Integer,theta::Real,phi::Real)
     phi = mod(phi,2pi)
-    theta = mod(theta,pi)
+    theta = mod(theta,2pi)
     phase = e^(1.0im*m*phi)
     if theta ≈ 0
         if m == 0
