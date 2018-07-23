@@ -397,7 +397,7 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
 
     wignermap = Array{Float64}(Ntheta,Nphi)
     @inbounds for i = 1:Ntheta, j = 1:Nphi
-        wignermap[i,j] = _wignersu2int(N,i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi, EVT)
+        wignermap[i,j] = _wignersu2int(N,i*1pi/(Ntheta-1)-1pi/(Ntheta-1),j*2pi/(Nphi-1)-2pi/(Nphi-1)-pi, EVT)
     end
     return wignermap*sqrt((N+1)/(4pi))
 end
@@ -419,40 +419,54 @@ function YLM(l::Integer, m::Integer, theta::Real, phi::Real)
 end
 
 function ylm(l::Integer,m::Integer,theta::Real,phi::Real)
-    if l == 0
-        return 1.0
+    phase = e^(1.0im*m*phi)
+    if theta ≈ 0
+        if m == 0
+            return phase*sqrt((2*l+1)/pi)/2
+        else
+            return 0
+        end
+    elseif theta ≈ 1pi
+        if m == 0
+            return phase*(-1)^l*sqrt((2*l+1)/pi)/2
+        else
+            return 0
+        end
     else
-        m_ = abs(m)
-        # TODO: Clean up Int types
-        if 0 < l+m_ <= 33
-            norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(Int128(l+m_))))
-        elseif 0 < l-m_ <= 33 && l+m_ > 33
-            norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(BigInt(l+m_))))
+        if l == 0
+            return 1/sqrt(4pi)
         else
-            norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m_)))/sqrt(factorial(BigInt(l+m_))))
-        end
-
-        sign = m > 0 ? -1^m_ : 1
-        arg = cos(theta)
-        phase = e^(1.0im*m*phi)
-        p_ll = 1.0
-        @inbounds for fact = 1.0:l
-            p_ll *= @. 1.0/((2*fact))*sqrt(1-arg^2)
-        end
-
-        if m_ == l
-            return p_ll/norm*phase*sign
-        elseif l-m_ == 1
-            p_llp1 = @. 2*l*arg/sqrt(1-arg^2)*p_ll
-            return p_llp1/norm*phase*sign
-        else
-            p_llp1 = @. 2*l*arg/sqrt(1-arg^2)*p_ll
-            @inbounds for mr = -l:-m_-2
-                p_llp2 = @. -2*(mr+1)*arg/sqrt(1-arg^2)*p_llp1-(l-mr)*(l+mr+1)*p_ll;
-                p_ll = p_llp1
-                p_llp1 = p_llp2
+            m_ = abs(m)
+            # TODO: Clean up Int types
+            if 0 < l+m_ <= 33
+                norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(Int128(l+m_))))
+            elseif 0 < l-m_ <= 33 && l+m_ > 33
+                norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(BigInt(l+m_))))
+            else
+                norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m_)))/sqrt(factorial(BigInt(l+m_))))
             end
-            return p_llp1/norm*phase*sign
+
+            sign = m > 0 ? (-1)^m_ : 1
+            arg = cos(theta)
+            p_ll = 1.0
+            @inbounds for fact = 1.0:l
+                p_ll *= @. 1.0/((2*fact))*sqrt(1-arg^2)
+            end
+
+            if m_ == l
+                return p_ll/norm*phase*sign
+            elseif l-m_ == 1
+                p_llp1 = @. 2*l*arg/sqrt(1-arg^2)*p_ll
+                return p_llp1/norm*phase*sign
+            else
+                p_llp1 = @. 2*l*arg/sqrt(1-arg^2)*p_ll
+                @inbounds for mr = -l:-m_-2
+                    p_llp2 = @. -2*(mr+1)*arg/sqrt(1-arg^2)*p_llp1-(l-mr)*(l+mr+1)*p_ll;
+                    p_ll = p_llp1
+                    p_llp1 = p_llp2
+                end
+                return p_llp1/norm*phase*sign
+            end
         end
     end
 end
