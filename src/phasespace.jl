@@ -5,7 +5,6 @@ export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2, ylm
 using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
 
 import WignerSymbols: clebschgordan
-import GSL: sf_legendre_sphPlm
 
 """
     qfunc(a, α)
@@ -421,7 +420,7 @@ Spherical harmonics Y(l,m)(θ,ϕ) where l ∈ N,  m = -l,-l+1,...,l-1,l, θ ∈ 
 and ϕ ∈ [0,2π).
 
 This function calculates the value of Y(l,m) spherical harmonic at position θ and
-    ϕ. 
+    ϕ.
 """
 function ylm(l::Integer,m::Integer,theta::Real,phi::Real)
     phi = mod(phi,2pi)
