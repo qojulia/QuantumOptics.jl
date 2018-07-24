@@ -130,7 +130,7 @@ int = 0
 l = rand(0:33)
 m = rand(0:l-1)
 for i = 0:2pi/res:2pi, j = 0:pi/res:pi
-    int += sin(j)*abs2(ylm(l1,m1,j,i))
+    int += sin(j)*abs2(ylm(l,m,j,i))
 end
 t1 = abs(int*2*(pi/res)^2)
 @test isapprox(t1, 1.00, atol=1e-2)
