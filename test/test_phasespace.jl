@@ -127,7 +127,7 @@ qsu2dm = sum(qfuncsu2(dmrs,res).*costhetam)*(π/res)^2
 ########### YLM test #############
 res = 1000
 int = 0
-l = rand(0:33)
+l = rand(4:33)
 m = rand(0:l-1)
 for i = 0:2pi/res:2pi, j = 0:pi/res:pi
     int += sin(j)*abs2(ylm(l,m,j,i))
