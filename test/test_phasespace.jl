@@ -136,7 +136,7 @@ t1 = abs(int*2*(pi/res)^2)
 @test isapprox(t1, 1.00, atol=1e-2)
 
 l2 = rand(67:80)
-m2 = rand(0:l2)
+m2 = rand(0:30)
 int = 0
 for i = 0:2pi/res:2pi, j = 0:pi/res:pi
     int += sin(j)*ylm(l1,m1,j,i)*conj(ylm(l2,m2,j,i))
