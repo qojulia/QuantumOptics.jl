@@ -126,17 +126,19 @@ qsu2dm = sum(qfuncsu2(dmrs,res).*costhetam)*(π/res)^2
 
 ########### YLM test #############
 res = 1000
-l1 = rand(0:50)
-m1 = rand(0:l1)
 int = 0
+l = rand(0:33)
+m = rand(0:l-1)
 for i = 0:2pi/res:2pi, j = 0:pi/res:pi
     int += sin(j)*abs2(ylm(l1,m1,j,i))
 end
 t1 = abs(int*2*(pi/res)^2)
 @test isapprox(t1, 1.00, atol=1e-2)
 
-l2 = rand(67:80)
-m2 = rand(0:30)
+l1 = rand(33:40)
+m1 = rand(8:30)
+l2 = rand(77:80)
+m2 = rand(0:10)
 int = 0
 for i = 0:2pi/res:2pi, j = 0:pi/res:pi
     int += sin(j)*ylm(l1,m1,j,i)*conj(ylm(l2,m2,j,i))
