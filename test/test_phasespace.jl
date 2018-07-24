@@ -135,13 +135,7 @@ end
 t1 = abs(int*2*(pi/res)^2)
 @test isapprox(t1, 1.00, atol=1e-2)
 
-l2 = rand(0:50)
-while true
-         l2 = rand(0:50)
-         if l1 != l2
-           break
-         end
-       end
+l2 = rand(67:80)
 m2 = rand(0:l2)
 int = 0
 for i = 0:2pi/res:2pi, j = 0:pi/res:pi

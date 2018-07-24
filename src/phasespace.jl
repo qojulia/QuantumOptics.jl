@@ -322,7 +322,7 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
         BandT[S+1,S+1] = clebschgordan(1,0,S,S,S+1,S)BandT[1,1][1:N+1-S].*BandT[S,S+1]+
             clebschgordan(1,1,S,S-1,S+1,S)*BandT[1,2][1:N+1-S].*BandT[S,S][2:end]
         BandT[S+1,S+2] = BandT[1,2][1:N+1-(S+1)].*BandT[S,S+1][2:end]
-        for  M=1:S-1
+        @inbounds for M=1:S-1
             BandT[S+1,M+1] = clebschgordan(1, 0, S, M, S+1,M)*BandT[1,1][1:N+1-M].*BandT[S,M+1] +
                 clebschgordan(1,1,S,M-1,S+1,M)*BandT[1,2][1:N+1-M].*BandT[S,M][2:end] -
                 clebschgordan(1,-1,S,M+1,S+1,M)*[zeros(1); BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M]]
@@ -340,7 +340,7 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
     end
 
     ### State decomposition ###
-    c = rho.data;
+    c = rho.data
     EVT = Array{Complex128}(N,N+1)
     @inbounds for S = 1:N, M = 0:S
         EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
@@ -372,7 +372,7 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
         BandT[S+1,S+1] = clebschgordan(1,0,S,S,S+1,S)BandT[1,1][1:N+1-S].*BandT[S,S+1]+
             clebschgordan(1,1,S,S-1,S+1,S)*BandT[1,2][1:N+1-S].*BandT[S,S][2:end]
         BandT[S+1,S+2] = BandT[1,2][1:N+1-(S+1)].*BandT[S,S+1][2:end]
-        for  M=1:S-1
+        @inbounds for M=1:S-1
             BandT[S+1,M+1] = clebschgordan(1, 0, S, M, S+1,M)*BandT[1,1][1:N+1-M].*BandT[S,M+1] +
                 clebschgordan(1,1,S,M-1,S+1,M)*BandT[1,2][1:N+1-M].*BandT[S,M][2:end] -
                 clebschgordan(1,-1,S,M+1,S+1,M)*[0.0im; BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M]]
@@ -388,7 +388,7 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     end
 
     ### State decomposition ###
-    c = rho.data;
+    c = rho.data
     EVT = Array{Complex128}(N,N+1)
     @inbounds for S = 1:N, M = 0:S
         EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
@@ -419,62 +419,65 @@ wignersu2(psi::Ket, args...) = wignersu2(dm(psi), args...)
 Spherical harmonics Y(l,m)(θ,ϕ) where l ∈ N,  m = -l,-l+1,...,l-1,l, θ ∈ [0,π],
 and ϕ ∈ [0,2π).
 
-This function calculates the value of Y(l,m) spherical harmonic at position θ and
-    ϕ.
+This function calculates the value of Y(l,m) spherical harmonic at position θ and ϕ.
 """
 function ylm(l::Integer,m::Integer,theta::Real,phi::Real)
-    phi = mod(phi,2pi)
-    theta = mod(theta,2pi)
-    phase = e^(1.0im*m*phi)
-    if theta ≈ 0
+    phi_ = mod(phi,2pi)
+    theta_ = mod(theta,2pi)
+    phase = e^(1.0im*m*phi_)
+    if theta_ ≈ 0
         if m == 0
-            return phase*sqrt((2*l+1)/pi)/2
+            return @. phase*sqrt((2*l+1)/pi)/2
         else
             return 0
         end
-    elseif theta ≈ 1pi
+    elseif theta_ ≈ pi
         if m == 0
-            return phase*(-1)^l*sqrt((2*l+1)/pi)/2
+            return @. phase*(-1)^l*sqrt((2*l+1)/pi)/2
         else
             return 0
         end
     else
         if l == 0
-            return 1/sqrt(4pi)
+            return 1.0/sqrt(4pi)
         else
             m_ = abs(m)
-            # TODO: Clean up Int types
-            if 0 < l+m_ <= 33
-                norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(Int128(l+m_))))
-            elseif 0 < l-m_ <= 33 && l+m_ > 33
-                norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(BigInt(l+m_))))
-            else
-                norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m_)))/sqrt(factorial(BigInt(l+m_))))
-            end
-
+            norm = _calc_ylm_norm(l, m_)
             sign = m > 0 ? (-1)^m_ : 1
-            arg = cos(theta)
+            arg = cos(theta_)
             p_ll = 1.0
             @inbounds for fact = 1.0:l
                 p_ll *= @. 1.0/((2*fact))*sqrt(1-arg^2)
             end
 
             if m_ == l
-                return p_ll/norm*phase*sign
+                return @. p_ll/norm*phase*sign
             elseif l-m_ == 1
                 p_llp1 = @. 2*l*arg/sqrt(1-arg^2)*p_ll
-                return p_llp1/norm*phase*sign
+                return @. p_llp1/norm*phase*sign
             else
                 p_llp1 = @. 2*l*arg/sqrt(1-arg^2)*p_ll
                 @inbounds for mr = -l:-m_-2
-                    p_llp2 = @. -2*(mr+1)*arg/sqrt(1-arg^2)*p_llp1-(l-mr)*(l+mr+1)*p_ll;
+                    p_llp2 = @. -2*(mr+1)*arg/sqrt(1-arg^2)*p_llp1-(l-mr)*(l+mr+1)*p_ll
                     p_ll = p_llp1
                     p_llp1 = p_llp2
                 end
-                return p_llp1/norm*phase*sign
+                return @. p_llp1/norm*phase*sign
             end
         end
     end
+end
+
+function _calc_ylm_norm(l::Int, m_::Int)
+    # TODO: Clean up Int types
+    if 0 < l+m_ <= 33
+        norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(Int128(l+m_))))
+    elseif 0 < l-m_ <= 33 && l+m_ > 33
+        norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(BigInt(l+m_))))
+    else
+        norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m_)))/sqrt(factorial(BigInt(l+m_))))
+    end
+    norm
 end
 
 end #module
