@@ -9,7 +9,6 @@ import ..bases: basis, tensor, ptrace, permutesystems,
             samebases, check_samebases, multiplicable
 import ..states: dagger, normalize, normalize!
 
-using Compat
 using ..sortedindices, ..bases, ..states
 
 

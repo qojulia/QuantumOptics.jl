@@ -8,8 +8,6 @@ export Basis, GenericBasis, CompositeBasis, basis,
 
 import Base: ==, ^
 
-using Compat
-
 """
 Abstract base class for all specialized bases.
 
