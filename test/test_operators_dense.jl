@@ -333,4 +333,10 @@ x = Ket(b_r, dat)
 y = Bra(b_r, dat)
 @test dm(x) == dm(y)
 
+# Test Hermitian
+bspin = SpinBasis(1//2)
+bnlevel = NLevelBasis(2)
+@test ishermitian(DenseOperator(bspin, bspin, [1.0 im; -im 2.0])) == true
+@test ishermitian(DenseOperator(bspin, bnlevel, [1.0 im; -im 2.0])) == false
+
 end # testset

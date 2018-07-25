@@ -67,7 +67,7 @@ Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.da
 /(a::SparseOperator, b::Number) = SparseOperator(a.basis_l, a.basis_r, a.data/complex(b))
 
 operators.dagger(x::SparseOperator) = SparseOperator(x.basis_r, x.basis_l, x.data')
-operators.ishermitian(A::SparseOperator) = ishermitian(A.data)
+operators.ishermitian(A::SparseOperator) = (A.basis_l == A.basis_r) && ishermitian(A.data)
 
 operators.tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 operators.tensor(a::DenseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))

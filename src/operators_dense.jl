@@ -82,7 +82,7 @@ end
 
 operators.dagger(x::DenseOperator) = DenseOperator(x.basis_r, x.basis_l, x.data')
 
-operators.ishermitian(A::DenseOperator) = ishermitian(A.data)
+operators.ishermitian(A::DenseOperator) = (A.basis_l == A.basis_r) && ishermitian(A.data)
 
 operators.tensor(a::DenseOperator, b::DenseOperator) = DenseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 

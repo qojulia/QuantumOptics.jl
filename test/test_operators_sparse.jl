@@ -336,5 +336,10 @@ dat = sprandop(b1, b1).data
 @test 2*SparseOperator(b1, dat) == SparseOperator(b1, dat)*2
 @test copy(op1) == deepcopy(op1)
 
+# Test Hermitian
+bspin = SpinBasis(1//2)
+bnlevel = NLevelBasis(2)
+@test ishermitian(SparseOperator(bspin, bspin, sparse([1.0 im; -im 2.0]))) == true
+@test ishermitian(SparseOperator(bspin, bnlevel, sparse([1.0 im; -im 2.0]))) == false
 
 end # testset
