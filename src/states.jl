@@ -6,7 +6,6 @@ export StateVector, Bra, Ket, length, basis, dagger, tensor,
 import Base: ==, +, -, *, /, length, copy, norm, normalize, normalize!
 import ..bases: basis, tensor, permutesystems, check_multiplicable, samebases
 
-using Compat
 using ..bases
 
 

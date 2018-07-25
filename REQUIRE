@@ -1,7 +1,6 @@
-julia 0.6
-Compat 0.64.0
-OrdinaryDiffEq 3.19.1
-DiffEqCallbacks 1.1
-StochasticDiffEq 4.4.5
-RecursiveArrayTools
-WignerSymbols 0.1.1
+julia 0.7-beta2
+OrdinaryDiffEq 4.6.0
+DiffEqCallbacks 2.1
+StochasticDiffEq 5.5.0
+RecursiveArrayTools 0.17
+WignerSymbols 0.2.0
