@@ -57,7 +57,7 @@ sorted according to the real part of the eigenvalues.
 """
 function liouvillianspectrum(L::DenseSuperOperator; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR, kwargs...)
     d, v = Base.eig(L.data; kwargs...)
-    indices = sortperm(-real(d))[1:nev]
+    indices = sortperm(abs.(real.(d)))[1:nev]
     ops = DenseOperator[]
     for i in indices
         data = reshape(v[:,i], length(L.basis_r[1]), length(L.basis_r[2]))
@@ -77,7 +77,7 @@ function liouvillianspectrum(L::SparseSuperOperator; nev::Int = min(10, length(L
             rethrow(err)
         end
     end
-    indices = sortperm(-real(d))[1:nev]
+    indices = sortperm(abs.(real(d)))[1:nev]
     ops = DenseOperator[]
     for i in indices
         data = reshape(v[:,i], length(L.basis_r[1]), length(L.basis_r[2]))
@@ -106,7 +106,7 @@ or for avoiding convergence errors of `eigs`. Changing `nev` thus only makes sen
 function eigenvector(L::SuperOperator; tol::Real = 1e-9, nev::Int = 2, which::Symbol = :LR, kwargs...)
     d, ops = liouvillianspectrum(L; nev = nev, which = which, kwargs...)
     if abs(real(d[1])) > tol
-        error("Eigenvalue with largest real part is not zero.")
+        error("Eigenvalue with smallest absolute real part is not zero.")
     end
     if nev > 1
         if abs(real(d[2])) < tol
