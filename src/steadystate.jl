@@ -48,7 +48,7 @@ end
     steadystate.liouvillianspectrum(H, J)
 
 Calculate eigenspectrum of the Liouvillian matrix `L`. The eigenvalues and -states are
-sorted according to the real part of the eigenvalues.
+sorted according to the absolute value of the eigenvalues.
 
 # Keyword arguments:
 * `nev = min(10, length(L.basis_r[1])*length(L.basis_r[2]))`: Number of eigenvalues.
@@ -57,12 +57,12 @@ sorted according to the real part of the eigenvalues.
 """
 function liouvillianspectrum(L::DenseSuperOperator; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR, kwargs...)
     d, v = Base.eig(L.data; kwargs...)
-    indices = sortperm(abs.(real.(d)))[1:nev]
+    indices = sortperm(abs.(d))[1:nev]
     ops = DenseOperator[]
     for i in indices
         data = reshape(v[:,i], length(L.basis_r[1]), length(L.basis_r[2]))
         op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
-        push!(ops, op/trace(op))
+        push!(ops, op)
     end
     return d[indices], ops
 end
@@ -77,12 +77,12 @@ function liouvillianspectrum(L::SparseSuperOperator; nev::Int = min(10, length(L
             rethrow(err)
         end
     end
-    indices = sortperm(abs.(real(d)))[1:nev]
+    indices = sortperm(abs.(d))[1:nev]
     ops = DenseOperator[]
     for i in indices
         data = reshape(v[:,i], length(L.basis_r[1]), length(L.basis_r[2]))
         op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
-        push!(ops, op/trace(op))
+        push!(ops, op)
     end
     return d[indices], ops
 end
@@ -96,7 +96,7 @@ liouvillianspectrum(H::Operator, J::Vector; rates::Union{Vector{Float64}, Matrix
 Find steady state by calculating the eigenstate with eigenvalue 0 of the Liouvillian matrix `L`, if it exists.
 
 # Keyword arguments:
-* `tol = 1e-9`: Check `abs(real(eigenvalue)) < tol` to determine zero eigenvalue.
+* `tol = 1e-9`: Check `abs(eigenvalue) < tol` to determine zero eigenvalue.
 * `nev = 2`: Number of calculated eigenvalues. If `nev > 1` it is checked if there
 is only one eigenvalue with real part 0. No checks for `nev = 1`: use if faster
 or for avoiding convergence errors of `eigs`. Changing `nev` thus only makes sense when using SparseSuperOperator.
@@ -105,18 +105,15 @@ or for avoiding convergence errors of `eigs`. Changing `nev` thus only makes sen
 """
 function eigenvector(L::SuperOperator; tol::Real = 1e-9, nev::Int = 2, which::Symbol = :LR, kwargs...)
     d, ops = liouvillianspectrum(L; nev = nev, which = which, kwargs...)
-    if abs(real(d[1])) > tol
+    if abs(d[1]) > tol
         error("Eigenvalue with smallest absolute real part is not zero.")
     end
     if nev > 1
-        if abs(real(d[2])) < tol
+        if abs(d[2]) < tol
             warn("Several eigenvalues with real part 0 detected; use steadystate.liouvillianspectrum to find out more.")
         end
     end
-    if abs(imag(d[1])) > tol
-        warn("Imaginary part of eigenvalue not zero.")
-    end
-    return ops[1]
+    return ops[1]/trace(ops[1])
 end
 
 eigenvector(H::Operator, J::Vector; rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)), kwargs...) = eigenvector(liouvillian(H, J; rates=rates); kwargs...)
