@@ -240,7 +240,7 @@ function potentialoperator_position(b::CompositeBasis, V::Function)
     points = [samplepoints(b1) for b1=b.bases]
     dims = length.(points)
     n = length(b.bases)
-    data = Array{Complex128}(dims...)
+    data = Array{ComplexF64}(dims...)
     @inbounds for i=1:length(data)
         index = ind2sub(data, i)
         args = (points[j][index[j]] for j=1:n)
@@ -281,8 +281,8 @@ mutable struct FFTOperators <: FFTOperator
     fft_r!::PlanFFT
     fft_l2!::PlanFFT
     fft_r2!::PlanFFT
-    mul_before::Array{Complex128}
-    mul_after::Array{Complex128}
+    mul_before::Array{ComplexF64}
+    mul_after::Array{ComplexF64}
 end
 
 """
@@ -296,8 +296,8 @@ mutable struct FFTKets <: FFTOperator
     basis_r::Basis
     fft_l!::PlanFFT
     fft_r!::PlanFFT
-    mul_before::Array{Complex128}
-    mul_after::Array{Complex128}
+    mul_before::Array{ComplexF64}
+    mul_after::Array{ComplexF64}
 end
 
 """
@@ -315,11 +315,11 @@ function transform(basis_l::MomentumBasis, basis_r::PositionBasis; ket_only::Boo
     end
     mul_before = exp.(-1im*basis_l.pmin*(samplepoints(basis_r)-basis_r.xmin))
     mul_after = exp.(-1im*basis_r.xmin*samplepoints(basis_l))/sqrt(basis_r.N)
-    x = Vector{Complex128}(length(basis_r))
+    x = Vector{ComplexF64}(length(basis_r))
     if ket_only
         FFTKets(basis_l, basis_r, plan_bfft!(x), plan_fft!(x), mul_before, mul_after)
     else
-        A = Matrix{Complex128}(length(basis_r), length(basis_r))
+        A = Matrix{ComplexF64}(length(basis_r), length(basis_r))
         FFTOperators(basis_l, basis_r, plan_bfft!(x), plan_fft!(x), plan_bfft!(A, 2), plan_fft!(A, 1), mul_before, mul_after)
     end
 end
@@ -340,11 +340,11 @@ function transform(basis_l::PositionBasis, basis_r::MomentumBasis; ket_only::Boo
     end
     mul_before = exp.(1im*basis_l.xmin*(samplepoints(basis_r)-basis_r.pmin))
     mul_after = exp.(1im*basis_r.pmin*samplepoints(basis_l))/sqrt(basis_r.N)
-    x = Vector{Complex128}(length(basis_r))
+    x = Vector{ComplexF64}(length(basis_r))
     if ket_only
         FFTKets(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), mul_before, mul_after)
     else
-        A = Matrix{Complex128}(length(basis_r), length(basis_r))
+        A = Matrix{ComplexF64}(length(basis_r), length(basis_r))
         FFTOperators(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), plan_fft!(A, 2), plan_bfft!(A, 1), mul_before, mul_after)
     end
 end
@@ -406,14 +406,14 @@ function transform_xp(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
             mul_after = kron(ones(N[i]), mul_after)
         end
     end
-    mul_before = reshape(mul_before, (N...))
-    mul_after = reshape(mul_after, (N...))
+    mul_before = reshape(mul_before, (N...,))
+    mul_after = reshape(mul_after, (N...,))
 
-    x = Array{Complex128}(N...)
+    x = Array{ComplexF64}(N...)
     if ket_only
         FFTKets(basis_l, basis_r, plan_fft!(x, index), plan_bfft!(x, index), mul_before, mul_after)
     else
-        A = Array{Complex128}([N, N;]...)
+        A = Array{ComplexF64}([N, N;]...)
         FFTOperators(basis_l, basis_r, plan_fft!(x, index), plan_bfft!(x, index), plan_fft!(A, [n + 1:2n;][index]), plan_bfft!(A, [1:n;][index]), mul_before, mul_after)
     end
 end
@@ -451,14 +451,14 @@ function transform_px(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
             mul_after = kron(ones(N[i]), mul_after)
         end
     end
-    mul_before = reshape(mul_before, (N...))
-    mul_after = reshape(mul_after, (N...))
+    mul_before = reshape(mul_before, (N...,))
+    mul_after = reshape(mul_after, (N...,))
 
-    x = Array{Complex128}(N...)
+    x = Array{ComplexF64}(N...)
     if ket_only
         FFTKets(basis_l, basis_r, plan_bfft!(x, index), plan_fft!(x, index), mul_before, mul_after)
     else
-        A = Array{Complex128}([N, N;]...)
+        A = Array{ComplexF64}([N, N;]...)
         FFTOperators(basis_l, basis_r, plan_bfft!(x, index), plan_fft!(x, index), plan_bfft!(A, [n + 1:2n;][index]), plan_fft!(A, [1:n;][index]), mul_before, mul_after)
     end
 end
@@ -472,8 +472,8 @@ operators.tensor(A::FFTOperators, B::FFTOperators) = transform(tensor(A.basis_l,
 operators.tensor(A::FFTKets, B::FFTKets) = transform(tensor(A.basis_l, B.basis_l), tensor(A.basis_r, B.basis_r); ket_only=true)
 
 function operators.gemv!(alpha_, M::FFTOperator, b::Ket, beta_, result::Ket)
-    alpha = convert(Complex128, alpha_)
-    beta = convert(Complex128, beta_)
+    alpha = convert(ComplexF64, alpha_)
+    beta = convert(ComplexF64, beta_)
     N::Int = length(M.basis_r)
     if beta==Complex(0.)
         @inbounds for i=1:N
@@ -497,8 +497,8 @@ function operators.gemv!(alpha_, M::FFTOperator, b::Ket, beta_, result::Ket)
 end
 
 function operators.gemv!(alpha_, b::Bra, M::FFTOperator, beta_, result::Bra)
-    alpha = convert(Complex128, alpha_)
-    beta = convert(Complex128, beta_)
+    alpha = convert(ComplexF64, alpha_)
+    beta = convert(ComplexF64, beta_)
     N::Int = length(M.basis_l)
     if beta==Complex(0.)
         @inbounds for i=1:N
@@ -522,10 +522,10 @@ function operators.gemv!(alpha_, b::Bra, M::FFTOperator, beta_, result::Bra)
 end
 
 function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, result::DenseOperator)
-    alpha = convert(Complex128, alpha_)
-    beta = convert(Complex128, beta_)
+    alpha = convert(ComplexF64, alpha_)
+    beta = convert(ComplexF64, beta_)
     if beta != Complex(0.)
-        data = Matrix{Complex128}(size(result.data, 1), size(result.data, 2))
+        data = Matrix{ComplexF64}(size(result.data, 1), size(result.data, 2))
     else
         data = result.data
     end
@@ -546,10 +546,10 @@ function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, resul
 end
 
 function operators.gemm!(alpha_, A::FFTOperators, B::DenseOperator, beta_, result::DenseOperator)
-    alpha = convert(Complex128, alpha_)
-    beta = convert(Complex128, beta_)
+    alpha = convert(ComplexF64, alpha_)
+    beta = convert(ComplexF64, beta_)
     if beta != Complex(0.)
-        data = Matrix{Complex128}(size(result.data, 1), size(result.data, 2))
+        data = Matrix{ComplexF64}(size(result.data, 1), size(result.data, 2))
     else
         data = result.data
     end

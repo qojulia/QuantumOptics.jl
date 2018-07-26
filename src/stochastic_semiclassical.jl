@@ -13,8 +13,8 @@ using ...stochastic
 
 import DiffEqCallbacks
 
-const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
-const DiffArray = Union{Vector{Complex128}, Array{Complex128, 2}}
+const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
+const DiffArray = Union{Vector{ComplexF64}, Array{ComplexF64, 2}}
 
 """
     semiclassical.schroedinger_stochastic(tspan, state0, fquantum, fclassical[; fout, ...])
@@ -55,9 +55,9 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function schroedinger_semiclassical(tspan, state0::State{Ket}, fquantum::Function,
-                fclassical::Function; fstoch_quantum::Union{Void, Function}=nothing,
-                fstoch_classical::Union{Void, Function}=nothing,
-                fout::Union{Function,Void}=nothing,
+                fclassical::Function; fstoch_quantum::Union{Nothing, Function}=nothing,
+                fstoch_classical::Union{Nothing, Function}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 noise_processes::Int=0,
                 noise_prototype_classical=nothing,
                 normalize_state::Bool=false,
@@ -65,11 +65,11 @@ function schroedinger_semiclassical(tspan, state0::State{Ket}, fquantum::Functio
     tspan_ = convert(Vector{Float64}, tspan)
     dschroedinger_det(t::Float64, state::State{Ket}, dstate::State{Ket}) = semiclassical.dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
 
-    if isa(fstoch_quantum, Void) && isa(fstoch_classical, Void)
+    if isa(fstoch_quantum, Nothing) && isa(fstoch_classical, Nothing)
         throw(ArgumentError("No stochastic functions provided!"))
     end
 
-    x0 = Vector{Complex128}(length(state0))
+    x0 = Vector{ComplexF64}(length(state0))
     recast!(state0, x0)
     state = copy(state0)
     dstate = copy(state0)
@@ -85,14 +85,14 @@ function schroedinger_semiclassical(tspan, state0::State{Ket}, fquantum::Functio
     end
 
     if n > 0 && isa(fstoch_classical, Function)
-        if isa(noise_prototype_classical, Void)
+        if isa(noise_prototype_classical, Nothing)
             throw(ArgumentError("noise_prototype_classical must be set for combinations of quantum and classical noise!"))
         end
     end
 
     if normalize_state
         len_q = length(state0.quantum)
-        function norm_func(u::Vector{Complex128}, t::Float64, integrator)
+        function norm_func(u::Vector{ComplexF64}, t::Float64, integrator)
             u .= [normalize!(u[1:len_q]), u[len_q+1:end];]
         end
         ncb = DiffEqCallbacks.FunctionCallingCallback(norm_func;
@@ -156,17 +156,17 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 """
 function master_semiclassical(tspan::Vector{Float64}, rho0::State{DenseOperator},
                 fquantum::Function, fclassical::Function;
-                fstoch_quantum::Union{Function, Void}=nothing,
-                fstoch_classical::Union{Function, Void}=nothing,
+                fstoch_quantum::Union{Function, Nothing}=nothing,
+                fstoch_classical::Union{Function, Nothing}=nothing,
                 rates::DecayRates=nothing,
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 noise_processes::Int=0,
                 noise_prototype_classical=nothing,
                 nonlinear::Bool=true,
                 kwargs...)
 
     tmp = copy(rho0.quantum)
-    if isa(fstoch_quantum, Void) && isa(fstoch_classical, Void)
+    if isa(fstoch_quantum, Nothing) && isa(fstoch_classical, Nothing)
         throw(ArgumentError("No stochastic functions provided!"))
     end
 
@@ -181,7 +181,7 @@ function master_semiclassical(tspan::Vector{Float64}, rho0::State{DenseOperator}
     end
 
     if n > 0 && isa(fstoch_classical, Function)
-        if isa(noise_prototype_classical, Void)
+        if isa(noise_prototype_classical, Nothing)
             throw(ArgumentError("noise_prototype_classical must be set for combinations of quantum and classical noise!"))
         end
     end
@@ -201,17 +201,17 @@ master_semiclassical(tspan::Vector{Float64}, psi0::State{Ket}, args...; kwargs..
         master_semiclassical(tspan, dm(psi0), args...; kwargs...)
 
 # Derivative functions
-function dschroedinger_stochastic(dx::Vector{Complex128}, t::Float64,
-        state::State{Ket}, fstoch_quantum::Function, fstoch_classical::Void,
+function dschroedinger_stochastic(dx::Vector{ComplexF64}, t::Float64,
+        state::State{Ket}, fstoch_quantum::Function, fstoch_classical::Nothing,
         dstate::State{Ket}, ::Int)
     H = fstoch_quantum(t, state.quantum, state.classical)
     recast!(dx, dstate)
     dschroedinger(state.quantum, H[1], dstate.quantum)
     recast!(dstate, dx)
 end
-function dschroedinger_stochastic(dx::Array{Complex128, 2},
+function dschroedinger_stochastic(dx::Array{ComplexF64, 2},
         t::Float64, state::State{Ket}, fstoch_quantum::Function,
-        fstoch_classical::Void, dstate::State{Ket}, n::Int)
+        fstoch_classical::Nothing, dstate::State{Ket}, n::Int)
     H = fstoch_quantum(t, state.quantum, state.classical)
     for i=1:n
         dx_i = @view dx[:, i]
@@ -221,12 +221,12 @@ function dschroedinger_stochastic(dx::Array{Complex128, 2},
     end
 end
 function dschroedinger_stochastic(dx::DiffArray, t::Float64,
-            state::State{Ket}, fstoch_quantum::Void, fstoch_classical::Function,
+            state::State{Ket}, fstoch_quantum::Nothing, fstoch_classical::Function,
             dstate::State{Ket}, ::Int)
     dclassical = @view dx[length(state.quantum)+1:end, :]
     fstoch_classical(t, state.quantum, state.classical, dclassical)
 end
-function dschroedinger_stochastic(dx::Array{Complex128, 2}, t::Float64, state::State{Ket}, fstoch_quantum::Function,
+function dschroedinger_stochastic(dx::Array{ComplexF64, 2}, t::Float64, state::State{Ket}, fstoch_quantum::Function,
             fstoch_classical::Function, dstate::State{Ket}, n::Int)
     dschroedinger_stochastic(dx, t, state, fstoch_quantum, nothing, dstate, n)
 
@@ -234,9 +234,9 @@ function dschroedinger_stochastic(dx::Array{Complex128, 2}, t::Float64, state::S
     fstoch_classical(t, state.quantum, state.classical, dx_i)
 end
 
-function dmaster_stoch_dynamic(dx::Vector{Complex128}, t::Float64,
+function dmaster_stoch_dynamic(dx::Vector{ComplexF64}, t::Float64,
             state::State{DenseOperator}, fstoch_quantum::Function,
-            fstoch_classical::Void, dstate::State{DenseOperator}, ::Int)
+            fstoch_classical::Nothing, dstate::State{DenseOperator}, ::Int)
     result = fstoch_quantum(t, state.quantum, state.classical)
     @assert length(result) == 2
     C, Cdagger = result
@@ -246,9 +246,9 @@ function dmaster_stoch_dynamic(dx::Vector{Complex128}, t::Float64,
     dstate.quantum.data .-= trace(dstate.quantum)*state.quantum.data
     recast!(dstate, dx)
 end
-function dmaster_stoch_dynamic(dx::Array{Complex128, 2}, t::Float64,
+function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
             state::State{DenseOperator}, fstoch_quantum::Function,
-            fstoch_classical::Void, dstate::State{DenseOperator}, n::Int)
+            fstoch_classical::Nothing, dstate::State{DenseOperator}, n::Int)
     result = fstoch_quantum(t, state.quantum, state.classical)
     @assert length(result) == 2
     C, Cdagger = result
@@ -262,12 +262,12 @@ function dmaster_stoch_dynamic(dx::Array{Complex128, 2}, t::Float64,
     end
 end
 function dmaster_stoch_dynamic(dx::DiffArray, t::Float64,
-            state::State{DenseOperator}, fstoch_quantum::Void,
+            state::State{DenseOperator}, fstoch_quantum::Nothing,
             fstoch_classical::Function, dstate::State{DenseOperator}, ::Int)
     dclassical = @view dx[length(state.quantum)+1:end, :]
     fstoch_classical(t, state.quantum, state.classical, dclassical)
 end
-function dmaster_stoch_dynamic(dx::Array{Complex128, 2}, t::Float64,
+function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
             state::State{DenseOperator}, fstoch_quantum::Function,
             fstoch_classical::Function, dstate::State{DenseOperator}, n::Int)
     dmaster_stoch_dynamic(dx, t, state, fstoch_quantum, nothing, dstate, n)
@@ -277,24 +277,24 @@ function dmaster_stoch_dynamic(dx::Array{Complex128, 2}, t::Float64,
 end
 
 function integrate_master_stoch(tspan, df::Function, dg::Function,
-                        rho0::State{DenseOperator}, fout::Union{Void, Function},
+                        rho0::State{DenseOperator}, fout::Union{Nothing, Function},
                         n::Int;
                         kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
-    x0 = Vector{Complex128}(length(rho0))
+    x0 = Vector{ComplexF64}(length(rho0))
     recast!(rho0, x0)
     state = copy(rho0)
     dstate = copy(rho0)
     integrate_stoch(tspan_, df, dg, x0, state, dstate, fout, n; kwargs...)
 end
 
-function recast!(state::State, x::SubArray{Complex128, 1})
+function recast!(state::State, x::SubArray{ComplexF64, 1})
     N = length(state.quantum)
     copy!(x, 1, state.quantum.data, 1, N)
     copy!(x, N+1, state.classical, 1, length(state.classical))
     x
 end
-function recast!(x::SubArray{Complex128, 1}, state::State)
+function recast!(x::SubArray{ComplexF64, 1}, state::State)
     N = length(state.quantum)
     copy!(state.quantum.data, 1, x, 1, N)
     copy!(state.classical, 1, x, N+1, length(state.classical))

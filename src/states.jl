@@ -27,7 +27,7 @@ Bra state defined by coefficients in respect to the basis.
 """
 mutable struct Bra <: StateVector
     basis::Basis
-    data::Vector{Complex128}
+    data::Vector{ComplexF64}
     function Bra(b::Basis, data)
         if length(b) != length(data)
             throw(DimensionMismatch())
@@ -43,7 +43,7 @@ Ket state defined by coefficients in respect to the given basis.
 """
 mutable struct Ket <: StateVector
     basis::Basis
-    data::Vector{Complex128}
+    data::Vector{ComplexF64}
     function Ket(b::Basis, data)
         if length(b) != length(data)
             throw(DimensionMismatch())
@@ -52,8 +52,8 @@ mutable struct Ket <: StateVector
     end
 end
 
-Bra(b::Basis) = Bra(b, zeros(Complex128, length(b)))
-Ket(b::Basis) = Ket(b, zeros(Complex128, length(b)))
+Bra(b::Basis) = Bra(b, zeros(ComplexF64, length(b)))
+Ket(b::Basis) = Ket(b, zeros(ComplexF64, length(b)))
 
 copy(a::T) where {T<:StateVector} = T(a.basis, copy(a.data))
 length(a::StateVector) = length(a.basis)::Int
@@ -131,13 +131,13 @@ product state ``|i_1⟩⊗|i_2⟩⊗…⊗|i_n⟩`` of the corresponding basis s
 """
 function basisstate(b::Basis, indices::Vector{Int})
     @assert length(b.shape) == length(indices)
-    x = zeros(Complex128, length(b))
+    x = zeros(ComplexF64, length(b))
     x[sub2ind(tuple(b.shape...), indices...)] = Complex(1.)
     Ket(b, x)
 end
 
 function basisstate(b::Basis, index::Int)
-    data = zeros(Complex128, length(b))
+    data = zeros(ComplexF64, length(b))
     data[index] = Complex(1.)
     Ket(b, data)
 end

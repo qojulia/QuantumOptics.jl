@@ -8,8 +8,8 @@ using ...timeevolution
 import ...timeevolution: integrate_stoch, recast!
 import ...timeevolution.timeevolution_master: dmaster_h, dmaster_nh, dmaster_h_dynamic, check_master
 
-const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
-const DiffArray = Union{Vector{Complex128}, Array{Complex128, 2}}
+const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
+const DiffArray = Union{Vector{ComplexF64}, Array{ComplexF64, 2}}
 
 """
     stochastic.master(tspan, rho0, H, J, C; <keyword arguments>)
@@ -44,7 +44,7 @@ function master(tspan, rho0::DenseOperator, H::Operator,
                 J::Vector, C::Vector;
                 rates::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J), Cdagger::Vector=dagger.(C),
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...)
 
     tmp = copy(rho0)
@@ -114,7 +114,7 @@ dynamic Hamiltonian and J.
 """
 function master_dynamic(tspan::Vector{Float64}, rho0::DenseOperator, fdeterm::Function, fstoch::Function;
                 rates::DecayRates=nothing,
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 noise_processes::Int=0,
                 kwargs...)
 
@@ -135,14 +135,14 @@ end
 master_dynamic(tspan::Vector{Float64}, psi0::Ket, args...; kwargs...) = master_dynamic(tspan, dm(psi0), args...; kwargs...)
 
 # Derivative functions
-function dmaster_stochastic(dx::Vector{Complex128}, rho::DenseOperator,
+function dmaster_stochastic(dx::Vector{ComplexF64}, rho::DenseOperator,
             C::Vector, Cdagger::Vector, drho::DenseOperator, ::Int)
     recast!(dx, drho)
     operators.gemm!(1, C[1], rho, 0, drho)
     operators.gemm!(1, rho, Cdagger[1], 1, drho)
     drho.data .-= trace(drho)*rho.data
 end
-function dmaster_stochastic(dx::Array{Complex128, 2}, rho::DenseOperator,
+function dmaster_stochastic(dx::Array{ComplexF64, 2}, rho::DenseOperator,
             C::Vector, Cdagger::Vector, drho::DenseOperator, n::Int)
     for i=1:n
         dx_i = @view dx[:, i]
@@ -163,7 +163,7 @@ function dmaster_stoch_dynamic(dx::DiffArray, t::Float64, rho::DenseOperator,
 end
 
 function integrate_master_stoch(tspan, df::Function, dg::Function,
-                        rho0::DenseOperator, fout::Union{Void, Function},
+                        rho0::DenseOperator, fout::Union{Nothing, Function},
                         n::Int;
                         kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
@@ -174,10 +174,10 @@ function integrate_master_stoch(tspan, df::Function, dg::Function,
 end
 
 # TODO: Speed up by recasting to n-d arrays, remove vector methods
-function recast!(x::Union{Vector{Complex128}, SubArray{Complex128, 1}}, rho::DenseOperator)
+function recast!(x::Union{Vector{ComplexF64}, SubArray{ComplexF64, 1}}, rho::DenseOperator)
     rho.data = reshape(x, size(rho.data))
 end
-recast!(state::DenseOperator, x::SubArray{Complex128, 1}) = (x[:] = state.data)
-recast!(state::DenseOperator, x::Vector{Complex128}) = nothing
+recast!(state::DenseOperator, x::SubArray{ComplexF64, 1}) = (x[:] = state.data)
+recast!(state::DenseOperator, x::Vector{ComplexF64}) = nothing
 
 end # module

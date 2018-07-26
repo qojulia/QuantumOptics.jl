@@ -11,7 +11,7 @@ using ..bases, ..states, ..operators, ..operators_dense, ..fock
 Calculate a random normalized ket state.
 """
 function randstate(b::Basis)
-    psi = Ket(b, rand(Complex128, length(b)))
+    psi = Ket(b, rand(ComplexF64, length(b)))
     normalize!(psi)
     psi
 end
@@ -21,7 +21,7 @@ end
 
 Calculate a random unnormalized dense operator.
 """
-randoperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, rand(Complex128, length(b1), length(b2)))
+randoperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, rand(ComplexF64, length(b1), length(b2)))
 randoperator(b::Basis) = randoperator(b, b)
 
 """
@@ -30,7 +30,7 @@ randoperator(b::Basis) = randoperator(b, b)
 Thermal state ``exp(-H/T)/Tr[exp(-H/T)]``.
 """
 function thermalstate(H::Operator,T::Real)
-    return normalize(expm(-full(H)/T))
+    return normalize(exp(-full(H)/T))
 end
 
 """

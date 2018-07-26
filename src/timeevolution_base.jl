@@ -2,7 +2,7 @@ using ..metrics
 
 import OrdinaryDiffEq, DiffEqCallbacks, StochasticDiffEq
 
-const DiffArray = Union{Vector{Complex128}, Array{Complex128, 2}}
+const DiffArray = Union{Vector{ComplexF64}, Array{ComplexF64, 2}}
 
 function recast! end
 
@@ -67,7 +67,7 @@ function integrate(tspan::Vector{Float64}, df::Function, x0::DiffArray,
 end
 
 function integrate(tspan::Vector{Float64}, df::Function, x0::DiffArray,
-            state::T, dstate::T, ::Void; kwargs...) where T
+            state::T, dstate::T, ::Nothing; kwargs...) where T
     function fout(t::Float64, state::T)
         copy(state)
     end
@@ -95,7 +95,7 @@ end
 
 Integrate using StochasticDiffEq
 """
-function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0::Vector{Complex128},
+function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0::Vector{ComplexF64},
             state::T, dstate::T, fout::Function, n::Int;
             save_everystep = false, callback=nothing,
             alg::StochasticDiffEq.StochasticDiffEqAlgorithm=StochasticDiffEq.EM(),
@@ -105,33 +105,33 @@ function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0:
             ncb=nothing,
             kwargs...) where T
 
-    function df_(dx::Vector{Complex128}, x::Vector{Complex128}, p, t)
+    function df_(dx::Vector{ComplexF64}, x::Vector{ComplexF64}, p, t)
         recast!(x, state)
         recast!(dx, dstate)
         df(t, state, dstate)
         recast!(dstate, dx)
     end
 
-    function dg_(dx::Union{Vector{Complex128}, Array{Complex128, 2}},
-                x::Vector{Complex128}, p, t)
+    function dg_(dx::Union{Vector{ComplexF64}, Array{ComplexF64, 2}},
+                x::Vector{ComplexF64}, p, t)
         recast!(x, state)
         dg(dx, t, state, dstate, n)
     end
 
-    function fout_(x::Vector{Complex128}, t::Float64, integrator)
+    function fout_(x::Vector{ComplexF64}, t::Float64, integrator)
         recast!(x, state)
         fout(t, state)
     end
 
-    nc = isa(noise_prototype_classical, Void) ? 0 : size(noise_prototype_classical)[2]
-    if isa(noise, Void) && n > 0
+    nc = isa(noise_prototype_classical, Nothing) ? 0 : size(noise_prototype_classical)[2]
+    if isa(noise, Nothing) && n > 0
         noise_ = StochasticDiffEq.RealWienerProcess!(0.0, randn(n + nc))
     else
         noise_ = noise
     end
-    if isa(noise_rate_prototype, Void)
+    if isa(noise_rate_prototype, Nothing)
         if n > 1 || nc > 1 || (n > 0 && nc > 0)
-            noise_rate_prototype = zeros(Complex128, length(x0), n + nc)
+            noise_rate_prototype = zeros(ComplexF64, length(x0), n + nc)
         end
     end
 
@@ -166,8 +166,8 @@ end
 
 Define fout if it was omitted.
 """
-function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0::Vector{Complex128},
-    state::T, dstate::T, ::Void, n::Int; kwargs...) where T
+function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0::Vector{ComplexF64},
+    state::T, dstate::T, ::Nothing, n::Int; kwargs...) where T
     function fout(t::Float64, state::T)
         copy(state)
     end

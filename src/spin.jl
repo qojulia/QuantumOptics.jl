@@ -40,7 +40,7 @@ Pauli ``σ_x`` operator for the given Spin basis.
 """
 function sigmax(b::SpinBasis)
     N = length(b)
-    diag = Complex128[complex(sqrt(real((b.spinnumber + 1)*2*a - a*(a+1)))) for a=1:N-1]
+    diag = ComplexF64[complex(sqrt(real((b.spinnumber + 1)*2*a - a*(a+1)))) for a=1:N-1]
     data = spdiagm(diag, 1, N, N) + spdiagm(diag, -1, N, N)
     SparseOperator(b, data)
 end
@@ -52,7 +52,7 @@ Pauli ``σ_y`` operator for the given Spin basis.
 """
 function sigmay(b::SpinBasis)
     N = length(b)
-    diag = Complex128[1im*complex(sqrt(real((b.spinnumber + 1)*2*a - a*(a+1)))) for a=1:N-1]
+    diag = ComplexF64[1im*complex(sqrt(real((b.spinnumber + 1)*2*a - a*(a+1)))) for a=1:N-1]
     data = spdiagm(diag, -1, N, N) - spdiagm(diag, 1, N, N)
     SparseOperator(b, data)
 end
@@ -64,7 +64,7 @@ Pauli ``σ_z`` operator for the given Spin basis.
 """
 function sigmaz(b::SpinBasis)
     N = length(b)
-    diag = Complex128[complex(2*m) for m=b.spinnumber:-1:-b.spinnumber]
+    diag = ComplexF64[complex(2*m) for m=b.spinnumber:-1:-b.spinnumber]
     data = spdiagm(diag, 0, N, N)
     SparseOperator(b, data)
 end
@@ -77,7 +77,7 @@ Raising operator ``σ_+`` for the given Spin basis.
 function sigmap(b::SpinBasis)
     N = length(b)
     S = (b.spinnumber + 1)*b.spinnumber
-    diag = Complex128[complex(sqrt(float(S - m*(m+1)))) for m=b.spinnumber-1:-1:-b.spinnumber]
+    diag = ComplexF64[complex(sqrt(float(S - m*(m+1)))) for m=b.spinnumber-1:-1:-b.spinnumber]
     data = spdiagm(diag, 1, N, N)
     SparseOperator(b, data)
 end

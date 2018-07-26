@@ -65,7 +65,7 @@ end
 
 Displacement operator ``D(α)`` for the specified Fock space.
 """
-displace(b::FockBasis, alpha::Number) = expm(full(alpha*create(b) - conj(alpha)*destroy(b)))
+displace(b::FockBasis, alpha::Number) = exp(full(alpha*create(b) - conj(alpha)*destroy(b)))
 
 """
     fockstate(b::FockBasis, n)
@@ -82,7 +82,7 @@ end
 
 Coherent state ``|α⟩`` for the specified Fock space.
 """
-function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{Complex128}(length(b))))
+function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{ComplexF64}(length(b))))
     alpha = complex(alpha)
     data = result.data
     data[1] = exp(-abs2(alpha)/2)

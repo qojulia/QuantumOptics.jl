@@ -227,7 +227,7 @@ where ``X`` is the N-particle operator, ``x`` is the one-body operator and
 ``|u⟩`` are the one-body states associated to the
 different modes of the N-particle basis.
 """
-function manybodyoperator{T<:Operator}(basis::ManyBodyBasis, op::T)::T
+function manybodyoperator(basis::ManyBodyBasis, op::T)::T where T<:Operator
     @assert op.basis_l == op.basis_r
     if op.basis_l == basis.onebodybasis
         result =  manybodyoperator_1(basis, op)

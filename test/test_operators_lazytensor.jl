@@ -1,10 +1,10 @@
-using Base.Test
+using Test
 using QuantumOptics
 
 mutable struct test_lazytensor <: Operator
     basis_l::Basis
     basis_r::Basis
-    data::Matrix{Complex128}
+    data::Matrix{ComplexF64}
     test_lazytensor(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
 end
 

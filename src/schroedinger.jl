@@ -22,7 +22,7 @@ Integrate Schroedinger equation.
         therefore must not be changed.
 """
 function schroedinger(tspan, psi0::T, H::Operator;
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...) where T<:StateVector
     tspan_ = convert(Vector{Float64}, tspan)
     check_schroedinger(psi0, H)
@@ -49,7 +49,7 @@ Integrate time-dependent Schroedinger equation.
         therefore must not be changed.
 """
 function schroedinger_dynamic(tspan, psi0::T, f::Function;
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...) where T<:StateVector
     tspan_ = convert(Vector{Float64}, tspan)
     dschroedinger_(t::Float64, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, f, dpsi)
@@ -60,8 +60,8 @@ function schroedinger_dynamic(tspan, psi0::T, f::Function;
 end
 
 
-recast!(x::Vector{Complex128}, psi::StateVector) = (psi.data = x);
-recast!(psi::StateVector, x::Vector{Complex128}) = nothing
+recast!(x::Vector{ComplexF64}, psi::StateVector) = (psi.data = x);
+recast!(psi::StateVector, x::Vector{ComplexF64}) = nothing
 
 
 function dschroedinger(psi::Ket, H::Operator, dpsi::Ket)

@@ -172,7 +172,7 @@ F(ρ, σ) = Tr\\left(\\sqrt{\\sqrt{ρ}σ\\sqrt{ρ}}\\right),
 
 where ``\\sqrt{ρ}=\\sum_n\\sqrt{λ_n}|ψ⟩⟨ψ|``.
 """
-fidelity(rho::DenseOperator, sigma::DenseOperator) = trace(sqrtm(sqrtm(rho.data)*sigma.data*sqrtm(rho.data)))
+fidelity(rho::DenseOperator, sigma::DenseOperator) = trace(sqrt(sqrt(rho.data)*sigma.data*sqrt(rho.data)))
 
 
 """

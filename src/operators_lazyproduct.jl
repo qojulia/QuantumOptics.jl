@@ -21,7 +21,7 @@ multiplication with numbers.
 mutable struct LazyProduct <: Operator
     basis_l::Basis
     basis_r::Basis
-    factor::Complex128
+    factor::ComplexF64
     operators::Vector{Operator}
 
     function LazyProduct(operators::Vector{Operator}, factor::Number=1)

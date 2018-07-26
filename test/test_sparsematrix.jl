@@ -1,8 +1,8 @@
-using Base.Test
+using Test
 using QuantumOptics.sparsematrix
 
 # SparseMatrix = quantumoptics.sparsematrix.SparseMatrix
-const SparseMatrix = SparseMatrixCSC{Complex128, Int}
+const SparseMatrix = SparseMatrixCSC{ComplexF64, Int}
 
 
 @testset "sparsematrix" begin

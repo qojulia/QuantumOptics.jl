@@ -33,7 +33,7 @@ criterion specified in [`steadystate.master`](@ref).
 """
 function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
-                     rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                     rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
                      Jdagger::Vector=dagger.(J),
                      kwargs...)
     function fout(t, rho)
@@ -47,7 +47,7 @@ end
 function correlation(rho0::DenseOperator, H::Operator, J::Vector,
                      op1::Operator, op2::Operator;
                      tol::Float64=1e-4, h0=10.,
-                     rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                     rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
                      Jdagger::Vector=dagger.(J),
                      kwargs...)
     op2rho0 = op2*rho0

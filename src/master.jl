@@ -8,7 +8,7 @@ using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse
 
 
-const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Void}
+const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
 
 """
     timeevolution.master_h(tspan, rho0, H, J; <keyword arguments>)
@@ -20,7 +20,7 @@ Further information can be found at [`master`](@ref).
 function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 rates::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J),
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     check_master(rho0, H, J, Jdagger, rates)
     tmp = copy(rho0)
@@ -43,7 +43,7 @@ function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
                 rates::DecayRates=nothing,
                 Hnhdagger::Operator=dagger(Hnh),
                 Jdagger::Vector=dagger.(J),
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     check_master(rho0, Hnh, J, Jdagger, rates)
     tmp = copy(rho0)
@@ -86,7 +86,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
                 rates::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J),
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
@@ -130,7 +130,7 @@ at [`master_dynamic`](@ref).
 """
 function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
                 rates::DecayRates=nothing,
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
@@ -164,7 +164,7 @@ operators:
 """
 function master_dynamic(tspan, rho0::DenseOperator, f::Function;
                 rates::DecayRates=nothing,
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     tmp = copy(rho0)
     dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
@@ -181,13 +181,13 @@ master_nh_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_nh_dynamic(
 
 
 # Recasting needed for the ODE solver is just providing the underlying data
-function recast!(x::Array{Complex128, 2}, rho::DenseOperator)
+function recast!(x::Array{ComplexF64, 2}, rho::DenseOperator)
     rho.data = x
 end
-recast!(rho::DenseOperator, x::Array{Complex128, 2}) = nothing
+recast!(rho::DenseOperator, x::Array{ComplexF64, 2}) = nothing
 
 function integrate_master(tspan, df::Function, rho0::DenseOperator,
-                        fout::Union{Void, Function}; kwargs...)
+                        fout::Union{Nothing, Function}; kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
     x0 = rho0.data
     state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
@@ -206,7 +206,7 @@ end
 # or a matrix.
 
 function dmaster_h(rho::DenseOperator, H::Operator,
-                    rates::Void, J::Vector, Jdagger::Vector,
+                    rates::Nothing, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, H, rho, 0, drho)
     operators.gemm!(1im, rho, H, 1, drho)
@@ -257,7 +257,7 @@ function dmaster_h(rho::DenseOperator, H::Operator,
 end
 
 function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
-                    rates::Void, J::Vector, Jdagger::Vector,
+                    rates::Nothing, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, Hnh, rho, 0, drho)
     operators.gemm!(1im, rho, Hnh_dagger, 1, drho)

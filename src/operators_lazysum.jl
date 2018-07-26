@@ -20,10 +20,10 @@ stored in the `operators` field.
 mutable struct LazySum <: Operator
     basis_l::Basis
     basis_r::Basis
-    factors::Vector{Complex128}
+    factors::Vector{ComplexF64}
     operators::Vector{Operator}
 
-    function LazySum(factors::Vector{Complex128}, operators::Vector{Operator})
+    function LazySum(factors::Vector{ComplexF64}, operators::Vector{Operator})
         @assert length(operators)>0
         @assert length(operators)==length(factors)
         for i = 2:length(operators)
@@ -34,7 +34,7 @@ mutable struct LazySum <: Operator
     end
 end
 LazySum(factors::Vector{T}, operators::Vector) where {T<:Number} = LazySum(complex(factors), Operator[op for op in operators])
-LazySum(operators::Operator...) = LazySum(ones(Complex128, length(operators)), Operator[operators...])
+LazySum(operators::Operator...) = LazySum(ones(ComplexF64, length(operators)), Operator[operators...])
 
 Base.copy(x::LazySum) = LazySum(copy(x.factors), [copy(op) for op in x.operators])
 

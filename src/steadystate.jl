@@ -29,9 +29,9 @@ Calculate steady state using long time master equation evolution.
 function master(H::Operator, J::Vector;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 hmin=1e-7, tol=1e-3,
-                rates::Union{Vector{Float64}, Matrix{Float64}, Void}=nothing,
+                rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
                 Jdagger::Vector=dagger.(J),
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     t,u = timeevolution.master([0., Inf], rho0, H, J; rates=rates, Jdagger=Jdagger,
                         hmin=hmin, hmax=Inf,
@@ -110,11 +110,11 @@ function eigenvector(L::SuperOperator; tol::Real = 1e-9, nev::Int = 2, which::Sy
     end
     if nev > 1
         if abs(real(d[2])) < tol
-            warn("Several eigenvalues with real part 0 detected; use steadystate.liouvillianspectrum to find out more.")
+            @warn("Several eigenvalues with real part 0 detected; use steadystate.liouvillianspectrum to find out more.")
         end
     end
     if abs(imag(d[1])) > tol
-        warn("Imaginary part of eigenvalue not zero.")
+        @warn("Imaginary part of eigenvalue not zero.")
     end
     return ops[1]
 end

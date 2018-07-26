@@ -25,7 +25,7 @@ Set options for REPL output.
 function set_printing(; standard_order::Bool=_std_order, rounding_tol::Real=_round_tol)
     global _std_order = standard_order
     global _round_tol = rounding_tol
-    global machineprecorder = Int32(round(-log10(_round_tol), 0))
+    global machineprecorder = Int32(round(-log10(_round_tol), digits=0))
     nothing
 end
 set_printing(standard_order=false, rounding_tol=1e-17)

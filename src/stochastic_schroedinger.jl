@@ -10,7 +10,7 @@ import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger
 
 import DiffEqCallbacks
 
-const DiffArray = Union{Vector{Complex128}, Array{Complex128, 2}}
+const DiffArray = Union{Vector{ComplexF64}, Array{ComplexF64, 2}}
 
 """
     stochastic.schroedinger(tspan, state0, H, Hs[; fout, ...])
@@ -32,7 +32,7 @@ Integrate stochastic Schrödinger equation.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function schroedinger(tspan, psi0::Ket, H::Operator, Hs::Vector;
-                fout::Union{Function,Void}=nothing,
+                fout::Union{Function,Nothing}=nothing,
                 normalize_state::Bool=false,
                 calback=nothing,
                 kwargs...)
@@ -49,7 +49,7 @@ function schroedinger(tspan, psi0::Ket, H::Operator, Hs::Vector;
             t::Float64, psi::Ket, dpsi::Ket, n::Int) = dschroedinger_stochastic(dx, psi, Hs, dpsi, n)
 
     if normalize_state
-        norm_func(u::Vector{Complex128}, t::Float64, integrator) = normalize!(u)
+        norm_func(u::Vector{ComplexF64}, t::Float64, integrator) = normalize!(u)
         ncb = DiffEqCallbacks.FunctionCallingCallback(norm_func;
                  func_everystep=true,
                  func_start=false)
@@ -90,7 +90,7 @@ Integrate stochastic Schrödinger equation with dynamic Hamiltonian.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function schroedinger_dynamic(tspan, psi0::Ket, fdeterm::Function, fstoch::Function;
-                fout::Union{Function,Void}=nothing, noise_processes::Int=0,
+                fout::Union{Function,Nothing}=nothing, noise_processes::Int=0,
                 normalize_state::Bool=false,
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
@@ -112,7 +112,7 @@ function schroedinger_dynamic(tspan, psi0::Ket, fdeterm::Function, fstoch::Funct
         dschroedinger_stochastic(dx, t, psi, fstoch, dpsi, n)
 
     if normalize_state
-        norm_func(u::Vector{Complex128}, t::Float64, integrator) = normalize!(u)
+        norm_func(u::Vector{ComplexF64}, t::Float64, integrator) = normalize!(u)
         ncb = DiffEqCallbacks.FunctionCallingCallback(norm_func;
                  func_everystep=true,
                  func_start=false)
@@ -127,13 +127,13 @@ function schroedinger_dynamic(tspan, psi0::Ket, fdeterm::Function, fstoch::Funct
 end
 
 
-function dschroedinger_stochastic(dx::Vector{Complex128}, psi::Ket, Hs::Vector{T},
+function dschroedinger_stochastic(dx::Vector{ComplexF64}, psi::Ket, Hs::Vector{T},
             dpsi::Ket, index::Int) where T <: Operator
     check_schroedinger(psi, Hs[index])
     recast!(dx, dpsi)
     dschroedinger(psi, Hs[index], dpsi)
 end
-function dschroedinger_stochastic(dx::Array{Complex128, 2}, psi::Ket, Hs::Vector{T},
+function dschroedinger_stochastic(dx::Array{ComplexF64, 2}, psi::Ket, Hs::Vector{T},
             dpsi::Ket, n::Int) where T <: Operator
     for i=1:n
         check_schroedinger(psi, Hs[i])
@@ -149,7 +149,7 @@ function dschroedinger_stochastic(dx::DiffArray,
     dschroedinger_stochastic(dx, psi, ops, dpsi, n)
 end
 
-recast!(psi::StateVector, x::SubArray{Complex128, 1}) = (x .= psi.data)
-recast!(x::SubArray{Complex128, 1}, psi::StateVector) = (psi.data = x)
+recast!(psi::StateVector, x::SubArray{ComplexF64, 1}) = (x .= psi.data)
+recast!(x::SubArray{ComplexF64, 1}, psi::StateVector) = (psi.data = x)
 
 end # module

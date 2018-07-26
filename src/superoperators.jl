@@ -1,7 +1,7 @@
 module superoperators
 
 export SuperOperator, DenseSuperOperator, SparseSuperOperator,
-        spre, spost, liouvillian, expm
+        spre, spost, liouvillian, exp
 
 import Base: ==, *, /, +, -
 import ..bases
@@ -34,8 +34,8 @@ SuperOperator stored as dense matrix.
 mutable struct DenseSuperOperator <: SuperOperator
     basis_l::Tuple{Basis, Basis}
     basis_r::Tuple{Basis, Basis}
-    data::Matrix{Complex128}
-    function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::Matrix{Complex128})
+    data::Matrix{ComplexF64}
+    function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::Matrix{ComplexF64})
         if length(basis_l[1])*length(basis_l[2]) != size(data, 1) ||
            length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
@@ -47,7 +47,7 @@ end
 function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis})
     Nl = length(basis_l[1])*length(basis_l[2])
     Nr = length(basis_r[1])*length(basis_r[2])
-    data = zeros(Complex128, Nl, Nr)
+    data = zeros(ComplexF64, Nl, Nr)
     DenseSuperOperator(basis_l, basis_r, data)
 end
 
@@ -60,8 +60,8 @@ SuperOperator stored as sparse matrix.
 mutable struct SparseSuperOperator <: SuperOperator
     basis_l::Tuple{Basis, Basis}
     basis_r::Tuple{Basis, Basis}
-    data::SparseMatrixCSC{Complex128, Int}
-    function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::SparseMatrixCSC{Complex128, Int})
+    data::SparseMatrixCSC{ComplexF64, Int}
+    function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::SparseMatrixCSC{ComplexF64, Int})
         if length(basis_l[1])*length(basis_l[2]) != size(data, 1) ||
            length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
@@ -73,12 +73,12 @@ end
 function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis})
     Nl = length(basis_l[1])*length(basis_l[2])
     Nr = length(basis_r[1])*length(basis_r[2])
-    data = spzeros(Complex128, Nl, Nr)
+    data = spzeros(ComplexF64, Nl, Nr)
     SparseSuperOperator(basis_l, basis_r, data)
 end
 
-SuperOperator(basis_l, basis_r, data::SparseMatrixCSC{Complex128, Int}) = SparseSuperOperator(basis_l, basis_r, data)
-SuperOperator(basis_l, basis_r, data::Matrix{Complex128}) = DenseSuperOperator(basis_l, basis_r, data)
+SuperOperator(basis_l, basis_r, data::SparseMatrixCSC{ComplexF64, Int}) = SparseSuperOperator(basis_l, basis_r, data)
+SuperOperator(basis_l, basis_r, data::Matrix{ComplexF64}) = DenseSuperOperator(basis_l, basis_r, data)
 
 
 Base.copy(a::T) where {T<:SuperOperator} = T(a.basis_l, a.basis_r, copy(a.data))
@@ -216,6 +216,6 @@ end
 
 Operator exponential which can for example used to calculate time evolutions.
 """
-Base.expm(op::DenseSuperOperator) = DenseSuperOperator(op.basis_l, op.basis_r, expm(op.data))
+Base.expm(op::DenseSuperOperator) = DenseSuperOperator(op.basis_l, op.basis_r, exp(op.data))
 
 end # module

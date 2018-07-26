@@ -19,7 +19,7 @@ done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + i y)``.
 function qfunc(rho::Operator, alpha::Number)
     b = basis(rho)
     @assert isa(b, FockBasis)
-    _qfunc_operator(rho, convert(Complex128, alpha), Ket(b), Ket(b))
+    _qfunc_operator(rho, convert(ComplexF64, alpha), Ket(b), Ket(b))
 end
 
 function qfunc(rho::Operator, xvec::Vector{Float64}, yvec::Vector{Float64})
@@ -29,7 +29,7 @@ function qfunc(rho::Operator, xvec::Vector{Float64}, yvec::Vector{Float64})
     Ny = length(yvec)
     tmp1 = Ket(b)
     tmp2 = Ket(b)
-    result = Matrix{Complex128}(Nx, Ny)
+    result = Matrix{ComplexF64}(Nx, Ny)
     @inbounds for j=1:Ny, i=1:Nx
         result[i, j] = _qfunc_operator(rho, complex(xvec[i], yvec[j])/sqrt(2), tmp1, tmp2)
     end
@@ -39,7 +39,7 @@ end
 function qfunc(psi::Ket, alpha::Number)
     b = basis(psi)
     @assert isa(b, FockBasis)
-    _alpha = convert(Complex128, alpha)
+    _alpha = convert(ComplexF64, alpha)
     _conj_alpha = conj(_alpha)
     N = length(psi.basis)
     s = psi.data[N]/sqrt(N-1)
@@ -75,10 +75,10 @@ function qfunc(psi::Ket, xvec::Vector{Float64}, yvec::Vector{Float64})
 end
 
 function qfunc(state::Union{Ket, Operator}, x::Number, y::Number)
-    qfunc(state, Complex128(x, y)/sqrt(2))
+    qfunc(state, ComplexF64(x, y)/sqrt(2))
 end
 
-function _qfunc_operator(rho::Operator, alpha::Complex128, tmp1::Ket, tmp2::Ket)
+function _qfunc_operator(rho::Operator, alpha::ComplexF64, tmp1::Ket, tmp2::Ket)
     coherentstate(basis(rho), alpha, tmp1)
     operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
     a = dot(tmp1.data, tmp2.data)
@@ -137,9 +137,9 @@ wigner(psi::Ket, x, y) = wigner(dm(psi), x, y)
 wigner(state, alpha::Number) = wigner(state, real(alpha)*sqrt(2), imag(alpha)*sqrt(2))
 
 
-function _clenshaw_grid(L::Int, ρ::Matrix{Complex128},
-                abs2_2α::Matrix{Float64}, _2α::Matrix{Complex128}, w::Matrix{Complex128},
-                b0::Matrix{Complex128}, b1::Matrix{Complex128}, b2::Matrix{Complex128}, scale::Int)
+function _clenshaw_grid(L::Int, ρ::Matrix{ComplexF64},
+                abs2_2α::Matrix{Float64}, _2α::Matrix{ComplexF64}, w::Matrix{ComplexF64},
+                b0::Matrix{ComplexF64}, b1::Matrix{ComplexF64}, b2::Matrix{ComplexF64}, scale::Int)
     n = size(ρ, 1)-L-1
     points = length(w)
     if n==0
@@ -179,7 +179,7 @@ function _clenshaw_grid(L::Int, ρ::Matrix{Complex128},
     end
 end
 
-function _clenshaw(L::Int, abs2_2α::Float64, ρ::Matrix{Complex128})
+function _clenshaw(L::Int, abs2_2α::Float64, ρ::Matrix{ComplexF64})
     n = size(ρ, 1)-L-1
     if n==0
         return ρ[1, L+1]
@@ -215,7 +215,7 @@ parametrization is not unique), similarly to a qubit on the
 Bloch sphere.
 """
 function coherentspinstate(b::SpinBasis, theta::Real, phi::Real,
-    result = Ket(b, Vector{Complex128}(length(b))))
+    result = Ket(b, Vector{ComplexF64}(length(b))))
     data = result.data
     N = BigInt(length(b)-1)
     sinth = sin(0.5theta)
@@ -306,8 +306,8 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
 
     ### Tensor generation ###
     BandT = Array{Vector{Float64}}(N,N+1)
-    BandT[1,1] = collect(linspace(-N/2, N/2, N+1))
-    BandT[1,2] = -collect(sqrt.(linspace(1, N, N)).*sqrt.(linspace((N)/2, 1/2, N)))
+    BandT[1,1] = collect(range(-N/2, stop=N/2, length=N+1))
+    BandT[1,2] = -collect(sqrt.(range(1, stop=N, length=N)).*sqrt.(range((N)/2, stop=1/2, length=N)))
     BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
         clebschgordan(1,-1,1,1,2,0)*[zeros(N+1-length(BandT[1,2])); BandT[1,2].*BandT[1,2]] -
         clebschgordan(1,1,1,-1,2,0)*[BandT[1,2].*BandT[1,2]; zeros(N+1-length(BandT[1,2]))]
@@ -341,7 +341,7 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
 
     ### State decomposition ###
     c = rho.data
-    EVT = Array{Complex128}(N,N+1)
+    EVT = Array{ComplexF64}(N,N+1)
     @inbounds for S = 1:N, M = 0:S
         EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
     end
@@ -356,8 +356,8 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
 
     ### Tensor generation ###
     BandT = Array{Vector{Float64}}(N,N+1)
-    BandT[1,1] = collect(linspace(-N/2, N/2, N+1))
-    BandT[1,2] = -collect(sqrt.(linspace(1, N, N)).*sqrt.(linspace((N)/2, 1/2, N)))
+    BandT[1,1] = collect(range(-N/2, stop=N/2, length=N+1))
+    BandT[1,2] = -collect(sqrt.(range(1, stop=N, length=N)).*sqrt.(range((N)/2, stop=1/2, length=N)))
     BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
         clebschgordan(1,-1,1,1,2,0)*[zeros(N+1-length(BandT[1,2])); BandT[1,2].*BandT[1,2]] -
         clebschgordan(1,1,1,-1,2,0)*[BandT[1,2].*BandT[1,2]; zeros(N+1-length(BandT[1,2]))]
@@ -389,7 +389,7 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
 
     ### State decomposition ###
     c = rho.data
-    EVT = Array{Complex128}(N,N+1)
+    EVT = Array{ComplexF64}(N,N+1)
     @inbounds for S = 1:N, M = 0:S
         EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
     end
@@ -401,7 +401,7 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     return wignermap*sqrt((N+1)/(4pi))
 end
 
-function _wignersu2int(N::Integer, theta::Real, phi::Real, EVT::Array{Complex128, 2})
+function _wignersu2int(N::Integer, theta::Real, phi::Real, EVT::Array{ComplexF64, 2})
     UberBand = sqrt(1/(1+N))*ylm(0,0,theta,phi)
     @inbounds for S = 1:N
         @inbounds for M = 1:S
