@@ -5,6 +5,7 @@ export FockBasis, number, destroy, create, displace, fockstate, coherentstate
 import Base: ==
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
+using SparseArrays
 
 
 """
@@ -34,7 +35,7 @@ Number operator for the specified Fock space.
 """
 function number(b::FockBasis)
     diag = complex.(0.:b.N)
-    data = spdiagm(diag, 0, b.N+1, b.N+1)
+    data = spdiagm(0 => diag)
     SparseOperator(b, data)
 end
 
@@ -45,7 +46,7 @@ Annihilation operator for the specified Fock space.
 """
 function destroy(b::FockBasis)
     diag = complex.(sqrt.(1.:b.N))
-    data = spdiagm(diag, 1, b.N+1, b.N+1)
+    data = spdiagm(1 => diag)
     SparseOperator(b, data)
 end
 
@@ -56,7 +57,7 @@ Creation operator for the specified Fock space.
 """
 function create(b::FockBasis)
     diag = complex.(sqrt.(1.:b.N))
-    data = spdiagm(diag, -1, b.N+1, b.N+1)
+    data = spdiagm(-1 => diag)
     SparseOperator(b, data)
 end
 
