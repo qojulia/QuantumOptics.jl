@@ -7,7 +7,7 @@ mutable struct SpectralanalysisTestOperator <: Operator end
 
 srand(0)
 
-sprandop(b) = sparse(DenseOperator(b, rand(Complex128, length(b), length(b))))
+sprandop(b) = sparse(DenseOperator(b, rand(ComplexF64, length(b), length(b))))
 
 # Test diagonalization
 @test_throws ArgumentError eigenstates(SpectralanalysisTestOperator())

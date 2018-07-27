@@ -8,13 +8,13 @@ const SparseMatrix = SparseMatrixCSC{ComplexF64, Int}
 @testset "sparsematrix" begin
 
 # Set up test matrices
-A = rand(Complex128, 5, 5)
+A = rand(ComplexF64, 5, 5)
 A_sp = sparse(A)
 
-B = eye(Complex128, 5)
-B_sp = speye(Complex128, 5)
+B = eye(ComplexF64, 5)
+B_sp = speye(ComplexF64, 5)
 
-C = rand(Complex128, 3, 3)
+C = rand(ComplexF64, 3, 3)
 C[2,:] = 0
 C_sp = sparse(C)
 
@@ -24,7 +24,7 @@ R = A + B
 
 # Test arithmetic
 @test 0 ≈ norm(full(R_sp) - R)
-@test 0 ≈ norm(full(Complex128(0.5,0)*A_sp) - 0.5*A)
+@test 0 ≈ norm(full(ComplexF64(0.5,0)*A_sp) - 0.5*A)
 @test 0 ≈ norm(full(A_sp/2) - A/2)
 @test 0 ≈ norm(full(A_sp*B_sp) - A*B)
 

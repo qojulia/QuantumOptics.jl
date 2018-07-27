@@ -23,7 +23,7 @@ Jdagger = dagger.(J)
 C .*= rates
 Cdagger = dagger.(C)
 
-u0 = Complex128[0.1, 0.5]
+u0 = ComplexF64[0.1, 0.5]
 ψ_sc = semiclassical.State(ψ0, u0)
 ρ_sc = dm(ψ_sc)
 
@@ -77,10 +77,10 @@ tout, ψt_sc = stochastic.schroedinger_semiclassical(T_short, ψ_sc, fquantum, f
 tout, ψt_sc = stochastic.schroedinger_semiclassical(T_short, ψ_sc, fquantum, fclassical;
             fstoch_quantum=fquantum_stoch, fstoch_classical=fclassical_stoch2,
             noise_processes=1,
-            noise_prototype_classical=zeros(Complex128, 2,2), dt=dt)
+            noise_prototype_classical=zeros(ComplexF64, 2,2), dt=dt)
 tout, ψt_sc = stochastic.schroedinger_semiclassical(T_short, ψ_sc, fquantum, fclassical;
             fstoch_classical=fclassical_stoch_ndiag,
-            noise_prototype_classical=zeros(Complex128, 2, 3), dt=dt)
+            noise_prototype_classical=zeros(ComplexF64, 2, 3), dt=dt)
 
 # Semiclassical master
 tout, ρt = stochastic.master_semiclassical(T, ρ_sc, fquantum_master, fclassical;
@@ -89,7 +89,7 @@ tout, ρt = stochastic.master_semiclassical(T, ρ_sc, fquantum_master, fclassica
             fstoch_classical=fclassical_stoch, dt=dt)
 tout, ρt = stochastic.master_semiclassical(T, ψ_sc, fquantum_master, fclassical;
             fstoch_quantum=fstoch_q_master, fstoch_classical=fclassical_stoch2,
-            noise_prototype_classical=zeros(Complex128, 2, 2), dt=dt)
+            noise_prototype_classical=zeros(ComplexF64, 2, 2), dt=dt)
 
 # Test error messages
 @test_throws ArgumentError stochastic.schroedinger_semiclassical(T, ψ_sc, fquantum, fclassical)

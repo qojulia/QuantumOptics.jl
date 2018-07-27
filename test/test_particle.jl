@@ -127,8 +127,8 @@ operators.gemv!(Complex(1.), Txp, psi0_bp, Complex(1.), psi_)
 
 alpha = complex(3.2)
 beta = complex(-1.2)
-randdata1 = rand(Complex128, N)
-randdata2 = rand(Complex128, N)
+randdata1 = rand(ComplexF64, N)
+randdata2 = rand(ComplexF64, N)
 
 state = Ket(basis_position, randdata1)
 result_ = Ket(basis_momentum, copy(randdata2))
@@ -184,8 +184,8 @@ operators.gemm!(Complex(1.), rho0_px, Txp, Complex(0.), rho_)
 
 alpha = complex(3.2)
 beta = complex(-1.2)
-randdata1 = rand(Complex128, N, N)
-randdata2 = rand(Complex128, N, N)
+randdata1 = rand(ComplexF64, N, N)
+randdata2 = rand(ComplexF64, N, N)
 
 op = DenseOperator(basis_position, basis_position, randdata1)
 result_ = DenseOperator(basis_momentum, basis_position, copy(randdata2))

@@ -55,10 +55,10 @@ op2_ = 0.3*(op2a*op2b)
 op3 = LazyProduct(op3a)
 op3_ = op3a
 
-x1 = Ket(b_l, rand(Complex128, length(b_l)))
-x2 = Ket(b_l, rand(Complex128, length(b_l)))
-xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
-xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
+x1 = Ket(b_l, rand(ComplexF64, length(b_l)))
+x2 = Ket(b_l, rand(ComplexF64, length(b_l)))
+xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
+xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
 # Addition
 @test_throws ArgumentError op1 + op2
@@ -99,10 +99,10 @@ op2 = randoperator(b_l)
 op = 0.3*LazyProduct(op1, sparse(op2))
 op_ = 0.3*op1*op2
 
-state = Ket(b_l, rand(Complex128, length(b_l)))
+state = Ket(b_l, rand(ComplexF64, length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
-state = DenseOperator(b_l, b_l, rand(Complex128, length(b_l), length(b_l)))
+state = DenseOperator(b_l, b_l, rand(ComplexF64, length(b_l), length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
 # Permute systems
@@ -126,8 +126,8 @@ op3 = randoperator(b_l, b_r)
 op = LazyProduct([op1, sparse(op2), op3], 0.2)
 op_ = 0.2*op1*op2*op3
 
-state = Ket(b_r, rand(Complex128, length(b_r)))
-result_ = Ket(b_l, rand(Complex128, length(b_l)))
+state = Ket(b_r, rand(ComplexF64, length(b_r)))
+result_ = Ket(b_l, rand(ComplexF64, length(b_l)))
 result = copy(result_)
 operators.gemv!(complex(1.), op, state, complex(0.), result)
 @test 1e-11 > D(result, op_*state)
@@ -138,8 +138,8 @@ beta = complex(2.1)
 operators.gemv!(alpha, op, state, beta, result)
 @test 1e-11 > D(result, alpha*op_*state + beta*result_)
 
-state = Bra(b_l, rand(Complex128, length(b_l)))
-result_ = Bra(b_r, rand(Complex128, length(b_r)))
+state = Bra(b_l, rand(ComplexF64, length(b_l)))
+result_ = Bra(b_r, rand(ComplexF64, length(b_r)))
 result = copy(result_)
 operators.gemv!(complex(1.), state, op, complex(0.), result)
 @test 1e-11 > D(result, state*op_)

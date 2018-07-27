@@ -6,8 +6,8 @@ using QuantumOptics
 srand(0)
 
 D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
-randstate(b) = normalize(Ket(b, rand(Complex128, length(b))))
-randop(bl, br) = DenseOperator(bl, br, rand(Complex128, length(bl), length(br)))
+randstate(b) = normalize(Ket(b, rand(ComplexF64, length(b))))
+randop(bl, br) = DenseOperator(bl, br, rand(ComplexF64, length(bl), length(br)))
 randop(b) = randop(b, b)
 
 basis = FockBasis(2)
@@ -22,9 +22,9 @@ basis = FockBasis(2)
 @test FockBasis(2) != FockBasis(3)
 
 # Test operators
-@test number(basis) == SparseOperator(basis, spdiagm(Complex128[0, 1, 2]))
-@test destroy(basis) == SparseOperator(basis, sparse(Complex128[0 1 0; 0 0 sqrt(2); 0 0 0]))
-@test create(basis) == SparseOperator(basis, sparse(Complex128[0 0 0; 1 0 0; 0 sqrt(2) 0]))
+@test number(basis) == SparseOperator(basis, spdiagm(ComplexF64[0, 1, 2]))
+@test destroy(basis) == SparseOperator(basis, sparse(ComplexF64[0 1 0; 0 0 sqrt(2); 0 0 0]))
+@test create(basis) == SparseOperator(basis, sparse(ComplexF64[0 0 0; 1 0 0; 0 sqrt(2) 0]))
 @test number(basis) == dagger(number(basis))
 @test create(basis) == dagger(destroy(basis))
 @test destroy(basis) == dagger(create(basis))

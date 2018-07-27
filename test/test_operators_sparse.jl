@@ -26,8 +26,8 @@ b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
 # Test creation
-@test_throws DimensionMismatch DenseOperator(b1a, spzeros(Complex128, 3, 2))
-@test_throws DimensionMismatch DenseOperator(b1a, b1b, spzeros(Complex128, 3, 2))
+@test_throws DimensionMismatch DenseOperator(b1a, spzeros(ComplexF64, 3, 2))
+@test_throws DimensionMismatch DenseOperator(b1a, b1b, spzeros(ComplexF64, 3, 2))
 op1 = SparseOperator(b1a, b1b, sparse([1 1 1; 1 1 1]))
 op2 = sparse(DenseOperator(b1b, b1a, [1 1; 1 1; 1 1]))
 @test op1 == dagger(op2)
@@ -329,7 +329,7 @@ operators.gemm!(alpha, state, op, beta, result)
 # Test remaining uncovered code
 @test_throws DimensionMismatch SparseOperator(b1, b2, zeros(10, 10))
 dat = sprandop(b1, b1).data
-@test SparseOperator(b1, dat) == SparseOperator(b1, Matrix{Complex128}(dat))
+@test SparseOperator(b1, dat) == SparseOperator(b1, Matrix{ComplexF64}(dat))
 
 @test_throws ArgumentError sparse(TestOperator())
 

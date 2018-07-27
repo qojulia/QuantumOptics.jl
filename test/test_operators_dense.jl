@@ -41,11 +41,11 @@ op1 = randoperator(b_l, b_r)
 op2 = randoperator(b_l, b_r)
 op3 = randoperator(b_l, b_r)
 
-x1 = Ket(b_r, rand(Complex128, length(b_r)))
-x2 = Ket(b_r, rand(Complex128, length(b_r)))
+x1 = Ket(b_r, rand(ComplexF64, length(b_r)))
+x2 = Ket(b_r, rand(ComplexF64, length(b_r)))
 
-xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
-xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
+xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
+xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
 # Addition
 @test_throws bases.IncompatibleBases op1 + dagger(op2)
@@ -121,8 +121,8 @@ op123 = op1a ⊗ op2a ⊗ op3a
 @test 1e-13 > D(dagger(op1a ⊗ op2a), dagger(op1a) ⊗ dagger(op2a))
 
 # Internal layout
-a = Ket(b1a, rand(Complex128, length(b1a)))
-b = Ket(b2b, rand(Complex128, length(b2b)))
+a = Ket(b1a, rand(ComplexF64, length(b1a)))
+b = Ket(b2b, rand(ComplexF64, length(b2b)))
 ab = a ⊗ dagger(b)
 @test ab.data[2,3] == a.data[2]*conj(b.data[3])
 @test ab.data[2,1] == a.data[2]*conj(b.data[1])
@@ -138,10 +138,10 @@ idx = sub2ind(shape, 2, 1, 1, 1, 3, 4)
 
 
 # Test identityoperator
-x1 = Ket(b_r, rand(Complex128, length(b_r)))
-x2 = Ket(b_r, rand(Complex128, length(b_r)))
-xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
-xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
+x1 = Ket(b_r, rand(ComplexF64, length(b_r)))
+x2 = Ket(b_r, rand(ComplexF64, length(b_r)))
+xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
+xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
 I = identityoperator(DenseOperator, b_r)
 @test isa(I, DenseOperator)
@@ -265,8 +265,8 @@ op321 = op3⊗op2⊗op1
 
 
 # Test projector
-xket = normalize(Ket(b_l, rand(Complex128, length(b_l))))
-yket = normalize(Ket(b_l, rand(Complex128, length(b_l))))
+xket = normalize(Ket(b_l, rand(ComplexF64, length(b_l))))
+yket = normalize(Ket(b_l, rand(ComplexF64, length(b_l))))
 xbra = dagger(xket)
 ybra = dagger(yket)
 

@@ -79,10 +79,10 @@ op2_ = 0.7*I1 ⊗ subop2 ⊗ subop3
 op3 = 0.3*LazyTensor(b_l, b_r, 3, subop3)
 op3_ = 0.3*I1 ⊗ I2 ⊗ subop3
 
-x1 = Ket(b_r, rand(Complex128, length(b_r)))
-x2 = Ket(b_r, rand(Complex128, length(b_r)))
-xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
-xbra2 = Bra(b_l, rand(Complex128, length(b_l)))
+x1 = Ket(b_r, rand(ComplexF64, length(b_r)))
+x2 = Ket(b_r, rand(ComplexF64, length(b_r)))
+xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
+xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
 # Addition
 @test_throws ArgumentError op1 + op2
@@ -153,10 +153,10 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 @test_throws ArgumentError ptrace(op, [1,2,3])
 
 # Test expect
-state = Ket(b_l, rand(Complex128, length(b_l)))
+state = Ket(b_l, rand(ComplexF64, length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
-state = DenseOperator(b_l, b_l, rand(Complex128, length(b_l), length(b_l)))
+state = DenseOperator(b_l, b_l, rand(ComplexF64, length(b_l), length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
 # Permute systems
@@ -182,8 +182,8 @@ I2 = full(identityoperator(b2a, b2b))
 op = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)])*0.1
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
-state = Ket(b_r, rand(Complex128, length(b_r)))
-result_ = Ket(b_l, rand(Complex128, length(b_l)))
+state = Ket(b_r, rand(ComplexF64, length(b_r)))
+result_ = Ket(b_l, rand(ComplexF64, length(b_l)))
 result = deepcopy(result_)
 operators.gemv!(complex(1.), op, state, complex(0.), result)
 @test 1e-13 > D(result, op_*state)
@@ -194,8 +194,8 @@ beta = complex(2.1)
 operators.gemv!(alpha, op, state, beta, result)
 @test 1e-13 > D(result, alpha*op_*state + beta*result_)
 
-state = Bra(b_l, rand(Complex128, length(b_l)))
-result_ = Bra(b_r, rand(Complex128, length(b_r)))
+state = Bra(b_l, rand(ComplexF64, length(b_l)))
+result_ = Bra(b_r, rand(ComplexF64, length(b_r)))
 result = deepcopy(result_)
 operators.gemv!(complex(1.), state, op, complex(0.), result)
 @test 1e-13 > D(result, state*op_)
@@ -241,14 +241,14 @@ operators.gemm!(alpha, state, op, beta, result)
 @test 1e-12 > D(result, alpha*state*op_ + beta*result_)
 
 # Test calling gemv with non-complex factors
-state = Ket(b_r, rand(Complex128, length(b_r)))
-result_ = Ket(b_l, rand(Complex128, length(b_l)))
+state = Ket(b_r, rand(ComplexF64, length(b_r)))
+result_ = Ket(b_l, rand(ComplexF64, length(b_l)))
 result = deepcopy(result_)
 operators.gemv!(1, op, state, 0, result)
 @test 1e-13 > D(result, op_*state)
 
-state = Bra(b_l, rand(Complex128, length(b_l)))
-result_ = Bra(b_r, rand(Complex128, length(b_r)))
+state = Bra(b_l, rand(ComplexF64, length(b_l)))
+result_ = Bra(b_r, rand(ComplexF64, length(b_r)))
 result = deepcopy(result_)
 operators.gemv!(1, state, op, 0, result)
 @test 1e-13 > D(result, state*op_)

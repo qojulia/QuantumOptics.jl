@@ -56,9 +56,9 @@ op2_ = 0.7*op2a + 0.9*op2b
 op3 = LazySum(op3a)
 op3_ = op3a
 
-x1 = Ket(b_r, rand(Complex128, length(b_r)))
-x2 = Ket(b_r, rand(Complex128, length(b_r)))
-xbra1 = Bra(b_l, rand(Complex128, length(b_l)))
+x1 = Ket(b_r, rand(ComplexF64, length(b_r)))
+x2 = Ket(b_r, rand(ComplexF64, length(b_r)))
+xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
 # Addition
 @test_throws bases.IncompatibleBases op1 + dagger(op2)
@@ -129,10 +129,10 @@ op123_ = 0.1*op1 + 0.3*op2 + 1.2*op3
 @test_throws ArgumentError ptrace(op123, [1,2,3])
 
 # Test expect
-state = Ket(b_l, rand(Complex128, length(b_l)))
+state = Ket(b_l, rand(ComplexF64, length(b_l)))
 @test expect(op123, state) ≈ expect(op123_, state)
 
-state = DenseOperator(b_l, b_l, rand(Complex128, length(b_l), length(b_l)))
+state = DenseOperator(b_l, b_l, rand(ComplexF64, length(b_l), length(b_l)))
 @test expect(op123, state) ≈ expect(op123_, state)
 
 # Permute systems
@@ -165,8 +165,8 @@ op3 = randoperator(b_l, b_r)
 op = LazySum([0.1, 0.3, 1.2], [op1, op2, op3])
 op_ = 0.1*op1 + 0.3*op2 + 1.2*op3
 
-state = Ket(b_r, rand(Complex128, length(b_r)))
-result_ = Ket(b_l, rand(Complex128, length(b_l)))
+state = Ket(b_r, rand(ComplexF64, length(b_r)))
+result_ = Ket(b_l, rand(ComplexF64, length(b_l)))
 result = deepcopy(result_)
 operators.gemv!(complex(1.), op, state, complex(0.), result)
 @test 1e-13 > D(result, op_*state)
@@ -177,8 +177,8 @@ beta = complex(2.1)
 operators.gemv!(alpha, op, state, beta, result)
 @test 1e-13 > D(result, alpha*op_*state + beta*result_)
 
-state = Bra(b_l, rand(Complex128, length(b_l)))
-result_ = Bra(b_r, rand(Complex128, length(b_r)))
+state = Bra(b_l, rand(ComplexF64, length(b_l)))
+result_ = Bra(b_r, rand(ComplexF64, length(b_r)))
 result = deepcopy(result_)
 operators.gemv!(complex(1.), state, op, complex(0.), result)
 @test 1e-13 > D(result, state*op_)

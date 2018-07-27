@@ -5,8 +5,8 @@ using QuantumOptics
 
 # Test creation
 b = GenericBasis(3)
-@test_throws DimensionMismatch DenseSuperOperator((b, b), (b, b), zeros(Complex128, 3, 3))
-@test_throws DimensionMismatch SparseSuperOperator((b, b), (b, b), spzeros(Complex128, 3, 3))
+@test_throws DimensionMismatch DenseSuperOperator((b, b), (b, b), zeros(ComplexF64, 3, 3))
+@test_throws DimensionMismatch SparseSuperOperator((b, b), (b, b), spzeros(ComplexF64, 3, 3))
 
 # Test copy, sparse and full
 b1 = GenericBasis(2)
