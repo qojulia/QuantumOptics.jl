@@ -4,7 +4,6 @@ export set_printing
 
 import Base: show
 
-using Compat
 using ..bases, ..states
 using ..operators, ..operators_dense, ..operators_sparse
 using ..operators_lazytensor, ..operators_lazysum, ..operators_lazyproduct

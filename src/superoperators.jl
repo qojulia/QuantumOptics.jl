@@ -6,7 +6,6 @@ export SuperOperator, DenseSuperOperator, SparseSuperOperator,
 import Base: ==, *, /, +, -
 import ..bases
 
-using Compat
 using ..bases, ..operators, ..operators_dense, ..operators_sparse
 
 
