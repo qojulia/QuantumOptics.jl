@@ -10,7 +10,7 @@ import Base: ==, position
 import ..operators
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-
+using FFTW
 
 """
     PositionBasis(xmin, xmax, Npoints)
@@ -266,7 +266,7 @@ Abstract type for all implementations of FFT operators.
 """
 abstract type FFTOperator <: Operator end
 
-const PlanFFT = Base.DFT.FFTW.cFFTWPlan
+const PlanFFT = FFTW.cFFTWPlan
 
 """
     FFTOperators

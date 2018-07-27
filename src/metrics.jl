@@ -220,7 +220,7 @@ Negativity of rho with respect to subsystem index.
 The negativity of a density matrix ρ is defined as
 
 ```math
-N(ρ) = \|ρᵀ\|,
+N(ρ) = \\|ρᵀ\\|,
 ```
 where `ρᵀ` is the partial transpose.
 """
@@ -233,7 +233,7 @@ negativity(rho::DenseOperator, index::Int) = 0.5*(tracenorm(ptranspose(rho, inde
 The logarithmic negativity of a density matrix ρ is defined as
 
 ```math
-N(ρ) = \log₂\|ρᵀ\|,
+N(ρ) = \\log₂\\|ρᵀ\\|,
 ```
 where `ρᵀ` is the partial transpose.
 """
