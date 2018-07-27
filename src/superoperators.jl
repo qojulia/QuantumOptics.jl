@@ -150,7 +150,7 @@ For operators ``A``, ``B`` the relation
 
 holds. `op` can be a dense or a sparse operator.
 """
-spost(op::Operator) = SuperOperator((op.basis_r, op.basis_r), (op.basis_l, op.basis_l), kron(transpose(op.data), identityoperator(op).data))
+spost(op::Operator) = SuperOperator((op.basis_r, op.basis_r), (op.basis_l, op.basis_l), kron(permutedims(op.data), identityoperator(op).data))
 
 
 function _check_input(H::Operator, J::Vector, Jdagger::Vector, rates::Union{Vector{Float64}, Matrix{Float64}})
@@ -211,10 +211,10 @@ function liouvillian(H::T, J::Vector{T};
 end
 
 """
-    expm(op::DenseSuperOperator)
+    exp(op::DenseSuperOperator)
 
 Operator exponential which can for example used to calculate time evolutions.
 """
-Base.expm(op::DenseSuperOperator) = DenseSuperOperator(op.basis_l, op.basis_r, exp(op.data))
+Base.exp(op::DenseSuperOperator) = DenseSuperOperator(op.basis_l, op.basis_r, exp(op.data))
 
 end # module

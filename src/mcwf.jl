@@ -10,7 +10,7 @@ import OrdinaryDiffEq
 # TODO: Remove imports
 import DiffEqCallbacks, RecursiveArrayTools.copyat_or_push!
 import ..recast!
-Base.@pure pure_inference(fout,T) = Core.Inference.return_type(fout, T)
+Base.@pure pure_inference(fout,T) = Core.Compiler.return_type(fout, T)
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
 

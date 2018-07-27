@@ -20,7 +20,7 @@ sprandop(b) = sparse(DenseOperator(b, rand(Complex128, length(b), length(b))))
 b = GenericBasis(5)
 a = randoperator(b)
 H = (a+dagger(a))/2
-U = expm(1im*H)
+U = exp(1im*H)
 d = [-3, -2.6, -0.1, 0.0, 0.6]
 D = DenseOperator(b, diagm(d))
 Dsp = sparse(D)
@@ -48,7 +48,7 @@ end
 b = GenericBasis(5)
 a = randoperator(b)
 H = (a+dagger(a))/2
-U = expm(1im*H)
+U = exp(1im*H)
 d = [-3+0.2im, -2.6-0.1im, -0.1+0.5im, 0.0, 0.6+0.3im]
 D = DenseOperator(b, diagm(d))
 Dsp = sparse(D)

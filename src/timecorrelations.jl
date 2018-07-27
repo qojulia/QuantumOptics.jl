@@ -5,6 +5,8 @@ export correlation, spectrum, correlation2spectrum
 using ..states, ..operators, ..operators_dense
 using ..metrics, ..timeevolution, ..steadystate
 
+using FFTW
+
 
 """
     timecorrelations.correlation([tspan, ]rho0, H, J, op1, op2; <keyword arguments>)

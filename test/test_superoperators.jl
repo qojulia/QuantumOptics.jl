@@ -167,7 +167,7 @@ end
 @test tracedistance(L*ρ₀, ρ) < 1e-10
 
 tout, ρt = timeevolution.master([0.,1.], ρ₀, H, J; reltol=1e-7)
-@test tracedistance(expm(full(L))*ρ₀, ρt[end]) < 1e-6
+@test tracedistance(exp(full(L))*ρ₀, ρt[end]) < 1e-6
 
 @test full(spre(op1)) == spre(op1)
 

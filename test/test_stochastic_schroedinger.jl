@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+import StochasticDiffEq
 
 @testset "stochastic_schroedinger" begin
 

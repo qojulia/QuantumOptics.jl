@@ -3,6 +3,7 @@ module steadystate
 using ..states, ..operators, ..operators_dense, ..superoperators
 using ..timeevolution
 
+using Arpack, LinearAlgebra
 
 """
     steadystate.master(H, J; <keyword arguments>)
@@ -57,7 +58,7 @@ sorted according to the absolute value of the eigenvalues.
 * `kwargs...`:  Keyword arguments for the Julia `eig` or `eigs` function.
 """
 function liouvillianspectrum(L::DenseSuperOperator; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR, kwargs...)
-    d, v = Base.eig(L.data; kwargs...)
+    d, v = eig(L.data; kwargs...)
     indices = sortperm(abs.(d))[1:nev]
     ops = DenseOperator[]
     for i in indices
@@ -70,7 +71,7 @@ end
 
 function liouvillianspectrum(L::SparseSuperOperator; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR, kwargs...)
     d, v, nconv, niter, nmult, resid = try
-        Base.eigs(L.data; nev = nev, which = which, kwargs...)
+        eigs(L.data; nev = nev, which = which, kwargs...)
     catch err
         if isa(err, LinAlg.SingularException) || isa(err, LinAlg.ARPACKException)
             error("Base.LinAlg.eigs() algorithm failed; try using DenseOperators or change nev.")

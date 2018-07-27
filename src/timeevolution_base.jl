@@ -175,4 +175,4 @@ function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0:
 end
 
 
-Base.@pure pure_inference(fout,T) = Core.Inference.return_type(fout, T)
+Base.@pure pure_inference(fout,T) = Core.Compiler.return_type(fout, T)

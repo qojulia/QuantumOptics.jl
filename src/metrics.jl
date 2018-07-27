@@ -197,7 +197,7 @@ function ptranspose(rho::DenseOperator, index::Int=1)
     m = Int(prod(rho_perm.basis_l.shape[1:N-1]))
     n = rho_perm.basis_l.shape[N]
     for i=1:n, j=1:n
-        rho_perm.data[m*(i-1)+1:m*i, m*(j-1)+1:m*j] = transpose(rho_perm.data[m*(i-1)+1:m*i, m*(j-1)+1:m*j])
+        rho_perm.data[m*(i-1)+1:m*i, m*(j-1)+1:m*j] = permutedims(rho_perm.data[m*(i-1)+1:m*i, m*(j-1)+1:m*j])
     end
 
     return permutesystems(rho_perm, perm)

@@ -2,9 +2,9 @@ module operators
 
 export Operator, length, basis, dagger, ishermitian, tensor, embed,
         trace, ptrace, normalize, normalize!, expect, variance,
-        expm, permutesystems, identityoperator
+        exp, permutesystems, identityoperator
 
-import Base: ==, +, -, *, /, length, trace, one, ishermitian, expm, conj, conj!
+import Base: ==, +, -, *, /, length, trace, one, ishermitian, exp, conj, conj!
 import ..bases: basis, tensor, ptrace, permutesystems,
             samebases, check_samebases, multiplicable
 import ..states: dagger, normalize, normalize!
@@ -217,11 +217,11 @@ variance(indices::Vector{Int}, op::Operator, states::Vector) = [variance(indices
 
 
 """
-    expm(op::Operator)
+    exp(op::Operator)
 
 Operator exponential.
 """
-expm(op::Operator) = throw(ArgumentError("expm() is not defined for this type of operator: $(typeof(op)).\nTry to convert to dense operator first with full()."))
+exp(op::Operator) = throw(ArgumentError("exp() is not defined for this type of operator: $(typeof(op)).\nTry to convert to dense operator first with full()."))
 
 permutesystems(a::Operator, perm::Vector{Int}) = arithmetic_unary_error("Permutations of subsystems", a)
 

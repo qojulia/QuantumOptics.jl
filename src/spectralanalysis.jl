@@ -4,6 +4,8 @@ export eigenstates, eigenenergies, simdiag
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
 
+using Arpack
+
 
 const nonhermitian_warning = "The given operator is not hermitian. If this is due to a numerical error make the operator hermitian first by calculating (x+dagger(x))/2 first."
 
