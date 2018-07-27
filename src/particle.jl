@@ -159,7 +159,7 @@ samplepoints(b::MomentumBasis) = (dp = spacing(b); Float64[b.pmin + i*dp for i=0
 
 Position operator in real space.
 """
-position(b::PositionBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)), 0, length(b), length(b)))
+position(b::PositionBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b))))
 
 
 """
@@ -177,7 +177,7 @@ end
 
 Momentum operator in momentum space.
 """
-momentum(b::MomentumBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b)), 0, length(b), length(b)))
+momentum(b::MomentumBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b))))
 
 """
     momentum(b::PositionBasis)

@@ -26,7 +26,7 @@ mutable struct ManyBodyBasis <: Basis
     occupations_hash::UInt
 
     function ManyBodyBasis(onebodybasis::Basis, occupations::Vector{Vector{Int}})
-        new([length(occupations)], onebodybasis, occupations, hash(occupations))
+        new([length(occupations)], onebodybasis, occupations, hash(hash.(occupations)))
     end
 end
 
