@@ -106,10 +106,10 @@ or for avoiding convergence errors of `eigs`. Changing `nev` thus only makes sen
 function eigenvector(L::SuperOperator; tol::Real = 1e-9, nev::Int = 2, which::Symbol = :LR, kwargs...)
     d, ops = liouvillianspectrum(L; nev = nev, which = which, kwargs...)
     if abs(d[1]) > tol
-        error("Eigenvalue with smallest absolute real part is not zero.")
+        error("Eigenvalue with smallest absolute value is not zero.")
     end
     if nev > 1
-        if abs(d[2]) < tol
+        if abs(real(d[2])) < tol
             warn("Several eigenvalues with real part 0 detected; use steadystate.liouvillianspectrum to find out more.")
         end
     end
