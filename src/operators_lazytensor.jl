@@ -7,6 +7,7 @@ import ..operators
 
 using ..sortedindices, ..bases, ..states, ..operators
 using ..operators_dense, ..operators_sparse
+using SparseArrays
 
 
 """
@@ -79,7 +80,7 @@ if there is no corresponding operator (i.e. it would be an identity operater).
 suboperators(op::LazyTensor, indices::Vector{Int}) = op.operators[[findfirst(op.indices, i) for i in indices]]
 
 Base.full(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, DenseOperator[full(x) for x in op.operators])
-Base.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, SparseOperator[sparse(x) for x in op.operators])
+SparseArrays.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, SparseOperator[sparse(x) for x in op.operators])
 
 ==(x::LazyTensor, y::LazyTensor) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor==y.factor
 
@@ -129,12 +130,12 @@ operators.dagger(op::LazyTensor) = LazyTensor(op.basis_r, op.basis_l, op.indices
 
 operators.tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices+length(a.basis_l.bases)], Operator[a.operators; b.operators], a.factor*b.factor)
 
-function operators.trace(op::LazyTensor)
+function operators.tr(op::LazyTensor)
     b = basis(op)
     result = op.factor
     for i in 1:length(b.bases)
         if i in op.indices
-            result *= trace(suboperator(op, i))
+            result *= tr(suboperator(op, i))
         else
             result *= length(b.bases[i])
         end
@@ -149,7 +150,7 @@ function operators.ptrace(op::LazyTensor, indices::Vector{Int})
     factor = op.factor
     for i in indices
         if i in op.indices
-            factor *= trace(suboperator(op, i))
+            factor *= tr(suboperator(op, i))
         else
             factor *= length(op.basis_l.bases[i])
         end
@@ -170,7 +171,7 @@ function operators.ptrace(op::LazyTensor, indices::Vector{Int})
     LazyTensor(b_l, b_r, sortedindices.shiftremove(op.indices, indices), ops, factor)
 end
 
-operators.normalize!(op::LazyTensor) = (op.factor /= trace(op))
+operators.normalize!(op::LazyTensor) = (op.factor /= tr(op))
 
 function operators.permutesystems(op::LazyTensor, perm::Vector{Int})
     b_l = permutesystems(op.basis_l, perm)

@@ -8,6 +8,7 @@ using ..bases, ..states
 using ..operators, ..operators_dense, ..operators_sparse
 using ..operators_lazytensor, ..operators_lazysum, ..operators_lazyproduct
 using ..spin, ..fock, ..nlevel, ..particle, ..subspace, ..manybody, ..sparsematrix
+using SparseArrays
 
 
 """

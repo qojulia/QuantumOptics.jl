@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using LinearAlgebra
 
 
 @testset "operators-lazysum" begin
@@ -95,23 +96,23 @@ I = identityoperator(LazySum, b_l)
 @test full(I) == Idense
 @test 1e-11 > D(xbra1*I, xbra1)
 
-# Test trace and normalize
+# Test tr and normalize
 op1 = randoperator(b_l)
 op2 = randoperator(b_l)
 op3 = randoperator(b_l)
 op = LazySum([0.1, 0.3, 1.2], [op1, op2, op3])
 op_ = 0.1*op1 + 0.3*op2 + 1.2*op3
 
-@test trace(op_) ≈ trace(op)
+@test tr(op_) ≈ tr(op)
 op_normalized = normalize(op)
-@test trace(op_) ≈ trace(op)
-@test 1 ≈ trace(op_normalized)
+@test tr(op_) ≈ tr(op)
+@test 1 ≈ tr(op_normalized)
 op_copy = deepcopy(op)
 normalize!(op_copy)
-@test trace(op) != trace(op_copy)
-@test 1 ≈ trace(op_copy)
+@test tr(op) != tr(op_copy)
+@test 1 ≈ tr(op_copy)
 
-# Test partial trace
+# Test partial tr
 op1 = randoperator(b_l)
 op2 = randoperator(b_l)
 op3 = randoperator(b_l)

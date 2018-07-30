@@ -1,5 +1,7 @@
 module sparsematrix
 
+using SparseArrays
+
 const SparseMatrix = SparseMatrixCSC{ComplexF64, Int}
 
 

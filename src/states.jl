@@ -3,7 +3,8 @@ module states
 export StateVector, Bra, Ket, length, basis, dagger, tensor,
     norm, normalize, normalize!, permutesystems, basisstate
 
-import Base: ==, +, -, *, /, length, copy, norm, normalize, normalize!
+import Base: ==, +, -, *, /, length, copy
+import LinearAlgebra: norm, normalize, normalize!
 import ..bases: basis, tensor, permutesystems, check_multiplicable, samebases
 
 using ..bases
@@ -108,7 +109,7 @@ normalize(x::StateVector) = x/norm(x)
 
 In-place normalization of the given bra or ket so that `norm(x)` is one.
 """
-normalize!(x::StateVector) = scale!(x.data, 1./norm(x))
+normalize!(x::StateVector) = scale!(x.data, 1.0/norm(x))
 
 function permutesystems(state::T, perm::Vector{Int}) where T<:StateVector
     @assert length(state.basis.bases) == length(perm)

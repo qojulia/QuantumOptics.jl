@@ -108,17 +108,17 @@ I = identityoperator(SparseOperator, b_l)
 @test I == identityoperator(SparseOperator, b1a) ⊗ identityoperator(SparseOperator, b2a) ⊗ identityoperator(SparseOperator, b3a)
 
 
-# Test trace and normalize
+# Test tr and normalize
 op = sparse(DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5]))
-@test 8 == trace(op)
+@test 8 == tr(op)
 op_normalized = normalize(op)
-@test 8 == trace(op)
-@test 1 == trace(op_normalized)
+@test 8 == tr(op)
+@test 1 == tr(op_normalized)
 # op_ = normalize!(op)
 # @test op_ === op
-# @test 1 == trace(op)
+# @test 1 == tr(op)
 
-# Test partial trace
+# Test partial tr
 b1 = GenericBasis(3)
 b2 = GenericBasis(5)
 b3 = GenericBasis(7)

@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using LinearAlgebra
 
 
 @testset "operators-lazyproduct" begin
@@ -84,11 +85,11 @@ I = identityoperator(LazyProduct, b_l)
 @test 1e-11 > D(I*x1, x1)
 @test 1e-11 > D(xbra1*I, xbra1)
 
-# Test trace and normalize
+# Test tr and normalize
 op1 = randoperator(b_l)
 op2 = randoperator(b_l)
 op = LazyProduct(op1, op2)
-@test_throws ArgumentError trace(op)
+@test_throws ArgumentError tr(op)
 @test_throws ArgumentError ptrace(op, [1, 2])
 @test_throws ArgumentError normalize(op)
 @test_throws ArgumentError normalize!(op)

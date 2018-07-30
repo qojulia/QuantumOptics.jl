@@ -93,7 +93,7 @@ function schroedinger_semiclassical(tspan, state0::State{Ket}, fquantum::Functio
     if normalize_state
         len_q = length(state0.quantum)
         function norm_func(u::Vector{ComplexF64}, t::Float64, integrator)
-            u .= [normalize!(u[1:len_q]), u[len_q+1:end];]
+            u .= [normalize!(u[1:len_q]); u[len_q+1:end]]
         end
         ncb = DiffEqCallbacks.FunctionCallingCallback(norm_func;
                  func_everystep=true,
@@ -290,14 +290,14 @@ end
 
 function recast!(state::State, x::SubArray{ComplexF64, 1})
     N = length(state.quantum)
-    copy!(x, 1, state.quantum.data, 1, N)
-    copy!(x, N+1, state.classical, 1, length(state.classical))
+    copyto!(x, 1, state.quantum.data, 1, N)
+    copyto!(x, N+1, state.classical, 1, length(state.classical))
     x
 end
 function recast!(x::SubArray{ComplexF64, 1}, state::State)
     N = length(state.quantum)
-    copy!(state.quantum.data, 1, x, 1, N)
-    copy!(state.classical, 1, x, N+1, length(state.classical))
+    copyto!(state.quantum.data, 1, x, 1, N)
+    copyto!(state.classical, 1, x, N+1, length(state.classical))
 end
 
 end # module

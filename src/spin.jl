@@ -5,7 +5,7 @@ export SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown
 import Base: ==
 
 using ..bases, ..states, ..operators, ..operators_sparse
-
+using SparseArrays
 
 """
     SpinBasis(n)

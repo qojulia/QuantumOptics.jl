@@ -3,7 +3,6 @@ module spectralanalysis
 export eigenstates, eigenenergies, simdiag
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-
 using Arpack
 
 

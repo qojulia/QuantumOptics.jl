@@ -5,7 +5,7 @@ export DenseOperator, full, projector, dm
 import Base: ==, +, -, *, /
 import ..operators
 
-using Base.LinAlg, Base.Cartesian
+using LinearAlgebra, Base.Cartesian
 using ..bases, ..states, ..operators
 
 
@@ -48,7 +48,7 @@ Base.full(x::DenseOperator) = copy(x)
 -(a::DenseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
 
 *(a::DenseOperator, b::Ket) = (check_multiplicable(a, b); Ket(a.basis_l, a.data*b.data))
-*(a::Bra, b::DenseOperator) = (check_multiplicable(a, b); Bra(b.basis_r, b.data.'*a.data))
+*(a::Bra, b::DenseOperator) = (check_multiplicable(a, b); Bra(b.basis_r, transpose(b.data)*a.data))
 *(a::DenseOperator, b::DenseOperator) = (check_multiplicable(a, b); DenseOperator(a.basis_l, b.basis_r, a.data*b.data))
 *(a::DenseOperator, b::Number) = DenseOperator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::DenseOperator) = DenseOperator(b.basis_l, b.basis_r, complex(a)*b.data)
@@ -97,7 +97,7 @@ Outer product ``|x⟩⟨y|`` of the given states.
 operators.tensor(a::Ket, b::Bra) = DenseOperator(a.basis, b.basis, reshape(kron(b.data, a.data), prod(a.basis.shape), prod(b.basis.shape)))
 
 
-operators.trace(op::DenseOperator) = (check_samebases(op); trace(op.data))
+operators.tr(op::DenseOperator) = (check_samebases(op); tr(op.data))
 
 function operators.ptrace(a::DenseOperator, indices::Vector{Int})
     operators.check_ptrace_arguments(a, indices)
@@ -123,7 +123,7 @@ function operators.ptrace(psi::Bra, indices::Vector{Int})
     return DenseOperator(b_, b_, result)
 end
 
-operators.normalize!(op::DenseOperator) = scale!(op.data, 1./trace(op))
+operators.normalize!(op::DenseOperator) = scale!(op.data, 1.0/tr(op))
 
 function operators.expect(op::DenseOperator, state::Ket)# where T <: Union{Ket, Bra}
     check_samebases(op.basis_r, state.basis)

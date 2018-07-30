@@ -155,18 +155,18 @@ I = identityoperator(DenseOperator, b_l)
 @test 1e-11 > D(xbra1*I, xbra1)
 @test I == identityoperator(DenseOperator, b1a) ⊗ identityoperator(DenseOperator, b2a) ⊗ identityoperator(DenseOperator, b3a)
 
-# Test trace and normalize
+# Test tr and normalize
 op = DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5])
-@test 8 == trace(op)
+@test 8 == tr(op)
 op_normalized = normalize(op)
-@test 8 == trace(op)
-@test 1 == trace(op_normalized)
+@test 8 == tr(op)
+@test 1 == tr(op_normalized)
 op_copy = deepcopy(op)
 normalize!(op_copy)
-@test trace(op) != trace(op_copy)
-@test 1 ≈ trace(op_copy)
+@test tr(op) != tr(op_copy)
+@test 1 ≈ tr(op_copy)
 
-# Test partial trace of state vectors
+# Test partial tr of state vectors
 psi1 = 0.1*randstate(b1a)
 psi2 = 0.3*randstate(b2a)
 psi3 = 0.7*randstate(b3a)
@@ -188,7 +188,7 @@ psi123 = psi1 ⊗ psi2 ⊗ psi3
 
 @test_throws ArgumentError ptrace(psi123, [1, 2, 3])
 
-# Test partial trace of operators
+# Test partial tr of operators
 b1 = GenericBasis(3)
 b2 = GenericBasis(5)
 b3 = GenericBasis(7)
@@ -197,13 +197,13 @@ op2 = randoperator(b2)
 op3 = randoperator(b3)
 op123 = op1 ⊗ op2 ⊗ op3
 
-@test 1e-13 > D(op1⊗op2*trace(op3), ptrace(op123, 3))
-@test 1e-13 > D(op1⊗op3*trace(op2), ptrace(op123, 2))
-@test 1e-13 > D(op2⊗op3*trace(op1), ptrace(op123, 1))
+@test 1e-13 > D(op1⊗op2*tr(op3), ptrace(op123, 3))
+@test 1e-13 > D(op1⊗op3*tr(op2), ptrace(op123, 2))
+@test 1e-13 > D(op2⊗op3*tr(op1), ptrace(op123, 1))
 
-@test 1e-13 > D(op1*trace(op2)*trace(op3), ptrace(op123, [2,3]))
-@test 1e-13 > D(op2*trace(op1)*trace(op3), ptrace(op123, [1,3]))
-@test 1e-13 > D(op3*trace(op1)*trace(op2), ptrace(op123, [1,2]))
+@test 1e-13 > D(op1*tr(op2)*tr(op3), ptrace(op123, [2,3]))
+@test 1e-13 > D(op2*tr(op1)*tr(op3), ptrace(op123, [1,3]))
+@test 1e-13 > D(op3*tr(op1)*tr(op2), ptrace(op123, [1,2]))
 
 @test_throws ArgumentError ptrace(op123, [1,2,3])
 x = randoperator(b1, b1⊗b2)
@@ -218,7 +218,7 @@ x = randoperator(b1⊗b2, b2⊗b1)
 op1 = randoperator(b1, b2)
 op2 = randoperator(b3)
 
-@test 1e-13 > D(op1*trace(op2), ptrace(op1⊗op2, 2))
+@test 1e-13 > D(op1*tr(op2), ptrace(op1⊗op2, 2))
 
 # Test expect
 b1 = GenericBasis(3)
@@ -237,7 +237,7 @@ state = randstate(b_l)
 @test expect(3, op3, state) ≈ expect(op3, ptrace(state, [1, 2]))
 
 state = randoperator(b_l)
-@test expect(op123, state) ≈ trace(op123*state)
+@test expect(op123, state) ≈ tr(op123*state)
 @test expect(1, op1, state) ≈ expect(op1, ptrace(state, [2, 3]))
 @test expect(2, op2, state) ≈ expect(op2, ptrace(state, [1, 3]))
 @test expect(3, op3, state) ≈ expect(op3, ptrace(state, [1, 2]))

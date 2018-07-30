@@ -67,7 +67,7 @@ ev, ops = steadystate.liouvillianspectrum(Hdense, Jdense)
 @test ev[sortperm(abs.(ev))] == ev
 
 ev, ops = steadystate.liouvillianspectrum(H, sqrt(2).*J; rates=0.5.*ones(length(J)), nev = 1)
-@test tracedistance(ρss, ops[1]/trace(ops[1])) < 1e-12
+@test tracedistance(ρss, ops[1]/tr(ops[1])) < 1e-12
 @test ev[sortperm(abs.(ev))] == ev
 
 # Compute steady-state photon number of a driven cavity (analytically: η^2/κ^2)

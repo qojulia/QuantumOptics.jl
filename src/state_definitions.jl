@@ -3,7 +3,7 @@ module state_definitions
 export randstate, randoperator, thermalstate, coherentthermalstate, phase_average, passive_state
 
 using ..bases, ..states, ..operators, ..operators_dense, ..fock
-
+using LinearAlgebra
 
 """
     randstate(basis)
@@ -61,4 +61,3 @@ function passive_state(rho::DenseOperator,IncreasingEigenenergies::Bool=true)
 end
 
 end #module
-

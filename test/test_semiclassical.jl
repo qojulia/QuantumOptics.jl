@@ -41,7 +41,7 @@ x_rho = semiclassical.State(rho, [complex(1., 0.)])
 @test variance(n, x_rho) ≈ abs2(alpha)
 @test variance(n, [x_ket, x_rho]) ≈ [abs2(alpha), abs2(alpha)]
 
-# Test partial trace
+# Test partial tr
 b1 = GenericBasis(3)
 b2 = GenericBasis(5)
 b = b1 ⊗ b2

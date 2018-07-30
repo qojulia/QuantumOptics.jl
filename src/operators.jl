@@ -1,10 +1,11 @@
 module operators
 
 export Operator, length, basis, dagger, ishermitian, tensor, embed,
-        trace, ptrace, normalize, normalize!, expect, variance,
+        tr, ptrace, normalize, normalize!, expect, variance,
         exp, permutesystems, identityoperator
 
-import Base: ==, +, -, *, /, length, trace, one, ishermitian, exp, conj, conj!
+import Base: ==, +, -, *, /, length, one, exp, conj, conj!
+import LinearAlgebra: tr, ishermitian
 import ..bases: basis, tensor, ptrace, permutesystems,
             samebases, check_samebases, multiplicable
 import ..states: dagger, normalize, normalize!
@@ -128,25 +129,25 @@ embed(basis::CompositeBasis, operators::Dict{Vector{Int}, T}; kwargs...) where {
 
 
 """
-    trace(x::Operator)
+    tr(x::Operator)
 
 Trace of the given operator.
 """
-trace(x::Operator) = arithmetic_unary_error("Trace", x)
+tr(x::Operator) = arithmetic_unary_error("Trace", x)
 
 ptrace(a::Operator, index::Vector{Int}) = arithmetic_unary_error("Partial trace", a)
 
 """
     normalize(op)
 
-Return the normalized operator so that its `trace(op)` is one.
+Return the normalized operator so that its `tr(op)` is one.
 """
-normalize(op::Operator) = op/trace(op)
+normalize(op::Operator) = op/tr(op)
 
 """
     normalize!(op)
 
-In-place normalization of the given operator so that its `trace(x)` is one.
+In-place normalization of the given operator so that its `tr(x)` is one.
 """
 normalize!(op::Operator) = throw(ArgumentError("normalize! is not defined for this type of operator: $(typeof(op)).\n You may have to fall back to the non-inplace version 'normalize()'."))
 
@@ -157,9 +158,8 @@ Expectation value of the given operator `op` for the specified `state`.
 
 `state` can either be a (density) operator or a ket.
 """
-
 expect(op::Operator, state::Ket) = dagger(state) * op * state
-expect(op::Operator, state::Operator) = trace(op*state)
+expect(op::Operator, state::Operator) = tr(op*state)
 
 """
     expect(index, op, state)
@@ -270,7 +270,7 @@ function check_ptrace_arguments(a::Operator, indices::Vector{Int})
         throw(ArgumentError("Partial trace can only be applied onto operators wich have the same number of subsystems in the left basis and right basis."))
     end
     if rank == length(indices)
-        throw(ArgumentError("Partial trace can't be used to trace out all subsystems - use trace() instead."))
+        throw(ArgumentError("Partial trace can't be used to trace out all subsystems - use tr() instead."))
     end
     sortedindices.check_indices(length(a.basis_l.shape), indices)
     for i=indices
@@ -281,7 +281,7 @@ function check_ptrace_arguments(a::Operator, indices::Vector{Int})
 end
 function check_ptrace_arguments(a::StateVector, indices::Vector{Int})
     if length(basis(a).shape) == length(indices)
-        throw(ArgumentError("Partial trace can't be used to trace out all subsystems - use trace() instead."))
+        throw(ArgumentError("Partial trace can't be used to trace out all subsystems - use tr() instead."))
     end
     sortedindices.check_indices(length(basis(a).shape), indices)
 end

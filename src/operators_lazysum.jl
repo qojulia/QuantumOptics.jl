@@ -4,9 +4,10 @@ export LazySum
 
 import Base: ==, *, /, +, -
 import ..operators
+import SparseArrays: sparse
 
 using ..bases, ..states, ..operators, ..operators_dense
-
+using SparseArrays
 
 """
     LazySum([factors,] operators)
@@ -39,7 +40,7 @@ LazySum(operators::Operator...) = LazySum(ones(ComplexF64, length(operators)), O
 Base.copy(x::LazySum) = LazySum(copy(x.factors), [copy(op) for op in x.operators])
 
 Base.full(op::LazySum) = sum(op.factors .* full.(op.operators))
-Base.sparse(op::LazySum) = sum(op.factors .* sparse.(op.operators))
+SparseArrays.sparse(op::LazySum) = sum(op.factors .* sparse.(op.operators))
 
 ==(x::LazySum, y::LazySum) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factors==y.factors
 
@@ -56,7 +57,7 @@ Base.sparse(op::LazySum) = sum(op.factors .* sparse.(op.operators))
 
 operators.dagger(op::LazySum) = LazySum(conj.(op.factors), dagger.(op.operators))
 
-operators.trace(op::LazySum) = sum(op.factors .* trace.(op.operators))
+operators.tr(op::LazySum) = sum(op.factors .* tr.(op.operators))
 
 function operators.ptrace(op::LazySum, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)

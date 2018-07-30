@@ -5,8 +5,10 @@ export SuperOperator, DenseSuperOperator, SparseSuperOperator,
 
 import Base: ==, *, /, +, -
 import ..bases
+import SparseArrays: sparse
 
 using ..bases, ..operators, ..operators_dense, ..operators_sparse
+using SparseArrays
 
 
 """
@@ -85,8 +87,8 @@ Base.copy(a::T) where {T<:SuperOperator} = T(a.basis_l, a.basis_r, copy(a.data))
 Base.full(a::SparseSuperOperator) = DenseSuperOperator(a.basis_l, a.basis_r, full(a.data))
 Base.full(a::DenseSuperOperator) = copy(a)
 
-Base.sparse(a::DenseSuperOperator) = SparseSuperOperator(a.basis_l, a.basis_r, sparse(a.data))
-Base.sparse(a::SparseSuperOperator) = copy(a)
+sparse(a::DenseSuperOperator) = SparseSuperOperator(a.basis_l, a.basis_r, sparse(a.data))
+sparse(a::SparseSuperOperator) = copy(a)
 
 ==(a::T, b::T) where {T<:SuperOperator} = samebases(a, b) && (a.data == b.data)
 

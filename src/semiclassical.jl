@@ -111,15 +111,15 @@ end
 
 function recast!(state::State, x::Vector{ComplexF64})
     N = length(state.quantum)
-    copy!(x, 1, state.quantum.data, 1, N)
-    copy!(x, N+1, state.classical, 1, length(state.classical))
+    copyto!(x, 1, state.quantum.data, 1, N)
+    copyto!(x, N+1, state.classical, 1, length(state.classical))
     x
 end
 
 function recast!(x::Vector{ComplexF64}, state::State)
     N = length(state.quantum)
-    copy!(state.quantum.data, 1, x, 1, N)
-    copy!(state.classical, 1, x, N+1, length(state.classical))
+    copyto!(state.quantum.data, 1, x, 1, N)
+    copyto!(state.classical, 1, x, N+1, length(state.classical))
 end
 
 function dschroedinger_dynamic(t::Float64, state::State{Ket}, fquantum::Function,

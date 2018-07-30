@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using LinearAlgebra
 
 mutable struct test_lazytensor <: Operator
     basis_l::Basis
@@ -119,23 +120,23 @@ I = identityoperator(LazyTensor, b_l)
 @test I == identityoperator(LazyTensor, b1a) ⊗ identityoperator(LazyTensor, b2a) ⊗ identityoperator(LazyTensor, b3a)
 
 
-# Test trace and normalize
+# Test tr and normalize
 subop1 = randoperator(b1a)
 I2 = full(identityoperator(b2a))
 subop3 = randoperator(b3a)
 op = LazyTensor(b_l, b_l, [1, 3], [subop1, sparse(subop3)], 0.1)
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
-@test trace(op) ≈ trace(op_)
+@test tr(op) ≈ tr(op_)
 op_normalized = normalize(op)
-@test trace(op_) ≈ trace(op)
-@test 1 ≈ trace(op_normalized)
+@test tr(op_) ≈ tr(op)
+@test 1 ≈ tr(op_normalized)
 op_copy = deepcopy(op)
 normalize!(op_copy)
-@test trace(op) != trace(op_copy)
-@test 1 ≈ trace(op_copy)
+@test tr(op) != tr(op_copy)
+@test 1 ≈ tr(op_copy)
 
-# Test partial trace
+# Test partial tr
 subop1 = randoperator(b1a)
 I2 = full(identityoperator(b2a))
 subop3 = randoperator(b3a)

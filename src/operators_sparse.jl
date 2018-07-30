@@ -4,8 +4,10 @@ export SparseOperator, diagonaloperator
 
 import Base: ==, *, /, +, -
 import ..operators
+import SparseArrays: sparse
 
 using ..bases, ..states, ..operators, ..operators_dense, ..sparsematrix
+using SparseArrays
 
 
 """
@@ -43,9 +45,9 @@ Base.full(a::SparseOperator) = DenseOperator(a.basis_l, a.basis_r, full(a.data))
 
 Convert an arbitrary operator into a [`SparseOperator`](@ref).
 """
-Base.sparse(a::Operator) = throw(ArgumentError("Direct conversion from $(typeof(a)) not implemented. Use sparse(full(op)) instead."))
-Base.sparse(a::SparseOperator) = copy(a)
-Base.sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.data))
+sparse(a::Operator) = throw(ArgumentError("Direct conversion from $(typeof(a)) not implemented. Use sparse(full(op)) instead."))
+sparse(a::SparseOperator) = copy(a)
+sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.data))
 
 ==(x::SparseOperator, y::SparseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
 
@@ -73,7 +75,7 @@ operators.tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a
 operators.tensor(a::DenseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 operators.tensor(a::SparseOperator, b::DenseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 
-operators.trace(op::SparseOperator) = (check_samebases(op); trace(op.data))
+operators.tr(op::SparseOperator) = (check_samebases(op); tr(op.data))
 
 operators.conj(op::SparseOperator) = SparseOperator(op.basis_l, op.basis_r, conj(op.data))
 operators.conj!(op::SparseOperator) = conj!(op.data)

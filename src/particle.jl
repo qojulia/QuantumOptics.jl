@@ -10,7 +10,7 @@ import Base: ==, position
 import ..operators
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-using FFTW
+using FFTW, SparseArrays
 
 """
     PositionBasis(xmin, xmax, Npoints)
@@ -106,7 +106,7 @@ that the resulting Ket state is normalized.
 function gaussianstate(b::PositionBasis, x0::Real, p0::Real, sigma::Real)
     psi = Ket(b)
     dx = spacing(b)
-    alpha = 1./(pi^(1/4)*sqrt(sigma))*sqrt(dx)
+    alpha = 1.0/(pi^(1/4)*sqrt(sigma))*sqrt(dx)
     x = b.xmin
     for i=1:b.N
         psi.data[i] = alpha*exp(1im*p0*(x-x0/2) - (x-x0)^2/(2*sigma^2))
@@ -413,7 +413,7 @@ function transform_xp(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     if ket_only
         FFTKets(basis_l, basis_r, plan_fft!(x, index), plan_bfft!(x, index), mul_before, mul_after)
     else
-        A = Array{ComplexF64}([N, N;]...)
+        A = Array{ComplexF64}([N; N]...)
         FFTOperators(basis_l, basis_r, plan_fft!(x, index), plan_bfft!(x, index), plan_fft!(A, [n + 1:2n;][index]), plan_bfft!(A, [1:n;][index]), mul_before, mul_after)
     end
 end
@@ -458,7 +458,7 @@ function transform_px(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     if ket_only
         FFTKets(basis_l, basis_r, plan_bfft!(x, index), plan_fft!(x, index), mul_before, mul_after)
     else
-        A = Array{ComplexF64}([N, N;]...)
+        A = Array{ComplexF64}([N; N]...)
         FFTOperators(basis_l, basis_r, plan_bfft!(x, index), plan_fft!(x, index), plan_bfft!(A, [n + 1:2n;][index]), plan_fft!(A, [1:n;][index]), mul_before, mul_after)
     end
 end
@@ -529,10 +529,10 @@ function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, resul
     else
         data = result.data
     end
-    copy!(data, A.data)
+    copyto!(data, A.data)
     scale!(data, B.mul_after[:])
     conj!(data)
-    B.fft_l2! * reshape(data, [size(B.mul_after)..., size(B.mul_after)...;]...)
+    B.fft_l2! * reshape(data, [size(B.mul_after)...; size(B.mul_after)...]...)
     conj!(data)
     scale!(data, B.mul_before[:])
     if alpha != Complex(1.)
@@ -553,9 +553,9 @@ function operators.gemm!(alpha_, A::FFTOperators, B::DenseOperator, beta_, resul
     else
         data = result.data
     end
-    copy!(data, B.data)
+    copyto!(data, B.data)
     scale!(A.mul_before[:], data)
-    A.fft_r2! * reshape(data, [size(A.mul_before)..., size(A.mul_before)...;]...)
+    A.fft_r2! * reshape(data, [size(A.mul_before)...; size(A.mul_before)...]...)
     scale!(A.mul_after[:], data)
     if alpha != Complex(1.)
         scale!(alpha, data)

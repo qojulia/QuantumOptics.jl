@@ -29,7 +29,7 @@ function transform(b1::PositionBasis, b2::FockBasis; x0::Real=1)
     xvec = samplepoints(b1)
     A = hermite.A(b2.N)
     delta_x = particle.spacing(b1)
-    c = 1./sqrt(x0*sqrt(pi))*sqrt(delta_x)
+    c = 1.0/sqrt(x0*sqrt(pi))*sqrt(delta_x)
     for i in 1:length(b1)
         u = xvec[i]/x0
         C = c*exp(-u^2/2)
@@ -45,7 +45,7 @@ function transform(b1::FockBasis, b2::PositionBasis; x0::Real=1)
     xvec = samplepoints(b2)
     A = hermite.A(b1.N)
     delta_x = particle.spacing(b2)
-    c = 1./sqrt(x0*sqrt(pi))*sqrt(delta_x)
+    c = 1.0/sqrt(x0*sqrt(pi))*sqrt(delta_x)
     for i in 1:length(b2)
         u = xvec[i]/x0
         C = c*exp(-u^2/2)
@@ -57,4 +57,3 @@ function transform(b1::FockBasis, b2::PositionBasis; x0::Real=1)
 end
 
 end # module
-
