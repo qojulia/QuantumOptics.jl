@@ -87,9 +87,9 @@ summary(io::IO, x::Ket) = print(io, "Ket(dim=$(length(x.basis)))\n  basis: $(x.b
 function show(stream::IO, x::Ket)
     summary(stream, x)
     if !_std_order
-        Base.print_array(stream, x.data)
+        Base.print_array(stream, round.(x.data; digits=machineprecorder))
     else
-        showarray_stdord(stream, x.data, x.basis.shape, false, header=false)
+        showarray_stdord(stream, round.(x.data; digits=machineprecorder), x.basis.shape, false, header=false)
     end
 end
 
@@ -97,9 +97,9 @@ summary(io::IO, x::Bra) = print(io, "Bra(dim=$(length(x.basis)))\n  basis: $(x.b
 function show(stream::IO, x::Bra)
     summary(stream, x)
     if !_std_order
-        Base.print_array(stream, x.data)
+        Base.print_array(stream, round.(x.data; digits=machineprecorder))
     else
-        showarray_stdord(stream, x.data, x.basis.shape, false, header=false)
+        showarray_stdord(stream, round.(x.data; digits=machineprecorder), x.basis.shape, false, header=false)
     end
 end
 
@@ -122,9 +122,9 @@ function show(stream::IO, x::DenseOperator)
     summary(stream, x)
     print(stream, "\n")
     if !_std_order
-        Base.print_array(stream, x.data)
+        Base.print_array(stream, round.(x.data; digits=machineprecorder))
     else
-        showarray_stdord(stream, x.data, x.basis_l.shape, x.basis_r.shape, false, header=false)
+        showarray_stdord(stream, round.(x.data; digits=machineprecorder), x.basis_l.shape, x.basis_r.shape, false, header=false)
     end
 end
 
@@ -134,9 +134,9 @@ function show(stream::IO, x::SparseOperator)
         print(stream, "\n    []")
     else
         if !_std_order
-            show(stream, x.data)
+            show(stream, round.(x.data; digits=machineprecorder))
         else
-            showsparsearray_stdord(stream, x.data, x.basis_l.shape, x.basis_r.shape)
+            showsparsearray_stdord(stream, round.(x.data; digits=machineprecorder), x.basis_l.shape, x.basis_r.shape)
         end
     end
 end
