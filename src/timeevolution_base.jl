@@ -7,7 +7,7 @@ const DiffArray = Union{Vector{ComplexF64}, Array{ComplexF64, 2}}
 function recast! end
 
 """
-    integrate(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
+    integrate(tspan::Vector{Float64}, df::Function, x0::Vector{ComplexF64},
             state::T, dstate::T, fout::Function; kwargs...)
 
 Integrate using OrdinaryDiffEq
@@ -90,7 +90,7 @@ end
 
 
 """
-    integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Vector{Function}, x0::Vector{Complex128},
+    integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Vector{Function}, x0::Vector{ComplexF64},
             state::T, dstate::T, fout::Function; kwargs...)
 
 Integrate using StochasticDiffEq

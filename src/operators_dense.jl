@@ -19,12 +19,12 @@ The matrix consisting of complex floats is stored in the `data` field.
 mutable struct DenseOperator <: Operator
     basis_l::Basis
     basis_r::Basis
-    data::Matrix{Complex128}
+    data::Matrix{ComplexF64}
     DenseOperator(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
 end
 
 DenseOperator(b::Basis, data) = DenseOperator(b, b, data)
-DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(Complex128, length(b1), length(b2)))
+DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(ComplexF64, length(b1), length(b2)))
 DenseOperator(b::Basis) = DenseOperator(b, b)
 DenseOperator(op::Operator) = full(op)
 
@@ -134,7 +134,7 @@ end
 function operators.expect(op::DenseOperator, state::Operator)
     check_samebases(op.basis_r, state.basis_l)
     check_samebases(op.basis_l, state.basis_r)
-    result = Complex128(0.)
+    result = ComplexF64(0.)
     @inbounds for i=1:size(op.data, 1), j=1:size(op.data,2)
         result += op.data[i,j]*state.data[j,i]
     end
@@ -155,7 +155,7 @@ function operators.permutesystems(a::DenseOperator, perm::Vector{Int})
     DenseOperator(permutesystems(a.basis_l, perm), permutesystems(a.basis_r, perm), data)
 end
 
-operators.identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(Complex128, length(b1), length(b2)))
+operators.identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(ComplexF64, length(b1), length(b2)))
 
 """
     projector(a::Ket, b::Bra)
@@ -197,7 +197,7 @@ function _strides(shape::Vector{Int})
 end
 
 # Dense operator version
-@generated function _ptrace(::Type{Val{RANK}}, a::Matrix{Complex128},
+@generated function _ptrace(::Type{Val{RANK}}, a::Matrix{ComplexF64},
                             shape_l::Vector{Int}, shape_r::Vector{Int},
                             indices::Vector{Int}) where RANK
     return quote
@@ -211,7 +211,7 @@ end
         result_strides_r = _strides(result_shape_r)
         N_result_l = prod(result_shape_l)
         N_result_r = prod(result_shape_r)
-        result = zeros(Complex128, N_result_l, N_result_r)
+        result = zeros(ComplexF64, N_result_l, N_result_r)
         @nexprs 1 (d->(Jr_{$RANK}=1;Ir_{$RANK}=1))
         @nloops $RANK ir (d->1:shape_r[d]) (d->(Ir_{d-1}=Ir_d; Jr_{d-1}=Jr_d)) (d->(Ir_d+=a_strides_r[d]; if !(d in indices) Jr_d+=result_strides_r[d] end)) begin
             @nexprs 1 (d->(Jl_{$RANK}=1;Il_{$RANK}=1))
@@ -223,7 +223,7 @@ end
     end
 end
 
-@generated function _ptrace_ket(::Type{Val{RANK}}, a::Vector{Complex128},
+@generated function _ptrace_ket(::Type{Val{RANK}}, a::Vector{ComplexF64},
                             shape::Vector{Int}, indices::Vector{Int}) where RANK
     return quote
         a_strides = _strides(shape)
@@ -231,7 +231,7 @@ end
         result_shape[indices] = 1
         result_strides = _strides(result_shape)
         N_result = prod(result_shape)
-        result = zeros(Complex128, N_result, N_result)
+        result = zeros(ComplexF64, N_result, N_result)
         @nexprs 1 (d->(Jr_{$RANK}=1;Ir_{$RANK}=1))
         @nloops $RANK ir (d->1:shape[d]) (d->(Ir_{d-1}=Ir_d; Jr_{d-1}=Jr_d)) (d->(Ir_d+=a_strides[d]; if !(d in indices) Jr_d+=result_strides[d] end)) begin
             @nexprs 1 (d->(Jl_{$RANK}=1;Il_{$RANK}=1))
@@ -243,7 +243,7 @@ end
     end
 end
 
-@generated function _ptrace_bra(::Type{Val{RANK}}, a::Vector{Complex128},
+@generated function _ptrace_bra(::Type{Val{RANK}}, a::Vector{ComplexF64},
                             shape::Vector{Int}, indices::Vector{Int}) where RANK
     return quote
         a_strides = _strides(shape)
@@ -251,7 +251,7 @@ end
         result_shape[indices] = 1
         result_strides = _strides(result_shape)
         N_result = prod(result_shape)
-        result = zeros(Complex128, N_result, N_result)
+        result = zeros(ComplexF64, N_result, N_result)
         @nexprs 1 (d->(Jr_{$RANK}=1;Ir_{$RANK}=1))
         @nloops $RANK ir (d->1:shape[d]) (d->(Ir_{d-1}=Ir_d; Jr_{d-1}=Jr_d)) (d->(Ir_d+=a_strides[d]; if !(d in indices) Jr_d+=result_strides[d] end)) begin
             @nexprs 1 (d->(Jl_{$RANK}=1;Il_{$RANK}=1))
@@ -264,13 +264,13 @@ end
 end
 
 # Fast in-place multiplication
-operators.gemm!(alpha, a::Matrix{Complex128}, b::Matrix{Complex128}, beta, result::Matrix{Complex128}) = BLAS.gemm!('N', 'N', convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
-operators.gemv!(alpha, a::Matrix{Complex128}, b::Vector{Complex128}, beta, result::Vector{Complex128}) = BLAS.gemv!('N', convert(Complex128, alpha), a, b, convert(Complex128, beta), result)
-operators.gemv!(alpha, a::Vector{Complex128}, b::Matrix{Complex128}, beta, result::Vector{Complex128}) = BLAS.gemv!('T', convert(Complex128, alpha), b, a, convert(Complex128, beta), result)
+operators.gemm!(alpha, a::Matrix{ComplexF64}, b::Matrix{ComplexF64}, beta, result::Matrix{ComplexF64}) = BLAS.gemm!('N', 'N', convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
+operators.gemv!(alpha, a::Matrix{ComplexF64}, b::Vector{ComplexF64}, beta, result::Vector{ComplexF64}) = BLAS.gemv!('N', convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
+operators.gemv!(alpha, a::Vector{ComplexF64}, b::Matrix{ComplexF64}, beta, result::Vector{ComplexF64}) = BLAS.gemv!('T', convert(ComplexF64, alpha), b, a, convert(ComplexF64, beta), result)
 
-operators.gemm!(alpha, a::DenseOperator, b::DenseOperator, beta, result::DenseOperator) = operators.gemm!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
-operators.gemv!(alpha, a::DenseOperator, b::Ket, beta, result::Ket) = operators.gemv!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
-operators.gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = operators.gemv!(convert(Complex128, alpha), a.data, b.data, convert(Complex128, beta), result.data)
+operators.gemm!(alpha, a::DenseOperator, b::DenseOperator, beta, result::DenseOperator) = operators.gemm!(convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
+operators.gemv!(alpha, a::DenseOperator, b::Ket, beta, result::Ket) = operators.gemv!(convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
+operators.gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = operators.gemv!(convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
 
 
 # Multiplication for Operators in terms of their gemv! implementation
