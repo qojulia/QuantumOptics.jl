@@ -5,3 +5,4 @@ StochasticDiffEq 5.5.0
 RecursiveArrayTools 0.17
 WignerSymbols
 FFTW
+Arpack
