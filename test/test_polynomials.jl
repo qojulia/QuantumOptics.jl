@@ -11,7 +11,7 @@ x0 = 1.3
 @test horner(c, x0) == c[1] + c[2]*x0 + c[3]*x0^2
 
 # Test Hermite polynomials
-an = Vector{Vector{Int}}(8)
+an = Vector{Vector{Int}}(undef, 8)
 an[1] = [1]
 an[2] = [0,2]
 an[3] = [-2, 0, 4]
