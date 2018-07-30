@@ -123,6 +123,9 @@ function show(stream::IO, x::DenseOperator)
     summary(stream, x)
     print(stream, "\n")
     if !_std_order
+        if !haskey(stream, :compact)
+            stream = IOContext(stream, :compact => true)
+        end
         Base.print_array(stream, round.(x.data; digits=machineprecorder))
     else
         showarray_stdord(stream, round.(x.data; digits=machineprecorder), x.basis_l.shape, x.basis_r.shape, false, header=false)
@@ -135,6 +138,9 @@ function show(stream::IO, x::SparseOperator)
         print(stream, "\n    []")
     else
         if !_std_order
+            if !haskey(stream, :compact)
+                stream = IOContext(stream, :compact => true)
+            end
             show(stream, round.(x.data; digits=machineprecorder))
         else
             showsparsearray_stdord(stream, round.(x.data; digits=machineprecorder), x.basis_l.shape, x.basis_r.shape)
@@ -437,7 +443,7 @@ function print_matrix_std(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vec
 end
 
 function showarray_stdord(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vector, repr::Bool = true; header = true)
-    if !haskey(io, :compact)
+    if !haskey(io, :compact) && length(axes(X, 2)) > 1
         io = IOContext(io, :compact => true)
     end
     if !isempty(X)
@@ -457,7 +463,7 @@ function showsparsearray_stdord(io::IO, S::SparseMatrixCSC, ldims::Vector, rdims
     end
     pad = ndigits(max(S.m,S.n))
     sep = "\n  "
-    if !haskey(io, :compact)
+    if !haskey(io, :compact) && length(axes(S, 2)) > 1
         io = IOContext(io, :compact => true)
     end
 
