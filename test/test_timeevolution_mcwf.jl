@@ -29,14 +29,14 @@ Ha = embed(basis, 1, 0.5*ωa*sz)
 Hc = embed(basis, 2, ωc*number(fockbasis))
 Hint = sm ⊗ create(fockbasis) + sp ⊗ destroy(fockbasis)
 H = Ha + Hc + Hint
-Hdense = full(H)
+Hdense = dense(H)
 Hlazy = LazySum(Ha, Hc, Hint)
 
 # Jump operators
 Ja = embed(basis, 1, sqrt(γ)*sm)
 Jc = embed(basis, 2, sqrt(κ)*destroy(fockbasis))
 J = [Ja, Jc]
-Jdense = map(full, J)
+Jdense = map(dense, J)
 Jlazy = [LazyTensor(basis, 1, sqrt(γ)*sm), LazyTensor(basis, 2, sqrt(κ)*destroy(fockbasis))]
 
 # Initial conditions
@@ -93,7 +93,7 @@ tout, Ψt = timeevolution.mcwf_h(T, Ψ₀, H, J; seed=UInt(2), reltol=1e-6)
 
 # Test mcwf nh
 Hnh = H - 0.5im*sum([dagger(J[i])*J[i] for i=1:length(J)])
-Hnh_dense = full(Hnh)
+Hnh_dense = dense(Hnh)
 
 tout, Ψt = timeevolution.mcwf_nh(T, Ψ₀, Hnh, J; seed=UInt(1), reltol=1e-6)
 @test norm(Ψt[end]-Ψ) < 1e-5
@@ -127,9 +127,9 @@ end
 
 # Test single jump operator
 J1 = [Ja]
-J1_dense = map(full, J1)
+J1_dense = map(dense, J1)
 J2 = [Ja, 0 * Jc]
-J2_dense = map(full, J2)
+J2_dense = map(dense, J2)
 
 tout_master, ρt_master = timeevolution.master(T, ρ₀, Hdense, J1_dense)
 
@@ -197,7 +197,7 @@ end
 J3_lazy = [LazyTensor(threespinbasis, i, sm) for i=1:3]
 d, diagJ_lazy = diagonaljumps(rates, J3_lazy)
 for i=1:3
-    @test full(diagJ_lazy[i]) == full(diagJ[i])
+    @test dense(diagJ_lazy[i]) == dense(diagJ[i])
 end
 
 # Test dynamic

@@ -40,7 +40,7 @@ LazyProduct(operators::Operator...) = LazyProduct(Operator[operators...])
 
 Base.copy(x::LazyProduct) = LazyProduct([copy(op) for op in x.operators], x.factor)
 
-Base.full(op::LazyProduct) = op.factor*prod(full.(op.operators))
+operators.dense(op::LazyProduct) = op.factor*prod(dense.(op.operators))
 SparseArrays.sparse(op::LazyProduct) = op.factor*prod(sparse.(op.operators))
 
 ==(x::LazyProduct, y::LazyProduct) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor == y.factor
@@ -58,9 +58,9 @@ SparseArrays.sparse(op::LazyProduct) = op.factor*prod(sparse.(op.operators))
 
 operators.dagger(op::LazyProduct) = LazyProduct(dagger.(reverse(op.operators)), conj(op.factor))
 
-operators.tr(op::LazyProduct) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
+operators.tr(op::LazyProduct) = throw(ArgumentError("Trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. dense() or sparse()."))
 
-operators.ptrace(op::LazyProduct, indices::Vector{Int}) = throw(ArgumentError("Partial trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. full() or sparse()."))
+operators.ptrace(op::LazyProduct, indices::Vector{Int}) = throw(ArgumentError("Partial trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. dense() or sparse()."))
 
 operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(Operator[permutesystems(op_i, perm) for op_i in op.operators], op.factor)
 

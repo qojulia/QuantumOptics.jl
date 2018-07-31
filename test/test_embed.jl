@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using Random, SparseArrays, LinearAlgebra
 
 @testset "embed" begin
 
@@ -12,9 +13,9 @@ b1 = NLevelBasis(3)
 b2 = SpinBasis(1//2)
 b3 = FockBasis(2)
 
-I1 = full(identityoperator(b1))
-I2 = full(identityoperator(b2))
-I3 = full(identityoperator(b3))
+I1 = dense(identityoperator(b1))
+I2 = dense(identityoperator(b2))
+I3 = dense(identityoperator(b3))
 
 b = b1 ⊗ b2 ⊗ b3
 
@@ -30,7 +31,7 @@ y = op1 ⊗ op2 ⊗ I3
 
 x = embed(b, [1,2], [sparse(op1), sparse(op2)])
 y = op1 ⊗ op2 ⊗ I3
-@test 0 ≈ abs(tracedistance_nh(full(x), y))
+@test 0 ≈ abs(tracedistance_nh(dense(x), y))
 
 x = embed(b, 1, op1)
 y = op1 ⊗ I2 ⊗ I3
@@ -48,7 +49,7 @@ y = I1 ⊗ I2 ⊗ op3
 # Test Dict(Int=>Operator)
 x = embed(b, Dict(1 => sparse(op1), 2 => sparse(op2)))
 y = op1 ⊗ op2 ⊗ I3
-@test 0 ≈ abs(tracedistance_nh(full(x), y))
+@test 0 ≈ abs(tracedistance_nh(dense(x), y))
 
 x = embed(b, Dict(1 => op1, 2 => op2))
 y = op1 ⊗ op2 ⊗ I3
@@ -56,7 +57,7 @@ y = op1 ⊗ op2 ⊗ I3
 
 x = embed(b, Dict([1,3] => sparse(op1⊗op3)))
 y = op1 ⊗ I2 ⊗ op3
-@test 0 ≈ abs(tracedistance_nh(full(x), y))
+@test 0 ≈ abs(tracedistance_nh(dense(x), y))
 
 x = embed(b, Dict([1,3] => op1⊗op3))
 y = op1 ⊗ I2 ⊗ op3
@@ -64,7 +65,7 @@ y = op1 ⊗ I2 ⊗ op3
 
 x = embed(b, Dict([3,1] => sparse(op3⊗op1)))
 y = op1 ⊗ I2 ⊗ op3
-@test 0 ≈ abs(tracedistance_nh(full(x), y))
+@test 0 ≈ abs(tracedistance_nh(dense(x), y))
 
 x = embed(b, Dict([3,1] => op3⊗op1))
 y = op1 ⊗ I2 ⊗ op3

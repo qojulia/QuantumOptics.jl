@@ -21,7 +21,7 @@ More details can be found at
 
 NOTE: Especially for small systems full diagonalization with Julia's `eig`
 function is often more desirable. You can convert a sparse operator `A` to a
-dense one using `full(A)`.
+dense one using `dense(A)`.
 
 If the given operator is non-hermitian a warning is given. This behavior
 can be turned off using the keyword `warning=false`.
@@ -53,7 +53,7 @@ function eigenstates(op::SparseOperator, n::Int=6; warning::Bool=true,
     ishermitian(op) || (warning && warn(nonhermitian_warning))
     info && println("INFO: Defaulting to sparse diagonalization.
         If storing the full operator is possible, it might be faster to do
-        eigenstates(full(op)). Set info=false to turn off this message.")
+        eigenstates(dense(op)). Set info=false to turn off this message.")
     D, V = eigs(op.data; which=:SR, nev=n, kwargs...)
     states = [Ket(b, V[:, k]) for k=1:length(D)]
     D, states

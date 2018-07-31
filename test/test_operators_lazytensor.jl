@@ -13,7 +13,7 @@ end
 
 srand(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
+D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 
 b1a = GenericBasis(2)
@@ -53,10 +53,10 @@ x_.indices[2] = 100
 @test x_.indices != x.indices
 
 
-# Test full & sparse
+# Test dense & sparse
 I2 = identityoperator(b2a, b2b)
 x = LazyTensor(b_l, b_r, [1, 3], [op1, sparse(op3)], 0.3)
-@test 1e-12 > D(0.3*op1⊗full(I2)⊗op3, full(x))
+@test 1e-12 > D(0.3*op1⊗dense(I2)⊗op3, dense(x))
 @test 1e-12 > D(0.3*sparse(op1)⊗I2⊗sparse(op3), sparse(x))
 
 # Test suboperators
@@ -70,9 +70,9 @@ x = LazyTensor(b_l, b_r, [1, 3], [op1, sparse(op3)], 0.3)
 subop1 = randoperator(b1a, b1b)
 subop2 = randoperator(b2a, b2b)
 subop3 = randoperator(b3a, b3b)
-I1 = full(identityoperator(b1a, b1b))
-I2 = full(identityoperator(b2a, b2b))
-I3 = full(identityoperator(b3a, b3b))
+I1 = dense(identityoperator(b1a, b1b))
+I2 = dense(identityoperator(b2a, b2b))
+I3 = dense(identityoperator(b3a, b3b))
 op1 = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)], 0.1)
 op1_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 op2 = LazyTensor(b_l, b_r, [2, 3], [sparse(subop2), subop3], 0.7)
@@ -108,21 +108,21 @@ xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 Idense = identityoperator(DenseOperator, b_r)
 I = identityoperator(LazyTensor, b_r)
 @test isa(I, LazyTensor)
-@test full(I) == Idense
+@test dense(I) == Idense
 @test 1e-11 > D(I*x1, x1)
 @test I == identityoperator(LazyTensor, b1b) ⊗ identityoperator(LazyTensor, b2b) ⊗ identityoperator(LazyTensor, b3b)
 
 Idense = identityoperator(DenseOperator, b_l)
 I = identityoperator(LazyTensor, b_l)
 @test isa(I, LazyTensor)
-@test full(I) == Idense
+@test dense(I) == Idense
 @test 1e-11 > D(xbra1*I, xbra1)
 @test I == identityoperator(LazyTensor, b1a) ⊗ identityoperator(LazyTensor, b2a) ⊗ identityoperator(LazyTensor, b3a)
 
 
 # Test tr and normalize
 subop1 = randoperator(b1a)
-I2 = full(identityoperator(b2a))
+I2 = dense(identityoperator(b2a))
 subop3 = randoperator(b3a)
 op = LazyTensor(b_l, b_l, [1, 3], [subop1, sparse(subop3)], 0.1)
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
@@ -138,7 +138,7 @@ normalize!(op_copy)
 
 # Test partial tr
 subop1 = randoperator(b1a)
-I2 = full(identityoperator(b2a))
+I2 = dense(identityoperator(b2a))
 subop3 = randoperator(b3a)
 op = LazyTensor(b_l, b_l, [1, 3], [subop1, sparse(subop3)], 0.1)
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
@@ -164,7 +164,7 @@ state = DenseOperator(b_l, b_l, rand(ComplexF64, length(b_l), length(b_l)))
 subop1 = randoperator(b1a, b1b)
 subop2 = randoperator(b2a, b2b)
 subop3 = randoperator(b3a, b3b)
-I2 = full(identityoperator(b2a, b2b))
+I2 = dense(identityoperator(b2a, b2b))
 op = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)])*0.1
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
@@ -179,7 +179,7 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 subop1 = randoperator(b1a, b1b)
 subop2 = randoperator(b2a, b2b)
 subop3 = randoperator(b3a, b3b)
-I2 = full(identityoperator(b2a, b2b))
+I2 = dense(identityoperator(b2a, b2b))
 op = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)])*0.1
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 
@@ -213,7 +213,7 @@ b_r2 = GenericBasis(13)
 subop1 = randoperator(b1a, b1b)
 subop2 = randoperator(b2a, b2b)
 subop3 = randoperator(b3a, b3b)
-I2 = full(identityoperator(b2a, b2b))
+I2 = dense(identityoperator(b2a, b2b))
 op = LazyTensor(b_l, b_r, [1, 3], [subop1, sparse(subop3)])*0.1
 op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 

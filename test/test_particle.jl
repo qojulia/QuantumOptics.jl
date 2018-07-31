@@ -6,7 +6,7 @@ using FFTW
 
 srand(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
+D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 
 N = 200
 xmin = -32.5
@@ -35,7 +35,7 @@ psi0_bp = gaussianstate(basis_momentum, x0, p0, sigma)
 p_bx = momentum(basis_position)
 x_bx = position(basis_position)
 
-@test 1e-10 > D(p_bx, transform(basis_position, basis_momentum)*full(momentum(basis_momentum))*transform(basis_momentum, basis_position))
+@test 1e-10 > D(p_bx, transform(basis_position, basis_momentum)*dense(momentum(basis_momentum))*transform(basis_momentum, basis_position))
 
 p_bp = momentum(basis_momentum)
 x_bp = position(basis_momentum)
@@ -132,25 +132,25 @@ randdata2 = rand(ComplexF64, N)
 
 state = Ket(basis_position, randdata1)
 result_ = Ket(basis_momentum, copy(randdata2))
-result0 = alpha*full(Tpx)*state + beta*result_
+result0 = alpha*dense(Tpx)*state + beta*result_
 operators.gemv!(alpha, Tpx, state, beta, result_)
 @test 1e-11 > norm(result0 - result_)
 
 state = Bra(basis_position, randdata1)
 result_ = Bra(basis_momentum, copy(randdata2))
-result0 = alpha*state*full(Txp) + beta*result_
+result0 = alpha*state*dense(Txp) + beta*result_
 operators.gemv!(alpha, state, Txp, beta, result_)
 @test 1e-11 > norm(result0 - result_)
 
 state = Ket(basis_momentum, randdata1)
 result_ = Ket(basis_position, copy(randdata2))
-result0 = alpha*full(Txp)*state + beta*result_
+result0 = alpha*dense(Txp)*state + beta*result_
 operators.gemv!(alpha, Txp, state, beta, result_)
 @test 1e-11 > norm(result0 - result_)
 
 state = Bra(basis_momentum, randdata1)
 result_ = Bra(basis_position, copy(randdata2))
-result0 = alpha*state*full(Tpx) + beta*result_
+result0 = alpha*state*dense(Tpx) + beta*result_
 operators.gemv!(alpha, state, Tpx, beta, result_)
 @test 1e-11 > norm(result0 - result_)
 
@@ -189,23 +189,23 @@ randdata2 = rand(ComplexF64, N, N)
 
 op = DenseOperator(basis_position, basis_position, randdata1)
 result_ = DenseOperator(basis_momentum, basis_position, copy(randdata2))
-result0 = alpha*full(Tpx)*op + beta*result_
+result0 = alpha*dense(Tpx)*op + beta*result_
 operators.gemm!(alpha, Tpx, op, beta, result_)
 @test 1e-11 > D(result0, result_)
 
 result_ = DenseOperator(basis_position, basis_momentum, copy(randdata2))
-result0 = alpha*op*full(Txp) + beta*result_
+result0 = alpha*op*dense(Txp) + beta*result_
 operators.gemm!(alpha, op, Txp, beta, result_)
 @test 1e-11 > D(result0, result_)
 
 op = DenseOperator(basis_momentum, basis_momentum, randdata1)
 result_ = DenseOperator(basis_position, basis_momentum, copy(randdata2))
-result0 = alpha*full(Txp)*op + beta*result_
+result0 = alpha*dense(Txp)*op + beta*result_
 operators.gemm!(alpha, Txp, op, beta, result_)
 @test 1e-11 > D(result0, result_)
 
 result_ = DenseOperator(basis_momentum, basis_position, copy(randdata2))
-result0 = alpha*op*full(Tpx) + beta*result_
+result0 = alpha*op*dense(Tpx) + beta*result_
 operators.gemm!(alpha, op, Tpx, beta, result_)
 @test 1e-11 > D(result0, result_)
 
@@ -218,7 +218,7 @@ operators.gemv!(Complex(1.), LazyProduct(Txp, Tpx), psi0_bx, Complex(0.), psi_)
 @test 1e-12 > norm(Txp*(Tpx*psi0_bx) - psi0_bx)
 
 psi_ = deepcopy(psi0_bx)
-I = full(identityoperator(basis_momentum))
+I = dense(identityoperator(basis_momentum))
 operators.gemv!(Complex(1.), LazyProduct(Txp, I, Tpx), psi0_bx, Complex(0.), psi_)
 @test 1e-12 > norm(psi_ - psi0_bx)
 @test 1e-12 > norm(Txp*I*(Tpx*psi0_bx) - psi0_bx)
@@ -249,10 +249,10 @@ Tpx = transform(tensor(basis_momentum...), tensor(basis_position...))
 
 Txp_sub = [transform(basis_position[i], basis_momentum[i]) for i=1:2]
 Tpx_sub = dagger.(Txp_sub)
-Txp_full = full.(Txp_sub)
-Txp_comp = tensor(Txp_full...)
+Txp_dense = dense.(Txp_sub)
+Txp_comp = tensor(Txp_dense...)
 
-difference = (full(Txp) - Txp_comp).data
+difference = (dense(Txp) - Txp_comp).data
 @test isapprox(difference, zeros(difference); atol=1e-12)
 
 psi0_x = gaussianstate.(basis_position, x0, p0, sigma_x)
@@ -274,12 +274,12 @@ psi_x_fft = dagger(tensor(psi0_p...))*Tpx
 psi_x_fft2 = tensor((dagger.(psi0_p).*Tpx_sub)...)
 @test norm(psi_p_fft - psi_p_fft2) < 1e-15
 
-difference = (full(Txp) - identityoperator(DenseOperator, Txp.basis_l)*Txp).data
+difference = (dense(Txp) - identityoperator(DenseOperator, Txp.basis_l)*Txp).data
 @test isapprox(difference, zeros(difference); atol=1e-12)
 @test_throws AssertionError transform(tensor(basis_position...), tensor(basis_position...))
 @test_throws particle.IncompatibleBases transform(SpinBasis(1//2)^2, SpinBasis(1//2)^2)
 
-@test full(Txp) == full(Txp_sub[1] ⊗ Txp_sub[2])
+@test dense(Txp) == dense(Txp_sub[1] ⊗ Txp_sub[2])
 
 # Test ket only FFTs
 Txp = transform(tensor(basis_position...), tensor(basis_momentum...); ket_only=true)
@@ -329,16 +329,16 @@ psi2_fft2 = tensor(Tpx_sub[1]*psi0_x[1], psi_fock, Tpx_sub[2]*psi0_x[2])
 
 Txp = transform(basis_l, basis_r)
 Txp_sub = [transform(basis_position[i], basis_momentum[i]) for i=1:2]
-difference = (full(Txp) - tensor(full(Txp_sub[1]), full(one(bc)), full(Txp_sub[2]))).data
+difference = (dense(Txp) - tensor(dense(Txp_sub[1]), dense(one(bc)), dense(Txp_sub[2]))).data
 @test isapprox(difference, zeros(difference); atol=1e-12)
 
 basis_l = tensor(bc, basis_position[1], basis_position[2])
 basis_r = tensor(bc, basis_momentum[1], basis_momentum[2])
 Txp2 = transform(basis_l, basis_r)
 Tpx2 = transform(basis_r, basis_l)
-difference = (full(Txp) - permutesystems(full(Txp2), [2, 1, 3])).data
+difference = (dense(Txp) - permutesystems(dense(Txp2), [2, 1, 3])).data
 @test isapprox(difference, zeros(difference); atol=1e-13)
-difference = (full(dagger(Txp)) - permutesystems(full(Tpx2), [2, 1, 3])).data
+difference = (dense(dagger(Txp)) - permutesystems(dense(Tpx2), [2, 1, 3])).data
 @test isapprox(difference, zeros(difference); atol=1e-13)
 
 # Test potentialoperator in more than 1D
@@ -362,7 +362,7 @@ bcomp_pos = tensor(basis_position...)
 Txp = transform(bcomp_pos, bcomp_mom)
 Tpx = transform(bcomp_mom, bcomp_pos)
 xsample, ysample = samplepoints.(basis_position)
-V_op = Tpx*full(diagonaloperator(bcomp_pos, [V(x, y) for y in ysample for x in xsample]))*Txp
+V_op = Tpx*dense(diagonaloperator(bcomp_pos, [V(x, y) for y in ysample for x in xsample]))*Txp
 V_op2 = potentialoperator(bcomp_mom, V)
 @test V_op == V_op2
 

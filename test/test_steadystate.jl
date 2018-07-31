@@ -27,13 +27,13 @@ Ha = embed(basis, 1, 0.5*ωa*sz)
 Hc = embed(basis, 2, ωc*number(fockbasis))
 Hint = sm ⊗ create(fockbasis) + sp ⊗ destroy(fockbasis)
 H = Ha + Hc + Hint
-Hdense = full(H)
+Hdense = dense(H)
 
 Ja = embed(basis, 1, sqrt(γ)*sm)
 Ja2 = embed(basis, 1, sqrt(0.5*γ)*sp)
 Jc = embed(basis, 2, sqrt(κ)*destroy(fockbasis))
 J = [Ja, Jc]
-Jdense = map(full, J)
+Jdense = map(dense, J)
 
 Ψ₀ = spinup(spinbasis) ⊗ fockstate(fockbasis, 2)
 ρ₀ = dm(Ψ₀)
@@ -83,7 +83,7 @@ nss = expect(create(fockbasis)*destroy(fockbasis), ρss[end])
 nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 @test n_an - real(nss) < 1e-3
 
-ρss = steadystate.eigenvector(full(Hp), map(full, Jp))
+ρss = steadystate.eigenvector(dense(Hp), map(dense, Jp))
 nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 @test n_an - real(nss) < 1e-3
 

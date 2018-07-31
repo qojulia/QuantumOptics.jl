@@ -54,7 +54,7 @@ rho = spinup(b1) ⊗ dagger(coherentstate(b2, 0.1))
 @test tracedistance_nh(rho, rho) ≈ 0.
 
 # entropy
-rho_mix = full(identityoperator(b1))/2.
+rho_mix = dense(identityoperator(b1))/2.
 @test entropy_vn(rho_mix)/log(2) ≈ 1
 psi = coherentstate(FockBasis(20), 2.0)
 @test isapprox(entropy_vn(psi), 0.0, atol=1e-8)

@@ -40,7 +40,7 @@ op_test3 = test_operators(b1 ⊗ b2, b2 ⊗ b1, randoperator(b, b).data)
 @test_throws ArgumentError tr(op_test)
 @test_throws ArgumentError ptrace(op_test, [1])
 @test_throws ArgumentError ishermitian(op_test)
-@test_throws ArgumentError full(op_test)
+@test_throws ArgumentError dense(op_test)
 @test_throws ArgumentError sparse(op_test)
 
 @test expect(1, op1, ρ) ≈ expect(embed(b, 1, op1), ρ)

@@ -7,7 +7,7 @@ using LinearAlgebra
 
 srand(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
+D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 
 b1a = GenericBasis(2)
@@ -36,10 +36,10 @@ op2.operators[1].data[1,1] = complex(10.)
 op2.factors[1] = 3.
 @test op2.factors[1] != op1.factors[1]
 
-# Test full & sparse
+# Test dense & sparse
 op1 = randoperator(b_l, b_r)
 op2 = sparse(randoperator(b_l, b_r))
-@test 0.1*op1 + 0.3*full(op2) == full(LazySum([0.1, 0.3], [op1, op2]))
+@test 0.1*op1 + 0.3*dense(op2) == dense(LazySum([0.1, 0.3], [op1, op2]))
 @test 0.1*sparse(op1) + 0.3*op2 == sparse(LazySum([0.1, 0.3], [op1, op2]))
 
 
@@ -87,13 +87,13 @@ xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
 Idense = identityoperator(DenseOperator, b_r)
 I = identityoperator(LazySum, b_r)
 @test isa(I, LazySum)
-@test full(I) == Idense
+@test dense(I) == Idense
 @test 1e-11 > D(I*x1, x1)
 
 Idense = identityoperator(DenseOperator, b_l)
 I = identityoperator(LazySum, b_l)
 @test isa(I, LazySum)
-@test full(I) == Idense
+@test dense(I) == Idense
 @test 1e-11 > D(xbra1*I, xbra1)
 
 # Test tr and normalize

@@ -169,7 +169,7 @@ Position operator in momentum space.
 """
 function position(b::MomentumBasis)
     b_pos = PositionBasis(b)
-    transform(b, b_pos)*full(position(b_pos))*transform(b_pos, b)
+    transform(b, b_pos)*dense(position(b_pos))*transform(b_pos, b)
 end
 
 """
@@ -186,7 +186,7 @@ Momentum operator in real space.
 """
 function momentum(b::PositionBasis)
     b_mom = MomentumBasis(b)
-    transform(b, b_mom)*full(momentum(b_mom))*transform(b_mom, b)
+    transform(b, b_mom)*dense(momentum(b_mom))*transform(b_mom, b)
 end
 
 """
@@ -206,7 +206,7 @@ Operator representing a potential ``V(x)`` in momentum space.
 """
 function potentialoperator(b::MomentumBasis, V::Function)
     b_pos = PositionBasis(b)
-    transform(b, b_pos)*full(potentialoperator(b_pos, V))*transform(b_pos, b)
+    transform(b, b_pos)*dense(potentialoperator(b_pos, V))*transform(b_pos, b)
 end
 
 """
@@ -256,7 +256,7 @@ function potentialoperator_momentum(b::CompositeBasis, V::Function)
         push!(bases_pos, PositionBasis(base))
     end
     b_pos = tensor(bases_pos...)
-    transform(b, b_pos)*full(potentialoperator_position(b_pos, V))*transform(b_pos, b)
+    transform(b, b_pos)*dense(potentialoperator_position(b_pos, V))*transform(b_pos, b)
 end
 
 """
@@ -463,7 +463,7 @@ function transform_px(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     end
 end
 
-operators.full(op::FFTOperators) = op*identityoperator(DenseOperator, op.basis_r)
+operators.dense(op::FFTOperators) = op*identityoperator(DenseOperator, op.basis_r)
 
 operators.dagger(op::FFTOperators) = transform(op.basis_r, op.basis_l)
 operators.dagger(op::FFTKets) = transform(op.basis_r, op.basis_l; ket_only=true)

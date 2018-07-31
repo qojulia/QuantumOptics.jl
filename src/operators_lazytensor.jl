@@ -79,7 +79,7 @@ if there is no corresponding operator (i.e. it would be an identity operater).
 """
 suboperators(op::LazyTensor, indices::Vector{Int}) = op.operators[[findfirst(op.indices, i) for i in indices]]
 
-Base.full(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, DenseOperator[full(x) for x in op.operators])
+operators.dense(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, DenseOperator[dense(x) for x in op.operators])
 SparseArrays.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, SparseOperator[sparse(x) for x in op.operators])
 
 ==(x::LazyTensor, y::LazyTensor) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor==y.factor

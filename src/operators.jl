@@ -2,7 +2,7 @@ module operators
 
 export Operator, length, basis, dagger, ishermitian, tensor, embed,
         tr, ptrace, normalize, normalize!, expect, variance,
-        exp, permutesystems, identityoperator
+        exp, permutesystems, identityoperator, dense
 
 import Base: ==, +, -, *, /, length, one, exp, conj, conj!
 import LinearAlgebra: tr, ishermitian
@@ -28,8 +28,8 @@ abstract type Operator end
 
 
 # Common error messages
-arithmetic_unary_error(funcname, x::Operator) = throw(ArgumentError("$funcname is not defined for this type of operator: $(typeof(x)).\nTry to convert to another operator type first with e.g. full() or sparse()."))
-arithmetic_binary_error(funcname, a::Operator, b::Operator) = throw(ArgumentError("$funcname is not defined for this combination of types of operators: $(typeof(a)), $(typeof(b)).\nTry to convert to a common operator type first with e.g. full() or sparse()."))
+arithmetic_unary_error(funcname, x::Operator) = throw(ArgumentError("$funcname is not defined for this type of operator: $(typeof(x)).\nTry to convert to another operator type first with e.g. dense() or sparse()."))
+arithmetic_binary_error(funcname, a::Operator, b::Operator) = throw(ArgumentError("$funcname is not defined for this combination of types of operators: $(typeof(a)), $(typeof(b)).\nTry to convert to a common operator type first with e.g. dense() or sparse()."))
 addnumbererror() = throw(ArgumentError("Can't add or subtract a number and an operator. You probably want 'op + identityoperator(op)*x'."))
 
 length(a::Operator) = length(a.basis_l)::Int*length(a.basis_r)::Int
@@ -52,6 +52,8 @@ dagger(a::Operator) = arithmetic_unary_error("Hermitian conjugate", a)
 
 conj(a::Operator) = arithmetic_unary_error("Complex conjugate", a)
 conj!(a::Operator) = conj(a::Operator)
+
+dense(a::Operator) = arithmetic_unary_error("Conversion to dense", a)
 
 """
     ishermitian(op::Operator)
@@ -221,7 +223,7 @@ variance(indices::Vector{Int}, op::Operator, states::Vector) = [variance(indices
 
 Operator exponential.
 """
-exp(op::Operator) = throw(ArgumentError("exp() is not defined for this type of operator: $(typeof(op)).\nTry to convert to dense operator first with full()."))
+exp(op::Operator) = throw(ArgumentError("exp() is not defined for this type of operator: $(typeof(op)).\nTry to convert to dense operator first with dense()."))
 
 permutesystems(a::Operator, perm::Vector{Int}) = arithmetic_unary_error("Permutations of subsystems", a)
 

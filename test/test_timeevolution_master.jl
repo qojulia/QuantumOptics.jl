@@ -38,11 +38,11 @@ Jlazy = [LazyTensor(basis, 1, sqrt(γ)*sm), Jc]
 
 Hnh = H - 0.5im*sum([dagger(J[i])*J[i] for i=1:length(J)])
 
-Hdense = full(H)
+Hdense = dense(H)
 Hlazy = LazySum(Ha, Hc, Hint)
-Hnh_dense = full(Hnh)
-Junscaled_dense = map(full, Junscaled)
-Jdense = map(full, J)
+Hnh_dense = dense(Hnh)
+Junscaled_dense = map(dense, Junscaled)
+Jdense = map(dense, J)
 
 Ψ₀ = spinup(spinbasis) ⊗ fockstate(fockbasis, 5)
 ρ₀ = dm(Ψ₀)

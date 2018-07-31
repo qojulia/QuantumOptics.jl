@@ -5,7 +5,7 @@ using QuantumOptics
 
 srand(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
+D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 D(x::Ket, y::Ket) = norm(x-y)
 
 # Test transformations

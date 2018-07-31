@@ -7,7 +7,7 @@ import ..operators
 import SparseArrays: sparse
 
 using ..bases, ..states, ..operators, ..operators_dense, ..sparsematrix
-using SparseArrays
+using SparseArrays, LinearAlgebra
 
 
 """
@@ -38,7 +38,7 @@ SparseOperator(b1::Basis, b2::Basis) = SparseOperator(b1, b2, spzeros(ComplexF64
 SparseOperator(b::Basis) = SparseOperator(b, b)
 
 Base.copy(x::SparseOperator) = SparseOperator(x.basis_l, x.basis_r, copy(x.data))
-Base.full(a::SparseOperator) = DenseOperator(a.basis_l, a.basis_r, full(a.data))
+operators.dense(a::SparseOperator) = DenseOperator(a.basis_l, a.basis_r, Matrix(a.data))
 
 """
     sparse(op::Operator)
@@ -116,7 +116,7 @@ function operators.permutesystems(rho::SparseOperator, perm::Vector{Int})
     SparseOperator(permutesystems(rho.basis_l, perm), permutesystems(rho.basis_r, perm), data)
 end
 
-operators.identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = SparseOperator(b1, b2, speye(ComplexF64, length(b1), length(b2)))
+operators.identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = SparseOperator(b1, b2, sparse(ComplexF64(1)*I, length(b1), length(b2)))
 operators.identityoperator(b1::Basis, b2::Basis) = identityoperator(SparseOperator, b1, b2)
 operators.identityoperator(b::Basis) = identityoperator(b, b)
 

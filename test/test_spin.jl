@@ -3,7 +3,7 @@ using QuantumOptics
 
 @testset "spin" begin
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(full(op1), full(op2)))
+D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 
 # Test creation
 @test_throws AssertionError SpinBasis(1//3)

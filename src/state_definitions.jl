@@ -30,7 +30,7 @@ randoperator(b::Basis) = randoperator(b, b)
 Thermal state ``exp(-H/T)/Tr[exp(-H/T)]``.
 """
 function thermalstate(H::Operator,T::Real)
-    return normalize(exp(-full(H)/T))
+    return normalize(exp(-dense(H)/T))
 end
 
 """

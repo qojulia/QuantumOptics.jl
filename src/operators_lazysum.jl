@@ -39,7 +39,7 @@ LazySum(operators::Operator...) = LazySum(ones(ComplexF64, length(operators)), O
 
 Base.copy(x::LazySum) = LazySum(copy(x.factors), [copy(op) for op in x.operators])
 
-Base.full(op::LazySum) = sum(op.factors .* full.(op.operators))
+operators.dense(op::LazySum) = sum(op.factors .* dense.(op.operators))
 SparseArrays.sparse(op::LazySum) = sum(op.factors .* sparse.(op.operators))
 
 ==(x::LazySum, y::LazySum) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factors==y.factors

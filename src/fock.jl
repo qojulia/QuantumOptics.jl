@@ -66,7 +66,7 @@ end
 
 Displacement operator ``D(α)`` for the specified Fock space.
 """
-displace(b::FockBasis, alpha::Number) = exp(full(alpha*create(b) - conj(alpha)*destroy(b)))
+displace(b::FockBasis, alpha::Number) = exp(dense(alpha*create(b) - conj(alpha)*destroy(b)))
 
 """
     fockstate(b::FockBasis, n)

@@ -101,8 +101,8 @@ tensor(b1::Basis, b2::Basis) = CompositeBasis(Int[prod(b1.shape); prod(b2.shape)
 tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(Int[b1.shape; b2.shape], Basis[b1.bases; b2.bases])
 function tensor(b1::CompositeBasis, b2::Basis)
     N = length(b1.bases)
-    shape = Vector{Int}(N+1)
-    bases = Vector{Basis}(N+1)
+    shape = Vector{Int}(undef, N+1)
+    bases = Vector{Basis}(undef, N+1)
     for i=1:N
         shape[i] = b1.shape[i]
         bases[i] = b1.bases[i]
@@ -113,8 +113,8 @@ function tensor(b1::CompositeBasis, b2::Basis)
 end
 function tensor(b1::Basis, b2::CompositeBasis)
     N = length(b2.bases)
-    shape = Vector{Int}(N+1)
-    bases = Vector{Basis}(N+1)
+    shape = Vector{Int}(undef, N+1)
+    bases = Vector{Basis}(undef, N+1)
     for i=1:N
         shape[i+1] = b2.shape[i]
         bases[i+1] = b2.bases[i]

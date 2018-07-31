@@ -1,6 +1,6 @@
 module operators_dense
 
-export DenseOperator, full, projector, dm
+export DenseOperator, dense, projector, dm
 
 import Base: ==, +, -, *, /
 import ..operators
@@ -26,17 +26,16 @@ end
 DenseOperator(b::Basis, data) = DenseOperator(b, b, data)
 DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(ComplexF64, length(b1), length(b2)))
 DenseOperator(b::Basis) = DenseOperator(b, b)
-DenseOperator(op::Operator) = full(op)
+DenseOperator(op::Operator) = dense(op)
 
 Base.copy(x::DenseOperator) = DenseOperator(x.basis_l, x.basis_r, copy(x.data))
 
 """
-    full(op::Operator)
+    dense(op::Operator)
 
 Convert an arbitrary Operator into a [`DenseOperator`](@ref).
 """
-Base.full(x::Operator) = throw(ArgumentError("Conversion from $(typeof(x)) to a DenseOperator not implemented."))
-Base.full(x::DenseOperator) = copy(x)
+operators.dense(x::DenseOperator) = copy(x)
 
 ==(x::DenseOperator, y::DenseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
 
