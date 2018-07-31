@@ -7,7 +7,7 @@ import ..operators
 import SparseArrays: sparse
 
 using ..bases, ..states, ..operators, ..operators_dense
-using SparseArrays
+using SparseArrays, LinearAlgebra
 
 """
     LazySum([factors,] operators)
@@ -66,7 +66,7 @@ function operators.ptrace(op::LazySum, indices::Vector{Int})
     LazySum(op.factors, D)
 end
 
-operators.normalize!(op::LazySum) = (op.factors /= trace(op))
+operators.normalize!(op::LazySum) = (op.factors /= tr(op); nothing)
 
 operators.permutesystems(op::LazySum, perm::Vector{Int}) = LazySum(op.factors, Operator[permutesystems(op_i, perm) for op_i in op.operators])
 

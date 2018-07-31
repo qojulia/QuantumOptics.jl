@@ -1,6 +1,6 @@
 using Test
 using QuantumOptics
-using LinearAlgebra, SparseArrays
+using LinearAlgebra, SparseArrays, Random
 
 mutable struct test_operators <: Operator
   basis_l::Basis
@@ -65,8 +65,8 @@ op_test3 = test_operators(b1 ⊗ b2, b2 ⊗ b1, randoperator(b, b).data)
 
 @test_throws ArgumentError exp(sparse(op1))
 
-@test one(b1).data == diagm(ones(b1.shape[1]))
-@test one(op1).data == diagm(ones(b1.shape[1]))
+@test one(b1).data == Diagonal(ones(b1.shape[1]))
+@test one(op1).data == Diagonal(ones(b1.shape[1]))
 
 @test_throws ArgumentError conj!(op_test)
 

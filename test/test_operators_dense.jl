@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using Random, SparseArrays, LinearAlgebra
 
 @testset "operators-dense" begin
 
@@ -128,11 +129,11 @@ ab = a ⊗ dagger(b)
 @test ab.data[2,1] == a.data[2]*conj(b.data[1])
 
 shape = tuple(op123.basis_l.shape..., op123.basis_r.shape...)
-idx = sub2ind(shape, 2, 1, 1, 3, 4, 5)
+idx = LinearIndices(shape)[2, 1, 1, 3, 4, 5]
 @test op123.data[idx] == op1a.data[2,3]*op2a.data[1,4]*op3a.data[1,5]
 @test reshape(op123.data, shape...)[2, 1, 1, 3, 4, 5] == op1a.data[2,3]*op2a.data[1,4]*op3a.data[1,5]
 
-idx = sub2ind(shape, 2, 1, 1, 1, 3, 4)
+idx = LinearIndices(shape)[2, 1, 1, 1, 3, 4]
 @test op123.data[idx] == op1a.data[2,1]*op2a.data[1,3]*op3a.data[1,4]
 @test reshape(op123.data, shape...)[2, 1, 1, 1, 3, 4] == op1a.data[2,1]*op2a.data[1,3]*op3a.data[1,4]
 

@@ -7,7 +7,7 @@ import ..operators
 
 using ..sortedindices, ..bases, ..states, ..operators
 using ..operators_dense, ..operators_sparse
-using SparseArrays
+using SparseArrays, LinearAlgebra
 
 
 """
@@ -70,14 +70,14 @@ Base.copy(x::LazyTensor) = LazyTensor(x.basis_l, x.basis_r, copy(x.indices), [co
 Return the suboperator corresponding to the subsystem specified by `index`. Fails
 if there is no corresponding operator (i.e. it would be an identity operater).
 """
-suboperator(op::LazyTensor, index::Int) = op.operators[findfirst(op.indices, index)]
+suboperator(op::LazyTensor, index::Int) = op.operators[findfirst(isequal(index), op.indices)]
 """
     suboperators(op::LazyTensor, index)
 
 Return the suboperators corresponding to the subsystems specified by `indices`. Fails
 if there is no corresponding operator (i.e. it would be an identity operater).
 """
-suboperators(op::LazyTensor, indices::Vector{Int}) = op.operators[[findfirst(op.indices, i) for i in indices]]
+suboperators(op::LazyTensor, indices::Vector{Int}) = op.operators[[findfirst(isequal(i), op.indices) for i in indices]]
 
 operators.dense(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, DenseOperator[dense(x) for x in op.operators])
 SparseArrays.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, SparseOperator[sparse(x) for x in op.operators])
@@ -91,7 +91,7 @@ SparseArrays.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op
 function *(a::LazyTensor, b::LazyTensor)
     check_multiplicable(a, b)
     indices = sortedindices.union(a.indices, b.indices)
-    ops = Vector{Operator}(length(indices))
+    ops = Vector{Operator}(undef, length(indices))
     for n in 1:length(indices)
         i = indices[n]
         in_a = i in a.indices
@@ -128,7 +128,7 @@ end
 
 operators.dagger(op::LazyTensor) = LazyTensor(op.basis_r, op.basis_l, op.indices, Operator[dagger(x) for x in op.operators], conj(op.factor))
 
-operators.tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices+length(a.basis_l.bases)], Operator[a.operators; b.operators], a.factor*b.factor)
+operators.tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices .+ length(a.basis_l.bases)], Operator[a.operators; b.operators], a.factor*b.factor)
 
 function operators.tr(op::LazyTensor)
     b = basis(op)
@@ -164,19 +164,19 @@ function operators.ptrace(op::LazyTensor, indices::Vector{Int})
     if rank==1
         return factor * identityoperator(b_l, b_r)
     end
-    ops = Vector{Operator}(length(remaining_indices))
+    ops = Vector{Operator}(undef, length(remaining_indices))
     for i in 1:length(ops)
         ops[i] = suboperator(op, remaining_indices[i])
     end
     LazyTensor(b_l, b_r, sortedindices.shiftremove(op.indices, indices), ops, factor)
 end
 
-operators.normalize!(op::LazyTensor) = (op.factor /= tr(op))
+operators.normalize!(op::LazyTensor) = (op.factor /= tr(op); nothing)
 
 function operators.permutesystems(op::LazyTensor, perm::Vector{Int})
     b_l = permutesystems(op.basis_l, perm)
     b_r = permutesystems(op.basis_r, perm)
-    indices = [findfirst(perm, i) for i in op.indices]
+    indices = [findfirst(isequal(i), perm) for i in op.indices]
     perm_ = sortperm(indices)
     LazyTensor(b_l, b_r, indices[perm_], op.operators[perm_], op.factor)
 end
@@ -285,7 +285,7 @@ function gemm(alpha::ComplexF64, op::Matrix{ComplexF64}, h::LazyTensor, beta::Co
     if beta == ComplexF64(0.)
         fill!(result, beta)
     elseif beta != ComplexF64(1.)
-        rmul!(beta, result)
+        rmul!(result, beta)
     end
     N_k = length(h.basis_r.bases)
     shape = [min(h.basis_l.shape[i], h.basis_r.shape[i]) for i=1:length(h.basis_l.shape)]
@@ -298,7 +298,7 @@ function gemm(alpha::ComplexF64, h::LazyTensor, op::Matrix{ComplexF64}, beta::Co
     if beta == ComplexF64(0.)
         fill!(result, beta)
     elseif beta != ComplexF64(1.)
-        rmul!(beta, result)
+        rmul!(result, beta)
     end
     N_k = length(h.basis_l.bases)
     shape = [min(h.basis_l.shape[i], h.basis_r.shape[i]) for i=1:length(h.basis_l.shape)]

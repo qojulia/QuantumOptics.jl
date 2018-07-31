@@ -5,7 +5,7 @@ module sortedindices
 """
 function complement(N::Int, indices::Vector{Int})
     L = length(indices)
-    x = Vector{Int}(N - L)
+    x = Vector{Int}(undef, N - L)
     i_ = 1 # Position in the x vector
     j = 1 # Position in indices vector
     for i=1:N

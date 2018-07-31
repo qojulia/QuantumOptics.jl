@@ -155,7 +155,7 @@ function ptrace(x, shape_nd::Vector{Int}, indices::Vector{Int})
     y = spzeros(ComplexF64, shape_2d_after...)
     for I in eachindex(x)
         I_nd = sub2sub(shape_2d, shape_nd, I)
-        if I_nd.I[indices] != I_nd.I[indices + N]
+        if I_nd.I[indices] != I_nd.I[indices .+ N]
             continue
         end
         I_after = sub2sub(shape_nd_after, shape_2d_after, min(I_nd, I_nd_after_max))

@@ -122,7 +122,7 @@ function operators.ptrace(psi::Bra, indices::Vector{Int})
     return DenseOperator(b_, b_, result)
 end
 
-operators.normalize!(op::DenseOperator) = rmul!(op.data, 1.0/tr(op))
+operators.normalize!(op::DenseOperator) = (rmul!(op.data, 1.0/tr(op)); nothing)
 
 function operators.expect(op::DenseOperator, state::Ket)# where T <: Union{Ket, Bra}
     check_samebases(op.basis_r, state.basis)
@@ -202,11 +202,11 @@ end
     return quote
         a_strides_l = _strides(shape_l)
         result_shape_l = copy(shape_l)
-        result_shape_l[indices] = 1
+        result_shape_l[indices] .= 1
         result_strides_l = _strides(result_shape_l)
         a_strides_r = _strides(shape_r)
         result_shape_r = copy(shape_r)
-        result_shape_r[indices] = 1
+        result_shape_r[indices] .= 1
         result_strides_r = _strides(result_shape_r)
         N_result_l = prod(result_shape_l)
         N_result_r = prod(result_shape_r)
@@ -227,7 +227,7 @@ end
     return quote
         a_strides = _strides(shape)
         result_shape = copy(shape)
-        result_shape[indices] = 1
+        result_shape[indices] .= 1
         result_strides = _strides(result_shape)
         N_result = prod(result_shape)
         result = zeros(ComplexF64, N_result, N_result)
@@ -247,7 +247,7 @@ end
     return quote
         a_strides = _strides(shape)
         result_shape = copy(shape)
-        result_shape[indices] = 1
+        result_shape[indices] .= 1
         result_strides = _strides(result_shape)
         N_result = prod(result_shape)
         result = zeros(ComplexF64, N_result, N_result)

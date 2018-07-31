@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using SparseArrays, LinearAlgebra
 
 @testset "metrics" begin
 

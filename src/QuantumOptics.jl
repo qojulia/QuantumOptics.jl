@@ -2,11 +2,14 @@ __precompile__()
 
 module QuantumOptics
 
+using SparseArrays, LinearAlgebra
+
 export bases, Basis, GenericBasis, CompositeBasis, basis,
         tensor, ⊗, permutesystems,
         states, StateVector, Bra, Ket, basisstate,
                 dagger, normalize, normalize!,
-        operators, Operator, expect, variance, identityoperator, ptrace, embed, dense,
+        operators, Operator, expect, variance, identityoperator, ptrace, embed, dense, tr,
+            sparse,
         operators_dense, DenseOperator, projector, dm,
         operators_sparse, SparseOperator, diagonaloperator,
         operators_lazysum, LazySum,

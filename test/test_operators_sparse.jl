@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using Random, SparseArrays, LinearAlgebra
 
 
 # Custom operator type for testing error msg
@@ -230,7 +231,7 @@ I = identityoperator(b)
 @test diagonaloperator(b, [1, 1, 1, 1]) == I
 @test diagonaloperator(b, [1., 1., 1., 1.]) == I
 @test diagonaloperator(b, [1im, 1im, 1im, 1im]) == 1im*I
-@test diagonaloperator(b, [0:3;]) == sparse(DenseOperator(b, diagm([0:3;])))
+@test diagonaloperator(b, [0:3;]) == sparse(DenseOperator(b, Diagonal([0:3;])))
 
 # Test gemv
 op = sprandop(b_l, b_r)

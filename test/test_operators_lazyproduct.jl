@@ -1,6 +1,6 @@
 using Test
 using QuantumOptics
-using LinearAlgebra
+using LinearAlgebra, Random
 
 
 @testset "operators-lazyproduct" begin

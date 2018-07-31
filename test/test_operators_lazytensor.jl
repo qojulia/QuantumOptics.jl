@@ -1,6 +1,6 @@
 using Test
 using QuantumOptics
-using LinearAlgebra
+using LinearAlgebra, SparseArrays, Random
 
 mutable struct test_lazytensor <: Operator
     basis_l::Basis

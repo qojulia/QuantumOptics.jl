@@ -4,7 +4,7 @@ export Operator, length, basis, dagger, ishermitian, tensor, embed,
         tr, ptrace, normalize, normalize!, expect, variance,
         exp, permutesystems, identityoperator, dense
 
-import Base: ==, +, -, *, /, length, one, exp, conj, conj!
+import Base: ==, +, -, *, /, ^, length, one, exp, conj, conj!
 import LinearAlgebra: tr, ishermitian
 import ..bases: basis, tensor, ptrace, permutesystems,
             samebases, check_samebases, multiplicable
@@ -46,6 +46,7 @@ basis(a::Operator) = (check_samebases(a); a.basis_l)
 -(a::Operator, b::Number) = addnumbererror()
 
 *(a::Operator, b::Operator) = arithmetic_binary_error("Multiplication", a, b)
+^(a::Operator, b::Int) = Base.power_by_squaring(a, b)
 
 
 dagger(a::Operator) = arithmetic_unary_error("Hermitian conjugate", a)

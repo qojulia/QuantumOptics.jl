@@ -155,7 +155,7 @@ natural logarithm and ``\\log(0) ≡ 0``.
 """
 function entropy_vn(rho::DenseOperator; tol::Float64=1e-15)
     evals = eigvals(rho.data)
-    evals[abs.(evals) .< tol] = 0.0
+    evals[abs.(evals) .< tol] .= 0.0
     sum([d == 0 ? 0 : -d*log(d) for d=evals])
 end
 entropy_vn(psi::StateVector; kwargs...) = entropy_vn(dm(psi); kwargs...)
@@ -173,7 +173,7 @@ F(ρ, σ) = Tr\\left(\\sqrt{\\sqrt{ρ}σ\\sqrt{ρ}}\\right),
 
 where ``\\sqrt{ρ}=\\sum_n\\sqrt{λ_n}|ψ⟩⟨ψ|``.
 """
-fidelity(rho::DenseOperator, sigma::DenseOperator) = trace(sqrt(sqrt(rho.data)*sigma.data*sqrt(rho.data)))
+fidelity(rho::DenseOperator, sigma::DenseOperator) = tr(sqrt(sqrt(rho.data)*sigma.data*sqrt(rho.data)))
 
 
 """
