@@ -1,6 +1,6 @@
 module sparsematrix
 
-using SparseArrays
+using SparseArrays, LinearAlgebra
 
 const SparseMatrix = SparseMatrixCSC{ComplexF64, Int}
 
@@ -57,7 +57,7 @@ function gemm!(alpha::ComplexF64, M::SparseMatrix, B::Matrix{ComplexF64}, beta::
     if beta == ComplexF64(0.)
         fill!(result, beta)
     elseif beta != ComplexF64(1.)
-        scale!(result, beta)
+        rmul!(result, beta)
     end
     if nnz(M) > 1000
         gemm_sp_dense_big(alpha, M, B, result)
@@ -70,7 +70,7 @@ function gemm!(alpha::ComplexF64, B::Matrix{ComplexF64}, M::SparseMatrix, beta::
     if beta == ComplexF64(0.)
         fill!(result, beta)
     elseif beta != ComplexF64(1.)
-        scale!(result, beta)
+        rmul!(result, beta)
     end
     dimB = size(result,1)
     if alpha == ComplexF64(1.)
@@ -100,7 +100,7 @@ function gemv!(alpha::ComplexF64, M::SparseMatrix, v::Vector{ComplexF64}, beta::
     if beta == ComplexF64(0.)
         fill!(result, beta)
     elseif beta != ComplexF64(1.)
-        scale!(result, beta)
+        rmul!(result, beta)
     end
     if alpha == ComplexF64(1.)
         @inbounds for colindex = 1:M.n
@@ -123,7 +123,7 @@ function gemv!(alpha::ComplexF64, v::Vector{ComplexF64}, M::SparseMatrix, beta::
     if beta == ComplexF64(0.)
         fill!(result, beta)
     elseif beta != ComplexF64(1.)
-        scale!(result, beta)
+        rmul!(result, beta)
     end
     if alpha == ComplexF64(1.)
         @inbounds for colindex=1:M.n

@@ -83,7 +83,7 @@ end
 
 Coherent state ``|α⟩`` for the specified Fock space.
 """
-function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{ComplexF64}(length(b))))
+function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{ComplexF64}(undef, length(b))))
     alpha = complex(alpha)
     data = result.data
     data[1] = exp(-abs2(alpha)/2)

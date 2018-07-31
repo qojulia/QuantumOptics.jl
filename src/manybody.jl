@@ -9,6 +9,7 @@ import ..fock: number, create, destroy
 import ..nlevel: transition
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
+using SparseArrays
 
 """
     ManyBodyBasis(b, occupations)
@@ -63,8 +64,8 @@ Return a ket state where the system is in the state specified by the given
 occupation numbers.
 """
 function basisstate(basis::ManyBodyBasis, occupation::Vector{Int})
-    index = findfirst(basis.occupations, occupation)
-    if index == 0
+    index = findfirst(isequal(occupation), basis.occupations)
+    if isa(index, Nothing)
         throw(ArgumentError("Occupation not included in many-body basis."))
     end
     basisstate(basis, index)
@@ -303,7 +304,7 @@ function manybodyoperator_2(basis::ManyBodyBasis, op::SparseOperator)
         value = values[j]
         for m=1:N, n=1:N
             # println("row:", row, " column:"column, ind_left)
-            index = ind2sub((S, S, S, S), (column-1)*S^2 + row)
+            index = Tuple(CartesianIndices((S, S, S, S))[(column-1)*S^2 + row])
             C = coefficient(occupations[m], occupations[n], index[1:2], index[3:4])
             if C!=0.
                 result.data[m,n] += C*value

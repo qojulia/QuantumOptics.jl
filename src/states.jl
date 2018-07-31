@@ -8,6 +8,7 @@ import LinearAlgebra: norm, normalize, normalize!
 import ..bases: basis, tensor, permutesystems, check_multiplicable, samebases
 
 using ..bases
+using LinearAlgebra
 
 
 """
@@ -109,7 +110,7 @@ normalize(x::StateVector) = x/norm(x)
 
 In-place normalization of the given bra or ket so that `norm(x)` is one.
 """
-normalize!(x::StateVector) = scale!(x.data, 1.0/norm(x))
+normalize!(x::StateVector) = rmul!(x.data, 1.0/norm(x))
 
 function permutesystems(state::T, perm::Vector{Int}) where T<:StateVector
     @assert length(state.basis.bases) == length(perm)

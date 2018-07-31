@@ -285,7 +285,7 @@ function gemm(alpha::ComplexF64, op::Matrix{ComplexF64}, h::LazyTensor, beta::Co
     if beta == ComplexF64(0.)
         fill!(result, beta)
     elseif beta != ComplexF64(1.)
-        scale!(beta, result)
+        rmul!(beta, result)
     end
     N_k = length(h.basis_r.bases)
     shape = [min(h.basis_l.shape[i], h.basis_r.shape[i]) for i=1:length(h.basis_l.shape)]
@@ -298,7 +298,7 @@ function gemm(alpha::ComplexF64, h::LazyTensor, op::Matrix{ComplexF64}, beta::Co
     if beta == ComplexF64(0.)
         fill!(result, beta)
     elseif beta != ComplexF64(1.)
-        scale!(beta, result)
+        rmul!(beta, result)
     end
     N_k = length(h.basis_l.bases)
     shape = [min(h.basis_l.shape[i], h.basis_r.shape[i]) for i=1:length(h.basis_l.shape)]

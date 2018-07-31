@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using Random, SparseArrays, LinearAlgebra
 
 @testset "fock" begin
 
@@ -22,7 +23,7 @@ basis = FockBasis(2)
 @test FockBasis(2) != FockBasis(3)
 
 # Test operators
-@test number(basis) == SparseOperator(basis, spdiagm(ComplexF64[0, 1, 2]))
+@test number(basis) == SparseOperator(basis, sparse(Diagonal(ComplexF64[0, 1, 2])))
 @test destroy(basis) == SparseOperator(basis, sparse(ComplexF64[0 1 0; 0 0 sqrt(2); 0 0 0]))
 @test create(basis) == SparseOperator(basis, sparse(ComplexF64[0 0 0; 1 0 0; 0 sqrt(2) 0]))
 @test number(basis) == dagger(number(basis))

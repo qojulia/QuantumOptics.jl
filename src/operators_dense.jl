@@ -122,7 +122,7 @@ function operators.ptrace(psi::Bra, indices::Vector{Int})
     return DenseOperator(b_, b_, result)
 end
 
-operators.normalize!(op::DenseOperator) = scale!(op.data, 1.0/tr(op))
+operators.normalize!(op::DenseOperator) = rmul!(op.data, 1.0/tr(op))
 
 function operators.expect(op::DenseOperator, state::Ket)# where T <: Union{Ket, Bra}
     check_samebases(op.basis_r, state.basis)

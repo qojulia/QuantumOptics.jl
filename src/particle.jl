@@ -530,16 +530,16 @@ function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, resul
         data = result.data
     end
     copyto!(data, A.data)
-    scale!(data, B.mul_after[:])
+    rmul!(data, B.mul_after[:])
     conj!(data)
     B.fft_l2! * reshape(data, [size(B.mul_after)...; size(B.mul_after)...]...)
     conj!(data)
-    scale!(data, B.mul_before[:])
+    rmul!(data, B.mul_before[:])
     if alpha != Complex(1.)
-        scale!(alpha, data)
+        rmul!(alpha, data)
     end
     if beta != Complex(0.)
-        scale!(result.data, beta)
+        rmul!(result.data, beta)
         result.data += data
     end
     nothing
@@ -554,14 +554,14 @@ function operators.gemm!(alpha_, A::FFTOperators, B::DenseOperator, beta_, resul
         data = result.data
     end
     copyto!(data, B.data)
-    scale!(A.mul_before[:], data)
+    rmul!(A.mul_before[:], data)
     A.fft_r2! * reshape(data, [size(A.mul_before)...; size(A.mul_before)...]...)
-    scale!(A.mul_after[:], data)
+    rmul!(A.mul_after[:], data)
     if alpha != Complex(1.)
-        scale!(alpha, data)
+        rmul!(alpha, data)
     end
     if beta != Complex(0.)
-        scale!(result.data, beta)
+        rmul!(result.data, beta)
         result.data += data
     end
     nothing
