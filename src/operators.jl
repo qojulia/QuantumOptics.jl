@@ -84,7 +84,7 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     @assert length(basis_r.bases) == N
     @assert length(indices) == length(operators)
     sortedindices.check_indices(N, indices)
-    tensor([i ∈ indices ? operators[findfirst(indices, i)] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
+    tensor([i ∈ indices ? operators[indexin(i, indices)[1]] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
 end
 embed(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Int, op::Operator) = embed(basis_l, basis_r, Int[index], [op])
 embed(basis::CompositeBasis, index::Int, op::Operator) = embed(basis, basis, Int[index], [op])
@@ -114,7 +114,7 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
             if i in complement_indices_flat
                 push!(operators_flat, identityoperator(T, basis_l.bases[i], basis_r.bases[i]))
             elseif i in start_indices_flat
-                push!(operators_flat, operator_list[findfirst(start_indices_flat, i)])
+                push!(operators_flat, operator_list[indexin(i, start_indices_flat)[1]])
             end
         end
         return tensor(operators_flat...)

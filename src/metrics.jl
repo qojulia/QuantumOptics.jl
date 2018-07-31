@@ -6,6 +6,7 @@ export tracenorm, tracenorm_h, tracenorm_nh,
         logarithmic_negativity
 
 using ..bases, ..operators, ..operators_dense, ..states
+using LinearAlgebra
 
 """
     tracenorm(rho)

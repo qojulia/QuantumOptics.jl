@@ -112,7 +112,7 @@ function operators.permutesystems(rho::SparseOperator, perm::Vector{Int})
     @assert length(rho.basis_l.bases) == length(rho.basis_r.bases) == length(perm)
     @assert isperm(perm)
     shape = [rho.basis_l.shape; rho.basis_r.shape]
-    data = sparsematrix.permutedims(rho.data, shape, [perm; perm + length(perm)])
+    data = sparsematrix.permutedims(rho.data, shape, [perm; perm .+ length(perm)])
     SparseOperator(permutesystems(rho.basis_l, perm), permutesystems(rho.basis_r, perm), data)
 end
 

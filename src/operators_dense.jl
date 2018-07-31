@@ -149,12 +149,12 @@ function operators.permutesystems(a::DenseOperator, perm::Vector{Int})
     @assert length(a.basis_l.bases) == length(a.basis_r.bases) == length(perm)
     @assert isperm(perm)
     data = reshape(a.data, [a.basis_l.shape; a.basis_r.shape]...)
-    data = permutedims(data, [perm; perm + length(perm)])
+    data = permutedims(data, [perm; perm .+ length(perm)])
     data = reshape(data, length(a.basis_l), length(a.basis_r))
     DenseOperator(permutesystems(a.basis_l, perm), permutesystems(a.basis_r, perm), data)
 end
 
-operators.identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, eye(ComplexF64, length(b1), length(b2)))
+operators.identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, Matrix{ComplexF64}(I, length(b1), length(b2)))
 
 """
     projector(a::Ket, b::Bra)
