@@ -1,7 +1,8 @@
 using Test
 using QuantumOptics
+using Random, LinearAlgebra
 
-@testset "fock" begin
+@testset "transformation" begin
 
 srand(0)
 

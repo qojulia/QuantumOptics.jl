@@ -49,7 +49,7 @@ op = SparseOperator(b_fock, b_fock ⊗ SpinBasis(1//2))
 
 op = SparseOperator(b_fock)
 op.data[2,2] = 1
-@test replace(sprint(show, op), "\t", "  ") == "SparseOperator(dim=5x5)
+@test replace(sprint(show, op), "\t" => "  ") == "SparseOperator(dim=5x5)
   basis: Fock(cutoff=4)\n  [2, 2]  =  1.0+0.0im"
 
 op = LazySum(SparseOperator(b_fock), DenseOperator(b_fock))

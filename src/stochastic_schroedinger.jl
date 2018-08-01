@@ -5,6 +5,7 @@ export schroedinger, schroedinger_dynamic
 using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse
 using ...timeevolution
+using LinearAlgebra
 import ...timeevolution: integrate_stoch, recast!
 import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic, check_schroedinger
 

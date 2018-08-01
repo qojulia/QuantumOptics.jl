@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using Random, LinearAlgebra
 
 @testset "phasespace" begin
 
@@ -32,7 +33,7 @@ Wrho_fock = wigner(rho_fock, X, Y)
 laguerre3(x) = (-x^3+9x^2-18x+6)/6
 
 for (i,x)=enumerate(X), (j,y)=enumerate(Y)
-    beta = 1./sqrt(2)*complex(x, y)
+    beta = 1.0/sqrt(2)*complex(x, y)
     betastate = coherentstate(b, beta)
 
     q_coherent = 1/pi*exp(-abs2(alpha-beta))
@@ -103,7 +104,7 @@ ssq = sx^2 + sy^2 + sz^2
 qsu2sx = qfuncsu2(csssx,theta,phi)
 qsu2sxdm = qfuncsu2(dmcsssx,theta,phi)
 res = 250
-costhetam = Array{Float64}(res,2*res)
+costhetam = Array{Float64}(undef,res,2*res)
 for i = 1:res, j = 1:2*res
     costhetam[i,j] = sin(i*1pi/(res-1))
 end

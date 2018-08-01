@@ -35,7 +35,7 @@ Returns a vector of length N+1 where the n-th entry contains all coefficients
 for the n-th Hermite polynomial.
 """
 function a(N::Int)
-    a = Vector{Vector{Int}}(N+1)
+    a = Vector{Vector{Int}}(undef, N+1)
     a[1] = [1]
     a[2] = [0,2]
     am = a[2]
@@ -72,7 +72,7 @@ Returns a vector of length N+1 where the n-th entry contains all scaled
 coefficients for the n-th Hermite polynomial.
 """
 function A(N)
-    A = Vector{Vector{Float64}}(N+1)
+    A = Vector{Vector{Float64}}(undef, N+1)
     A[1] = [1.]
     A[2] = [0., sqrt(2)]
     Am = A[2]

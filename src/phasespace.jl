@@ -3,6 +3,7 @@ module phasespace
 export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2, ylm
 
 using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
+using LinearAlgebra
 
 import WignerSymbols: clebschgordan
 
@@ -29,7 +30,7 @@ function qfunc(rho::Operator, xvec::Vector{Float64}, yvec::Vector{Float64})
     Ny = length(yvec)
     tmp1 = Ket(b)
     tmp2 = Ket(b)
-    result = Matrix{ComplexF64}(Nx, Ny)
+    result = Matrix{ComplexF64}(undef, Nx, Ny)
     @inbounds for j=1:Ny, i=1:Nx
         result[i, j] = _qfunc_operator(rho, complex(xvec[i], yvec[j])/sqrt(2), tmp1, tmp2)
     end
@@ -119,7 +120,7 @@ function wigner(rho::DenseOperator, xvec::Vector{Float64}, yvec::Vector{Float64}
     N = b.N::Int
     _2α = [complex(x, y)*sqrt(2) for x=xvec, y=yvec]
     abs2_2α = abs2.(_2α)
-    w = zeros(_2α)
+    w = zero(_2α)
     b0 = similar(_2α)
     b1 = similar(_2α)
     b2 = similar(_2α)
@@ -215,7 +216,7 @@ parametrization is not unique), similarly to a qubit on the
 Bloch sphere.
 """
 function coherentspinstate(b::SpinBasis, theta::Real, phi::Real,
-    result = Ket(b, Vector{ComplexF64}(length(b))))
+    result = Ket(b, Vector{ComplexF64}(undef, length(b))))
     data = result.data
     N = BigInt(length(b)-1)
     sinth = sin(0.5theta)
@@ -248,7 +249,7 @@ function qfuncsu2(psi::Ket, Ntheta::Int; Nphi::Int=2Ntheta)
     psi_bra_data = psi.data'
     lb = float(b.spinnumber)
     @assert isa(b, SpinBasis)
-    result = Array{Float64}(Ntheta,Nphi)
+    result = Array{Float64}(undef, Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
         result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,pi-i*pi/(Ntheta-1),j*2pi/(Nphi-1)-pi).data)
     end
@@ -259,7 +260,7 @@ function qfuncsu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     b = basis(rho)
     lb = float(b.spinnumber)
     @assert isa(b, SpinBasis)
-    result = Array{Float64}(Ntheta,Nphi)
+    result = Array{Float64}(undef, Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
         c = coherentspinstate(b,pi-i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi)
         result[i+1,j+1] = abs((2*lb+1)/(4pi)*c.data'*rho.data*c.data)
@@ -305,7 +306,7 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
     N = length(basis(rho))-1
 
     ### Tensor generation ###
-    BandT = Array{Vector{Float64}}(N,N+1)
+    BandT = Array{Vector{Float64}}(undef, N,N+1)
     BandT[1,1] = collect(range(-N/2, stop=N/2, length=N+1))
     BandT[1,2] = -collect(sqrt.(range(1, stop=N, length=N)).*sqrt.(range((N)/2, stop=1/2, length=N)))
     BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
@@ -341,7 +342,7 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
 
     ### State decomposition ###
     c = rho.data
-    EVT = Array{ComplexF64}(N,N+1)
+    EVT = Array{ComplexF64}(undef, N,N+1)
     @inbounds for S = 1:N, M = 0:S
         EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
     end
@@ -355,7 +356,7 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     N = length(basis(rho))-1
 
     ### Tensor generation ###
-    BandT = Array{Vector{Float64}}(N,N+1)
+    BandT = Array{Vector{Float64}}(undef, N,N+1)
     BandT[1,1] = collect(range(-N/2, stop=N/2, length=N+1))
     BandT[1,2] = -collect(sqrt.(range(1, stop=N, length=N)).*sqrt.(range((N)/2, stop=1/2, length=N)))
     BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
@@ -389,12 +390,12 @@ function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
 
     ### State decomposition ###
     c = rho.data
-    EVT = Array{ComplexF64}(N,N+1)
+    EVT = Array{ComplexF64}(undef, N,N+1)
     @inbounds for S = 1:N, M = 0:S
         EVT[S,M+1] = conj(sum(BandT[S,M+1].*diag(c,M)))
     end
 
-    wignermap = Array{Float64}(Ntheta,Nphi)
+    wignermap = Array{Float64}(undef, Ntheta,Nphi)
     @inbounds for i = 1:Ntheta, j = 1:Nphi
         wignermap[i,j] = _wignersu2int(N,i*1pi/(Ntheta-1)-1pi/(Ntheta-1),j*2pi/(Nphi-1)-2pi/(Nphi-1)-pi, EVT)
     end
@@ -424,7 +425,7 @@ This function calculates the value of Y(l,m) spherical harmonic at position θ a
 function ylm(l::Integer,m::Integer,theta::Real,phi::Real)
     phi_ = mod(phi,2pi)
     theta_ = mod(theta,2pi)
-    phase = e^(1.0im*m*phi_)
+    phase = exp(1.0im*m*phi_)
     if theta_ ≈ 0
         if m == 0
             return @. phase*sqrt((2*l+1)/pi)/2

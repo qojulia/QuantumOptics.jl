@@ -10,6 +10,7 @@ using ...timeevolution
 import ...timeevolution: integrate_stoch
 import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic
 using ...stochastic
+using LinearAlgebra
 
 import DiffEqCallbacks
 
@@ -69,7 +70,7 @@ function schroedinger_semiclassical(tspan, state0::State{Ket}, fquantum::Functio
         throw(ArgumentError("No stochastic functions provided!"))
     end
 
-    x0 = Vector{ComplexF64}(length(state0))
+    x0 = Vector{ComplexF64}(undef, length(state0))
     recast!(state0, x0)
     state = copy(state0)
     dstate = copy(state0)
@@ -243,7 +244,7 @@ function dmaster_stoch_dynamic(dx::Vector{ComplexF64}, t::Float64,
     recast!(dx, dstate)
     operators.gemm!(1, C[1], state.quantum, 0, dstate.quantum)
     operators.gemm!(1, state.quantum, Cdagger[1], 1, dstate.quantum)
-    dstate.quantum.data .-= trace(dstate.quantum)*state.quantum.data
+    dstate.quantum.data .-= tr(dstate.quantum)*state.quantum.data
     recast!(dstate, dx)
 end
 function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
@@ -257,7 +258,7 @@ function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
         recast!(dx_i, dstate)
         operators.gemm!(1, C[i], state.quantum, 0, dstate.quantum)
         operators.gemm!(1, state.quantum, Cdagger[i], 1, dstate.quantum)
-        dstate.quantum.data .-= trace(dstate.quantum)*state.quantum.data
+        dstate.quantum.data .-= tr(dstate.quantum)*state.quantum.data
         recast!(dstate, dx_i)
     end
 end
@@ -281,7 +282,7 @@ function integrate_master_stoch(tspan, df::Function, dg::Function,
                         n::Int;
                         kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
-    x0 = Vector{ComplexF64}(length(rho0))
+    x0 = Vector{ComplexF64}(undef, length(rho0))
     recast!(rho0, x0)
     state = copy(rho0)
     dstate = copy(rho0)

@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using LinearAlgebra, Random
 
 @testset "states" begin
 
@@ -75,12 +76,12 @@ ket_b3 = randstate(b3)
 
 ket_b1b2 = ket_b1 ⊗ ket_b2
 shape = (ket_b1b2.basis.shape...,)
-idx = sub2ind(shape, 2, 3)
+idx = LinearIndices(shape)[2, 3]
 @test ket_b1b2.data[idx] == ket_b1.data[2]*ket_b2.data[3]
 ket_b1b2b3 = ket_b1 ⊗ ket_b2 ⊗ ket_b3
 @test ket_b1b2b3 == tensor(ket_b1, ket_b2, ket_b3)
 shape = (ket_b1b2b3.basis.shape...,)
-idx = sub2ind(shape, 1, 4, 3)
+idx = LinearIndices(shape)[1, 4, 3]
 @test ket_b1b2b3.data[idx] == ket_b1.data[1]*ket_b2.data[4]*ket_b3.data[3]
 
 

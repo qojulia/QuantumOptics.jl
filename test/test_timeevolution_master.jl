@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using LinearAlgebra
 
 @testset "master" begin
 
@@ -136,7 +137,7 @@ R = [cos(alpha) -sin(alpha); sin(alpha) cos(alpha)]
 Rt = transpose(R)
 Jrotated_dense = [R[1,1]*Junscaled_dense[1] + R[1,2]*Junscaled_dense[2], R[2,1]*Junscaled_dense[1] + R[2,2]*Junscaled_dense[2]]
 Jrotated = [SparseOperator(j) for j=Jrotated_dense]
-rates_matrix = diagm(rates_vector)
+rates_matrix = diagm(0 => rates_vector)
 rates_matrix_rotated = R * rates_matrix * Rt
 
 tout, ρt = timeevolution.master(T, ρ₀, Hdense, Jrotated_dense; rates=rates_matrix_rotated, reltol=1e-7)

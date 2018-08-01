@@ -84,8 +84,8 @@ SuperOperator(basis_l, basis_r, data::Matrix{ComplexF64}) = DenseSuperOperator(b
 
 Base.copy(a::T) where {T<:SuperOperator} = T(a.basis_l, a.basis_r, copy(a.data))
 
-dense(a::SparseSuperOperator) = DenseSuperOperator(a.basis_l, a.basis_r, Matrix(a.data))
-dense(a::DenseSuperOperator) = copy(a)
+operators.dense(a::SparseSuperOperator) = DenseSuperOperator(a.basis_l, a.basis_r, Matrix(a.data))
+operators.dense(a::DenseSuperOperator) = copy(a)
 
 sparse(a::DenseSuperOperator) = SparseSuperOperator(a.basis_l, a.basis_r, sparse(a.data))
 sparse(a::SparseSuperOperator) = copy(a)

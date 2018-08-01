@@ -5,6 +5,7 @@ export master, master_dynamic
 using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse
 using ...timeevolution
+using LinearAlgebra
 import ...timeevolution: integrate_stoch, recast!
 import ...timeevolution.timeevolution_master: dmaster_h, dmaster_nh, dmaster_h_dynamic, check_master
 
@@ -140,7 +141,7 @@ function dmaster_stochastic(dx::Vector{ComplexF64}, rho::DenseOperator,
     recast!(dx, drho)
     operators.gemm!(1, C[1], rho, 0, drho)
     operators.gemm!(1, rho, Cdagger[1], 1, drho)
-    drho.data .-= trace(drho)*rho.data
+    drho.data .-= tr(drho)*rho.data
 end
 function dmaster_stochastic(dx::Array{ComplexF64, 2}, rho::DenseOperator,
             C::Vector, Cdagger::Vector, drho::DenseOperator, n::Int)
@@ -149,7 +150,7 @@ function dmaster_stochastic(dx::Array{ComplexF64, 2}, rho::DenseOperator,
         recast!(dx_i, drho)
         operators.gemm!(1, C[i], rho, 0, drho)
         operators.gemm!(1, rho, Cdagger[i], 1, drho)
-        drho.data .-= trace(drho)*rho.data
+        drho.data .-= tr(drho)*rho.data
         recast!(drho, dx_i)
     end
 end

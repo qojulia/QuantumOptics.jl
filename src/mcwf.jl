@@ -6,6 +6,7 @@ using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse
 using ..timeevolution
 using ...operators_lazysum, ...operators_lazytensor, ...operators_lazyproduct
+using Random, LinearAlgebra
 import OrdinaryDiffEq
 
 # TODO: Remove imports
@@ -489,13 +490,13 @@ corresponding set of jump operators is calculated.
 """
 function diagonaljumps(rates::Matrix{Float64}, J::Vector{T}) where T <: Operator
     @assert length(J) == size(rates)[1] == size(rates)[2]
-    d, v = eig(rates)
+    d, v = eigen(rates)
     d, [sum([v[j, i]*J[j] for j=1:length(d)]) for i=1:length(d)]
 end
 
 function diagonaljumps(rates::Matrix{Float64}, J::Vector{T}) where T <: Union{LazySum, LazyTensor, LazyProduct}
     @assert length(J) == size(rates)[1] == size(rates)[2]
-    d, v = eig(rates)
+    d, v = eigen(rates)
     d, [LazySum([v[j, i]*J[j] for j=1:length(d)]...) for i=1:length(d)]
 end
 

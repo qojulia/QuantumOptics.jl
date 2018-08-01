@@ -34,7 +34,7 @@ function show(stream::IO, x::GenericBasis)
     if length(x.shape) == 1
         write(stream, "Basis(dim=$(x.shape[1]))")
     else
-        s = replace(string(x.shape), " ", "")
+        s = replace(string(x.shape), " " => "")
         write(stream, "Basis(shape=$s)")
     end
 end
@@ -151,7 +151,7 @@ end
 function show(stream::IO, x::LazyTensor)
     summary(stream, x)
     print(stream, "\n  operators: $(length(x.operators))")
-    s = replace(string(x.indices), " ", "")
+    s = replace(string(x.indices), " " => "")
     print(stream, "\n  indices: $s")
 end
 
@@ -399,7 +399,7 @@ function print_matrix_std(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vec
                 print(io, i == first(rowsA) ? pre : presp)
                 print_matrix_row_std(io, X,Lalign,ldims,rdims,i,colsA[1:length(Lalign)],sep)
                 print(io, (i - first(rowsA)) % hmod == 0 ? hdots : repeat(" ", length(hdots)))
-                print_matrix_row_std(io, X,Ralign,ldims,rdims,i,n-length(Ralign)+colsA,sep)
+                print_matrix_row_std(io, X,Ralign,ldims,rdims,i,n-length(Ralign).+colsA,sep)
                 print(io, i == last(rowsA) ? post : postsp)
                 if i != last(rowsA); println(io); end
             end
@@ -427,7 +427,7 @@ function print_matrix_std(io::IO, X::AbstractVecOrMat, ldims::Vector, rdims::Vec
                 print(io, i == first(rowsA) ? pre : presp)
                 print_matrix_row_std(io, X,Lalign,ldims, rdims,i,colsA[1:length(Lalign)],sep)
                 print(io, (i - first(rowsA)) % hmod == 0 ? hdots : repeat(" ", length(hdots)))
-                print_matrix_row_std(io, X,Ralign,ldims, rdims,i,n-length(Ralign)+colsA,sep)
+                print_matrix_row_std(io, X,Ralign,ldims, rdims,i,n-length(Ralign).+colsA,sep)
                 print(io, i == last(rowsA) ? post : postsp)
                 if i != rowsA[end]; println(io); end
                 if i == rowsA[halfheight]

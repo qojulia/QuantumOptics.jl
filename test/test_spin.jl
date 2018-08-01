@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using LinearAlgebra
 
 @testset "spin" begin
 

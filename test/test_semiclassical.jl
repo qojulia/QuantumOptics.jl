@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using LinearAlgebra
 
 @testset "semiclassical" begin
 
@@ -69,7 +70,7 @@ rho = randoperator(b)
 u = rand(ComplexF64, 3)
 state = semiclassical.State(rho, u)
 state_ = semiclassical.State(randoperator(b), rand(ComplexF64, 3))
-x = Vector{ComplexF64}(16+3)
+x = Vector{ComplexF64}(undef, 19)
 semiclassical.recast!(state, x)
 semiclassical.recast!(x, state_)
 @test state_ == state

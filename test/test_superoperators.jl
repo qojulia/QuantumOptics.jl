@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using SparseArrays
 
 @testset "superoperators" begin
 
@@ -179,7 +180,7 @@ tout, ρt = timeevolution.master([0.,1.], ρ₀, H, J; reltol=1e-7)
 
 @test_throws AssertionError liouvillian(H, J; rates=zeros(4, 4))
 
-rates = diagm([1.0, 1.0])
+rates = diagm(0 => [1.0, 1.0])
 @test liouvillian(H, J; rates=rates) == L
 
 end # testset

@@ -127,16 +127,16 @@ end
 
 
 """
-    timecorrelations.correlation2spectrum(tspan, corr; normalize)
+    timecorrelations.correlation2spectrum(tspan, corr; normalize_spec)
 
 Calculate spectrum as Fourier transform of a correlation function with a given correlation function.
 
 # Arguments
 * `tspan`: List of time points corresponding to the correlation function.
 * `corr`: Correlation function of which the Fourier transform is to be calculated.
-* `normalize`: Specify if spectrum should be normalized to its maximum.
+* `normalize_spec`: Specify if spectrum should be normalized to its maximum.
 """
-function correlation2spectrum(tspan::Vector{Float64}, corr::Vector{T}; normalize::Bool=false) where T <: Number
+function correlation2spectrum(tspan::Vector{Float64}, corr::Vector{T}; normalize_spec::Bool=false) where T <: Number
   n = length(tspan)
   if length(corr) != n
     ArgumentError("tspan and corr must be of same length!")
@@ -154,7 +154,7 @@ function correlation2spectrum(tspan::Vector{Float64}, corr::Vector{T}; normalize
   omega .*= 2pi/tmax
   spec = 2dt.*fftshift(real(fft(corr)))
 
-  omega, normalize ? spec./maximum(spec) : spec
+  omega, normalize_spec ? spec./maximum(spec) : spec
 end
 
 

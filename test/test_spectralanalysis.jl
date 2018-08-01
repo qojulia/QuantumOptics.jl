@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using LinearAlgebra, SparseArrays, Random
 
 mutable struct SpectralanalysisTestOperator <: Operator end
 
@@ -22,7 +23,7 @@ a = randoperator(b)
 H = (a+dagger(a))/2
 U = exp(1im*H)
 d = [-3, -2.6, -0.1, 0.0, 0.6]
-D = DenseOperator(b, diagm(d))
+D = DenseOperator(b, diagm(0 => d))
 Dsp = sparse(D)
 @test eigenenergies(D) ≈ d
 @test eigenenergies(Dsp, 3, info=false) ≈ d[1:3]
@@ -50,7 +51,7 @@ a = randoperator(b)
 H = (a+dagger(a))/2
 U = exp(1im*H)
 d = [-3+0.2im, -2.6-0.1im, -0.1+0.5im, 0.0, 0.6+0.3im]
-D = DenseOperator(b, diagm(d))
+D = DenseOperator(b, diagm(0 => d))
 Dsp = sparse(D)
 @test eigenenergies(D; warning=false) ≈ d
 @test eigenenergies(Dsp, 3; warning=false, info=false) ≈ d[1:3]
@@ -94,7 +95,7 @@ Sz3 = dense(sum([embed(threespinbasis, i, sz) for i=1:3])/2.)
 Ssq3 = Sx3^2 + Sy3^2 + Sz3^2
 d3, v3 = simdiag([Ssq3, Sz3])
 dsq3_std = eigenenergies(dense(Ssq3))
-@test diagm(dsq3_std) ≈ v3'*Ssq3.data*v3
+@test diagm(0 => dsq3_std) ≈ v3'*Ssq3.data*v3
 
 fockbasis = FockBasis(4)
 @test_throws ErrorException simdiag([Sy3, Sz3])

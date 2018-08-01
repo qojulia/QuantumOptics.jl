@@ -57,7 +57,7 @@ timeevolution.master_dynamic(T, psi0, f_HJ; fout=f_test_td)
 
 # Decay
 Hint_nh = Hint - 0.5im*κ*n
-Γ = Matrix{Float64}(1,1)
+Γ = Matrix{Float64}(undef, 1,1)
 Γ[1,1] = κ
 J = [a]
 Jdagger = [at]

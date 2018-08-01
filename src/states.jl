@@ -133,7 +133,7 @@ product state ``|i_1⟩⊗|i_2⟩⊗…⊗|i_n⟩`` of the corresponding basis s
 function basisstate(b::Basis, indices::Vector{Int})
     @assert length(b.shape) == length(indices)
     x = zeros(ComplexF64, length(b))
-    x[sub2ind(tuple(b.shape...), indices...)] = Complex(1.)
+    x[LinearIndices(tuple(b.shape...))[indices...]] = Complex(1.)
     Ket(b, x)
 end
 

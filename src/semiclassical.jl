@@ -62,7 +62,7 @@ function schroedinger_dynamic(tspan, state0::State{Ket}, fquantum::Function, fcl
                 kwargs...)
     tspan_ = convert(Vector{Float64}, tspan)
     dschroedinger_(t, state::State{Ket}, dstate::State{Ket}) = dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
-    x0 = Vector{ComplexF64}(length(state0))
+    x0 = Vector{ComplexF64}(undef, length(state0))
     recast!(state0, x0)
     state = copy(state0)
     dstate = copy(state0)
@@ -97,7 +97,7 @@ function master_dynamic(tspan, state0::State{DenseOperator}, fquantum, fclassica
     function dmaster_(t, state::State{DenseOperator}, dstate::State{DenseOperator})
         dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
     end
-    x0 = Vector{ComplexF64}(length(state0))
+    x0 = Vector{ComplexF64}(undef, length(state0))
     recast!(state0, x0)
     state = copy(state0)
     dstate = copy(state0)
