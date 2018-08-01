@@ -1,6 +1,6 @@
 using Test
 using QuantumOptics
-using FFTW
+using FFTW, LinearAlgebra, Random
 
 @testset "particle" begin
 
@@ -24,7 +24,7 @@ x0 = 5.1
 p0 = -3.2
 sigma = 1.
 sigma_x = sigma/sqrt(2)
-sigma_p = 1./(sigma*sqrt(2))
+sigma_p = 1.0/(sigma*sqrt(2))
 
 psi0_bx = gaussianstate(basis_position, x0, p0, sigma)
 psi0_bp = gaussianstate(basis_momentum, x0, p0, sigma)
@@ -66,7 +66,7 @@ function transformation(b1::MomentumBasis, b2::PositionBasis, psi::Ket)
         throw(IncompatibleBases())
     end
     N = b1.N
-    psi_shifted = exp.(1im*b2.xmin*(particle.samplepoints(b1)-b1.pmin)).*psi.data
+    psi_shifted = exp.(1im*b2.xmin*(particle.samplepoints(b1) .- b1.pmin)).*psi.data
     psi_fft = exp.(1im*b1.pmin*particle.samplepoints(b2)).*ifft(psi_shifted)*sqrt(N)
     return Ket(b2, psi_fft)
 end
@@ -78,7 +78,7 @@ function transformation(b1::PositionBasis, b2::MomentumBasis, psi::Ket)
         throw(IncompatibleBases())
     end
     N = b1.N
-    psi_shifted = exp.(-1im*b2.pmin*(particle.samplepoints(b1)-b1.xmin)).*psi.data
+    psi_shifted = exp.(-1im*b2.pmin*(particle.samplepoints(b1) .- b1.xmin)).*psi.data
     psi_fft = exp.(-1im*b1.xmin*particle.samplepoints(b2)).*fft(psi_shifted)/sqrt(N)
     return Ket(b2, psi_fft)
 end
@@ -242,7 +242,7 @@ x0 = [5.1, -0.2]
 p0 = [-3.2, 1.33]
 sigma = [1., 0.9]
 sigma_x = sigma./sqrt(2)
-sigma_p = 1./(sigma.*sqrt(2))
+sigma_p = 1.0/(sigma.*sqrt(2))
 
 Txp = transform(tensor(basis_position...), tensor(basis_momentum...))
 Tpx = transform(tensor(basis_momentum...), tensor(basis_position...))
@@ -253,10 +253,10 @@ Txp_dense = dense.(Txp_sub)
 Txp_comp = tensor(Txp_dense...)
 
 difference = (dense(Txp) - Txp_comp).data
-@test isapprox(difference, zeros(difference); atol=1e-12)
+@test isapprox(difference, zero(difference); atol=1e-12)
 
-psi0_x = gaussianstate.(basis_position, x0, p0, sigma_x)
-psi0_p = gaussianstate.(basis_momentum, x0, p0, sigma_p)
+psi0_x = [gaussianstate(basis_position[i], x0[i], p0[i], sigma_x[i]) for i=1:2]
+psi0_p = [gaussianstate(basis_momentum[i], x0[i], p0[i], sigma_p[i]) for i=1:2]
 
 psi_p_fft = Tpx*tensor(psi0_x...)
 psi_p_fft2 = tensor((Tpx_sub.*psi0_x)...)
@@ -275,7 +275,7 @@ psi_x_fft2 = tensor((dagger.(psi0_p).*Tpx_sub)...)
 @test norm(psi_p_fft - psi_p_fft2) < 1e-15
 
 difference = (dense(Txp) - identityoperator(DenseOperator, Txp.basis_l)*Txp).data
-@test isapprox(difference, zeros(difference); atol=1e-12)
+@test isapprox(difference, zero(difference); atol=1e-12)
 @test_throws AssertionError transform(tensor(basis_position...), tensor(basis_position...))
 @test_throws particle.IncompatibleBases transform(SpinBasis(1//2)^2, SpinBasis(1//2)^2)
 
@@ -330,16 +330,16 @@ psi2_fft2 = tensor(Tpx_sub[1]*psi0_x[1], psi_fock, Tpx_sub[2]*psi0_x[2])
 Txp = transform(basis_l, basis_r)
 Txp_sub = [transform(basis_position[i], basis_momentum[i]) for i=1:2]
 difference = (dense(Txp) - tensor(dense(Txp_sub[1]), dense(one(bc)), dense(Txp_sub[2]))).data
-@test isapprox(difference, zeros(difference); atol=1e-12)
+@test isapprox(difference, zero(difference); atol=1e-12)
 
 basis_l = tensor(bc, basis_position[1], basis_position[2])
 basis_r = tensor(bc, basis_momentum[1], basis_momentum[2])
 Txp2 = transform(basis_l, basis_r)
 Tpx2 = transform(basis_r, basis_l)
 difference = (dense(Txp) - permutesystems(dense(Txp2), [2, 1, 3])).data
-@test isapprox(difference, zeros(difference); atol=1e-13)
+@test isapprox(difference, zero(difference); atol=1e-13)
 difference = (dense(dagger(Txp)) - permutesystems(dense(Tpx2), [2, 1, 3])).data
-@test isapprox(difference, zeros(difference); atol=1e-13)
+@test isapprox(difference, zero(difference); atol=1e-13)
 
 # Test potentialoperator in more than 1D
 N = [21, 18]

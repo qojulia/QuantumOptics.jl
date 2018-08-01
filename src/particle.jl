@@ -10,7 +10,7 @@ import Base: ==, position
 import ..operators
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-using FFTW, SparseArrays
+using FFTW, SparseArrays, LinearAlgebra
 
 """
     PositionBasis(xmin, xmax, Npoints)
@@ -159,7 +159,7 @@ samplepoints(b::MomentumBasis) = (dp = spacing(b); Float64[b.pmin + i*dp for i=0
 
 Position operator in real space.
 """
-position(b::PositionBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b))))
+position(b::PositionBasis) = SparseOperator(b, sparse(Diagonal(complex(samplepoints(b)))))
 
 
 """
@@ -177,7 +177,7 @@ end
 
 Momentum operator in momentum space.
 """
-momentum(b::MomentumBasis) = SparseOperator(b, spdiagm(complex(samplepoints(b))))
+momentum(b::MomentumBasis) = SparseOperator(b, sparse(Diagonal(complex(samplepoints(b)))))
 
 """
     momentum(b::PositionBasis)
@@ -240,9 +240,9 @@ function potentialoperator_position(b::CompositeBasis, V::Function)
     points = [samplepoints(b1) for b1=b.bases]
     dims = length.(points)
     n = length(b.bases)
-    data = Array{ComplexF64}(dims...)
+    data = Array{ComplexF64}(undef, dims...)
     @inbounds for i=1:length(data)
-        index = ind2sub(data, i)
+        index = Tuple(CartesianIndices(data)[i])
         args = (points[j][index[j]] for j=1:n)
         data[i] = V(args...)
     end
@@ -313,13 +313,13 @@ function transform(basis_l::MomentumBasis, basis_r::PositionBasis; ket_only::Boo
     if basis_l.N != basis_r.N || abs(2*pi/dp - Lx)/Lx > 1e-12
         throw(IncompatibleBases())
     end
-    mul_before = exp.(-1im*basis_l.pmin*(samplepoints(basis_r)-basis_r.xmin))
+    mul_before = exp.(-1im*basis_l.pmin*(samplepoints(basis_r) .- basis_r.xmin))
     mul_after = exp.(-1im*basis_r.xmin*samplepoints(basis_l))/sqrt(basis_r.N)
-    x = Vector{ComplexF64}(length(basis_r))
+    x = Vector{ComplexF64}(undef, length(basis_r))
     if ket_only
         FFTKets(basis_l, basis_r, plan_bfft!(x), plan_fft!(x), mul_before, mul_after)
     else
-        A = Matrix{ComplexF64}(length(basis_r), length(basis_r))
+        A = Matrix{ComplexF64}(undef, length(basis_r), length(basis_r))
         FFTOperators(basis_l, basis_r, plan_bfft!(x), plan_fft!(x), plan_bfft!(A, 2), plan_fft!(A, 1), mul_before, mul_after)
     end
 end
@@ -338,13 +338,13 @@ function transform(basis_l::PositionBasis, basis_r::MomentumBasis; ket_only::Boo
     if basis_l.N != basis_r.N || abs(2*pi/dp - Lx)/Lx > 1e-12
         throw(IncompatibleBases())
     end
-    mul_before = exp.(1im*basis_l.xmin*(samplepoints(basis_r)-basis_r.pmin))
+    mul_before = exp.(1im*basis_l.xmin*(samplepoints(basis_r) .- basis_r.pmin))
     mul_after = exp.(1im*basis_r.pmin*samplepoints(basis_l))/sqrt(basis_r.N)
-    x = Vector{ComplexF64}(length(basis_r))
+    x = Vector{ComplexF64}(undef, length(basis_r))
     if ket_only
         FFTKets(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), mul_before, mul_after)
     else
-        A = Matrix{ComplexF64}(length(basis_r), length(basis_r))
+        A = Matrix{ComplexF64}(undef, length(basis_r), length(basis_r))
         FFTOperators(basis_l, basis_r, plan_fft!(x), plan_bfft!(x), plan_fft!(A, 2), plan_bfft!(A, 1), mul_before, mul_after)
     end
 end
@@ -391,7 +391,7 @@ function transform_xp(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     end
 
     if index[1] == 1
-        mul_before = exp.(1im*basis_l.bases[1].xmin*(samplepoints(basis_r.bases[1])-basis_r.bases[1].pmin))
+        mul_before = exp.(1im*basis_l.bases[1].xmin*(samplepoints(basis_r.bases[1]) .- basis_r.bases[1].pmin))
         mul_after = exp.(1im*basis_r.bases[1].pmin*samplepoints(basis_l.bases[1]))/sqrt(basis_r.bases[1].N)
     else
         mul_before = ones(N[1])
@@ -399,7 +399,7 @@ function transform_xp(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     end
     for i=2:n
         if any(i .== index)
-            mul_before = kron(exp.(1im*basis_l.bases[i].xmin*(samplepoints(basis_r.bases[i])-basis_r.bases[i].pmin)), mul_before)
+            mul_before = kron(exp.(1im*basis_l.bases[i].xmin*(samplepoints(basis_r.bases[i]) .- basis_r.bases[i].pmin)), mul_before)
             mul_after = kron(exp.(1im*basis_r.bases[i].pmin*samplepoints(basis_l.bases[i]))/sqrt(basis_r.bases[i].N), mul_after)
         else
             mul_before = kron(ones(N[i]), mul_before)
@@ -409,11 +409,11 @@ function transform_xp(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     mul_before = reshape(mul_before, (N...,))
     mul_after = reshape(mul_after, (N...,))
 
-    x = Array{ComplexF64}(N...)
+    x = Array{ComplexF64}(undef, N...)
     if ket_only
         FFTKets(basis_l, basis_r, plan_fft!(x, index), plan_bfft!(x, index), mul_before, mul_after)
     else
-        A = Array{ComplexF64}([N; N]...)
+        A = Array{ComplexF64}(undef, [N; N]...)
         FFTOperators(basis_l, basis_r, plan_fft!(x, index), plan_bfft!(x, index), plan_fft!(A, [n + 1:2n;][index]), plan_bfft!(A, [1:n;][index]), mul_before, mul_after)
     end
 end
@@ -436,7 +436,7 @@ function transform_px(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     end
 
     if index[1] == 1
-        mul_before = exp.(-1im*basis_l.bases[1].pmin*(samplepoints(basis_r.bases[1])-basis_r.bases[1].xmin))
+        mul_before = exp.(-1im*basis_l.bases[1].pmin*(samplepoints(basis_r.bases[1]) .- basis_r.bases[1].xmin))
         mul_after = exp.(-1im*basis_r.bases[1].xmin*samplepoints(basis_l.bases[1]))/sqrt(N[1])
     else
         mul_before = ones(N[1])
@@ -444,7 +444,7 @@ function transform_px(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     end
     for i=2:n
         if i in index
-            mul_before = kron(exp.(-1im*basis_l.bases[i].pmin*(samplepoints(basis_r.bases[i])-basis_r.bases[i].xmin)), mul_before)
+            mul_before = kron(exp.(-1im*basis_l.bases[i].pmin*(samplepoints(basis_r.bases[i]) .- basis_r.bases[i].xmin)), mul_before)
             mul_after = kron(exp.(-1im*basis_r.bases[i].xmin*samplepoints(basis_l.bases[i]))/sqrt(N[i]), mul_after)
         else
             mul_before = kron(ones(N[i]), mul_before)
@@ -454,11 +454,11 @@ function transform_px(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     mul_before = reshape(mul_before, (N...,))
     mul_after = reshape(mul_after, (N...,))
 
-    x = Array{ComplexF64}(N...)
+    x = Array{ComplexF64}(undef, N...)
     if ket_only
         FFTKets(basis_l, basis_r, plan_bfft!(x, index), plan_fft!(x, index), mul_before, mul_after)
     else
-        A = Array{ComplexF64}([N; N]...)
+        A = Array{ComplexF64}(undef, [N; N]...)
         FFTOperators(basis_l, basis_r, plan_bfft!(x, index), plan_fft!(x, index), plan_bfft!(A, [n + 1:2n;][index]), plan_fft!(A, [1:n;][index]), mul_before, mul_after)
     end
 end
@@ -525,18 +525,24 @@ function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, resul
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     if beta != Complex(0.)
-        data = Matrix{ComplexF64}(size(result.data, 1), size(result.data, 2))
+        data = Matrix{ComplexF64}(undef, size(result.data, 1), size(result.data, 2))
     else
         data = result.data
     end
     copyto!(data, A.data)
-    rmul!(data, B.mul_after[:])
+    @inbounds for j=1:length(B.mul_after), i=1:length(B.mul_after)
+        data[i, j] *= B.mul_after[j]
+    end
+    # rmul!(data, B.mul_after[:])
     conj!(data)
     B.fft_l2! * reshape(data, [size(B.mul_after)...; size(B.mul_after)...]...)
     conj!(data)
-    rmul!(data, B.mul_before[:])
+    @inbounds for j=1:length(B.mul_before), i=1:length(B.mul_before)
+        data[i, j] *= B.mul_before[j]
+    end
+    # rmul!(data, B.mul_before[:])
     if alpha != Complex(1.)
-        rmul!(alpha, data)
+        lmul!(alpha, data)
     end
     if beta != Complex(0.)
         rmul!(result.data, beta)
@@ -549,16 +555,22 @@ function operators.gemm!(alpha_, A::FFTOperators, B::DenseOperator, beta_, resul
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     if beta != Complex(0.)
-        data = Matrix{ComplexF64}(size(result.data, 1), size(result.data, 2))
+        data = Matrix{ComplexF64}(undef, size(result.data, 1), size(result.data, 2))
     else
         data = result.data
     end
     copyto!(data, B.data)
-    rmul!(A.mul_before[:], data)
+    @inbounds for j=1:length(A.mul_before), i=1:length(A.mul_before)
+        data[i, j] *= A.mul_before[i]
+    end
+    # rmul!(A.mul_before[:], data)
     A.fft_r2! * reshape(data, [size(A.mul_before)...; size(A.mul_before)...]...)
-    rmul!(A.mul_after[:], data)
+    @inbounds for j=1:length(A.mul_after), i=1:length(A.mul_after)
+        data[i, j] *= A.mul_after[i]
+    end
+    # rmul!(A.mul_after[:], data)
     if alpha != Complex(1.)
-        rmul!(alpha, data)
+        lmul!(alpha, data)
     end
     if beta != Complex(0.)
         rmul!(result.data, beta)
