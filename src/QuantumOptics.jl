@@ -6,7 +6,7 @@ using SparseArrays, LinearAlgebra
 
 export bases, Basis, GenericBasis, CompositeBasis, basis,
         tensor, ⊗, permutesystems,
-        states, StateVector, Bra, Ket, basisstate,
+        states, StateVector, Bra, Ket, basisstate, norm,
                 dagger, normalize, normalize!,
         operators, Operator, expect, variance, identityoperator, ptrace, embed, dense, tr,
             sparse,

@@ -25,7 +25,8 @@ mutable struct SubspaceBasis <: Basis
                 throw(ArgumentError("The basis of the basisstates has to be the superbasis."))
             end
         end
-        basisstates_hash = hash([hash.(x.data) for x=basisstates])
+        println(basisstates)
+        basisstates_hash = hash(hash.([hash.(x.data) for x=basisstates]))
         new(Int[length(basisstates)], superbasis, basisstates, basisstates_hash)
     end
 end
