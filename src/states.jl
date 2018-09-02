@@ -94,12 +94,12 @@ dagger(x::Ket) = Bra(x.basis, conj(x.data))
 
 Tensor product ``|x⟩⊗|y⟩⊗|z⟩⊗…`` of the given states.
 """
-tensor(a::Ket{B1,D}, b::Ket{B2,D}) where {B1<:Basis,B2<:Basis,D<:Vector{ComplexF64}} =
-    Ket(tensor(a.basis, b.basis), kron(b.data, a.data))
-tensor(a::Bra{B1,D}, b::Bra{B2,D}) where {B1<:Basis,B2<:Basis,D<:Vector{ComplexF64}} =
-    Bra(tensor(a.basis, b.basis), kron(b.data, a.data))
+tensor(a::Ket, b::Ket) = Ket(tensor(a.basis, b.basis), kron(b.data, a.data))
+tensor(a::Bra, b::Bra) = Bra(tensor(a.basis, b.basis), kron(b.data, a.data))
 tensor(state::StateVector) = state
-tensor(states::T...) where {T<:StateVector}= reduce(tensor, states))
+tensor(states::Ket...) = reduce(tensor, states)
+tensor(states::Bra...) = reduce(tensor, states)
+tensor(states::Vector{T}) where T<:StateVector = reduce(tensor, states)
 
 # Normalization functions
 """
