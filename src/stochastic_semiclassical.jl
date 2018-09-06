@@ -56,16 +56,17 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
         each time step taken by the solver.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function schroedinger_semiclassical(tspan, state0::State{Ket}, fquantum::Function,
+function schroedinger_semiclassical(tspan, state0::State{T}, fquantum::Function,
                 fclassical::Function; fstoch_quantum::Union{Nothing, Function}=nothing,
                 fstoch_classical::Union{Nothing, Function}=nothing,
                 fout::Union{Function,Nothing}=nothing,
                 noise_processes::Int=0,
                 noise_prototype_classical=nothing,
                 normalize_state::Bool=false,
-                kwargs...)
+                kwargs...) where T<:Ket
     tspan_ = convert(Vector{Float64}, tspan)
-    dschroedinger_det(t::Float64, state::State{Ket}, dstate::State{Ket}) = semiclassical.dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
+    dschroedinger_det(t::Float64, state::State{T}, dstate::State{T}) where T<:Ket =
+            semiclassical.dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
 
     if isa(fstoch_quantum, Nothing) && isa(fstoch_classical, Nothing)
         throw(ArgumentError("No stochastic functions provided!"))
@@ -104,9 +105,9 @@ function schroedinger_semiclassical(tspan, state0::State{Ket}, fquantum::Functio
         ncb = nothing
     end
 
-    dschroedinger_stoch(dx::DiffArray,
-            t::Float64, state::State{Ket}, dstate::State{Ket}, n::Int) =
+    dschroedinger_stoch(dx::DiffArray, t::Float64, state::State{T}, dstate::State{T}, n::Int) where T<:Ket =
             dschroedinger_stochastic(dx, t, state, fstoch_quantum, fstoch_classical, dstate, n)
+
     integrate_stoch(tspan_, dschroedinger_det, dschroedinger_stoch, x0, state, dstate, fout, n;
                     noise_prototype_classical = noise_prototype_classical,
                     ncb=ncb,
@@ -199,13 +200,13 @@ function master_semiclassical(tspan::Vector{Float64}, rho0::State{DenseOperator}
                 noise_prototype_classical=noise_prototype_classical,
                 kwargs...)
 end
-master_semiclassical(tspan::Vector{Float64}, psi0::State{Ket}, args...; kwargs...) =
+master_semiclassical(tspan::Vector{Float64}, psi0::State{T}, args...; kwargs...) where T<:Ket =
         master_semiclassical(tspan, dm(psi0), args...; kwargs...)
 
 # Derivative functions
 function dschroedinger_stochastic(dx::Vector{ComplexF64}, t::Float64,
-        state::State{Ket}, fstoch_quantum::Function, fstoch_classical::Nothing,
-        dstate::State{Ket}, ::Int)
+        state::State{T}, fstoch_quantum::Function, fstoch_classical::Nothing,
+        dstate::State{T}, ::Int) where T<:Ket
     H = fstoch_quantum(t, state.quantum, state.classical)
     recast!(dx, dstate)
     QO_CHECKS[] && check_schroedinger(state.quantum, H[1])
@@ -213,8 +214,8 @@ function dschroedinger_stochastic(dx::Vector{ComplexF64}, t::Float64,
     recast!(dstate, dx)
 end
 function dschroedinger_stochastic(dx::Array{ComplexF64, 2},
-        t::Float64, state::State{Ket}, fstoch_quantum::Function,
-        fstoch_classical::Nothing, dstate::State{Ket}, n::Int)
+        t::Float64, state::State{T}, fstoch_quantum::Function,
+        fstoch_classical::Nothing, dstate::State{T}, n::Int) where T<:Ket
     H = fstoch_quantum(t, state.quantum, state.classical)
     for i=1:n
         dx_i = @view dx[:, i]
@@ -225,13 +226,13 @@ function dschroedinger_stochastic(dx::Array{ComplexF64, 2},
     end
 end
 function dschroedinger_stochastic(dx::DiffArray, t::Float64,
-            state::State{Ket}, fstoch_quantum::Nothing, fstoch_classical::Function,
-            dstate::State{Ket}, ::Int)
+            state::State{T}, fstoch_quantum::Nothing, fstoch_classical::Function,
+            dstate::State{T}, ::Int) where T<:Ket
     dclassical = @view dx[length(state.quantum)+1:end, :]
     fstoch_classical(t, state.quantum, state.classical, dclassical)
 end
-function dschroedinger_stochastic(dx::Array{ComplexF64, 2}, t::Float64, state::State{Ket}, fstoch_quantum::Function,
-            fstoch_classical::Function, dstate::State{Ket}, n::Int)
+function dschroedinger_stochastic(dx::Array{ComplexF64, 2}, t::Float64, state::State{T}, fstoch_quantum::Function,
+            fstoch_classical::Function, dstate::State{T}, n::Int) where T<:Ket
     dschroedinger_stochastic(dx, t, state, fstoch_quantum, nothing, dstate, n)
 
     dx_i = @view dx[length(state.quantum)+1:end, n+1:end]
