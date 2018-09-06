@@ -109,7 +109,7 @@ function fclassical(t, quantumstate, u, du)
 end
 
 state0 = semiclassical.State(psi0, ComplexF64[complex(2., 3.)])
-function f(t, state::semiclassical.State{Ket})
+function f(t, state::semiclassical.State{T}) where T<:Ket
     @test 1e-5 > norm(state.quantum - U(t)*psi0)
     @test 1e-5 > abs(state.classical[1] - state0.classical[1]*exp(-t))
 end
