@@ -18,9 +18,9 @@ All operators have to be given in respect to the same bases. The field
 `factors` accounts for an additional multiplicative factor for each operator
 stored in the `operators` field.
 """
-mutable struct LazySum <: AbstractOperator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct LazySum{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     factors::Vector{ComplexF64}
     operators::Vector{AbstractOperator}
 
@@ -31,7 +31,7 @@ mutable struct LazySum <: AbstractOperator
             @assert operators[1].basis_l == operators[i].basis_l
             @assert operators[1].basis_r == operators[i].basis_r
         end
-        new(operators[1].basis_l, operators[1].basis_r, factors, operators)
+        new{BL<:Basis,BR<:Basis}(operators[1].basis_l, operators[1].basis_r, factors, operators)
     end
 end
 LazySum(factors::Vector{T}, operators::Vector) where {T<:Number} = LazySum(complex(factors), AbstractOperator[op for op in operators])

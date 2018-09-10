@@ -7,6 +7,7 @@ export PositionBasis, MomentumBasis,
         transform
 
 import Base: ==, position
+import LinearAlgebra: mul!
 import ..operators
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
@@ -264,7 +265,7 @@ end
 
 Abstract type for all implementations of FFT operators.
 """
-abstract type FFTOperator <: AbstractOperator end
+abstract type FFTOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR} end
 
 const PlanFFT = FFTW.cFFTWPlan
 
@@ -274,9 +275,9 @@ const PlanFFT = FFTW.cFFTWPlan
 Operator performing a fast fourier transformation when multiplied with a state
 that is a Ket or an Operator.
 """
-mutable struct FFTOperators <: FFTOperator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct FFTOperators{BL<:Basis,BR<:Basis} <: FFTOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     fft_l!::PlanFFT
     fft_r!::PlanFFT
     fft_l2!::PlanFFT
@@ -291,9 +292,9 @@ end
 Operator that can only perform fast fourier transformations on Kets.
 This is much more memory efficient when only working with Kets.
 """
-mutable struct FFTKets <: FFTOperator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct FFTKets{BL<:Basis,BR<:Basis} <: FFTOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     fft_l!::PlanFFT
     fft_r!::PlanFFT
     mul_before::Array{ComplexF64}
@@ -463,7 +464,7 @@ function transform_px(basis_l::CompositeBasis, basis_r::CompositeBasis, index::V
     end
 end
 
-operators.dense(op::FFTOperators) = op*identityoperator(DenseOperator, op.basis_r)
+operators.dense(op::FFTOperators{BL,BR}) where {BL<:Basis,BR<:Basis} = op*identityoperator(Operator{BL,BR,Matrix{ComplexF64}}, op.basis_r)
 
 operators.dagger(op::FFTOperators) = transform(op.basis_r, op.basis_l)
 operators.dagger(op::FFTKets) = transform(op.basis_r, op.basis_l; ket_only=true)
@@ -521,11 +522,12 @@ function operators.gemv!(alpha_, b::Bra, M::FFTOperator, beta_, result::Bra)
     nothing
 end
 
-function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, result::DenseOperator)
+# TODO: Test with sparse operator data
+function mul!(result::Operator{BL,BR,T}, A::Operator{BL,BR2,T}, B::FFTOperators{BR2,BR}, alpha_::Number, beta_::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}}
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     if beta != Complex(0.)
-        data = Matrix{ComplexF64}(undef, size(result.data, 1), size(result.data, 2))
+        data = T(undef, size(result.data, 1), size(result.data, 2))
     else
         data = result.data
     end
@@ -533,14 +535,12 @@ function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, resul
     @inbounds for j=1:length(B.mul_after), i=1:length(B.mul_after)
         data[i, j] *= B.mul_after[j]
     end
-    # rmul!(data, B.mul_after[:])
     conj!(data)
     B.fft_l2! * reshape(data, [size(B.mul_after)...; size(B.mul_after)...]...)
     conj!(data)
     @inbounds for j=1:length(B.mul_before), i=1:length(B.mul_before)
         data[i, j] *= B.mul_before[j]
     end
-    # rmul!(data, B.mul_before[:])
     if alpha != Complex(1.)
         lmul!(alpha, data)
     end
@@ -550,12 +550,14 @@ function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, resul
     end
     nothing
 end
+mul!(result::Operator{BL,BR,T}, A::Operator{BL,BR2,T}, B::FFTOperators{BR2,BR}) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}} =
+    mul!(result, A, B, complex(1.), complex(1.))
 
-function operators.gemm!(alpha_, A::FFTOperators, B::DenseOperator, beta_, result::DenseOperator)
+function mul!(result::Operator{BL,BR,T}, A::FFTOperators{BL,BR2}, B::Operator{BR2,BR,T}, alpha_::Number, beta_::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}}
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     if beta != Complex(0.)
-        data = Matrix{ComplexF64}(undef, size(result.data, 1), size(result.data, 2))
+        data = T(undef, size(result.data, 1), size(result.data, 2))
     else
         data = result.data
     end
@@ -563,12 +565,10 @@ function operators.gemm!(alpha_, A::FFTOperators, B::DenseOperator, beta_, resul
     @inbounds for j=1:length(A.mul_before), i=1:length(A.mul_before)
         data[i, j] *= A.mul_before[i]
     end
-    # rmul!(A.mul_before[:], data)
     A.fft_r2! * reshape(data, [size(A.mul_before)...; size(A.mul_before)...]...)
     @inbounds for j=1:length(A.mul_after), i=1:length(A.mul_after)
         data[i, j] *= A.mul_after[i]
     end
-    # rmul!(A.mul_after[:], data)
     if alpha != Complex(1.)
         lmul!(alpha, data)
     end
@@ -578,6 +578,7 @@ function operators.gemm!(alpha_, A::FFTOperators, B::DenseOperator, beta_, resul
     end
     nothing
 end
-
+mul!(result::Operator{BL,BR,T}, A::FFTOperators{BL,BR2}, B::Operator{BR2,BR,T}) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}} =
+    mul!(result, A, B)
 
 end # module

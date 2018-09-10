@@ -21,7 +21,7 @@ end
 
 Calculate a random unnormalized dense operator.
 """
-randoperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, rand(ComplexF64, length(b1), length(b2)))
+randoperator(b1::BL, b2::BR) where {BL<:Basis,BR<:Basis} = Operator{BL,BR}(b1, b2, rand(ComplexF64, length(b1), length(b2)))
 randoperator(b::Basis) = randoperator(b, b)
 
 """
@@ -47,8 +47,8 @@ end
 
 Returns the phase-average of ``ρ`` containing only the diagonal elements.
 """
-function phase_average(rho::DenseOperator)
-    return DenseOperator(basis(rho),diagm(0 => diag(rho.data)))
+function phase_average(rho::Operator{B,B}) where {B<:Basis}
+    return Operator{B,B}(rho.basis,diagm(0 => diag(rho.data)))
 end
 
 """
@@ -56,8 +56,8 @@ end
 
 Passive state ``π`` of ``ρ``. IncreasingEigenenergies=true means that higher indices correspond to higher energies.
 """
-function passive_state(rho::DenseOperator,IncreasingEigenenergies::Bool=true)
-    return DenseOperator(basis(rho),diagm(0 => sort!(abs.(eigvals(rho.data)),rev=IncreasingEigenenergies)))
+function passive_state(rho::Operator{B,B},IncreasingEigenenergies::Bool=true) where B<:Basis
+    return Operator{B,B}(rho.basis,diagm(0 => sort!(abs.(eigvals(rho.data)),rev=IncreasingEigenenergies)))
 end
 
 end #module

@@ -3,6 +3,7 @@ module operators_lazytensor
 export LazyTensor
 
 import Base: ==, *, /, +, -
+import LinearAlgebra: mul!
 import ..operators
 
 using ..sortedindices, ..bases, ..states, ..operators
@@ -20,15 +21,15 @@ specifies in which subsystem the corresponding operator lives. Additionally,
 a complex factor is stored in the `factor` field which allows for fast
 multiplication with numbers.
 """
-mutable struct LazyTensor <: AbstractOperator
-    basis_l::CompositeBasis
-    basis_r::CompositeBasis
+mutable struct LazyTensor{BL<:CompositeBasis,BR<:CompositeBasis} <: AbstractOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     factor::ComplexF64
     indices::Vector{Int}
     operators::Vector{AbstractOperator}
 
     function LazyTensor(op::LazyTensor, factor::Number)
-        new(op.basis_l, op.basis_r, factor, op.indices, op.operators)
+        new{BL<:CompositeBasis,BR<:CompositeBasis}(op.basis_l, op.basis_r, factor, op.indices, op.operators)
     end
 
     function LazyTensor(basis_l::Basis, basis_r::Basis,
@@ -54,7 +55,7 @@ mutable struct LazyTensor <: AbstractOperator
             indices = indices[perm]
             ops = ops[perm]
         end
-        new(basis_l, basis_r, complex(factor), indices, ops)
+        new{BL<:CompositeBasis,BR<:CompositeBasis}(basis_l, basis_r, complex(factor), indices, ops)
     end
 end
 
@@ -79,7 +80,7 @@ if there is no corresponding operator (i.e. it would be an identity operater).
 """
 suboperators(op::LazyTensor, indices::Vector{Int}) = op.operators[[findfirst(isequal(i), op.indices) for i in indices]]
 
-operators.dense(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, DenseOperator[dense(x) for x in op.operators])
+operators.dense(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, Operator[dense(x) for x in op.operators])
 SparseArrays.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op.indices, SparseOperator[sparse(x) for x in op.operators])
 
 ==(x::LazyTensor, y::LazyTensor) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor==y.factor
@@ -110,16 +111,14 @@ function *(a::LazyTensor, b::LazyTensor)
 end
 *(a::LazyTensor, b::Number) = LazyTensor(a, a.factor*b)
 *(a::Number, b::LazyTensor) = LazyTensor(b, a*b.factor)
-function *(a::LazyTensor, b::DenseOperator)
-    check_multiplicable(a, b)
-    result = DenseOperator(a.basis_l, b.basis_r)
-    operators.gemm!(complex(1.), a, b, complex(1.), result)
+function *(a::LazyTensor{BL,BR}, b::Operator{BR,BR2,T}) where {BL<:CompositeBasis,BR<:CompositeBasis,BR2<:Basis,T<:Matrix{ComplexF64}}
+    result = Operator(a.basis_l, b.basis_r)
+    mul!(result, a, b)
     result
 end
-function *(a::DenseOperator, b::LazyTensor)
-    check_multiplicable(a, b)
-    result = DenseOperator(a.basis_l, b.basis_r)
-    operators.gemm!(complex(1.), a, b, complex(1.), result)
+function *(a::Operator{BL,BR,T}, b::LazyTensor{BR,BR2}) where {BL<:Basis,BR<:CompositeBasis,BR2<:CompositeBasis,T<:Matrix{ComplexF64}}
+    result = Operator(a.basis_l, b.basis_r)
+    mul!(result, a, b)
     result
 end
 
@@ -197,7 +196,7 @@ function _gemm_recursive_dense_lazy(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
     end
     if i_k in indices
         h_i = operators_lazytensor.suboperator(h, i_k)
-        if isa(h_i, SparseOperator)
+        if isa(h_i, Operator{Basis,Basis,SparseMatrixCSC{ComplexF64,Int}})
             h_i_data = h_i.data::SparseMatrixCSC{ComplexF64,Int}
             @inbounds for k=1:h_i_data.n
                 K_ = K + strides_k[i_k]*(k-1)
@@ -208,7 +207,7 @@ function _gemm_recursive_dense_lazy(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
                     _gemm_recursive_dense_lazy(i_k+1, N_k, K_, J_, val_, shape, strides_k, strides_j, indices, h, op, result)
                 end
             end
-        elseif isa(h_i, DenseOperator)
+        elseif isa(h_i, Operator{Basis,Basis,Matrix{ComplexF64}})
             h_i_data = h_i.data::Matrix{ComplexF64}
             Nk = size(h_i_data, 2)
             Nj = size(h_i_data, 1)
@@ -246,7 +245,7 @@ function _gemm_recursive_lazy_dense(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
     end
     if i_k in indices
         h_i = suboperator(h, i_k)
-        if isa(h_i, SparseOperator)
+        if isa(h_i, Operator{Basis,Basis,SparseMatrixCSC{ComplexF64,Int}})
             h_i_data = h_i.data::SparseMatrixCSC{ComplexF64,Int}
             @inbounds for k=1:h_i_data.n
                 K_ = K + strides_k[i_k]*(k-1)
@@ -257,7 +256,7 @@ function _gemm_recursive_lazy_dense(i_k::Int, N_k::Int, K::Int, J::Int, val::Com
                     _gemm_recursive_lazy_dense(i_k+1, N_k, K_, J_, val_, shape, strides_k, strides_j, indices, h, op, result)
                 end
             end
-        elseif isa(h_i, DenseOperator)
+        elseif isa(h_i, Operator{Basis,Basis,Matrix{ComplexF64}})
             h_i_data = h_i.data::Matrix{ComplexF64}
             Nk = size(h_i_data, 2)
             Nj = size(h_i_data, 1)
@@ -307,22 +306,28 @@ function gemm(alpha::ComplexF64, h::LazyTensor, op::Matrix{ComplexF64}, beta::Co
     _gemm_recursive_lazy_dense(1, N_k, 1, 1, alpha*h.factor, shape, strides_k, strides_j, h.indices, h, op, result)
 end
 
-operators.gemm!(alpha, h::LazyTensor, op::DenseOperator, beta, result::DenseOperator) = gemm(convert(ComplexF64, alpha), h, op.data, convert(ComplexF64, beta), result.data)
-operators.gemm!(alpha, op::DenseOperator, h::LazyTensor, beta, result::DenseOperator) = gemm(convert(ComplexF64, alpha), op.data, h, convert(ComplexF64, beta), result.data)
+mul!(result::Operator{BL,BR,T}, h::LazyTensor{BL,BR2}, op::Operator{BR2,BR,T}, alpha::Number, beta::Number) where {BL<:CompositeBasis,BR<:Basis,T<:Matrix{ComplexF64},BR2<:CompositeBasis} =
+    gemm(convert(ComplexF64, alpha), h, op.data, convert(ComplexF64, beta), result.data)
+mul!(result::Operator{BL,BR,T}, h::LazyTensor{BL,BR2}, op::Operator{BR2,BR,T}) where {BL<:CompositeBasis,BR<:Basis,T<:Matrix{ComplexF64},BR2<:CompositeBasis} =
+    mul!(result, h, op, complex(1.), complex(1.))
+# operators.gemm!(alpha, h::LazyTensor, op::DenseOperator, beta, result::DenseOperator) = gemm(convert(ComplexF64, alpha), h, op.data, convert(ComplexF64, beta), result.data)
+# operators.gemm!(alpha, op::DenseOperator, h::LazyTensor, beta, result::DenseOperator) = gemm(convert(ComplexF64, alpha), op.data, h, convert(ComplexF64, beta), result.data)
 
-function operators.gemv!(alpha::ComplexF64, a::LazyTensor, b::Ket, beta::ComplexF64, result::Ket)
+function operators.gemv!(alpha::ComplexF64, a::LazyTensor{BL,BR}, b::Ket{BR}, beta::ComplexF64, result::Ket{BL}) where {BL<:CompositeBasis,BR<:CompositeBasis}
     b_data = reshape(b.data, length(b.data), 1)
     result_data = reshape(result.data, length(result.data), 1)
     gemm(alpha, a, b_data, beta, result_data)
 end
 
-function operators.gemv!(alpha::ComplexF64, a::Bra, b::LazyTensor, beta::ComplexF64, result::Bra)
+function operators.gemv!(alpha::ComplexF64, a::Bra{BL}, b::LazyTensor{BL,BR}, beta::ComplexF64, result::Bra) where {BL<:CompositeBasis,BR<:CompositeBasis}
     a_data = reshape(a.data, 1, length(a.data))
     result_data = reshape(result.data, 1, length(result.data))
     gemm(alpha, a_data, b, beta, result_data)
 end
 
-operators.gemv!(alpha, a::LazyTensor, b::Ket, beta, result::Ket) = operators.gemv!(convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
-operators.gemv!(alpha, a::Bra, b::LazyTensor, beta, result::Bra) = operators.gemv!(convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
+mul!(result::Ket{BL}, a::LazyTensor{BL,BR}, b::Ket{BR}, alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis} =
+    operators.gemv!(convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
+mul!(result::Ket{BL}, a::LazyTensor{BL,BR}, b::Ket{BR}) where {BL<:Basis,BR<:Basis} =
+    mul!(result, a, b, complex(1.), complex(1.))
 
 end # module

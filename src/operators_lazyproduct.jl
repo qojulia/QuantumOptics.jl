@@ -19,9 +19,9 @@ The factors of the product are stored in the `operators` field. Additionally a
 complex factor is stored in the `factor` field which allows for fast
 multiplication with numbers.
 """
-mutable struct LazyProduct <: AbstractOperator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct LazyProduct{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     factor::ComplexF64
     operators::Vector{AbstractOperator}
 
@@ -32,7 +32,7 @@ mutable struct LazyProduct <: AbstractOperator
         for i = 2:length(operators)
             check_multiplicable(operators[i-1], operators[i])
         end
-        new(operators[1].basis_l, operators[end].basis_r, factor, operators)
+        new{BL<:Basis,BR<:Basis}(operators[1].basis_l, operators[end].basis_r, factor, operators)
     end
 end
 LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(convert(Vector{AbstractOperator}, operators), factor)
