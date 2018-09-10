@@ -34,10 +34,10 @@ mutable struct LazyTensor <: Operator
     function LazyTensor(basis_l::Basis, basis_r::Basis,
                         indices::Vector{Int}, ops::Vector,
                         factor::Number=1)
-        if typeof(basis_l) != CompositeBasis
+        if !isa(basis_l, CompositeBasis)
             basis_l = CompositeBasis(basis_l.shape, Basis[basis_l])
         end
-        if typeof(basis_r) != CompositeBasis
+        if !isa(basis_r, CompositeBasis)
             basis_r = CompositeBasis(basis_r.shape, Basis[basis_r])
         end
         N = length(basis_l.bases)

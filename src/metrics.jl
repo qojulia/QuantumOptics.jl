@@ -183,7 +183,7 @@ Partial transpose of rho with respect to subspace specified by index.
 """
 function ptranspose(rho::DenseOperator, index::Int=1)
     @assert rho.basis_l == rho.basis_r
-    @assert typeof(rho.basis_l) == CompositeBasis
+    @assert isa(rho.basis_l, CompositeBasis)
 
     # Define permutation
     N = length(rho.basis_l.bases)
