@@ -71,12 +71,15 @@ Stores the subbases in a vector and creates the shape vector directly
 from the shape vectors of these subbases. Instead of creating a CompositeBasis
 directly `tensor(b1, b2...)` or `b1 ⊗ b2 ⊗ …` can be used.
 """
-mutable struct CompositeBasis{B<:Vector{Basis}} <: Basis
+mutable struct CompositeBasis{B<:Tuple{Vararg{Basis}}} <: Basis
     shape::Vector{Int}
     bases::B
 end
-CompositeBasis(bases::B) where B<:Vector{Basis} = CompositeBasis{B}(Int[prod(b.shape) for b in bases], bases)
-CompositeBasis(bases::Basis...) = CompositeBasis(Basis[bases...])
+# CompositeBasis(shape::Vector{Int}, bases::B) where {B<:Tuple{Vararg{Basis}}} = CompositeBasis{B}(shape, bases)
+CompositeBasis(bases::B) where B<:Tuple{Vararg{Basis}} = CompositeBasis{B}(Int[prod(b.shape) for b in bases], bases)
+CompositeBasis(shape::Vector{Int}, bases::Vector{Basis}) = CompositeBasis(shape, Tuple(bases))
+CompositeBasis(bases::Basis...) = CompositeBasis((bases...,))
+CompositeBasis(bases::Vector{Basis}) = CompositeBasis(Tuple(bases))
 
 ==(b1::CompositeBasis, b2::CompositeBasis) = equal_shape(b1.shape, b2.shape) && equal_bases(b1.bases, b2.bases)
 
@@ -98,7 +101,7 @@ Any given CompositeBasis is expanded so that the resulting CompositeBasis never
 contains another CompositeBasis.
 """
 tensor(b1::Basis, b2::Basis) = CompositeBasis(Int[prod(b1.shape); prod(b2.shape)], Basis[b1, b2])
-tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(Int[b1.shape; b2.shape], Basis[b1.bases; b2.bases])
+tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(Int[b1.shape; b2.shape], (b1.bases..., b2.bases...))
 function tensor(b1::CompositeBasis, b2::Basis)
     N = length(b1.bases)
     shape = Vector{Int}(undef, N+1)
@@ -158,7 +161,7 @@ end
 
 Check if two subbases vectors are identical.
 """
-function equal_bases(a::Vector{T}, b::Vector{T}) where T <: Basis
+function equal_bases(a::Tuple{Vararg{T}}, b::Tuple{Vararg{T}}) where T <: Basis
     if a===b
         return true
     end
