@@ -16,7 +16,7 @@ Dense array implementation of Operator.
 
 The matrix consisting of complex floats is stored in the `data` field.
 """
-mutable struct DenseOperator <: Operator
+mutable struct DenseOperator <: AbstractOperator
     basis_l::Basis
     basis_r::Basis
     data::Matrix{ComplexF64}
@@ -26,12 +26,12 @@ end
 DenseOperator(b::Basis, data) = DenseOperator(b, b, data)
 DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(ComplexF64, length(b1), length(b2)))
 DenseOperator(b::Basis) = DenseOperator(b, b)
-DenseOperator(op::Operator) = dense(op)
+DenseOperator(op::AbstractOperator) = dense(op)
 
 Base.copy(x::DenseOperator) = DenseOperator(x.basis_l, x.basis_r, copy(x.data))
 
 """
-    dense(op::Operator)
+    dense(op::AbstractOperator)
 
 Convert an arbitrary Operator into a [`DenseOperator`](@ref).
 """
@@ -51,25 +51,25 @@ operators.dense(x::DenseOperator) = copy(x)
 *(a::DenseOperator, b::DenseOperator) = (check_multiplicable(a, b); DenseOperator(a.basis_l, b.basis_r, a.data*b.data))
 *(a::DenseOperator, b::Number) = DenseOperator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::DenseOperator) = DenseOperator(b.basis_l, b.basis_r, complex(a)*b.data)
-function *(op1::Operator, op2::DenseOperator)
+function *(op1::AbstractOperator, op2::DenseOperator)
     check_multiplicable(op1, op2)
     result = DenseOperator(op1.basis_l, op2.basis_r)
     operators.gemm!(Complex(1.), op1, op2, Complex(0.), result)
     return result
 end
-function *(op1::DenseOperator, op2::Operator)
+function *(op1::DenseOperator, op2::AbstractOperator)
     check_multiplicable(op1, op2)
     result = DenseOperator(op1.basis_l, op2.basis_r)
     operators.gemm!(Complex(1.), op1, op2, Complex(0.), result)
     return result
 end
-function *(op::Operator, psi::Ket)
+function *(op::AbstractOperator, psi::Ket)
     check_multiplicable(op, psi)
     result = Ket(op.basis_l)
     operators.gemv!(Complex(1.), op, psi, Complex(0.), result)
     return result
 end
-function *(psi::Bra, op::Operator)
+function *(psi::Bra, op::AbstractOperator)
     check_multiplicable(psi, op)
     result = Bra(op.basis_r)
     operators.gemv!(Complex(1.), psi, op, Complex(0.), result)
@@ -130,7 +130,7 @@ function operators.expect(op::DenseOperator, state::Ket)# where T <: Union{Ket, 
     state.data' * op.data * state.data
 end
 
-function operators.expect(op::DenseOperator, state::Operator)
+function operators.expect(op::DenseOperator, state::AbstractOperator)
     check_samebases(op.basis_r, state.basis_l)
     check_samebases(op.basis_l, state.basis_r)
     result = ComplexF64(0.)
@@ -273,7 +273,7 @@ operators.gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = operators.
 
 
 # Multiplication for Operators in terms of their gemv! implementation
-function operators.gemm!(alpha, M::Operator, b::DenseOperator, beta, result::DenseOperator)
+function operators.gemm!(alpha, M::AbstractOperator, b::DenseOperator, beta, result::DenseOperator)
     for i=1:size(b.data, 2)
         bket = Ket(b.basis_l, b.data[:,i])
         resultket = Ket(M.basis_l, result.data[:,i])
@@ -282,7 +282,7 @@ function operators.gemm!(alpha, M::Operator, b::DenseOperator, beta, result::Den
     end
 end
 
-function operators.gemm!(alpha, b::DenseOperator, M::Operator, beta, result::DenseOperator)
+function operators.gemm!(alpha, b::DenseOperator, M::AbstractOperator, beta, result::DenseOperator)
     for i=1:size(b.data, 1)
         bbra = Bra(b.basis_r, vec(b.data[i,:]))
         resultbra = Bra(M.basis_r, vec(result.data[i,:]))

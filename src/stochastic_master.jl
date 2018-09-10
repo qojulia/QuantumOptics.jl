@@ -41,7 +41,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
         be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master(tspan, rho0::DenseOperator, H::Operator,
+function master(tspan, rho0::DenseOperator, H::AbstractOperator,
                 J::Vector, C::Vector;
                 rates::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J), Cdagger::Vector=dagger.(C),
@@ -179,14 +179,14 @@ function check_master_stoch(rho0::DenseOperator, C::Vector, Cdagger::Vector)
     @assert length(C) == length(Cdagger)
     isreducible = true
     for c=C
-        @assert isa(c, Operator)
+        @assert isa(c, AbstractOperator)
         if !(isa(c, DenseOperator) || isa(c, SparseOperator))
             isreducible = false
         end
         check_samebases(rho0, c)
     end
     for c=Cdagger
-        @assert isa(c, Operator)
+        @assert isa(c, AbstractOperator)
         if !(isa(c, DenseOperator) || isa(c, SparseOperator))
             isreducible = false
         end

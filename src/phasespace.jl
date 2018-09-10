@@ -17,13 +17,13 @@ function can either be evaluated on one point α or on a grid specified by
 the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
 done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + i y)``.
 """
-function qfunc(rho::Operator, alpha::Number)
+function qfunc(rho::AbstractOperator, alpha::Number)
     b = basis(rho)
     @assert isa(b, FockBasis)
     _qfunc_operator(rho, convert(ComplexF64, alpha), Ket(b), Ket(b))
 end
 
-function qfunc(rho::Operator, xvec::Vector{Float64}, yvec::Vector{Float64})
+function qfunc(rho::AbstractOperator, xvec::Vector{Float64}, yvec::Vector{Float64})
     b = basis(rho)
     @assert isa(b, FockBasis)
     Nx = length(xvec)
@@ -75,11 +75,11 @@ function qfunc(psi::Ket, xvec::Vector{Float64}, yvec::Vector{Float64})
     result
 end
 
-function qfunc(state::Union{Ket, Operator}, x::Number, y::Number)
+function qfunc(state::Union{Ket, AbstractOperator}, x::Number, y::Number)
     qfunc(state, ComplexF64(x, y)/sqrt(2))
 end
 
-function _qfunc_operator(rho::Operator, alpha::ComplexF64, tmp1::Ket, tmp2::Ket)
+function _qfunc_operator(rho::AbstractOperator, alpha::ComplexF64, tmp1::Ket, tmp2::Ket)
     coherentstate(basis(rho), alpha, tmp1)
     operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
     a = dot(tmp1.data, tmp2.data)

@@ -4,14 +4,14 @@ using Random, SparseArrays, LinearAlgebra
 
 
 # Custom operator type for testing error msg
-mutable struct TestOperator <: Operator; end
+mutable struct TestOperator <: AbstractOperator; end
 
 
 @testset "operators-sparse" begin
 
 Random.seed!(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
+D(op1::AbstractOperator, op2::AbstractOperator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 sprandop(b1, b2) = sparse(randoperator(b1, b2))
 sprandop(b) = sprandop(b, b)

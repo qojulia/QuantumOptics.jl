@@ -2,7 +2,7 @@ using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
-mutable struct test_operators <: Operator
+mutable struct test_operators <: AbstractOperator
   basis_l::Basis
   basis_r::Basis
   data::Matrix{ComplexF64}

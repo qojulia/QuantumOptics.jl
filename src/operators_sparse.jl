@@ -18,7 +18,7 @@ Sparse array implementation of Operator.
 The matrix is stored as the julia built-in type `SparseMatrixCSC`
 in the `data` field.
 """
-mutable struct SparseOperator <: Operator
+mutable struct SparseOperator <: AbstractOperator
     basis_l::Basis
     basis_r::Basis
     data::SparseMatrixCSC{ComplexF64, Int}
@@ -41,11 +41,11 @@ Base.copy(x::SparseOperator) = SparseOperator(x.basis_l, x.basis_r, copy(x.data)
 operators.dense(a::SparseOperator) = DenseOperator(a.basis_l, a.basis_r, Matrix(a.data))
 
 """
-    sparse(op::Operator)
+    sparse(op::AbstractOperator)
 
 Convert an arbitrary operator into a [`SparseOperator`](@ref).
 """
-sparse(a::Operator) = throw(ArgumentError("Direct conversion from $(typeof(a)) not implemented. Use sparse(full(op)) instead."))
+sparse(a::AbstractOperator) = throw(ArgumentError("Direct conversion from $(typeof(a)) not implemented. Use sparse(full(op)) instead."))
 sparse(a::SparseOperator) = copy(a)
 sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.data))
 

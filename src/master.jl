@@ -17,7 +17,7 @@ Integrate the master equation with dmaster_h as derivative function.
 
 Further information can be found at [`master`](@ref).
 """
-function master_h(tspan, rho0::DenseOperator, H::Operator, J::Vector;
+function master_h(tspan, rho0::DenseOperator, H::AbstractOperator, J::Vector;
                 rates::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Nothing}=nothing,
@@ -39,9 +39,9 @@ H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 ```
 Further information can be found at [`master`](@ref).
 """
-function master_nh(tspan, rho0::DenseOperator, Hnh::Operator, J::Vector;
+function master_nh(tspan, rho0::DenseOperator, Hnh::AbstractOperator, J::Vector;
                 rates::DecayRates=nothing,
-                Hnhdagger::Operator=dagger(Hnh),
+                Hnhdagger::AbstractOperator=dagger(Hnh),
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...)
@@ -83,7 +83,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
         be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master(tspan, rho0::DenseOperator, H::Operator, J::Vector;
+function master(tspan, rho0::DenseOperator, H::AbstractOperator, J::Vector;
                 rates::DecayRates=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Nothing}=nothing,
@@ -173,9 +173,9 @@ end
 
 
 # Automatically convert Ket states to density operators
-master(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master(tspan, dm(psi0), H, J; kwargs...)
-master_h(tspan, psi0::Ket, H::Operator, J::Vector; kwargs...) = master_h(tspan, dm(psi0), H, J; kwargs...)
-master_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector; kwargs...) = master_nh(tspan, dm(psi0), Hnh, J; kwargs...)
+master(tspan, psi0::Ket, H::AbstractOperator, J::Vector; kwargs...) = master(tspan, dm(psi0), H, J; kwargs...)
+master_h(tspan, psi0::Ket, H::AbstractOperator, J::Vector; kwargs...) = master_h(tspan, dm(psi0), H, J; kwargs...)
+master_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J::Vector; kwargs...) = master_nh(tspan, dm(psi0), Hnh, J; kwargs...)
 master_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_dynamic(tspan, dm(psi0), f; kwargs...)
 master_nh_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_nh_dynamic(tspan, dm(psi0), f; kwargs...)
 
@@ -205,7 +205,7 @@ end
 # the type of the given decay rate object which can either be nothing, a vector
 # or a matrix.
 
-function dmaster_h(rho::DenseOperator, H::Operator,
+function dmaster_h(rho::DenseOperator, H::AbstractOperator,
                     rates::Nothing, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, H, rho, 0, drho)
@@ -222,7 +222,7 @@ function dmaster_h(rho::DenseOperator, H::Operator,
     return drho
 end
 
-function dmaster_h(rho::DenseOperator, H::Operator,
+function dmaster_h(rho::DenseOperator, H::AbstractOperator,
                     rates::Vector{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, H, rho, 0, drho)
@@ -239,7 +239,7 @@ function dmaster_h(rho::DenseOperator, H::Operator,
     return drho
 end
 
-function dmaster_h(rho::DenseOperator, H::Operator,
+function dmaster_h(rho::DenseOperator, H::AbstractOperator,
                     rates::Matrix{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, H, rho, 0, drho)
@@ -256,7 +256,7 @@ function dmaster_h(rho::DenseOperator, H::Operator,
     return drho
 end
 
-function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
+function dmaster_nh(rho::DenseOperator, Hnh::AbstractOperator, Hnh_dagger::AbstractOperator,
                     rates::Nothing, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, Hnh, rho, 0, drho)
@@ -268,7 +268,7 @@ function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
     return drho
 end
 
-function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
+function dmaster_nh(rho::DenseOperator, Hnh::AbstractOperator, Hnh_dagger::AbstractOperator,
                     rates::Vector{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, Hnh, rho, 0, drho)
@@ -280,7 +280,7 @@ function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
     return drho
 end
 
-function dmaster_nh(rho::DenseOperator, Hnh::Operator, Hnh_dagger::Operator,
+function dmaster_nh(rho::DenseOperator, Hnh::AbstractOperator, Hnh_dagger::AbstractOperator,
                     rates::Matrix{Float64}, J::Vector, Jdagger::Vector,
                     drho::DenseOperator, tmp::DenseOperator)
     operators.gemm!(-1im, Hnh, rho, 0, drho)
@@ -323,21 +323,21 @@ function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
 end
 
 
-function check_master(rho0::DenseOperator, H::Operator, J::Vector, Jdagger::Vector, rates::DecayRates)
+function check_master(rho0::DenseOperator, H::AbstractOperator, J::Vector, Jdagger::Vector, rates::DecayRates)
     isreducible = true # test if all operators are sparse or dense
     check_samebases(rho0, H)
     if !(isa(H, DenseOperator) || isa(H, SparseOperator))
         isreducible = false
     end
     for j=J
-        @assert isa(j, Operator)
+        @assert isa(j, AbstractOperator)
         if !(isa(j, DenseOperator) || isa(j, SparseOperator))
             isreducible = false
         end
         check_samebases(rho0, j)
     end
     for j=Jdagger
-        @assert isa(j, Operator)
+        @assert isa(j, AbstractOperator)
         if !(isa(j, DenseOperator) || isa(j, SparseOperator))
             isreducible = false
         end

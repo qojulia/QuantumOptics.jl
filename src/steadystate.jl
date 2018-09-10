@@ -26,7 +26,7 @@ Calculate steady state using long time master equation evolution.
         density operator `rho` is further used and therefore must not be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master(H::Operator, J::Vector;
+function master(H::AbstractOperator, J::Vector;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 hmin=1e-7, tol=1e-3,
                 rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
@@ -88,7 +88,7 @@ function liouvillianspectrum(L::SparseSuperOperator; nev::Int = min(10, length(L
     return d[indices], ops
 end
 
-liouvillianspectrum(H::Operator, J::Vector; rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)), kwargs...) = liouvillianspectrum(liouvillian(H, J; rates=rates); kwargs...)
+liouvillianspectrum(H::AbstractOperator, J::Vector; rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)), kwargs...) = liouvillianspectrum(liouvillian(H, J; rates=rates); kwargs...)
 
 """
     steadystate.eigenvector(L)
@@ -118,7 +118,7 @@ function eigenvector(L::SuperOperator; tol::Real = 1e-9, nev::Int = 2, which::Sy
     return ops[1]/tr(ops[1])
 end
 
-eigenvector(H::Operator, J::Vector; rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)), kwargs...) = eigenvector(liouvillian(H, J; rates=rates); kwargs...)
+eigenvector(H::AbstractOperator, J::Vector; rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)), kwargs...) = eigenvector(liouvillian(H, J; rates=rates); kwargs...)
 
 
 end # module

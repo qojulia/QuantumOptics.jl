@@ -104,7 +104,7 @@ function show(stream::IO, x::Bra)
     end
 end
 
-function summary(stream::IO, x::Operator)
+function summary(stream::IO, x::AbstractOperator)
     print(stream, "$(typeof(x).name.name)(dim=$(length(x.basis_l))x$(length(x.basis_r)))\n")
     if bases.samebases(x)
         print(stream, "  basis: ")
@@ -117,7 +117,7 @@ function summary(stream::IO, x::Operator)
     end
 end
 
-show(stream::IO, x::Operator) = summary(stream, x)
+show(stream::IO, x::AbstractOperator) = summary(stream, x)
 
 function show(stream::IO, x::DenseOperator)
     summary(stream, x)

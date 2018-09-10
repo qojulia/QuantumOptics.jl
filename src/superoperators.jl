@@ -96,7 +96,7 @@ Base.length(a::SuperOperator) = length(a.basis_l[1])*length(a.basis_l[2])*length
 bases.samebases(a::SuperOperator, b::SuperOperator) = samebases(a.basis_l[1], b.basis_l[1]) && samebases(a.basis_l[2], b.basis_l[2]) &&
                                                       samebases(a.basis_r[1], b.basis_r[1]) && samebases(a.basis_r[2], b.basis_r[2])
 bases.multiplicable(a::SuperOperator, b::SuperOperator) = multiplicable(a.basis_r[1], b.basis_l[1]) && multiplicable(a.basis_r[2], b.basis_l[2])
-bases.multiplicable(a::SuperOperator, b::Operator) = multiplicable(a.basis_r[1], b.basis_l) && multiplicable(a.basis_r[2], b.basis_r)
+bases.multiplicable(a::SuperOperator, b::AbstractOperator) = multiplicable(a.basis_r[1], b.basis_l) && multiplicable(a.basis_r[2], b.basis_r)
 
 
 # Arithmetic operations
@@ -139,7 +139,7 @@ For operators ``A``, ``B`` the relation
 
 holds. `op` can be a dense or a sparse operator.
 """
-spre(op::Operator) = SuperOperator((op.basis_l, op.basis_l), (op.basis_r, op.basis_r), tensor(op, identityoperator(op)).data)
+spre(op::AbstractOperator) = SuperOperator((op.basis_l, op.basis_l), (op.basis_r, op.basis_r), tensor(op, identityoperator(op)).data)
 
 """
 Create a super-operator equivalent for left side operator multiplication.
@@ -152,16 +152,16 @@ For operators ``A``, ``B`` the relation
 
 holds. `op` can be a dense or a sparse operator.
 """
-spost(op::Operator) = SuperOperator((op.basis_r, op.basis_r), (op.basis_l, op.basis_l), kron(permutedims(op.data), identityoperator(op).data))
+spost(op::AbstractOperator) = SuperOperator((op.basis_r, op.basis_r), (op.basis_l, op.basis_l), kron(permutedims(op.data), identityoperator(op).data))
 
 
-function _check_input(H::Operator, J::Vector, Jdagger::Vector, rates::Union{Vector{Float64}, Matrix{Float64}})
+function _check_input(H::AbstractOperator, J::Vector, Jdagger::Vector, rates::Union{Vector{Float64}, Matrix{Float64}})
     for j=J
-        @assert typeof(j) <: Operator
+        @assert typeof(j) <: AbstractOperator
         check_samebases(H, j)
     end
     for j=Jdagger
-        @assert typeof(j) <: Operator
+        @assert typeof(j) <: AbstractOperator
         check_samebases(H, j)
     end
     @assert length(J)==length(Jdagger)
@@ -193,7 +193,7 @@ S ρ = -\\frac{i}{ħ} [H, ρ] + \\sum_i J_i ρ J_i^† - \\frac{1}{2} J_i^† J_
 """
 function liouvillian(H::T, J::Vector{T};
             rates::Union{Vector{Float64}, Matrix{Float64}}=ones(Float64, length(J)),
-            Jdagger::Vector{T}=dagger.(J)) where T<:Operator
+            Jdagger::Vector{T}=dagger.(J)) where T<:AbstractOperator
     _check_input(H, J, Jdagger, rates)
     L = spre(-1im*H) + spost(1im*H)
     if typeof(rates) == Matrix{Float64}

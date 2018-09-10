@@ -9,7 +9,7 @@ using Arpack, LinearAlgebra
 const nonhermitian_warning = "The given operator is not hermitian. If this is due to a numerical error make the operator hermitian first by calculating (x+dagger(x))/2 first."
 
 """
-    eigenstates(op::Operator[, n::Int; warning=true])
+    eigenstates(op::AbstractOperator[, n::Int; warning=true])
 
 Calculate the lowest n eigenvalues and their corresponding eigenstates.
 
@@ -61,7 +61,7 @@ end
 
 
 """
-    eigenenergies(op::Operator[, n::Int; warning=true])
+    eigenenergies(op::AbstractOperator[, n::Int; warning=true])
 
 Calculate the lowest n eigenvalues.
 
@@ -93,8 +93,8 @@ eigenenergies(op::SparseOperator, n::Int=6; kwargs...) = eigenstates(op, n; kwar
 
 
 arithmetic_unary_error = operators.arithmetic_unary_error
-eigenstates(op::Operator, n::Int=0) = arithmetic_unary_error("eigenstates", op)
-eigenenergies(op::Operator, n::Int=0) = arithmetic_unary_error("eigenenergies", op)
+eigenstates(op::AbstractOperator, n::Int=0) = arithmetic_unary_error("eigenstates", op)
+eigenenergies(op::AbstractOperator, n::Int=0) = arithmetic_unary_error("eigenenergies", op)
 
 
 """

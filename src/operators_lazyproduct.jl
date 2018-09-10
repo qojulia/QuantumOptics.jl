@@ -19,13 +19,13 @@ The factors of the product are stored in the `operators` field. Additionally a
 complex factor is stored in the `factor` field which allows for fast
 multiplication with numbers.
 """
-mutable struct LazyProduct <: Operator
+mutable struct LazyProduct <: AbstractOperator
     basis_l::Basis
     basis_r::Basis
     factor::ComplexF64
-    operators::Vector{Operator}
+    operators::Vector{AbstractOperator}
 
-    function LazyProduct(operators::Vector{Operator}, factor::Number=1)
+    function LazyProduct(operators::Vector{AbstractOperator}, factor::Number=1)
         if length(operators) < 1
             throw(ArgumentError("LazyProduct needs at least one operator."))
         end
@@ -35,8 +35,8 @@ mutable struct LazyProduct <: Operator
         new(operators[1].basis_l, operators[end].basis_r, factor, operators)
     end
 end
-LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(convert(Vector{Operator}, operators), factor)
-LazyProduct(operators::Operator...) = LazyProduct(Operator[operators...])
+LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(convert(Vector{AbstractOperator}, operators), factor)
+LazyProduct(operators::AbstractOperator...) = LazyProduct(AbstractOperator[operators...])
 
 Base.copy(x::LazyProduct) = LazyProduct([copy(op) for op in x.operators], x.factor)
 
@@ -62,7 +62,7 @@ operators.tr(op::LazyProduct) = throw(ArgumentError("Trace of LazyProduct is not
 
 operators.ptrace(op::LazyProduct, indices::Vector{Int}) = throw(ArgumentError("Partial trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. dense() or sparse()."))
 
-operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(Operator[permutesystems(op_i, perm) for op_i in op.operators], op.factor)
+operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(AbstractOperator[permutesystems(op_i, perm) for op_i in op.operators], op.factor)
 
 operators.identityoperator(::Type{LazyProduct}, b1::Basis, b2::Basis) = LazyProduct(identityoperator(b1, b2))
 

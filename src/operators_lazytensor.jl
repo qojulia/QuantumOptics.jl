@@ -20,12 +20,12 @@ specifies in which subsystem the corresponding operator lives. Additionally,
 a complex factor is stored in the `factor` field which allows for fast
 multiplication with numbers.
 """
-mutable struct LazyTensor <: Operator
+mutable struct LazyTensor <: AbstractOperator
     basis_l::CompositeBasis
     basis_r::CompositeBasis
     factor::ComplexF64
     indices::Vector{Int}
-    operators::Vector{Operator}
+    operators::Vector{AbstractOperator}
 
     function LazyTensor(op::LazyTensor, factor::Number)
         new(op.basis_l, op.basis_r, factor, op.indices, op.operators)
@@ -45,7 +45,7 @@ mutable struct LazyTensor <: Operator
         sortedindices.check_indices(N, indices)
         @assert length(indices) == length(ops)
         for n=1:length(indices)
-            @assert isa(ops[n], Operator)
+            @assert isa(ops[n], AbstractOperator)
             @assert ops[n].basis_l == basis_l.bases[indices[n]]
             @assert ops[n].basis_r == basis_r.bases[indices[n]]
         end
@@ -59,8 +59,8 @@ mutable struct LazyTensor <: Operator
 end
 
 LazyTensor(basis::Basis, indices::Vector{Int}, ops::Vector, factor::Number=1) = LazyTensor(basis, basis, indices, ops, factor)
-LazyTensor(basis_l::Basis, basis_r::Basis, index::Int, operator::Operator, factor::Number=1) = LazyTensor(basis_l, basis_r, [index], Operator[operator], factor)
-LazyTensor(basis::Basis, index::Int, operators::Operator, factor::Number=1.) = LazyTensor(basis, basis, index, operators, factor)
+LazyTensor(basis_l::Basis, basis_r::Basis, index::Int, operator::AbstractOperator, factor::Number=1) = LazyTensor(basis_l, basis_r, [index], AbstractOperator[operator], factor)
+LazyTensor(basis::Basis, index::Int, operators::AbstractOperator, factor::Number=1.) = LazyTensor(basis, basis, index, operators, factor)
 
 Base.copy(x::LazyTensor) = LazyTensor(x.basis_l, x.basis_r, copy(x.indices), [copy(op) for op in x.operators], x.factor)
 
@@ -91,7 +91,7 @@ SparseArrays.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op
 function *(a::LazyTensor, b::LazyTensor)
     check_multiplicable(a, b)
     indices = sortedindices.union(a.indices, b.indices)
-    ops = Vector{Operator}(undef, length(indices))
+    ops = Vector{AbstractOperator}(undef, length(indices))
     for n in 1:length(indices)
         i = indices[n]
         in_a = i in a.indices
@@ -126,9 +126,9 @@ end
 /(a::LazyTensor, b::Number) = LazyTensor(a, a.factor/b)
 
 
-operators.dagger(op::LazyTensor) = LazyTensor(op.basis_r, op.basis_l, op.indices, Operator[dagger(x) for x in op.operators], conj(op.factor))
+operators.dagger(op::LazyTensor) = LazyTensor(op.basis_r, op.basis_l, op.indices, AbstractOperator[dagger(x) for x in op.operators], conj(op.factor))
 
-operators.tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices .+ length(a.basis_l.bases)], Operator[a.operators; b.operators], a.factor*b.factor)
+operators.tensor(a::LazyTensor, b::LazyTensor) = LazyTensor(a.basis_l ⊗ b.basis_l, a.basis_r ⊗ b.basis_r, [a.indices; b.indices .+ length(a.basis_l.bases)], AbstractOperator[a.operators; b.operators], a.factor*b.factor)
 
 function operators.tr(op::LazyTensor)
     b = basis(op)
@@ -164,7 +164,7 @@ function operators.ptrace(op::LazyTensor, indices::Vector{Int})
     if rank==1
         return factor * identityoperator(b_l, b_r)
     end
-    ops = Vector{Operator}(undef, length(remaining_indices))
+    ops = Vector{AbstractOperator}(undef, length(remaining_indices))
     for i in 1:length(ops)
         ops[i] = suboperator(op, remaining_indices[i])
     end
@@ -181,7 +181,7 @@ function operators.permutesystems(op::LazyTensor, perm::Vector{Int})
     LazyTensor(b_l, b_r, indices[perm_], op.operators[perm_], op.factor)
 end
 
-operators.identityoperator(::Type{LazyTensor}, b1::Basis, b2::Basis) = LazyTensor(b1, b2, Int[], Operator[])
+operators.identityoperator(::Type{LazyTensor}, b1::Basis, b2::Basis) = LazyTensor(b1, b2, Int[], AbstractOperator[])
 
 
 # Recursively calculate result_{IK} = \\sum_J op_{IJ} h_{JK}

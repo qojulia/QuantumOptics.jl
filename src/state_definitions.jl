@@ -29,7 +29,7 @@ randoperator(b::Basis) = randoperator(b, b)
 
 Thermal state ``exp(-H/T)/Tr[exp(-H/T)]``.
 """
-function thermalstate(H::Operator,T::Real)
+function thermalstate(H::AbstractOperator,T::Real)
     return normalize(exp(-dense(H)/T))
 end
 
@@ -38,7 +38,7 @@ end
 
 Coherent thermal state ``D(α)exp(-H/T)/Tr[exp(-H/T)]D^†(α)``.
 """
-function coherentthermalstate(basis::FockBasis,H::Operator,T::Real,alpha::Number)
+function coherentthermalstate(basis::FockBasis,H::AbstractOperator,T::Real,alpha::Number)
     return displace(basis,alpha)*thermalstate(H,T)*dagger(displace(basis,alpha))
 end
 

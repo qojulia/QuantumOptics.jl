@@ -33,8 +33,8 @@ criterion specified in [`steadystate.master`](@ref).
 * `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J::Vector,
-                     op1::Operator, op2::Operator;
+function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::AbstractOperator, J::Vector,
+                     op1::AbstractOperator, op2::AbstractOperator;
                      rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
                      Jdagger::Vector=dagger.(J),
                      kwargs...)
@@ -46,8 +46,8 @@ function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::Operator, J
     u
 end
 
-function correlation(rho0::DenseOperator, H::Operator, J::Vector,
-                     op1::Operator, op2::Operator;
+function correlation(rho0::DenseOperator, H::AbstractOperator, J::Vector,
+                     op1::AbstractOperator, op2::AbstractOperator;
                      tol::Float64=1e-4, h0=10.,
                      rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
                      Jdagger::Vector=dagger.(J),
@@ -96,7 +96,7 @@ automatically.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function spectrum(omega_samplepoints::Vector{Float64},
-                H::Operator, J::Vector, op::Operator;
+                H::AbstractOperator, J::Vector, op::AbstractOperator;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol::Float64=1e-4,
                 rho_ss::DenseOperator=steadystate.master(H, J; tol=tol, rho0=rho0)[end][end],
@@ -110,7 +110,7 @@ function spectrum(omega_samplepoints::Vector{Float64},
     return omega_samplepoints, S
 end
 
-function spectrum(H::Operator, J::Vector, op::Operator;
+function spectrum(H::AbstractOperator, J::Vector, op::AbstractOperator;
                 rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol::Float64=1e-4, h0=10.,
                 rho_ss::DenseOperator=steadystate.master(H, J; tol=tol)[end][end],

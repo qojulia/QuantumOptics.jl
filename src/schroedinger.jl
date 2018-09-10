@@ -21,7 +21,7 @@ Integrate Schroedinger equation.
         normalized nor permanent! It is still in use by the ode solver and
         therefore must not be changed.
 """
-function schroedinger(tspan, psi0::T, H::Operator;
+function schroedinger(tspan, psi0::T, H::AbstractOperator;
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...) where T<:StateVector
     tspan_ = convert(Vector{Float64}, tspan)
@@ -64,12 +64,12 @@ recast!(x::Vector{ComplexF64}, psi::StateVector) = (psi.data = x);
 recast!(psi::StateVector, x::Vector{ComplexF64}) = nothing
 
 
-function dschroedinger(psi::Ket, H::Operator, dpsi::Ket)
+function dschroedinger(psi::Ket, H::AbstractOperator, dpsi::Ket)
     operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
     return dpsi
 end
 
-function dschroedinger(psi::Bra, H::Operator, dpsi::Bra)
+function dschroedinger(psi::Bra, H::AbstractOperator, dpsi::Bra)
     operators.gemv!(complex(0,1.), psi, H, complex(0.), dpsi)
     return dpsi
 end
@@ -82,12 +82,12 @@ function dschroedinger_dynamic(t::Float64, psi0::T, f::Function, dpsi::T) where 
 end
 
 
-function check_schroedinger(psi::Ket, H::Operator)
+function check_schroedinger(psi::Ket, H::AbstractOperator)
     check_multiplicable(H, psi)
     check_samebases(H)
 end
 
-function check_schroedinger(psi::Bra, H::Operator)
+function check_schroedinger(psi::Bra, H::AbstractOperator)
     check_multiplicable(psi, H)
     check_samebases(H)
 end

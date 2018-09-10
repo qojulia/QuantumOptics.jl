@@ -228,7 +228,7 @@ where ``X`` is the N-particle operator, ``x`` is the one-body operator and
 ``|u⟩`` are the one-body states associated to the
 different modes of the N-particle basis.
 """
-function manybodyoperator(basis::ManyBodyBasis, op::T)::T where T<:Operator
+function manybodyoperator(basis::ManyBodyBasis, op::T)::T where T<:AbstractOperator
     @assert op.basis_l == op.basis_r
     if op.basis_l == basis.onebodybasis
         result =  manybodyoperator_1(basis, op)
@@ -321,7 +321,7 @@ end
 
 Expectation value of the one-body operator `op` in respect to the many-body `state`.
 """
-function onebodyexpect(op::Operator, state::Ket)
+function onebodyexpect(op::AbstractOperator, state::Ket)
     @assert isa(state.basis, ManyBodyBasis)
     @assert op.basis_l == op.basis_r
     if state.basis.onebodybasis == op.basis_l
@@ -335,7 +335,7 @@ function onebodyexpect(op::Operator, state::Ket)
     result
 end
 
-function onebodyexpect(op::Operator, state::Operator)
+function onebodyexpect(op::AbstractOperator, state::AbstractOperator)
     @assert op.basis_l == op.basis_r
     @assert state.basis_l == state.basis_r
     @assert isa(state.basis_l, ManyBodyBasis)
@@ -349,7 +349,7 @@ function onebodyexpect(op::Operator, state::Operator)
     end
     result
 end
-onebodyexpect(op::Operator, states::Vector) = [onebodyexpect(op, state) for state=states]
+onebodyexpect(op::AbstractOperator, states::Vector) = [onebodyexpect(op, state) for state=states]
 
 function onebodyexpect_1(op::DenseOperator, state::Ket)
     N = length(state.basis)

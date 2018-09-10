@@ -18,13 +18,13 @@ All operators have to be given in respect to the same bases. The field
 `factors` accounts for an additional multiplicative factor for each operator
 stored in the `operators` field.
 """
-mutable struct LazySum <: Operator
+mutable struct LazySum <: AbstractOperator
     basis_l::Basis
     basis_r::Basis
     factors::Vector{ComplexF64}
-    operators::Vector{Operator}
+    operators::Vector{AbstractOperator}
 
-    function LazySum(factors::Vector{ComplexF64}, operators::Vector{Operator})
+    function LazySum(factors::Vector{ComplexF64}, operators::Vector{AbstractOperator})
         @assert length(operators)>0
         @assert length(operators)==length(factors)
         for i = 2:length(operators)
@@ -34,8 +34,8 @@ mutable struct LazySum <: Operator
         new(operators[1].basis_l, operators[1].basis_r, factors, operators)
     end
 end
-LazySum(factors::Vector{T}, operators::Vector) where {T<:Number} = LazySum(complex(factors), Operator[op for op in operators])
-LazySum(operators::Operator...) = LazySum(ones(ComplexF64, length(operators)), Operator[operators...])
+LazySum(factors::Vector{T}, operators::Vector) where {T<:Number} = LazySum(complex(factors), AbstractOperator[op for op in operators])
+LazySum(operators::AbstractOperator...) = LazySum(ones(ComplexF64, length(operators)), AbstractOperator[operators...])
 
 Base.copy(x::LazySum) = LazySum(copy(x.factors), [copy(op) for op in x.operators])
 
@@ -62,13 +62,13 @@ operators.tr(op::LazySum) = sum(op.factors .* tr.(op.operators))
 function operators.ptrace(op::LazySum, indices::Vector{Int})
     operators.check_ptrace_arguments(op, indices)
     rank = length(op.basis_l.shape) - length(indices)
-    D = Operator[ptrace(op_i, indices) for op_i in op.operators]
+    D = AbstractOperator[ptrace(op_i, indices) for op_i in op.operators]
     LazySum(op.factors, D)
 end
 
 operators.normalize!(op::LazySum) = (op.factors /= tr(op); nothing)
 
-operators.permutesystems(op::LazySum, perm::Vector{Int}) = LazySum(op.factors, Operator[permutesystems(op_i, perm) for op_i in op.operators])
+operators.permutesystems(op::LazySum, perm::Vector{Int}) = LazySum(op.factors, AbstractOperator[permutesystems(op_i, perm) for op_i in op.operators])
 
 operators.identityoperator(::Type{LazySum}, b1::Basis, b2::Basis) = LazySum(identityoperator(b1, b2))
 

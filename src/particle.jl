@@ -264,7 +264,7 @@ end
 
 Abstract type for all implementations of FFT operators.
 """
-abstract type FFTOperator <: Operator end
+abstract type FFTOperator <: AbstractOperator end
 
 const PlanFFT = FFTW.cFFTWPlan
 
