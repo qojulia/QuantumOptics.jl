@@ -1,8 +1,8 @@
 module steadystate
 
-using ..states, ..operators, ..operators_dense, ..superoperators
+using ..states, ..operators, ..operators_dense, ..superoperators, ..bases
 using ..timeevolution
-using Arpack, LinearAlgebra
+using Arpack, LinearAlgebra, SparseArrays
 
 """
     steadystate.master(H, J; <keyword arguments>)
@@ -26,13 +26,13 @@ Calculate steady state using long time master equation evolution.
         density operator `rho` is further used and therefore must not be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master(H::AbstractOperator, J::Vector;
-                rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
+function master(H::AbstractOperator{B,B}, J::Vector{T};
+                rho0::Operator{B,B}=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 hmin=1e-7, tol=1e-3,
                 rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
                 Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...)
+                kwargs...) where {B<:Basis,T<:AbstractOperator{B,B}}
     t,u = timeevolution.master([0., Inf], rho0, H, J; rates=rates, Jdagger=Jdagger,
                         hmin=hmin, hmax=Inf,
                         display_initialvalue=false,
@@ -56,7 +56,8 @@ sorted according to the absolute value of the eigenvalues.
     function (ineffective for DenseSuperOperator).
 * `kwargs...`:  Keyword arguments for the Julia `eigen` or `eigens` function.
 """
-function liouvillianspectrum(L::DenseSuperOperator; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR, kwargs...)
+function liouvillianspectrum(L::SuperOperator{Tuple{Basis,Basis},Tuple{Basis,Basis},T}; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR,
+            kwargs...) where T<:Matrix{ComplexF64}
     d, v = eigen(L.data; kwargs...)
     indices = sortperm(abs.(d))[1:nev]
     ops = DenseOperator[]
@@ -68,7 +69,8 @@ function liouvillianspectrum(L::DenseSuperOperator; nev::Int = min(10, length(L.
     return d[indices], ops
 end
 
-function liouvillianspectrum(L::SparseSuperOperator; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR, kwargs...)
+function liouvillianspectrum(L::SuperOperator{Tuple{Basis,Basis},Tuple{Basis,Basis},T}; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR,
+            kwargs...) where T<:SparseMatrixCSC{ComplexF64,Int}
     d, v, nconv, niter, nmult, resid = try
         eigs(L.data; nev = nev, which = which, kwargs...)
     catch err

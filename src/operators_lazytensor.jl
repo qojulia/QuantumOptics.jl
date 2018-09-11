@@ -309,7 +309,7 @@ end
 mul!(result::Operator{BL,BR,T}, h::LazyTensor{BL,BR2}, op::Operator{BR2,BR,T}, alpha::Number, beta::Number) where {BL<:CompositeBasis,BR<:Basis,T<:Matrix{ComplexF64},BR2<:CompositeBasis} =
     gemm(convert(ComplexF64, alpha), h, op.data, convert(ComplexF64, beta), result.data)
 mul!(result::Operator{BL,BR,T}, h::LazyTensor{BL,BR2}, op::Operator{BR2,BR,T}) where {BL<:CompositeBasis,BR<:Basis,T<:Matrix{ComplexF64},BR2<:CompositeBasis} =
-    mul!(result, h, op, complex(1.), complex(1.))
+    mul!(result, h, op, complex(1.), complex(0.))
 # operators.gemm!(alpha, h::LazyTensor, op::DenseOperator, beta, result::DenseOperator) = gemm(convert(ComplexF64, alpha), h, op.data, convert(ComplexF64, beta), result.data)
 # operators.gemm!(alpha, op::DenseOperator, h::LazyTensor, beta, result::DenseOperator) = gemm(convert(ComplexF64, alpha), op.data, h, convert(ComplexF64, beta), result.data)
 
@@ -328,6 +328,6 @@ end
 mul!(result::Ket{BL}, a::LazyTensor{BL,BR}, b::Ket{BR}, alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis} =
     operators.gemv!(convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
 mul!(result::Ket{BL}, a::LazyTensor{BL,BR}, b::Ket{BR}) where {BL<:Basis,BR<:Basis} =
-    mul!(result, a, b, complex(1.), complex(1.))
+    mul!(result, a, b, complex(1.), complex(0.))
 
 end # module

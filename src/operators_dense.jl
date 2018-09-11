@@ -273,7 +273,7 @@ mul!(result::Ket{B}, a::Operator{B,BR}, b::Ket{BR}, alpha::Number, beta::Number)
 mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B}) where {B<:Basis,BL<:Basis} =
     mul!(result, a.data, b.data)
 mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B}, alpha::Number, beta::Number) where {B<:Basis,BL<:Basis} =
-    mul!(result, a.data, b.data)
+    mul!(result, a.data, b.data, alpha, beta)
 # operators.gemm!(alpha, a::Matrix{ComplexF64}, b::Matrix{ComplexF64}, beta, result::Matrix{ComplexF64}) = BLAS.gemm!('N', 'N', convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
 # operators.gemv!(alpha, a::Matrix{ComplexF64}, b::Vector{ComplexF64}, beta, result::Vector{ComplexF64}) = BLAS.gemv!('N', convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
 # operators.gemv!(alpha, a::Vector{ComplexF64}, b::Matrix{ComplexF64}, beta, result::Vector{ComplexF64}) = BLAS.gemv!('T', convert(ComplexF64, alpha), b, a, convert(ComplexF64, beta), result)

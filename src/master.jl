@@ -6,9 +6,11 @@ import ..integrate, ..recast!, ..QO_CHECKS
 
 using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse
+using SparseArrays
 
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
+const OperatorDataType = Union{Matrix{ComplexF64},SparseMatrixCSC{ComplexF64,Int}}
 
 """
     timeevolution.master_h(tspan, rho0, H, J; <keyword arguments>)
@@ -17,14 +19,14 @@ Integrate the master equation with dmaster_h as derivative function.
 
 Further information can be found at [`master`](@ref).
 """
-function master_h(tspan, rho0::DenseOperator, H::AbstractOperator, J::Vector;
+function master_h(tspan, rho0::T1, H::AbstractOperator{B,B}, J::Vector{T2};
                 rates::DecayRates=nothing,
-                Jdagger::Vector=dagger.(J),
+                Jdagger::Vector{T2}=dagger.(J),
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...)
+                kwargs...) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B}}
     check_master(rho0, H, J, Jdagger, rates)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
+    dmaster_(t, rho::T1, drho::T1) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -39,15 +41,15 @@ H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 ```
 Further information can be found at [`master`](@ref).
 """
-function master_nh(tspan, rho0::DenseOperator, Hnh::AbstractOperator, J::Vector;
+function master_nh(tspan, rho0::T1, Hnh::T2, J::Vector{T3};
                 rates::DecayRates=nothing,
-                Hnhdagger::AbstractOperator=dagger(Hnh),
-                Jdagger::Vector=dagger.(J),
+                Hnhdagger::T2=dagger(Hnh),
+                Jdagger::Vector{T3}=dagger.(J),
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...)
+                kwargs...) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B},T3<:AbstractOperator{B,B}}
     check_master(rho0, Hnh, J, Jdagger, rates)
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
+    dmaster_(t, rho::T1, drho::T1) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -83,15 +85,15 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
         be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master(tspan, rho0::DenseOperator, H::AbstractOperator, J::Vector;
+function master(tspan, rho0::T1, H::AbstractOperator{B,B}, J::Vector{T2};
                 rates::DecayRates=nothing,
-                Jdagger::Vector=dagger.(J),
+                Jdagger::Vector{T2}=dagger.(J),
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...)
+                kwargs...) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B}}
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
-        dmaster_h_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
+        dmaster_h_(t, rho::T1, drho::T1) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
         Hnh = copy(H)
@@ -110,7 +112,7 @@ function master(tspan, rho0::DenseOperator, H::AbstractOperator, J::Vector;
         end
         Hnhdagger = dagger(Hnh)
         tmp = copy(rho0)
-        dmaster_nh_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
+        dmaster_nh_(t, rho::T1, drho::T1) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_nh_, rho0, fout; kwargs...)
     end
 end
@@ -128,12 +130,12 @@ The given function can either be of the form `f(t, rho) -> (Hnh, Hnhdagger, J, J
 or `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger, rates)` For further information look
 at [`master_dynamic`](@ref).
 """
-function master_nh_dynamic(tspan, rho0::DenseOperator, f::Function;
+function master_nh_dynamic(tspan, rho0::Operator{B,B}, f::Function;
                 rates::DecayRates=nothing,
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...)
+                kwargs...) where B<:Basis
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
+    dmaster_(t, rho::Operator{B,B}, drho::Operator{B,B}) = dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -162,12 +164,12 @@ operators:
         be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master_dynamic(tspan, rho0::DenseOperator, f::Function;
+function master_dynamic(tspan, rho0::Operator{B,B}, f::Function;
                 rates::DecayRates=nothing,
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...)
+                kwargs...) where B<:Basis
     tmp = copy(rho0)
-    dmaster_(t, rho::DenseOperator, drho::DenseOperator) = dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
+    dmaster_(t, rho::Operator{B,B}, drho::Operator{B,B}) = dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -181,17 +183,18 @@ master_nh_dynamic(tspan, psi0::Ket, f::Function; kwargs...) = master_nh_dynamic(
 
 
 # Recasting needed for the ODE solver is just providing the underlying data
-function recast!(x::Array{ComplexF64, 2}, rho::DenseOperator)
+# TODO: recast! for sparse rho
+function recast!(x::Array{ComplexF64, 2}, rho::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}}
     rho.data = x
 end
-recast!(rho::DenseOperator, x::Array{ComplexF64, 2}) = nothing
+recast!(rho::Operator{B,B}, x::Array{ComplexF64, 2}) where B<:Basis = nothing
 
-function integrate_master(tspan, df::Function, rho0::DenseOperator,
-                        fout::Union{Nothing, Function}; kwargs...)
+function integrate_master(tspan, df::Function, rho0::Operator{B,B},
+                        fout::Union{Nothing, Function}; kwargs...) where B<:Basis
     tspan_ = convert(Vector{Float64}, tspan)
     x0 = rho0.data
-    state = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
-    dstate = DenseOperator(rho0.basis_l, rho0.basis_r, rho0.data)
+    state = copy(rho0)
+    dstate = copy(rho0)
     integrate(tspan_, df, x0, state, dstate, fout; kwargs...)
 end
 
@@ -205,96 +208,96 @@ end
 # the type of the given decay rate object which can either be nothing, a vector
 # or a matrix.
 
-function dmaster_h(rho::DenseOperator, H::AbstractOperator,
-                    rates::Nothing, J::Vector, Jdagger::Vector,
-                    drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(-1im, H, rho, 0, drho)
-    operators.gemm!(1im, rho, H, 1, drho)
+function dmaster_h(rho::T1, H::AbstractOperator{B,B},
+                    rates::Nothing, J::Vector{T2}, Jdagger::Vector{T2},
+                    drho::T1, tmp::T2) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B}}
+    mul!(drho, H, rho, -1.0im, 0.0im)
+    mul!(drho, rho, H, 1.0im, 1.0)
     for i=1:length(J)
-        operators.gemm!(1, J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+        mul!(tmp, J[i], rho)
+        mul!(tmp, Jdagger[i], drho, 1.0, 1.0)
 
-        operators.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
+        mul!(drho, Jdagger[i], tmp, -0.5, 1.0)
 
-        operators.gemm!(1., rho, Jdagger[i], 0, tmp)
-        operators.gemm!(-0.5, tmp, J[i], 1, drho)
+        mul!(tmp, rho, Jdagger[i])
+        mul!(drho, tmp, J[i], -0.5, 1.0)
     end
     return drho
 end
 
-function dmaster_h(rho::DenseOperator, H::AbstractOperator,
-                    rates::Vector{Float64}, J::Vector, Jdagger::Vector,
-                    drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(-1im, H, rho, 0, drho)
-    operators.gemm!(1im, rho, H, 1, drho)
+function dmaster_h(rho::T1, H::AbstractOperator{B,B},
+                    rates::Vector{Float64}, J::Vector{T2}, Jdagger::Vector{T2},
+                    drho::T1, tmp::T1) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B}}
+    mul!(drho, H, rho, -1.0im, 0.0im)
+    mul!(drho, rho, H, 1.0im, 1.0)
     for i=1:length(J)
-        operators.gemm!(rates[i], J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+        mul!(tmp, J[i], rho, rates[i], 0.0)
+        mul!(drho, tmp, Jdagger[i], 1.0, 1.0)
 
-        operators.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
+        mul!(drho, Jdagger[i], tmp, -0.5, 1.0)
 
-        operators.gemm!(rates[i], rho, Jdagger[i], 0, tmp)
-        operators.gemm!(-0.5, tmp, J[i], 1, drho)
+        mul!(tmp, rho, Jdagger[i], rates[i], 0.0)
+        mul!(drho, tmp, J[i], -0.5, 1.0)
     end
     return drho
 end
 
-function dmaster_h(rho::DenseOperator, H::AbstractOperator,
-                    rates::Matrix{Float64}, J::Vector, Jdagger::Vector,
-                    drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(-1im, H, rho, 0, drho)
-    operators.gemm!(1im, rho, H, 1, drho)
+function dmaster_h(rho::T1, H::AbstractOperator{B,B},
+                    rates::Matrix{Float64}, J::Vector{T2}, Jdagger::Vector{T2},
+                    drho::T1, tmp::T1) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B}}
+    mul!(drho, H, rho, -1.0im, 0.0im)
+    mul!(drho, rho, H, 1.0im, 1.0)
     for j=1:length(J), i=1:length(J)
-        operators.gemm!(rates[i,j], J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[j], 1, drho)
+        mul!(tmp, J[i], rho, rates[i,j], 0.0)
+        mul!(drho, tmp, Jdagger[j], 1.0, 1.0)
 
-        operators.gemm!(-0.5, Jdagger[j], tmp, 1, drho)
+        mul!(drho, Jdagger[j], tmp, -0.5, 1.0)
 
-        operators.gemm!(rates[i,j], rho, Jdagger[j], 0, tmp)
-        operators.gemm!(-0.5, tmp, J[i], 1, drho)
+        mul!(tmp, rho, Jdagger[j], rates[i,j], 0.0)
+        mul!(drho, tmp, J[i], -0.5, 1.0)
     end
     return drho
 end
 
-function dmaster_nh(rho::DenseOperator, Hnh::AbstractOperator, Hnh_dagger::AbstractOperator,
-                    rates::Nothing, J::Vector, Jdagger::Vector,
-                    drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(-1im, Hnh, rho, 0, drho)
-    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
+function dmaster_nh(rho::T1, Hnh::T2, Hnh_dagger::T2,
+                    rates::Nothing, J::Vector{T3}, Jdagger::Vector{T3},
+                    drho::T1, tmp::T1) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B},T3<:AbstractOperator{B,B}}
+    mul!(drho, Hnh, rho, -1.0im, 0.0)
+    mul!(drho, rho, Hnh_dagger, 1.0im, 1.0)
     for i=1:length(J)
-        operators.gemm!(1, J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+        mul!(tmp, J[i], rho)
+        mul!(drho, tmp, Jdagger[i], 1.0, 1.0)
     end
     return drho
 end
 
-function dmaster_nh(rho::DenseOperator, Hnh::AbstractOperator, Hnh_dagger::AbstractOperator,
-                    rates::Vector{Float64}, J::Vector, Jdagger::Vector,
-                    drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(-1im, Hnh, rho, 0, drho)
-    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
+function dmaster_nh(rho::T1, Hnh::T2, Hnh_dagger::T2,
+                    rates::Vector{Float64}, J::Vector{T3}, Jdagger::Vector{T3},
+                    drho::T1, tmp::T1) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B},T3<:AbstractOperator{B,B}}
+    mul!(drho, Hnh, rho, -1.0im, 0.0)
+    mul!(drho, rho, Hnh_dagger, 1.0im, 1.0)
     for i=1:length(J)
-        operators.gemm!(rates[i], J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+        mul!(tmp, J[i], rho)
+        mul!(drho, tmp, Jdagger[i], rates[i], 1.0)
     end
     return drho
 end
 
-function dmaster_nh(rho::DenseOperator, Hnh::AbstractOperator, Hnh_dagger::AbstractOperator,
-                    rates::Matrix{Float64}, J::Vector, Jdagger::Vector,
-                    drho::DenseOperator, tmp::DenseOperator)
-    operators.gemm!(-1im, Hnh, rho, 0, drho)
-    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
+function dmaster_nh(rho::T1, Hnh::T2, Hnh_dagger::T2,
+                    rates::Matrix{Float64}, J::Vector{T3}, Jdagger::Vector{T3},
+                    drho::T1, tmp::T1) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B},T3<:AbstractOperator{B,B}}
+    mul!(drho, Hnh, rho, -1.0im, 0.0)
+    mul!(drho, rho, Hnh_dagger, 1.0im, 1.0)
     for j=1:length(J), i=1:length(J)
-        operators.gemm!(rates[i,j], J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[j], 1, drho)
+        mul!(tmp, J[i], rho)
+        mul!(drho, tmp, Jdagger[j], rates[i,j], 1.0)
     end
     return drho
 end
 
-function dmaster_h_dynamic(t::Float64, rho::DenseOperator, f::Function,
+function dmaster_h_dynamic(t::Float64, rho::T, f::Function,
                     rates::DecayRates,
-                    drho::DenseOperator, tmp::DenseOperator)
+                    drho::T, tmp::T) where {B<:Basis,T<:Operator{B,B}}
     result = f(t, rho)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     if length(result) == 3
@@ -307,9 +310,9 @@ function dmaster_h_dynamic(t::Float64, rho::DenseOperator, f::Function,
     dmaster_h(rho, H, rates_, J, Jdagger, drho, tmp)
 end
 
-function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
+function dmaster_nh_dynamic(t::Float64, rho::T, f::Function,
                     rates::DecayRates,
-                    drho::DenseOperator, tmp::DenseOperator)
+                    drho::T, tmp::T) where {B<:Basis,T<:Operator{B,B}}
     result = f(t, rho)
     QO_CHECKS[] && @assert 4 <= length(result) <= 5
     if length(result) == 4
@@ -323,7 +326,7 @@ function dmaster_nh_dynamic(t::Float64, rho::DenseOperator, f::Function,
 end
 
 
-function check_master(rho0::DenseOperator, H::AbstractOperator, J::Vector, Jdagger::Vector, rates::DecayRates)
+function check_master(rho0::Operator{B,B}, H::AbstractOperator{B,B}, J::Vector{T}, Jdagger::Vector{T}, rates::DecayRates) where {B<:Basis,T<:AbstractOperator{B,B}}
     isreducible = true # test if all operators are sparse or dense
     check_samebases(rho0, H)
     if !(isa(H, DenseOperator) || isa(H, SparseOperator))

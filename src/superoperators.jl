@@ -12,8 +12,6 @@ using SparseArrays
 
 const OperatorDataType = Union{Matrix{ComplexF64},SparseMatrixCSC{ComplexF64,Int}}
 
-abstract type Basis end
-
 """
 Base class for all super operator classes.
 
