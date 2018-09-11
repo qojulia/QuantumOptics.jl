@@ -275,7 +275,7 @@ function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{B,B,T}) where {B
     return result
 end
 
-function manybodyoperator(basis::ManyBodyBasis{BC}, op::Operator{B,B,T}) where {B<:Basis,BC<:CompositeBasis{Vector{Basis}},T<:Matrix{ComplexF64}}
+function manybodyoperator(basis::ManyBodyBasis{BC}, op::Operator{B,B,T}) where {B<:Basis,BC<:CompositeBasis{Tuple{Vararg{B}}},T<:Matrix{ComplexF64}}
     @assert basis.onebodybasis == op.basis_l^2
     N = length(basis)
     S = length(basis.onebodybasis)
@@ -293,7 +293,7 @@ function manybodyoperator(basis::ManyBodyBasis{BC}, op::Operator{B,B,T}) where {
     return result
 end
 
-function manybodyoperator(basis::ManyBodyBasis{BC}, op::Operator{B,B,T}) where {BC<:CompositeBasis{Vector{Basis}},B<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}}
+function manybodyoperator(basis::ManyBodyBasis{BC}, op::Operator{B,B,T}) where {B<:Basis,BC<:CompositeBasis{Tuple{Vararg{B}}},T<:SparseMatrixCSC{ComplexF64,Int}}
     @assert basis.onebodybasis == op.basis_l^2
     N = length(basis)
     S = length(basis.onebodybasis)
