@@ -103,8 +103,8 @@ function spectrum(omega_samplepoints::Vector{Float64},
                 kwargs...) where {B<:Basis,T<:AbstractOperator{B,B},T2<:Operator{B,B}}
     domega = minimum(diff(omega_samplepoints))
     dt = 2*pi/abs(omega_samplepoints[end] - omega_samplepoints[1])
-    T = 2*pi/domega
-    tspan = [0.:dt:T;]
+    tmax = 2*pi/domega
+    tspan = [0.:dt:tmax;]
     exp_values = correlation(tspan, rho_ss, H, J, dagger(op), op, kwargs...)
     S = 2dt.*fftshift(real(fft(exp_values)))
     return omega_samplepoints, S
@@ -117,8 +117,8 @@ function spectrum(H::AbstractOperator{B,B}, J::Vector{T}, op::AbstractOperator{B
                 kwargs...) where {B<:Basis,T<:AbstractOperator{B,B},T2<:Operator{B,B}}
     tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, tol=tol, h0=h0, kwargs...)
     dtmin = minimum(diff(tspan))
-    T = tspan[end] - tspan[1]
-    tspan = Float64[0.:dtmin:T;]
+    tmax = tspan[end] - tspan[1]
+    tspan = Float64[0.:dtmin:tmax;]
     n = length(tspan)
     omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
     omega .*= 2pi/T

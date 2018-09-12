@@ -8,7 +8,7 @@ using ...semiclassical
 import ...semiclassical: recast!, State, dmaster_h_dynamic
 using ...timeevolution
 import ...timeevolution: integrate_stoch, QO_CHECKS
-import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic, check_schroedinger
+import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic
 import ...stochastic.stochastic_master: check_master_stoch
 using ...stochastic
 using LinearAlgebra
@@ -56,16 +56,16 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
         each time step taken by the solver.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function schroedinger_semiclassical(tspan, state0::State{T}, fquantum::Function,
+function schroedinger_semiclassical(tspan, state0::T, fquantum::Function,
                 fclassical::Function; fstoch_quantum::Union{Nothing, Function}=nothing,
                 fstoch_classical::Union{Nothing, Function}=nothing,
                 fout::Union{Function,Nothing}=nothing,
                 noise_processes::Int=0,
                 noise_prototype_classical=nothing,
                 normalize_state::Bool=false,
-                kwargs...) where T<:Ket
+                kwargs...) where {S<:Ket,T<:State{S}}
     tspan_ = convert(Vector{Float64}, tspan)
-    dschroedinger_det(t::Float64, state::State{T}, dstate::State{T}) where T<:Ket =
+    dschroedinger_det(t::Float64, state::T, dstate::T) =
             semiclassical.dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
 
     if isa(fstoch_quantum, Nothing) && isa(fstoch_classical, Nothing)
@@ -105,7 +105,7 @@ function schroedinger_semiclassical(tspan, state0::State{T}, fquantum::Function,
         ncb = nothing
     end
 
-    dschroedinger_stoch(dx::DiffArray, t::Float64, state::State{T}, dstate::State{T}, n::Int) where T<:Ket =
+    dschroedinger_stoch(dx::DiffArray, t::Float64, state::T, dstate::T, n::Int) =
             dschroedinger_stochastic(dx, t, state, fstoch_quantum, fstoch_classical, dstate, n)
 
     integrate_stoch(tspan_, dschroedinger_det, dschroedinger_stoch, x0, state, dstate, fout, n;
@@ -157,7 +157,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
         noise. See the documentation for details.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master_semiclassical(tspan::Vector{Float64}, rho0::State{DenseOperator},
+function master_semiclassical(tspan::Vector{Float64}, rho0::T,
                 fquantum::Function, fclassical::Function;
                 fstoch_quantum::Union{Function, Nothing}=nothing,
                 fstoch_classical::Union{Function, Nothing}=nothing,
@@ -166,7 +166,7 @@ function master_semiclassical(tspan::Vector{Float64}, rho0::State{DenseOperator}
                 noise_processes::Int=0,
                 noise_prototype_classical=nothing,
                 nonlinear::Bool=true,
-                kwargs...)
+                kwargs...) where {S<:Operator,T<:State{S}}
 
     tmp = copy(rho0.quantum)
     if isa(fstoch_quantum, Nothing) && isa(fstoch_classical, Nothing)
@@ -189,11 +189,9 @@ function master_semiclassical(tspan::Vector{Float64}, rho0::State{DenseOperator}
         end
     end
 
-    dmaster_determ(t::Float64, rho::State{DenseOperator}, drho::State{DenseOperator}) =
-            dmaster_h_dynamic(t, rho, fquantum, fclassical, rates, drho, tmp)
+    dmaster_determ(t::Float64, rho::T, drho::T) = dmaster_h_dynamic(t, rho, fquantum, fclassical, rates, drho, tmp)
 
-    dmaster_stoch(dx::DiffArray, t::Float64, rho::State{DenseOperator},
-                    drho::State{DenseOperator}, n::Int) =
+    dmaster_stoch(dx::DiffArray, t::Float64, rho::T, drho::T, n::Int) =
         dmaster_stoch_dynamic(dx, t, rho, fstoch_quantum, fstoch_classical, drho, n)
 
     integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch, rho0, fout, n;
@@ -205,34 +203,32 @@ master_semiclassical(tspan::Vector{Float64}, psi0::State{T}, args...; kwargs...)
 
 # Derivative functions
 function dschroedinger_stochastic(dx::Vector{ComplexF64}, t::Float64,
-        state::State{T}, fstoch_quantum::Function, fstoch_classical::Nothing,
-        dstate::State{T}, ::Int) where T<:Ket
+        state::T, fstoch_quantum::Function, fstoch_classical::Nothing,
+        dstate::T, ::Int) where {S<:Ket,T<:State{S}}
     H = fstoch_quantum(t, state.quantum, state.classical)
     recast!(dx, dstate)
-    QO_CHECKS[] && check_schroedinger(state.quantum, H[1])
     dschroedinger(state.quantum, H[1], dstate.quantum)
     recast!(dstate, dx)
 end
 function dschroedinger_stochastic(dx::Array{ComplexF64, 2},
-        t::Float64, state::State{T}, fstoch_quantum::Function,
-        fstoch_classical::Nothing, dstate::State{T}, n::Int) where T<:Ket
+        t::Float64, state::T, fstoch_quantum::Function,
+        fstoch_classical::Nothing, dstate::T, n::Int) where {S<:Ket,T<:State{S}}
     H = fstoch_quantum(t, state.quantum, state.classical)
     for i=1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, dstate)
-        QO_CHECKS[] && check_schroedinger(state.quantum, H[i])
         dschroedinger(state.quantum, H[i], dstate.quantum)
         recast!(dstate, dx_i)
     end
 end
 function dschroedinger_stochastic(dx::DiffArray, t::Float64,
-            state::State{T}, fstoch_quantum::Nothing, fstoch_classical::Function,
-            dstate::State{T}, ::Int) where T<:Ket
+            state::T, fstoch_quantum::Nothing, fstoch_classical::Function,
+            dstate::T, ::Int) where {S<:Ket,T<:State{S}}
     dclassical = @view dx[length(state.quantum)+1:end, :]
     fstoch_classical(t, state.quantum, state.classical, dclassical)
 end
-function dschroedinger_stochastic(dx::Array{ComplexF64, 2}, t::Float64, state::State{T}, fstoch_quantum::Function,
-            fstoch_classical::Function, dstate::State{T}, n::Int) where T<:Ket
+function dschroedinger_stochastic(dx::Array{ComplexF64, 2}, t::Float64, state::T, fstoch_quantum::Function,
+            fstoch_classical::Function, dstate::T, n::Int) where {S<:Ket,T<:State{S}}
     dschroedinger_stochastic(dx, t, state, fstoch_quantum, nothing, dstate, n)
 
     dx_i = @view dx[length(state.quantum)+1:end, n+1:end]
@@ -240,21 +236,21 @@ function dschroedinger_stochastic(dx::Array{ComplexF64, 2}, t::Float64, state::S
 end
 
 function dmaster_stoch_dynamic(dx::Vector{ComplexF64}, t::Float64,
-            state::State{DenseOperator}, fstoch_quantum::Function,
-            fstoch_classical::Nothing, dstate::State{DenseOperator}, ::Int)
+            state::T, fstoch_quantum::Function,
+            fstoch_classical::Nothing, dstate::T, ::Int) where {S<:Operator,T<:State{S}}
     result = fstoch_quantum(t, state.quantum, state.classical)
     QO_CHECKS[] && @assert length(result) == 2
     C, Cdagger = result
     QO_CHECKS[] && check_master_stoch(state.quantum, C, Cdagger)
     recast!(dx, dstate)
-    operators.gemm!(1, C[1], state.quantum, 0, dstate.quantum)
-    operators.gemm!(1, state.quantum, Cdagger[1], 1, dstate.quantum)
+    mul!(dstate.quantum, C[1], state.quantum)
+    mul!(dstate.quantum, state.quantum, Cdagger[1], 1.0, 1.0)
     dstate.quantum.data .-= tr(dstate.quantum)*state.quantum.data
     recast!(dstate, dx)
 end
 function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
-            state::State{DenseOperator}, fstoch_quantum::Function,
-            fstoch_classical::Nothing, dstate::State{DenseOperator}, n::Int)
+            state::T, fstoch_quantum::Function,
+            fstoch_classical::Nothing, dstate::T, n::Int) where {S<:Operator,T<:State{S}}
     result = fstoch_quantum(t, state.quantum, state.classical)
     QO_CHECKS[] && @assert length(result) == 2
     C, Cdagger = result
@@ -262,21 +258,21 @@ function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
     for i=1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, dstate)
-        operators.gemm!(1, C[i], state.quantum, 0, dstate.quantum)
-        operators.gemm!(1, state.quantum, Cdagger[i], 1, dstate.quantum)
+        mul!(dstate.quantum, C[i], state.quantum)
+        mul!(dstate.quantum, state.quantum, Cdagger[i], 1.0, 1.0)
         dstate.quantum.data .-= tr(dstate.quantum)*state.quantum.data
         recast!(dstate, dx_i)
     end
 end
 function dmaster_stoch_dynamic(dx::DiffArray, t::Float64,
-            state::State{DenseOperator}, fstoch_quantum::Nothing,
-            fstoch_classical::Function, dstate::State{DenseOperator}, ::Int)
+            state::T, fstoch_quantum::Nothing,
+            fstoch_classical::Function, dstate::T, ::Int) where {S<:Operator,T<:State{S}}
     dclassical = @view dx[length(state.quantum)+1:end, :]
     fstoch_classical(t, state.quantum, state.classical, dclassical)
 end
 function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
-            state::State{DenseOperator}, fstoch_quantum::Function,
-            fstoch_classical::Function, dstate::State{DenseOperator}, n::Int)
+            state::T, fstoch_quantum::Function,
+            fstoch_classical::Function, dstate::T, n::Int) where {S<:Operator,T<:State{S}}
     dmaster_stoch_dynamic(dx, t, state, fstoch_quantum, nothing, dstate, n)
 
     dx_i = @view dx[length(state.quantum)+1:end, n+1:end]
@@ -284,9 +280,9 @@ function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
 end
 
 function integrate_master_stoch(tspan, df::Function, dg::Function,
-                        rho0::State{DenseOperator}, fout::Union{Nothing, Function},
+                        rho0::State{T}, fout::Union{Nothing, Function},
                         n::Int;
-                        kwargs...)
+                        kwargs...) where T<:Operator
     tspan_ = convert(Vector{Float64}, tspan)
     x0 = Vector{ComplexF64}(undef, length(rho0))
     recast!(rho0, x0)
@@ -295,6 +291,7 @@ function integrate_master_stoch(tspan, df::Function, dg::Function,
     integrate_stoch(tspan_, df, dg, x0, state, dstate, fout, n; kwargs...)
 end
 
+# TODO: recast! for sparse density matrices
 function recast!(state::State, x::SubArray{ComplexF64, 1})
     N = length(state.quantum)
     copyto!(x, 1, state.quantum.data, 1, N)

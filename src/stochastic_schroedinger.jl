@@ -7,7 +7,7 @@ using ...operators_dense, ...operators_sparse
 using ...timeevolution
 using LinearAlgebra
 import ...timeevolution: integrate_stoch, recast!, QO_CHECKS
-import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic, check_schroedinger
+import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic
 
 import DiffEqCallbacks
 

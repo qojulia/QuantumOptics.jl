@@ -49,10 +49,10 @@ H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 
 For more information see: [`mcwf`](@ref)
 """
-function mcwf_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J::Vector;
+function mcwf_nh(tspan, psi0::Ket{B}, Hnh::AbstractOperator{B,B}, J::Vector{T};
     seed=rand(UInt), fout=nothing,
     display_beforeevent=false, display_afterevent=false,
-    kwargs...)
+    kwargs...) where {B<:Basis,T<:AbstractOperator{B,B}}
     check_mcwf(psi0, Hnh, J, J, nothing)
     f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
@@ -446,25 +446,21 @@ end
 
 Check input of mcwf.
 """
-function check_mcwf(psi0::Ket, H::AbstractOperator, J::Vector, Jdagger::Vector, rates::DecayRates)
+function check_mcwf(psi0::Ket{B}, H::AbstractOperator{B,B}, J::Vector{T},
+            Jdagger::Vector{T}, rates::DecayRates) where {B<:Basis,T<:AbstractOperator{B,B}}
     isreducible = true
-    check_samebases(basis(psi0), basis(H))
-    if !(isa(H, DenseOperator) || isa(H, SparseOperator))
+    if !isa(H, Operator)
         isreducible = false
     end
     for j=J
-        @assert isa(j, AbstractOperator)
-        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+        if !isa(j, Operator)
             isreducible = false
         end
-        check_samebases(H, j)
     end
     for j=Jdagger
-        @assert isa(j, AbstractOperator)
-        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+        if !isa(j, Operator)
             isreducible = false
         end
-        check_samebases(H, j)
     end
     @assert length(J) == length(Jdagger)
     if typeof(rates) == Matrix{Float64}

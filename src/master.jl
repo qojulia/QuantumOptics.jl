@@ -328,23 +328,18 @@ end
 
 function check_master(rho0::Operator{B,B}, H::AbstractOperator{B,B}, J::Vector{T}, Jdagger::Vector{T}, rates::DecayRates) where {B<:Basis,T<:AbstractOperator{B,B}}
     isreducible = true # test if all operators are sparse or dense
-    check_samebases(rho0, H)
-    if !(isa(H, DenseOperator) || isa(H, SparseOperator))
+    if !isa(H, Operator)
         isreducible = false
     end
     for j=J
-        @assert isa(j, AbstractOperator)
-        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+        if !(j, Operator)
             isreducible = false
         end
-        check_samebases(rho0, j)
     end
     for j=Jdagger
-        @assert isa(j, AbstractOperator)
-        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+        if !isa(j, Operator)
             isreducible = false
         end
-        check_samebases(rho0, j)
     end
     @assert length(J)==length(Jdagger)
     if typeof(rates) == Matrix{Float64}

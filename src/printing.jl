@@ -119,7 +119,7 @@ end
 
 show(stream::IO, x::AbstractOperator) = summary(stream, x)
 
-function show(stream::IO, x::DenseOperator)
+function show(stream::IO, x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}}
     summary(stream, x)
     print(stream, "\n")
     if !_std_order
@@ -132,7 +132,7 @@ function show(stream::IO, x::DenseOperator)
     end
 end
 
-function show(stream::IO, x::SparseOperator)
+function show(stream::IO, x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}}
     summary(stream, x)
     if nnz(x.data) == 0
         print(stream, "\n    []")
