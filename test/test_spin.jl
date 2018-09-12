@@ -15,7 +15,7 @@ D(op1::AbstractOperator, op2::AbstractOperator) = abs(tracedistance_nh(dense(op1
 for spinnumber=[1//2, 1, 3//2, 4//2]
     spinbasis = SpinBasis(spinnumber)
     I = operators.identityoperator(spinbasis)
-    Zero = SparseOperator(spinbasis)
+    Zero = Operator(spinbasis)
     sx = sigmax(spinbasis)
     sy = sigmay(spinbasis)
     sz = sigmaz(spinbasis)
@@ -80,7 +80,7 @@ end
 
 spinbasis = SpinBasis(1//2)
 I = identityoperator(spinbasis)
-Zero = SparseOperator(spinbasis)
+Zero = Operator(spinbasis)
 sx = sigmax(spinbasis)
 sy = sigmay(spinbasis)
 sz = sigmaz(spinbasis)

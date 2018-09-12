@@ -27,10 +27,10 @@ b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
 # Test creation
-@test_throws DimensionMismatch DenseOperator(b1a, spzeros(ComplexF64, 3, 2))
-@test_throws DimensionMismatch DenseOperator(b1a, b1b, spzeros(ComplexF64, 3, 2))
-op1 = SparseOperator(b1a, b1b, sparse([1 1 1; 1 1 1]))
-op2 = sparse(DenseOperator(b1b, b1a, [1 1; 1 1; 1 1]))
+@test_throws DimensionMismatch Operator(b1a, spzeros(ComplexF64, 3, 2))
+@test_throws DimensionMismatch Operator(b1a, b1b, spzeros(ComplexF64, 3, 2))
+op1 = Operator(b1a, b1b, sparse([1 1 1; 1 1 1]))
+op2 = sparse(Operator(b1b, b1a, [1 1; 1 1; 1 1]))
 @test op1 == dagger(op2)
 
 # Test copy
@@ -42,7 +42,7 @@ op2.data[1,1] = complex(10.)
 
 # Arithmetic operations
 # =====================
-op_zero = SparseOperator(b_l, b_r)
+op_zero = Operator(b_l, b_r)
 op1 = sprandop(b_l, b_r)
 op2 = sprandop(b_l, b_r)
 op3 = sprandop(b_l, b_r)
@@ -94,23 +94,23 @@ conj!(tmp)
 @test tmp == conj(op1) && conj(tmp.data) == op1.data
 
 # Test identityoperator
-Idense = identityoperator(DenseOperator, b_r)
-I = identityoperator(SparseOperator, b_r)
-@test isa(I, SparseOperator)
+Idense = identityoperator(Operator, b_r)
+I = identityoperator(Operator, b_r)
+@test isa(I, Operator)
 @test dense(I) == Idense
 @test 1e-11 > D(I*x1, x1)
-@test I == identityoperator(SparseOperator, b1b) ⊗ identityoperator(SparseOperator, b2b) ⊗ identityoperator(SparseOperator, b3b)
+@test I == identityoperator(Operator, b1b) ⊗ identityoperator(Operator, b2b) ⊗ identityoperator(Operator, b3b)
 
-Idense = identityoperator(DenseOperator, b_l)
-I = identityoperator(SparseOperator, b_l)
-@test isa(I, SparseOperator)
+Idense = identityoperator(Operator, b_l)
+I = identityoperator(Operator, b_l)
+@test isa(I, Operator)
 @test dense(I) == Idense
 @test 1e-11 > D(xbra1*I, xbra1)
-@test I == identityoperator(SparseOperator, b1a) ⊗ identityoperator(SparseOperator, b2a) ⊗ identityoperator(SparseOperator, b3a)
+@test I == identityoperator(Operator, b1a) ⊗ identityoperator(Operator, b2a) ⊗ identityoperator(Operator, b3a)
 
 
 # Test tr and normalize
-op = sparse(DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5]))
+op = sparse(Operator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5]))
 @test 8 == tr(op)
 op_normalized = normalize(op)
 @test 8 == tr(op)
@@ -231,7 +231,7 @@ I = identityoperator(b)
 @test diagonaloperator(b, [1, 1, 1, 1]) == I
 @test diagonaloperator(b, [1., 1., 1., 1.]) == I
 @test diagonaloperator(b, [1im, 1im, 1im, 1im]) == 1im*I
-@test diagonaloperator(b, [0:3;]) == sparse(DenseOperator(b, Diagonal([0:3;])))
+@test diagonaloperator(b, [0:3;]) == sparse(Operator(b, Diagonal([0:3;])))
 
 # Test gemv
 op = sprandop(b_l, b_r)
@@ -328,19 +328,19 @@ operators.gemm!(alpha, state, op, beta, result)
 @test 1e-11 > D(result, alpha*state*op_ + beta*result_)
 
 # Test remaining uncovered code
-@test_throws DimensionMismatch SparseOperator(b1, b2, zeros(10, 10))
+@test_throws DimensionMismatch Operator(b1, b2, zeros(10, 10))
 dat = sprandop(b1, b1).data
-@test SparseOperator(b1, dat) == SparseOperator(b1, Matrix{ComplexF64}(dat))
+@test Operator(b1, dat) == Operator(b1, Matrix{ComplexF64}(dat))
 
 @test_throws ArgumentError sparse(TestOperator())
 
-@test 2*SparseOperator(b1, dat) == SparseOperator(b1, dat)*2
+@test 2*Operator(b1, dat) == Operator(b1, dat)*2
 @test copy(op1) == deepcopy(op1)
 
 # Test Hermitian
 bspin = SpinBasis(1//2)
 bnlevel = NLevelBasis(2)
-@test ishermitian(SparseOperator(bspin, bspin, sparse([1.0 im; -im 2.0]))) == true
-@test ishermitian(SparseOperator(bspin, bnlevel, sparse([1.0 im; -im 2.0]))) == false
+@test ishermitian(Operator(bspin, bspin, sparse([1.0 im; -im 2.0]))) == true
+@test ishermitian(Operator(bspin, bnlevel, sparse([1.0 im; -im 2.0]))) == false
 
 end # testset

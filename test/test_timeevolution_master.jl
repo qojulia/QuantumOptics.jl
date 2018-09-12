@@ -136,7 +136,7 @@ alpha = 0.3
 R = [cos(alpha) -sin(alpha); sin(alpha) cos(alpha)]
 Rt = transpose(R)
 Jrotated_dense = [R[1,1]*Junscaled_dense[1] + R[1,2]*Junscaled_dense[2], R[2,1]*Junscaled_dense[1] + R[2,2]*Junscaled_dense[2]]
-Jrotated = [SparseOperator(j) for j=Jrotated_dense]
+Jrotated = [Operator(j) for j=Jrotated_dense]
 rates_matrix = diagm(0 => rates_vector)
 rates_matrix_rotated = R * rates_matrix * Rt
 

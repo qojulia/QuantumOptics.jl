@@ -113,7 +113,7 @@ tout, Ψt = timeevolution.mcwf_nh(T, Ψ₀, Hnh, J; seed=UInt(2), reltol=1e-6)
 # Test convergence to master solution
 tout_master, ρt_master = timeevolution.master(T, ρ₀, H, J)
 
-ρ_average = DenseOperator[0 * ρ₀ for i=1:length(T)]
+ρ_average = Operator[0 * ρ₀ for i=1:length(T)]
 for i=1:Ntrajectories
     tout, Ψt = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(i))
     for j=1:length(T)
@@ -134,9 +134,9 @@ J2_dense = map(dense, J2)
 
 tout_master, ρt_master = timeevolution.master(T, ρ₀, Hdense, J1_dense)
 
-ρ_average_1 = DenseOperator[0 * ρ₀ for i=1:length(T)]
-ρ_average_2 = DenseOperator[0 * ρ₀ for i=1:length(T)]
-ρ_average_3 = DenseOperator[0 * ρ₀ for i=1:length(T)]
+ρ_average_1 = Operator[0 * ρ₀ for i=1:length(T)]
+ρ_average_2 = Operator[0 * ρ₀ for i=1:length(T)]
+ρ_average_3 = Operator[0 * ρ₀ for i=1:length(T)]
 for i=1:Ntrajectories
     tout, Ψt_1 = timeevolution.mcwf(T, Ψ₀, Hdense, J1_dense; seed=UInt(i))
     tout, Ψt_2 = timeevolution.mcwf(T, Ψ₀, Hdense, J2_dense; seed=UInt(i))
@@ -155,7 +155,7 @@ end
 
 
 # Test equivalence to schroedinger time evolution for no decay
-J = DenseOperator[]
+J = Operator[]
 tout_schroedinger, Ψt_schroedinger = timeevolution.schroedinger(T, Ψ₀, Hdense)
 tout_mcwf, Ψt_mcwf = timeevolution.mcwf(T, Ψ₀, Hdense, J)
 tout_mcwf_h, Ψt_mcwf_h = timeevolution.mcwf_h(T, Ψ₀, Hdense, J)
@@ -179,7 +179,7 @@ d, diagJ = diagonaljumps(rates, J3)
 tout, ρ3_nondiag = timeevolution.master(T, ψ3, H, J3; rates=rates)
 tout, ρ3_diag = timeevolution.master(T, ψ3, H, diagJ; rates=d)
 
-ρ3_avg = DenseOperator[0*ρ3_diag[1] for i=1:length(T)]
+ρ3_avg = Operator[0*ρ3_diag[1] for i=1:length(T)]
 for i=1:Ntrajectories
     tout, ψ3t = timeevolution.mcwf(T, ψ3, H, diagJ; rates=d)
     for j=1:length(T)
@@ -215,9 +215,9 @@ end
 ρ0 = dm(ψ0)
 tout_master, ρt_master = timeevolution.master_dynamic(T, ρ0, Ht)
 
-ρ_average_1 = DenseOperator[0 * ρ0 for i=1:length(T)]
-ρ_average_2 = DenseOperator[0 * ρ0 for i=1:length(T)]
-ρ_average_3 = DenseOperator[0 * ρ0 for i=1:length(T)]
+ρ_average_1 = Operator[0 * ρ0 for i=1:length(T)]
+ρ_average_2 = Operator[0 * ρ0 for i=1:length(T)]
+ρ_average_3 = Operator[0 * ρ0 for i=1:length(T)]
 for i=1:Ntrajectories
     tout, Ψt_1 = timeevolution.mcwf_dynamic(T, ψ0, Ht; seed=UInt(i))
     tout, Ψt_2 = timeevolution.mcwf_dynamic(T, ψ0, Ht; seed=UInt(i))
@@ -235,7 +235,7 @@ function Ht_nh(t, psi)
     H*exp(-(5-t)^2) + H_nh, J, Jdagger
 end
 
-ρ_average_4 = DenseOperator[0 * ρ0 for i=1:length(T)]
+ρ_average_4 = Operator[0 * ρ0 for i=1:length(T)]
 for i=1:Ntrajectories
     tout, Ψt_4 = timeevolution.mcwf_nh_dynamic(T, ψ0, Ht_nh; seed=UInt(i))
     for j=1:length(T)

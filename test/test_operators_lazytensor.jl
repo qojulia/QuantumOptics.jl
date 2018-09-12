@@ -105,14 +105,14 @@ xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 @test 1e-14 > D(op1/7, op1_/7)
 
 # Test identityoperator
-Idense = identityoperator(DenseOperator, b_r)
+Idense = identityoperator(Operator, b_r)
 I = identityoperator(LazyTensor, b_r)
 @test isa(I, LazyTensor)
 @test dense(I) == Idense
 @test 1e-11 > D(I*x1, x1)
 @test I == identityoperator(LazyTensor, b1b) ⊗ identityoperator(LazyTensor, b2b) ⊗ identityoperator(LazyTensor, b3b)
 
-Idense = identityoperator(DenseOperator, b_l)
+Idense = identityoperator(Operator, b_l)
 I = identityoperator(LazyTensor, b_l)
 @test isa(I, LazyTensor)
 @test dense(I) == Idense
@@ -157,7 +157,7 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 state = Ket(b_l, rand(ComplexF64, length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
-state = DenseOperator(b_l, b_l, rand(ComplexF64, length(b_l), length(b_l)))
+state = Operator(b_l, b_l, rand(ComplexF64, length(b_l), length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
 # Permute systems

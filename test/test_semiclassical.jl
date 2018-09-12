@@ -86,7 +86,7 @@ c = 1.3
 d = -4.7
 
 data = [a1 c-1im*d; c+1im*d a2]
-H = DenseOperator(basis, data)
+H = Operator(basis, data)
 
 a = (a1 + a2)/2
 b = (a1 - a2)/2
@@ -117,7 +117,7 @@ semiclassical.schroedinger_dynamic(T, state0, fquantum_schroedinger, fclassical;
 tout, state_t = semiclassical.schroedinger_dynamic(T, state0, fquantum_schroedinger, fclassical)
 f(T[end], state_t[end])
 
-function f(t, state::semiclassical.State{DenseOperator})
+function f(t, state::semiclassical.State{Operator})
     @test 1e-5 > tracedistance(state.quantum, dm(U(t)*psi0))
     @test 1e-5 > abs(state.classical[1] - state0.classical[1]*exp(-t))
 end

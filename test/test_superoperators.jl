@@ -34,7 +34,7 @@ s_dense = dense(s_)
 # Test length
 b1 = GenericBasis(3)
 b2 = GenericBasis(5)
-op = DenseOperator(b1, b2)
+op = Operator(b1, b2)
 S = spre(op)
 @test length(S) == length(S.data) == (3*5)^2
 
@@ -149,8 +149,8 @@ J = [Ja, Jc]
 ρ₀ = dm(Ψ₀)
 
 
-op1 = DenseOperator(spinbasis, [1.2+0.3im 0.7+1.2im;0.3+0.1im 0.8+3.2im])
-op2 = DenseOperator(spinbasis, [0.2+0.1im 0.1+2.3im; 0.8+4.0im 0.3+1.4im])
+op1 = Operator(spinbasis, [1.2+0.3im 0.7+1.2im;0.3+0.1im 0.8+3.2im])
+op2 = Operator(spinbasis, [0.2+0.1im 0.1+2.3im; 0.8+4.0im 0.3+1.4im])
 @test tracedistance(spre(op1)*op2, op1*op2) < 1e-12
 @test tracedistance(spost(op1)*op2, op2*op1) < 1e-12
 

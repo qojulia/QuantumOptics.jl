@@ -30,6 +30,8 @@ end
 
 Operator(b1::BL, b2::BR, data::T) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{BL,BR,T}(b1, b2, data)
 Operator(b::Basis, data::OperatorDataType) = Operator(b, b, data)
+Operator(b1::Basis, b2::Basis, data) = Operator(b1, b2, convert.(ComplexF64, data))
+Operator(b::Basis, data) = Operator(b, b, data)
 Operator(b1::Basis, b2::Basis) = Operator(b1, b2, zeros(ComplexF64, length(b1), length(b2)))
 Operator(b::Basis) = Operator(b, b)
 Operator(op::AbstractOperator) = dense(op)
@@ -41,7 +43,7 @@ Base.copy(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} 
 
 Convert an arbitrary Operator into a [`Operator`](@ref) with a dense `data` field.
 """
-operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{BL,BR}(x.basis_l, x.basis_r, Matrix(x.data))
+operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{BL,BR,Matrix{ComplexF64}}(x.basis_l, x.basis_r, Matrix(x.data))
 
 ==(x::Operator, y::Operator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
 
@@ -88,14 +90,14 @@ operators.ishermitian(A::Operator) = (A.basis_l == A.basis_r) && ishermitian(A.d
 operators.tensor(a::Operator, b::Operator) = Operator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 
 operators.conj(a::Operator) = Operator(a.basis_l, a.basis_r, conj.(a.data))
-operators.conj!(a::Operator) = conj!.(a.data)
+operators.conj!(a::Operator) = conj!(a.data)
 
 """
     tensor(x::Ket, y::Bra)
 
 Outer product ``|x⟩⟨y|`` of the given states.
 """
-operators.tensor(a::Ket{BL}, b::Bra{BR}) where {BL<:Basis,BR<:Basis} = Operator{BL,BR,T<:Matrix{ComplexF64}}(a.basis, b.basis, reshape(kron(b.data, a.data), prod(a.basis.shape), prod(b.basis.shape)))
+operators.tensor(a::Ket{BL}, b::Bra{BR}) where {BL<:Basis,BR<:Basis} = Operator{BL,BR,Matrix{ComplexF64}}(a.basis, b.basis, reshape(kron(b.data, a.data), prod(a.basis.shape), prod(b.basis.shape)))
 
 
 operators.tr(op::Operator{B,B}) where B<:Basis = tr(op.data)

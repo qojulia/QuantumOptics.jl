@@ -19,9 +19,9 @@ I3 = dense(identityoperator(b3))
 
 b = b1 ⊗ b2 ⊗ b3
 
-op1 = DenseOperator(b1, b1, rand(ComplexF64, length(b1), length(b1)))
-op2 = DenseOperator(b2, b2, rand(ComplexF64, length(b2), length(b2)))
-op3 = DenseOperator(b3, b3, rand(ComplexF64, length(b3), length(b3)))
+op1 = Operator(b1, b1, rand(ComplexF64, length(b1), length(b1)))
+op2 = Operator(b2, b2, rand(ComplexF64, length(b2), length(b2)))
+op3 = Operator(b3, b3, rand(ComplexF64, length(b3), length(b3)))
 
 
 # Test Vector{Int}, Vector{AbstractOperator}

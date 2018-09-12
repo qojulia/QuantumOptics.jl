@@ -20,10 +20,10 @@ b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
 # Test creation
-@test_throws DimensionMismatch DenseOperator(b1a, [1 1 1; 1 1 1])
-@test_throws DimensionMismatch DenseOperator(b1a, b1b, [1 1; 1 1; 1 1])
-op1 = DenseOperator(b1a, b1b, [1 1 1; 1 1 1])
-op2 = DenseOperator(b1b, b1a, [1 1; 1 1; 1 1])
+@test_throws AssertionError Operator(b1a, [1 1 1; 1 1 1])
+@test_throws AssertionError Operator(b1a, b1b, [1 1; 1 1; 1 1])
+op1 = Operator(b1a, b1b, [1 1 1; 1 1 1])
+op2 = Operator(b1b, b1a, [1 1; 1 1; 1 1])
 @test op1 == dagger(op2)
 
 # Test copy
@@ -37,7 +37,7 @@ op2.data[1,1] = complex(10.)
 
 # Arithmetic operations
 # =====================
-op_zero = DenseOperator(b_l, b_r)
+op_zero = Operator(b_l, b_r)
 op1 = randoperator(b_l, b_r)
 op2 = randoperator(b_l, b_r)
 op3 = randoperator(b_l, b_r)
@@ -49,20 +49,20 @@ xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
 xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
 # Addition
-@test_throws bases.IncompatibleBases op1 + dagger(op2)
+@test_throws DimensionMismatch op1 + dagger(op2)
 @test 1e-14 > D(op1 + op_zero, op1)
 @test 1e-14 > D(op1 + op2, op2 + op1)
 @test 1e-14 > D(op1 + (op2 + op3), (op1 + op2) + op3)
 
 # Subtraction
-@test_throws bases.IncompatibleBases op1 - dagger(op2)
+@test_throws DimensionMismatch op1 - dagger(op2)
 @test 1e-14 > D(op1-op_zero, op1)
 @test 1e-14 > D(op1-op2, op1 + (-op2))
 @test 1e-14 > D(op1-op2, op1 + (-1*op2))
 @test 1e-14 > D(op1-op2-op3, op1-(op2+op3))
 
 # Test multiplication
-@test_throws bases.IncompatibleBases op1*op2
+@test_throws DimensionMismatch op1*op2
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1*x1 + 0.3*op1*x2)
 @test 1e-11 > D((op1+op2)*(x1+0.3*x2), op1*x1 + 0.3*op1*x2 + op2*x1 + 0.3*op2*x2)
 
@@ -144,20 +144,20 @@ x2 = Ket(b_r, rand(ComplexF64, length(b_r)))
 xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
 xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
-I = identityoperator(DenseOperator, b_r)
-@test isa(I, DenseOperator)
-@test identityoperator(SparseOperator, b_r) == sparse(I)
-@test 1e-11 > D(I*x1, x1)
-@test I == identityoperator(DenseOperator, b1b) ⊗ identityoperator(DenseOperator, b2b) ⊗ identityoperator(DenseOperator, b3b)
+id = identityoperator(Operator{typeof(b_r),typeof(b_r),Matrix{ComplexF64}}, b_r)
+@test isa(id.data, Matrix{ComplexF64})
+@test identityoperator(b_r) == sparse(id)
+@test 1e-11 > D(id*x1, x1)
+@test id == identityoperator(b1b) ⊗ identityoperator(b2b) ⊗ identityoperator(b3b)
 
-I = identityoperator(DenseOperator, b_l)
-@test isa(I, DenseOperator)
-@test identityoperator(SparseOperator, b_l) == sparse(I)
-@test 1e-11 > D(xbra1*I, xbra1)
-@test I == identityoperator(DenseOperator, b1a) ⊗ identityoperator(DenseOperator, b2a) ⊗ identityoperator(DenseOperator, b3a)
+id = dense(identityoperator(b_l))
+@test isa(id.data, Matrix{ComplexF64})
+@test identityoperator(b_l) == sparse(id)
+@test 1e-11 > D(xbra1*id, xbra1)
+@test id == identityoperator(b1a) ⊗ identityoperator(b2a) ⊗ identityoperator(b3a)
 
 # Test tr and normalize
-op = DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5])
+op = Operator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5])
 @test 8 == tr(op)
 op_normalized = normalize(op)
 @test 8 == tr(op)
@@ -337,7 +337,7 @@ y = Bra(b_r, dat)
 # Test Hermitian
 bspin = SpinBasis(1//2)
 bnlevel = NLevelBasis(2)
-@test ishermitian(DenseOperator(bspin, bspin, [1.0 im; -im 2.0])) == true
-@test ishermitian(DenseOperator(bspin, bnlevel, [1.0 im; -im 2.0])) == false
+@test ishermitian(Operator(bspin, bspin, [1.0 im; -im 2.0])) == true
+@test ishermitian(Operator(bspin, bnlevel, [1.0 im; -im 2.0])) == false
 
 end # testset

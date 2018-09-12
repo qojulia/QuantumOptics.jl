@@ -8,7 +8,7 @@ Random.seed!(0)
 
 D(op1::AbstractOperator, op2::AbstractOperator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 randstate(b) = normalize(Ket(b, rand(ComplexF64, length(b))))
-randop(bl, br) = DenseOperator(bl, br, rand(ComplexF64, length(bl), length(br)))
+randop(bl, br) = Operator(bl, br, rand(ComplexF64, length(bl), length(br)))
 randop(b) = randop(b, b)
 
 basis = FockBasis(2)
@@ -23,9 +23,9 @@ basis = FockBasis(2)
 @test FockBasis(2) != FockBasis(3)
 
 # Test operators
-@test number(basis) == SparseOperator(basis, sparse(Diagonal(ComplexF64[0, 1, 2])))
-@test destroy(basis) == SparseOperator(basis, sparse(ComplexF64[0 1 0; 0 0 sqrt(2); 0 0 0]))
-@test create(basis) == SparseOperator(basis, sparse(ComplexF64[0 0 0; 1 0 0; 0 sqrt(2) 0]))
+@test number(basis) == Operator(basis, sparse(Diagonal(ComplexF64[0, 1, 2])))
+@test destroy(basis) == Operator(basis, sparse(ComplexF64[0 1 0; 0 0 sqrt(2); 0 0 0]))
+@test create(basis) == Operator(basis, sparse(ComplexF64[0 0 0; 1 0 0; 0 sqrt(2) 0]))
 @test number(basis) == dagger(number(basis))
 @test create(basis) == dagger(destroy(basis))
 @test destroy(basis) == dagger(create(basis))

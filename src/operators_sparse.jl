@@ -20,7 +20,7 @@ operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:SparseMatrix
 Convert an arbitrary operator into a [`SparseOperator`](@ref).
 """
 sparse(a::AbstractOperator) = throw(ArgumentError("Direct conversion from $(typeof(a)) not implemented. Use sparse(dense(op)) instead."))
-sparse(a::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{BL,BR}(a.basis_l, a.basis_r, sparse(a.data))
+sparse(a::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{BL,BR,SparseMatrixCSC{ComplexF64,Int}}(a.basis_l, a.basis_r, sparse(a.data))
 
 function operators.ptrace(op::Operator{BL,BR,T}, indices::Vector{Int}) where {BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}}
     operators.check_ptrace_arguments(op, indices)
