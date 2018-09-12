@@ -2,11 +2,11 @@ using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
-mutable struct test_lazytensor <: AbstractOperator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct test_lazytensor{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     data::Matrix{ComplexF64}
-    test_lazytensor(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
+    test_lazytensor(b1::BL, b2::BR, data) where {BL<:Basis,BR<:Basis} = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new{BL,BR}(b1, b2, data) : throw(DimensionMismatch())
 end
 
 @testset "operators-lazytensor" begin

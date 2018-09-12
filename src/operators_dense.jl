@@ -49,14 +49,14 @@ operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorData
 
 
 # Arithmetic operations
-+(a::T, b::T) where T<:Operator = Operator(a.basis_l, a.basis_r, a.data+b.data)
++(a::Operator{BL,BR,T1}, b::Operator{BL,BR,T2}) where {BL<:Basis,BR<:Basis,T1<:OperatorDataType,T2<:OperatorDataType} = Operator(a.basis_l, a.basis_r, a.data+b.data)
 
 -(a::Operator) = Operator(a.basis_l, a.basis_r, -a.data)
--(a::T, b::T) where T<:Operator = Operator(a.basis_l, a.basis_r, a.data-b.data)
+-(a::Operator{BL,BR,T1}, b::Operator{BL,BR,T2}) where {BL<:Basis,BR<:Basis,T1<:OperatorDataType,T2<:OperatorDataType} = Operator(a.basis_l, a.basis_r, a.data-b.data)
 
 *(a::Operator{BL,BR}, b::Ket{BR}) where {BL<:Basis,BR<:Basis} = Ket(a.basis_l, a.data*b.data)
 *(a::Bra{BL}, b::Operator{BL,BR}) where {BL<:Basis,BR<:Basis} = Bra(b.basis_r, transpose(b.data)*a.data)
-*(a::Operator{BL1,BR}, b::Operator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis} = Operator(a.basis_l, b.basis_r, a.data*b.data)
+*(a::Operator{BL1,BR,T1}, b::Operator{BR,BR2,T2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis,T1<:OperatorDataType,T2<:OperatorDataType} = Operator(a.basis_l, b.basis_r, a.data*b.data)
 *(a::Operator, b::Number) = Operator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::Operator) = Operator(b.basis_l, b.basis_r, complex(a)*b.data)
 function *(op1::AbstractOperator{BL1,BR}, op2::Operator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis}
@@ -264,26 +264,29 @@ end
     end
 end
 
-# Fast in-place multiplication
-mul!(result::Operator{BL,BR,T1}, a::Operator{BL,BR2,T2}, b::Operator{BR2,BR,T1}) where {BL<:Basis,BR<:Basis,BR2<:Basis,T1<:OperatorDataType,T2<:OperatorDataType} =
+# Fast in-place multiplication -- ideally, all methods should be covered by Julia mul! methods
+mul!(result::Operator{BL,BR,T1}, a::Operator{BL,BR2,T2}, b::Operator{BR2,BR,T3}) where {BL<:Basis,BR<:Basis,BR2<:Basis,T1<:OperatorDataType,T2<:OperatorDataType,T3<:OperatorDataType} =
     mul!(result.data, a.data, b.data)
+mul!(result::Operator{BL,BR,T1}, a::Operator{BL,BR2,T2}, b::Operator{BR2,BR,T3}, alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T1<:OperatorDataType,T2<:OperatorDataType,T3<:OperatorDataType} =
+    mul!(result.data, a.data, b.data, alpha, beta)
 
-# Dense-Dense method with alpha, beta; TODO: replace by Julia mul! method
-mul!(result::Operator{BL,BR,T}, a::Operator{BL,BR2,T}, b::Operator{BR2,BR,T}, alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}} =
-    BLAS.gemm!('N', 'N', convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
-
+# Matrix-vector method
 mul!(result::Ket{B}, a::Operator{B,BR}, b::Ket{BR}) where {B<:Basis,BR<:Basis} =
     mul!(result.data, a.data, b.data)
 
-# Dense-vector method with alpha, beta; TODO: replace by Julia mul! method
-mul!(result::Ket{B}, a::Operator{B,BR}, b::Ket{BR}, alpha::Number, beta::Number) where {B<:Basis,BR<:Basis} =
+# Dense-Dense method with alpha, beta
+mul!(result::Operator{BL,BR,T}, a::Operator{BL,BR2,T}, b::Operator{BR2,BR,T}, alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}} =
+    BLAS.gemm!('N', 'N', convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
+
+# Dense-vector method with alpha, beta
+mul!(result::Ket{B}, a::Operator{B,BR,T}, b::Ket{BR}, alpha::Number, beta::Number) where {B<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} =
     BLAS.gemv!('N', convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
 
-mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B}) where {B<:Basis,BL<:Basis} =
+# Vector-dense method with alpha, beta
+mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B,T}, alpha::Number, beta::Number) where {B<:Basis,BL<:Basis,T<:Matrix{ComplexF64}} =
+    BLAS.gemv!('T', convert(ComplexF64, alpha), b.data, a.data, convert(ComplexF64, beta), result.data)
+mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B,T}) where {B<:Basis,BL<:Basis,T<:Matrix{ComplexF64}} =
     mul!(result, a, b, complex(1.0), 0.0)
 
-# Vector-dense method with alpha, beta; TODO: replace by Julia mul! method
-mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B}, alpha::Number, beta::Number) where {B<:Basis,BL<:Basis} =
-    BLAS.gemv!('T', convert(ComplexF64, alpha), b.data, a.data, convert(ComplexF64, beta), result.data)
 
 end # module
