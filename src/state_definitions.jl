@@ -21,7 +21,7 @@ end
 
 Calculate a random unnormalized dense operator.
 """
-randoperator(b1::BL, b2::BR) where {BL<:Basis,BR<:Basis} = Operator{BL,BR}(b1, b2, rand(ComplexF64, length(b1), length(b2)))
+randoperator(b1::BL, b2::BR) where {BL<:Basis,BR<:Basis} = Operator(b1, b2, rand(ComplexF64, length(b1), length(b2)))
 randoperator(b::Basis) = randoperator(b, b)
 
 """

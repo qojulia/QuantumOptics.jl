@@ -41,7 +41,7 @@ Base.copy(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} 
 
 Convert an arbitrary Operator into a [`Operator`](@ref) with a dense `data` field.
 """
-operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{Bl,BR}(x.basis_l, x.basis_r, Matrix(x.data))
+operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{BL,BR}(x.basis_l, x.basis_r, Matrix(x.data))
 
 ==(x::Operator, y::Operator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
 
@@ -52,9 +52,9 @@ operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorData
 -(a::Operator) = Operator(a.basis_l, a.basis_r, -a.data)
 -(a::T, b::T) where T<:Operator = Operator(a.basis_l, a.basis_r, a.data-b.data)
 
-*(a::Operator{BL,BR}, b::Ket{BR}) where {BL<:Basis,BR<:Basis} = Ket{BR}(a.basis_l, a.data*b.data)
-*(a::Bra{BL}, b::Operator{BL,BR}) where {BL<:Basis,BR<:Basis} = Bra{BL}(b.basis_r, transpose(b.data)*a.data)
-*(a::Operator{BL1,BR}, b::Operator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis} = Operator{BL1,BR2}(a.basis_l, b.basis_r, a.data*b.data)
+*(a::Operator{BL,BR}, b::Ket{BR}) where {BL<:Basis,BR<:Basis} = Ket(a.basis_l, a.data*b.data)
+*(a::Bra{BL}, b::Operator{BL,BR}) where {BL<:Basis,BR<:Basis} = Bra(b.basis_r, transpose(b.data)*a.data)
+*(a::Operator{BL1,BR}, b::Operator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis} = Operator(a.basis_l, b.basis_r, a.data*b.data)
 *(a::Operator, b::Number) = Operator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::Operator) = Operator(b.basis_l, b.basis_r, complex(a)*b.data)
 function *(op1::AbstractOperator{BL1,BR}, op2::Operator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis}
@@ -133,7 +133,7 @@ end
 function operators.expect(op::Operator{BL,BR,T}, state::AbstractOperator{BR,BL}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}}
     result = ComplexF64(0.)
     @inbounds for i=1:size(op.data, 1), j=1:size(op.data,2)
-        result .+= op.data[i,j]*state.data[j,i]
+        result += op.data[i,j]*state.data[j,i]
     end
     result
 end
@@ -151,7 +151,10 @@ function operators.permutesystems(a::Operator{BL,BR,T}, perm::Vector{Int}) where
     Operator(permutesystems(a.basis_l, perm), permutesystems(a.basis_r, perm), data)
 end
 
-operators.identityoperator(::Operator{BL,BR,T}, b1::BL, b2::BR) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator(b1, b2, T(I, length(b1), length(b2)))
+operators.identityoperator(::Type{Operator{BL,BR,T}}, b1::BL, b2::BR) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{BL,BR,T}(b1, b2, T(I, length(b1), length(b2)))
+operators.identityoperator(::Type{Operator{BL1,BR1,T}}, b1::BL2,
+        b2::BR2) where {BL1<:Basis,BR1<:Basis,BL2<:Basis,BR2<:Basis,T<:OperatorDataType} =
+    Operator{BL2,BR2,T}(b1, b2, T(I, length(b1), length(b2)))
 
 """
     projector(a::Ket, b::Bra)

@@ -12,7 +12,7 @@ using SparseArrays, LinearAlgebra
 const OperatorDataType = Union{Matrix{ComplexF64},SparseMatrixCSC{ComplexF64,Int}}
 
 operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}} =
-    Operator{BL,BR}(x.basis_l, x.basis_r, Matrix(x.data))
+    Operator(x.basis_l, x.basis_r, Matrix(x.data))
 
 """
     sparse(op::AbstractOperator)
@@ -49,8 +49,6 @@ function operators.permutesystems(rho::Operator{BL,BR,T}, perm::Vector{Int}) whe
     Operator(permutesystems(rho.basis_l, perm), permutesystems(rho.basis_r, perm), data)
 end
 
-# operators.identityoperator(::Operator{BL,BR,T}, b1::BL, b2::BR) where {BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}} =
-#     Operator{BL,BR,T}(b1, b2, sparse(ComplexF64(1)*I, length(b1), length(b2)))
 operators.identityoperator(b1::BL, b2::BR) where {BL<:Basis,BR<:Basis} = identityoperator(Operator{BL,BR,SparseMatrixCSC{ComplexF64, Int}}, b1, b2)
 operators.identityoperator(b::Basis) = identityoperator(b, b)
 

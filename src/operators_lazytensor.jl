@@ -28,13 +28,13 @@ mutable struct LazyTensor{BL<:CompositeBasis,BR<:CompositeBasis} <: AbstractOper
     indices::Vector{Int}
     operators::Vector{AbstractOperator}
 
-    function LazyTensor(op::LazyTensor, factor::Number)
-        new{BL<:CompositeBasis,BR<:CompositeBasis}(op.basis_l, op.basis_r, factor, op.indices, op.operators)
+    function LazyTensor(op::LazyTensor{BL,BR}, factor::Number) where {BL<:CompositeBasis,BR<:CompositeBasis}
+        new{BL,BR}(op.basis_l, op.basis_r, factor, op.indices, op.operators)
     end
 
-    function LazyTensor(basis_l::Basis, basis_r::Basis,
+    function LazyTensor(basis_l::BL, basis_r::BR,
                         indices::Vector{Int}, ops::Vector,
-                        factor::Number=1)
+                        factor::Number=1) where {BL<:Basis,BR<:Basis}
         if !isa(basis_l, CompositeBasis)
             basis_l = CompositeBasis(basis_l.shape, Basis[basis_l])
         end
@@ -55,7 +55,7 @@ mutable struct LazyTensor{BL<:CompositeBasis,BR<:CompositeBasis} <: AbstractOper
             indices = indices[perm]
             ops = ops[perm]
         end
-        new{BL<:CompositeBasis,BR<:CompositeBasis}(basis_l, basis_r, complex(factor), indices, ops)
+        new{BL,BR}(basis_l, basis_r, complex(factor), indices, ops)
     end
 end
 

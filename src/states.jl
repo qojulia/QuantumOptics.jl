@@ -74,7 +74,7 @@ basis(a::StateVector) = a.basis
 -(a::T) where {T<:StateVector} = T(a.basis, -a.data)
 -(a::T, b::T) where {T<:StateVector} = (check_samebases(a, b); T(a.basis, a.data-b.data))
 
-*(a::Bra{B,D}, b::Ket{B,D}) where {B<:Basis,D<:Vector{ComplexF64}} = (check_multiplicable(a, b); sum(a.data.*b.data))
+*(a::Bra{B,D}, b::Ket{B,D}) where {B<:Basis,D<:Vector{ComplexF64}} = sum(a.data.*b.data)
 *(a::Number, b::T) where {T<:StateVector} = T(b.basis, a*b.data)
 *(a::T, b::Number) where {T<:StateVector} = T(a.basis, b*a.data)
 
