@@ -267,44 +267,23 @@ end
 # Fast in-place multiplication
 mul!(result::Operator{BL,BR,T1}, a::Operator{BL,BR2,T2}, b::Operator{BR2,BR,T1}) where {BL<:Basis,BR<:Basis,BR2<:Basis,T1<:OperatorDataType,T2<:OperatorDataType} =
     mul!(result.data, a.data, b.data)
-mul!(result::Operator{BL,BR,T1}, a::Operator{BL,BR2,T2}, b::Operator{BR2,BR,T1}, alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T1<:OperatorDataType,T2<:OperatorDataType} =
-    mul!(result.data, a.data, b.data)
+
+# Dense-Dense method with alpha, beta; TODO: replace by Julia mul! method
+mul!(result::Operator{BL,BR,T}, a::Operator{BL,BR2,T}, b::Operator{BR2,BR,T}, alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}} =
+    BLAS.gemm!('N', 'N', convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
 
 mul!(result::Ket{B}, a::Operator{B,BR}, b::Ket{BR}) where {B<:Basis,BR<:Basis} =
-    mul!(result, a.data, b.data)
+    mul!(result.data, a.data, b.data)
+
+# Dense-vector method with alpha, beta; TODO: replace by Julia mul! method
 mul!(result::Ket{B}, a::Operator{B,BR}, b::Ket{BR}, alpha::Number, beta::Number) where {B<:Basis,BR<:Basis} =
-    mul!(result, a.data, b.data, alpha, beta)
+    BLAS.gemv!('N', convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
 
 mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B}) where {B<:Basis,BL<:Basis} =
-    mul!(result, a.data, b.data)
+    mul!(result, a, b, complex(1.0), 0.0)
+
+# Vector-dense method with alpha, beta; TODO: replace by Julia mul! method
 mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B}, alpha::Number, beta::Number) where {B<:Basis,BL<:Basis} =
-    mul!(result, a.data, b.data, alpha, beta)
-# operators.gemm!(alpha, a::Matrix{ComplexF64}, b::Matrix{ComplexF64}, beta, result::Matrix{ComplexF64}) = BLAS.gemm!('N', 'N', convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
-# operators.gemv!(alpha, a::Matrix{ComplexF64}, b::Vector{ComplexF64}, beta, result::Vector{ComplexF64}) = BLAS.gemv!('N', convert(ComplexF64, alpha), a, b, convert(ComplexF64, beta), result)
-# operators.gemv!(alpha, a::Vector{ComplexF64}, b::Matrix{ComplexF64}, beta, result::Vector{ComplexF64}) = BLAS.gemv!('T', convert(ComplexF64, alpha), b, a, convert(ComplexF64, beta), result)
-
-# operators.gemm!(alpha, a::DenseOperator, b::DenseOperator, beta, result::DenseOperator) = operators.gemm!(convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
-# operators.gemv!(alpha, a::DenseOperator, b::Ket, beta, result::Ket) = operators.gemv!(convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
-# operators.gemv!(alpha, a::Bra, b::DenseOperator, beta, result::Bra) = operators.gemv!(convert(ComplexF64, alpha), a.data, b.data, convert(ComplexF64, beta), result.data)
-
-
-# # Multiplication for Operators in terms of their gemv! implementation
-# function operators.gemm!(alpha, M::AbstractOperator, b::DenseOperator, beta, result::DenseOperator)
-#     for i=1:size(b.data, 2)
-#         bket = Ket(b.basis_l, b.data[:,i])
-#         resultket = Ket(M.basis_l, result.data[:,i])
-#         operators.gemv!(alpha, M, bket, beta, resultket)
-#         result.data[:,i] = resultket.data
-#     end
-# end
-#
-# function operators.gemm!(alpha, b::DenseOperator, M::AbstractOperator, beta, result::DenseOperator)
-#     for i=1:size(b.data, 1)
-#         bbra = Bra(b.basis_r, vec(b.data[i,:]))
-#         resultbra = Bra(M.basis_r, vec(result.data[i,:]))
-#         operators.gemv!(alpha, bbra, M, beta, resultbra)
-#         result.data[i,:] = resultbra.data
-#     end
-# end
+    BLAS.gemv!('T', convert(ComplexF64, alpha), b.data, a.data, convert(ComplexF64, beta), result.data)
 
 end # module

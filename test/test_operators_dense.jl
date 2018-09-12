@@ -296,19 +296,19 @@ alpha = complex(0.7, 1.5)
 beta = complex(0.3, 2.1)
 
 rket_ = deepcopy(rket)
-operators.gemv!(complex(1.0), op, xket, complex(0.), rket_)
+mul!(rket_, op, xket)
 @test 0 ≈ D(rket_, op*xket)
 
 rket_ = deepcopy(rket)
-operators.gemv!(alpha, op, xket, beta, rket_)
+mul!(rket_, op, xket, alpha, beta)
 @test 1e-13 > D(rket_, alpha*op*xket + beta*rket)
 
 rbra_ = deepcopy(rbra)
-operators.gemv!(complex(1.0), xbra, op, complex(0.), rbra_)
+mul!(rbra_, xbra, op)
 @test 0 ≈ D(rbra_, xbra*op)
 
 rbra_ = deepcopy(rbra)
-operators.gemv!(alpha, xbra, op, beta, rbra_)
+mul!(rbra_, xbra, op, alpha, beta)
 @test 1e-13 > D(rbra_, alpha*xbra*op + beta*rbra)
 
 # # Test gemm
@@ -322,11 +322,11 @@ alpha = complex(0.7, 1.5)
 beta = complex(0.3, 2.1)
 
 r_ = deepcopy(r)
-operators.gemm!(complex(1.0), op1, op2, complex(0.), r_)
+mul!(r_, op1, op2)
 @test 1e-13 > D(r_, op1*op2)
 
 r_ = deepcopy(r)
-operators.gemm!(alpha, op1, op2, beta, r_)
+mul!(r_, op1, op2, alpha, beta)
 @test 1e-10 > D(r_, alpha*op1*op2 + beta*r)
 
 dat = rand(prod(b_r.shape))
