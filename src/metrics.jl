@@ -67,7 +67,7 @@ It uses the identity
 
 where ``σ_i`` are the singular values of `rho`.
 """
-tracenorm_nh(rho::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}} = sum(svdvals(rho.data))
+tracenorm_nh(rho::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} = sum(svdvals(rho.data))
 function tracenorm_nh(rho::T) where T<:AbstractOperator
     throw(ArgumentError("tracenorm_nh not implemented for $(T). Use dense operators instead."))
 end
@@ -87,7 +87,7 @@ T(ρ,σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\}.
 It calls [`tracenorm`](@ref) which in turn either uses [`tracenorm_h`](@ref)
 or [`tracenorm_nh`](@ref) depending if ``ρ-σ`` is hermitian or not.
 """
-tracedistance(rho::Operator{B,B,T}, sigma::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm(rho - sigma)
+tracedistance(rho::Operator{BL,BR,T}, sigma::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm(rho - sigma)
 function tracedistance(rho::T, sigma::T) where T<:AbstractOperator
     throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
 end
@@ -127,7 +127,7 @@ It uses the identity
 
 where ``σ_i`` are the singular values of `rho` - `sigma`.
 """
-tracedistance_nh(rho::Operator{B,B,T}, sigma::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm_nh(rho - sigma)
+tracedistance_nh(rho::Operator{BL,BR,T}, sigma::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm_nh(rho - sigma)
 function tracedistance_nh(rho::T, sigma::T) where T<:AbstractOperator
     throw(ArgumentError("tracedistance_nh not implemented for $(T). Use dense operators instead."))
 end

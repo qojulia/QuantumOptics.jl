@@ -83,11 +83,16 @@ mul!(result::Operator{B1,B2,T1}, a::Operator{B1,B3,T1},
 # sparse-sparse method with alpha, beta; TODO: optimize/replace by Julia method
 function mul!(result::Operator{B1,B2,T}, a::Operator{B1,B3,T}, b::Operator{B3,B2,T},
             alpha::Number, beta::Number) where {B1<:Basis,B2<:Basis,B3<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}}
-    tmp = copy(result.data)
-    rmul!(tmp, beta)
-    mul!(result.data, a.data, b.data)
-    rmul!(result.data, alpha)
-    result.data .+= tmp
+    if beta == 0
+        mul!(result.data, a.data, b.data)
+        rmul!(result.data, alpha)
+    else
+        tmp = copy(result.data)
+        rmul!(tmp, beta)
+        mul!(result.data, a.data, b.data)
+        rmul!(result.data, alpha)
+        result.data .+= tmp
+    end
 end
 
 end # module

@@ -59,23 +59,23 @@ operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorData
 *(a::Operator{BL1,BR,T1}, b::Operator{BR,BR2,T2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis,T1<:OperatorDataType,T2<:OperatorDataType} = Operator(a.basis_l, b.basis_r, a.data*b.data)
 *(a::Operator, b::Number) = Operator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::Operator) = Operator(b.basis_l, b.basis_r, complex(a)*b.data)
-function *(op1::AbstractOperator{BL1,BR}, op2::Operator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis}
-    result = Operator{BL1,BR2}(op1.basis_l, op2.basis_r)
+function *(op1::AbstractOperator{BL1,BR}, op2::Operator{BR,BR2,T}) where {BL1<:Basis,BR<:Basis,BR2<:Basis,T<:OperatorDataType}
+    result = Operator{BL1,BR2,T}(op1.basis_l, op2.basis_r)
     mul!(result, op1, op2)
     return result
 end
-function *(op1::Operator{BL1,BR}, op2::AbstractOperator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis}
-    result = Operator{BL1,BR2}(op1.basis_l, op2.basis_r)
+function *(op1::Operator{BL1,BR,T}, op2::AbstractOperator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis,T<:OperatorDataType}
+    result = Operator{BL1,BR2,T}(op1.basis_l, op2.basis_r)
     mul!(result, op1, op2)
     return result
 end
 function *(op::AbstractOperator{BL,BR}, psi::Ket{BR}) where {BL<:Basis,BR<:Basis}
-    result = Ket{BL}(op.basis_l)
+    result = Ket(op.basis_l)
     mul!(result, op, psi)
     return result
 end
 function *(psi::Bra{BL}, op::AbstractOperator{BL,BR}) where {BR<:Basis,BL<:Basis}
-    result = Bra{BR}(op.basis_r)
+    result = Bra(op.basis_r)
     mul!(result, psi, op)
     return result
 end
