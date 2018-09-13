@@ -5,6 +5,7 @@ export LazySum
 import Base: ==, *, /, +, -
 import ..operators
 import SparseArrays: sparse
+import LinearAlgebra: mul!
 
 using ..bases, ..states, ..operators, ..operators_dense
 using SparseArrays, LinearAlgebra
@@ -31,7 +32,7 @@ mutable struct LazySum{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
             @assert operators[1].basis_l == operators[i].basis_l
             @assert operators[1].basis_r == operators[i].basis_r
         end
-        new{BL<:Basis,BR<:Basis}(operators[1].basis_l, operators[1].basis_r, factors, operators)
+        new{typeof(operators[1].basis_l),typeof(operators[1].basis_r)}(operators[1].basis_l, operators[1].basis_r, factors, operators)
     end
 end
 LazySum(factors::Vector{T}, operators::Vector) where {T<:Number} = LazySum(complex(factors), AbstractOperator[op for op in operators])
@@ -74,18 +75,24 @@ operators.identityoperator(::Type{LazySum}, b1::Basis, b2::Basis) = LazySum(iden
 
 
 # Fast in-place multiplication
-function operators.gemv!(alpha, a::LazySum, b::Ket, beta, result::Ket)
-    operators.gemv!(alpha*a.factors[1], a.operators[1], b, beta, result)
+function mul!(result::Ket{BL}, a::LazySum{BL,BR}, b::Ket{BR},
+            alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis}
+    mul!(result, a.operators[1], b, alpha*a.factors[1], beta)
     for i=2:length(a.operators)
-        operators.gemv!(alpha*a.factors[i], a.operators[i], b, 1, result)
+        mul!(result, a.operators[i], b, alpha*a.factors[i], 1.0)
     end
 end
+mul!(result::Ket{BL}, a::LazySum{BL,BR}, b::Ket{BR}) where {BL<:Basis,BR<:Basis} =
+    mul!(result, a, b, 1.0, 0.0)
 
-function operators.gemv!(alpha, a::Bra, b::LazySum, beta, result::Bra)
-    operators.gemv!(alpha*b.factors[1], a, b.operators[1], beta, result)
+function mul!(result::Bra{BR}, a::Bra{BL}, b::LazySum{BL,BR},
+            alpha::Number, beta::Number) where {BR<:Basis,BL<:Basis}
+    mul!(result, a, b.operators[1], alpha*b.factors[1], beta)
     for i=2:length(b.operators)
-        operators.gemv!(alpha*b.factors[i], a, b.operators[i], 1, result)
+        mul!(result, a, b.operators[i], alpha*b.factors[i], 1.0)
     end
 end
+mul!(result::Bra{BR}, a::Bra{BL}, b::LazySum{BL,BR}) where {BR<:Basis,BL<:Basis} =
+    mul!(result, a, b, 1.0, 0.0)
 
 end # module

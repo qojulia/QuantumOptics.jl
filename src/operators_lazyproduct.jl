@@ -3,6 +3,7 @@ module operators_lazyproduct
 export LazyProduct
 
 import Base: ==, *, /, +, -
+import LinearAlgebra: mul!
 import ..operators
 
 using ..bases, ..states, ..operators, ..operators_dense
@@ -32,7 +33,7 @@ mutable struct LazyProduct{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
         for i = 2:length(operators)
             check_multiplicable(operators[i-1], operators[i])
         end
-        new{BL<:Basis,BR<:Basis}(operators[1].basis_l, operators[end].basis_r, factor, operators)
+        new{typeof(operators[1].basis_l),typeof(operators[end].basis_r)}(operators[1].basis_l, operators[end].basis_r, factor, operators)
     end
 end
 LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(convert(Vector{AbstractOperator}, operators), factor)
@@ -68,26 +69,38 @@ operators.identityoperator(::Type{LazyProduct}, b1::Basis, b2::Basis) = LazyProd
 
 
 # Fast in-place multiplication
-function operators.gemv!(alpha, a::LazyProduct, b::Ket, beta, result::Ket)
+function operators.gemv!(alpha::Number, a::LazyProduct, b::Ket, beta::Number, result::Ket)
     tmp1 = Ket(a.operators[end].basis_l)
-    operators.gemv!(a.factor, a.operators[end], b, 0, tmp1)
+    mul!(tmp1, a.operators[end], b, a.factor, 0.0)
     for i=length(a.operators)-1:-1:2
         tmp2 = Ket(a.operators[i].basis_l)
-        operators.gemv!(1, a.operators[i], tmp1, 0, tmp2)
+        mul!(tmp2, a.operators[i], tmp1)
         tmp1 = tmp2
     end
-    operators.gemv!(alpha, a.operators[1], tmp1, beta, result)
+    mul!(result, a.operators[1], tmp1, alpha, beta)
 end
 
-function operators.gemv!(alpha, a::Bra, b::LazyProduct, beta, result::Bra)
+function operators.gemv!(alpha::Number, a::Bra, b::LazyProduct, beta::Number, result::Bra)
     tmp1 = Bra(b.operators[1].basis_r)
-    operators.gemv!(b.factor, a, b.operators[1], 0, tmp1)
+    mul!(tmp1, a, b.operators[1], b.factor, 0.0)
     for i=2:length(b.operators)-1
         tmp2 = Bra(b.operators[i].basis_r)
-        operators.gemv!(1, tmp1, b.operators[i], 0, tmp2)
+        mul!(tmp2, tmp1, b.operators[i])
         tmp1 = tmp2
     end
-    operators.gemv!(alpha, tmp1, b.operators[end], beta, result)
+    mul!(result, tmp1, b.operators[end], alpha, beta)
 end
+
+mul!(result::Ket{BL}, a::LazyProduct{BL,BR}, b::Ket{BR},
+        alpha::Number, beta::Number) where {BL<:Basis, BR<:Basis} =
+    operators.gemv!(alpha, a, b, beta, result)
+mul!(result::Ket{BL}, a::LazyProduct{BL,BR}, b::Ket{BR}) where {BL<:Basis, BR<:Basis} =
+    mul!(result, a, b, 1.0, 0.0)
+
+mul!(result::Bra{BR}, a::Bra{BL}, b::LazyProduct{BL,BR},
+        alpha::Number, beta::Number) where {BL<:Basis, BR<:Basis} =
+    operators.gemv!(alpha, a, b, beta, result)
+mul!(result::Bra{BR}, a::Bra{BL}, b::LazyProduct{BL,BR}) where {BL<:Basis, BR<:Basis} =
+    mul!(result, a, b, 1.0, 0.0)
 
 end # module

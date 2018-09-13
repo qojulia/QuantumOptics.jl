@@ -66,7 +66,7 @@ xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 @test 1e-14 > D(-op1_, -op1)
 
 # Test multiplication
-@test_throws bases.IncompatibleBases op1a*op1a
+@test_throws DimensionMismatch op1a*op1a
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
 @test 1e-11 > D((xbra1 + 0.3*xbra2)*op1, (xbra1 + 0.3*xbra2)*op1_)
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
@@ -78,12 +78,12 @@ xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 @test 1e-14 > D(op1/7, op1_/7)
 
 # Test identityoperator
-Idense = identityoperator(Operator, b_l)
-I = identityoperator(LazyProduct, b_l)
-@test isa(I, LazyProduct)
-@test dense(I) == Idense
-@test 1e-11 > D(I*x1, x1)
-@test 1e-11 > D(xbra1*I, xbra1)
+Idense = dense(identityoperator(b_l))
+id = identityoperator(LazyProduct, b_l)
+@test isa(id, LazyProduct)
+@test dense(id) == Idense
+@test 1e-11 > D(id*x1, x1)
+@test 1e-11 > D(xbra1*id, xbra1)
 
 # Test tr and normalize
 op1 = randoperator(b_l)
@@ -130,25 +130,25 @@ op_ = 0.2*op1*op2*op3
 state = Ket(b_r, rand(ComplexF64, length(b_r)))
 result_ = Ket(b_l, rand(ComplexF64, length(b_l)))
 result = copy(result_)
-operators.gemv!(complex(1.), op, state, complex(0.), result)
+mul!(result, op, state)
 @test 1e-11 > D(result, op_*state)
 
 result = copy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemv!(alpha, op, state, beta, result)
+mul!(result, op, state, alpha, beta)
 @test 1e-11 > D(result, alpha*op_*state + beta*result_)
 
 state = Bra(b_l, rand(ComplexF64, length(b_l)))
 result_ = Bra(b_r, rand(ComplexF64, length(b_r)))
 result = copy(result_)
-operators.gemv!(complex(1.), state, op, complex(0.), result)
+mul!(result, state, op)
 @test 1e-11 > D(result, state*op_)
 
 result = copy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemv!(alpha, state, op, beta, result)
+mul!(result, state, op, alpha, beta)
 @test 1e-11 > D(result, alpha*state*op_ + beta*result_)
 
 # Test gemm
@@ -161,25 +161,25 @@ op_ = 0.2*op1*op2*op3
 state = randoperator(b_r, b_r)
 result_ = randoperator(b_l, b_r)
 result = copy(result_)
-operators.gemm!(complex(1.), op, state, complex(0.), result)
+mul!(result, op, state)
 @test 1e-11 > D(result, op_*state)
 
 result = copy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemm!(alpha, op, state, beta, result)
+mul!(result, op, state, alpha, beta)
 @test 1e-11 > D(result, alpha*op_*state + beta*result_)
 
 state = randoperator(b_l, b_l)
 result_ = randoperator(b_l, b_r)
 result = copy(result_)
-operators.gemm!(complex(1.), state, op, complex(0.), result)
+mul!(result, state, op)
 @test 1e-11 > D(result, state*op_)
 
 result = copy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemm!(alpha, state, op, beta, result)
+mul!(result, state, op, alpha, beta)
 @test 1e-11 > D(result, alpha*state*op_ + beta*result_)
 
 end # testset

@@ -60,12 +60,12 @@ operators.dense(x::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:OperatorData
 *(a::Operator, b::Number) = Operator(a.basis_l, a.basis_r, complex(b)*a.data)
 *(a::Number, b::Operator) = Operator(b.basis_l, b.basis_r, complex(a)*b.data)
 function *(op1::AbstractOperator{BL1,BR}, op2::Operator{BR,BR2,T}) where {BL1<:Basis,BR<:Basis,BR2<:Basis,T<:OperatorDataType}
-    result = Operator{BL1,BR2,T}(op1.basis_l, op2.basis_r)
+    result = Operator{BL1,BR2,T}(op1.basis_l, op2.basis_r, T(zeros(ComplexF64, length(op1.basis_l), length(op2.basis_r))))
     mul!(result, op1, op2)
     return result
 end
 function *(op1::Operator{BL1,BR,T}, op2::AbstractOperator{BR,BR2}) where {BL1<:Basis,BR<:Basis,BR2<:Basis,T<:OperatorDataType}
-    result = Operator{BL1,BR2,T}(op1.basis_l, op2.basis_r)
+    result = Operator{BL1,BR2,T}(op1.basis_l, op2.basis_r, T(zeros(ComplexF64, length(op1.basis_l), length(op2.basis_r))))
     mul!(result, op1, op2)
     return result
 end
@@ -288,5 +288,43 @@ mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B,T}, alpha::Number, beta::Numbe
 mul!(result::Bra{B}, a::Bra{BL}, b::Operator{BL,B,T}) where {B<:Basis,BL<:Basis,T<:Matrix{ComplexF64}} =
     mul!(result, a, b, complex(1.0), 0.0)
 
+# Multiplication for Operators in terms of their vector implementation
+# TODO: efficient sparse implementation with alpha, beta
+function mul!(result::Operator{BL,BR,T}, M::AbstractOperator{BL,BR2}, b::Operator{BR2,BR,T},
+            alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:OperatorDataType}
+    for i=1:size(b.data, 2)
+        bket = Ket(b.basis_l, b.data[:,i])
+        resultket = Ket(M.basis_l, result.data[:,i])
+        mul!(resultket, M, bket, alpha, beta)
+        result.data[:,i] = resultket.data
+    end
+end
+function mul!(result::Operator{BL,BR,T}, b::Operator{BL,BR2,T}, M::AbstractOperator{BR2,BR},
+            alpha::Number, beta::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:OperatorDataType}
+    for i=1:size(b.data, 1)
+        bbra = Bra(b.basis_r, vec(b.data[i,:]))
+        resultbra = Bra(M.basis_r, vec(result.data[i,:]))
+        mul!(resultbra, bbra, M, alpha, beta)
+        result.data[i,:] = resultbra.data
+    end
+end
+
+# Generic method for sparse + dense without alpha, beta
+function mul!(result::Operator{BL,BR,T}, M::AbstractOperator{BL,BR2}, b::Operator{BR2,BR,T}) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:OperatorDataType}
+    for i=1:size(b.data, 2)
+        bket = Ket(b.basis_l, b.data[:,i])
+        resultket = Ket(M.basis_l, result.data[:,i])
+        mul!(resultket, M, bket)
+        result.data[:,i] = resultket.data
+    end
+end
+function mul!(result::Operator{BL,BR,T}, b::Operator{BL,BR2,T}, M::AbstractOperator{BR2,BR}) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:OperatorDataType}
+    for i=1:size(b.data, 1)
+        bbra = Bra(b.basis_r, vec(b.data[i,:]))
+        resultbra = Bra(M.basis_r, vec(result.data[i,:]))
+        mul!(resultbra, bbra, M)
+        result.data[i,:] = resultbra.data
+    end
+end
 
 end # module
