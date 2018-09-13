@@ -255,7 +255,7 @@ gemv!() = error("Not Implemented.")
 """
     gemm!(alpha, a, b, beta, result)
 
-Fast in-place multiplication of of operators with DenseOperators. It
+Fast in-place multiplication of of operators with Operators. It
 implements the relation `result = beta*result + alpha*a*b`.
 Here, `alpha` and `beta` are complex numbers, while `result` and either `a`
 or `b` are dense operators while the other one can be of any operator type.

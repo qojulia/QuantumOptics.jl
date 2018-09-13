@@ -161,7 +161,7 @@ end
 
 Check if two subbases vectors are identical.
 """
-function equal_bases(a::Tuple{Vararg{T}}, b::Tuple{Vararg{T}}) where T <: Basis
+function equal_bases(a::Tuple{Vararg{T} where T<:Basis}, b::Tuple{Vararg{T} where T<:Basis})# where T <: Basis
     if a===b
         return true
     end

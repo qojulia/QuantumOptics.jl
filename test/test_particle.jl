@@ -113,15 +113,15 @@ psi0_bp_fft = Txp*psi0_bp
 
 # Test gemv!
 psi_ = deepcopy(psi0_bp)
-operators.gemv!(Complex(1.), Tpx, psi0_bx, Complex(0.), psi_)
+mul!(psi_, Tpx, psi0_bx)
 @test 1e-12 > norm(psi_ - psi0_bp)
-operators.gemv!(Complex(1.), Tpx, psi0_bx, Complex(1.), psi_)
+mul!(psi_, Tpx, psi0_bx, 1.0, 1.0)
 @test 1e-12 > norm(psi_ - 2*psi0_bp)
 
 psi_ = deepcopy(psi0_bx)
-operators.gemv!(Complex(1.), Txp, psi0_bp, Complex(0.), psi_)
+mul!(psi_, Txp, psi0_bp)
 @test 1e-12 > norm(psi_ - psi0_bx)
-operators.gemv!(Complex(1.), Txp, psi0_bp, Complex(1.), psi_)
+mul!(psi_, Txp, psi0_bp, 1.0, 1.0)
 @test 1e-12 > norm(psi_ - 2*psi0_bx)
 
 
@@ -133,25 +133,25 @@ randdata2 = rand(ComplexF64, N)
 state = Ket(basis_position, randdata1)
 result_ = Ket(basis_momentum, copy(randdata2))
 result0 = alpha*dense(Tpx)*state + beta*result_
-operators.gemv!(alpha, Tpx, state, beta, result_)
+mul!(result_, Tpx, state, alpha, beta)
 @test 1e-11 > norm(result0 - result_)
 
 state = Bra(basis_position, randdata1)
 result_ = Bra(basis_momentum, copy(randdata2))
 result0 = alpha*state*dense(Txp) + beta*result_
-operators.gemv!(alpha, state, Txp, beta, result_)
+mul!(result_, state, Txp, alpha, beta)
 @test 1e-11 > norm(result0 - result_)
 
 state = Ket(basis_momentum, randdata1)
 result_ = Ket(basis_position, copy(randdata2))
 result0 = alpha*dense(Txp)*state + beta*result_
-operators.gemv!(alpha, Txp, state, beta, result_)
+mul!(result_, Txp, state, alpha, beta)
 @test 1e-11 > norm(result0 - result_)
 
 state = Bra(basis_momentum, randdata1)
 result_ = Bra(basis_position, copy(randdata2))
 result0 = alpha*state*dense(Tpx) + beta*result_
-operators.gemv!(alpha, state, Tpx, beta, result_)
+mul!(result_, state, Tpx, alpha, beta)
 @test 1e-11 > norm(result0 - result_)
 
 
@@ -162,22 +162,22 @@ rho0_px = tensor(psi0_bp, dagger(psi0_bx))
 rho0_pp = tensor(psi0_bp, dagger(psi0_bp))
 
 rho_ = Operator(basis_momentum, basis_position)
-operators.gemm!(Complex(1.), Tpx, rho0_xx, Complex(0.), rho_)
+mul!(rho_, Tpx, rho0_xx)
 @test 1e-12 > D(rho_, rho0_px)
 @test 1e-12 > D(Tpx*rho0_xx, rho0_px)
 
 rho_ = Operator(basis_position, basis_momentum)
-operators.gemm!(Complex(1.), rho0_xx, Txp, Complex(0.), rho_)
+mul!(rho_, rho0_xx, Txp)
 @test 1e-12 > D(rho_, rho0_xp)
 @test 1e-12 > D(rho0_xx*Txp, rho0_xp)
 
 rho_ = Operator(basis_momentum, basis_momentum)
-operators.gemm!(Complex(1.), Tpx, rho0_xp, Complex(0.), rho_)
+mul!(rho_, Tpx, rho0_xp)
 @test 1e-12 > D(rho_, rho0_pp)
 @test 1e-12 > D(Tpx*rho0_xx*Txp, rho0_pp)
 
 rho_ = Operator(basis_momentum, basis_momentum)
-operators.gemm!(Complex(1.), rho0_px, Txp, Complex(0.), rho_)
+mul!(rho_, rho0_px, Txp)
 @test 1e-12 > D(rho_, rho0_pp)
 @test 1e-12 > D(Txp*rho0_pp*Tpx, rho0_xx)
 
@@ -190,38 +190,39 @@ randdata2 = rand(ComplexF64, N, N)
 op = Operator(basis_position, basis_position, randdata1)
 result_ = Operator(basis_momentum, basis_position, copy(randdata2))
 result0 = alpha*dense(Tpx)*op + beta*result_
-operators.gemm!(alpha, Tpx, op, beta, result_)
+mul!(result_, Tpx, op, alpha, beta)
 @test 1e-11 > D(result0, result_)
 
 result_ = Operator(basis_position, basis_momentum, copy(randdata2))
 result0 = alpha*op*dense(Txp) + beta*result_
-operators.gemm!(alpha, op, Txp, beta, result_)
+mul!(result_, op, Txp, alpha, beta)
 @test 1e-11 > D(result0, result_)
 
 op = Operator(basis_momentum, basis_momentum, randdata1)
 result_ = Operator(basis_position, basis_momentum, copy(randdata2))
 result0 = alpha*dense(Txp)*op + beta*result_
-operators.gemm!(alpha, Txp, op, beta, result_)
+mul!(result_, Txp, op, alpha, beta)
 @test 1e-11 > D(result0, result_)
 
 result_ = Operator(basis_momentum, basis_position, copy(randdata2))
 result0 = alpha*op*dense(Tpx) + beta*result_
-operators.gemm!(alpha, op, Tpx, beta, result_)
+mul!(result_, op, Tpx, alpha, beta)
 @test 1e-11 > D(result0, result_)
 
 
 
 # Test FFT with lazy product
 psi_ = deepcopy(psi0_bx)
-operators.gemv!(Complex(1.), LazyProduct(Txp, Tpx), psi0_bx, Complex(0.), psi_)
+mul!(psi_, LazyProduct(Txp, Tpx), psi0_bx)
 @test 1e-12 > norm(psi_ - psi0_bx)
 @test 1e-12 > norm(Txp*(Tpx*psi0_bx) - psi0_bx)
 
 psi_ = deepcopy(psi0_bx)
-I = dense(identityoperator(basis_momentum))
-operators.gemv!(Complex(1.), LazyProduct(Txp, I, Tpx), psi0_bx, Complex(0.), psi_)
+id = dense(identityoperator(basis_momentum))
+# operators.gemv!(Complex(1.), LazyProduct(Txp, id, Tpx), psi0_bx, Complex(0.), psi_)
+mul!(psi_, LazyProduct(Txp, id, Tpx), psi0_bx)
 @test 1e-12 > norm(psi_ - psi0_bx)
-@test 1e-12 > norm(Txp*I*(Tpx*psi0_bx) - psi0_bx)
+@test 1e-12 > norm(Txp*id*(Tpx*psi0_bx) - psi0_bx)
 
 # Test dense FFT operator
 Txp_dense = Operator(Txp)
@@ -274,7 +275,7 @@ psi_x_fft = dagger(tensor(psi0_p...))*Tpx
 psi_x_fft2 = tensor((dagger.(psi0_p).*Tpx_sub)...)
 @test norm(psi_p_fft - psi_p_fft2) < 1e-15
 
-difference = (dense(Txp) - identityoperator(Operator, Txp.basis_l)*Txp).data
+difference = (dense(Txp) - dense(identityoperator(Txp.basis_l))*Txp).data
 @test isapprox(difference, zero(difference); atol=1e-12)
 @test_throws AssertionError transform(tensor(basis_position...), tensor(basis_position...))
 @test_throws particle.IncompatibleBases transform(SpinBasis(1//2)^2, SpinBasis(1//2)^2)

@@ -36,7 +36,7 @@ Number operator for the specified Fock space.
 function number(b::FockBasis)
     diag = complex.(0.:b.N)
     data = spdiagm(0 => diag)
-    SparseOperator(b, data)
+    Operator(b, data)
 end
 
 """
@@ -47,7 +47,7 @@ Annihilation operator for the specified Fock space.
 function destroy(b::FockBasis)
     diag = complex.(sqrt.(1.:b.N))
     data = spdiagm(1 => diag)
-    SparseOperator(b, data)
+    Operator(b, data)
 end
 
 """
@@ -58,7 +58,7 @@ Creation operator for the specified Fock space.
 function create(b::FockBasis)
     diag = complex.(sqrt.(1.:b.N))
     data = spdiagm(-1 => diag)
-    SparseOperator(b, data)
+    Operator(b, data)
 end
 
 """

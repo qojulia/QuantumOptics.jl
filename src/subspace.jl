@@ -82,7 +82,7 @@ function projector(b1::SubspaceBasis, b2::Basis)
     for (i, state) = enumerate(b1.basisstates)
         data[i,:] = state.data
     end
-    return DenseOperator(b1, b2, data)
+    return Operator(b1, b2, data)
 end
 
 function projector(b1::Basis, b2::SubspaceBasis)
@@ -93,7 +93,7 @@ function projector(b1::Basis, b2::SubspaceBasis)
     for (i, state) = enumerate(b2.basisstates)
         data[:,i] = state.data
     end
-    return DenseOperator(b1, b2, data)
+    return Operator(b1, b2, data)
 end
 
 

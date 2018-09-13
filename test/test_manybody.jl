@@ -152,8 +152,8 @@ psi = randstate(b)
 @test onebodyexpect(sparse(x), Y) ≈ expect(X, Y)
 @test onebodyexpect(x, [psi, Y]) == [onebodyexpect(x, psi), onebodyexpect(x, Y)]
 
-@test_throws ArgumentError manybodyoperator(b_mb, x)
-@test_throws ArgumentError onebodyexpect(X, psi)
-@test_throws ArgumentError onebodyexpect(X, dm(psi))
+@test_throws MethodError manybodyoperator(b_mb, x)
+@test_throws MethodError onebodyexpect(X, psi)
+@test_throws MethodError onebodyexpect(X, dm(psi))
 
 end # testset

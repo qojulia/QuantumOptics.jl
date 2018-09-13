@@ -60,10 +60,10 @@ function liouvillianspectrum(L::SuperOperator{Tuple{Basis,Basis},Tuple{Basis,Bas
             kwargs...) where T<:Matrix{ComplexF64}
     d, v = eigen(L.data; kwargs...)
     indices = sortperm(abs.(d))[1:nev]
-    ops = DenseOperator[]
+    ops = Operator[]
     for i in indices
         data = reshape(v[:,i], length(L.basis_r[1]), length(L.basis_r[2]))
-        op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
+        op = Operator(L.basis_r[1], L.basis_r[2], data)
         push!(ops, op)
     end
     return d[indices], ops
@@ -75,16 +75,16 @@ function liouvillianspectrum(L::SuperOperator{Tuple{Basis,Basis},Tuple{Basis,Bas
         eigs(L.data; nev = nev, which = which, kwargs...)
     catch err
         if isa(err, SingularException) || isa(err, ARPACKException)
-            error("Arpack's eigs() algorithm failed; try using DenseOperators or change nev.")
+            error("Arpack's eigs() algorithm failed; try using Operators with dense data or change nev.")
         else
             rethrow(err)
         end
     end
     indices = sortperm(abs.(d))[1:nev]
-    ops = DenseOperator[]
+    ops = Operator[]
     for i in indices
         data = reshape(v[:,i], length(L.basis_r[1]), length(L.basis_r[2]))
-        op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
+        op = Operator(L.basis_r[1], L.basis_r[2], data)
         push!(ops, op)
     end
     return d[indices], ops

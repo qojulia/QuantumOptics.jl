@@ -4,6 +4,7 @@ export NLevelBasis, transition, nlevelstate
 
 import Base: ==
 
+using SparseArrays
 using ..bases, ..states, ..operators, ..operators_sparse
 
 
@@ -31,14 +32,14 @@ end
 
 Transition operator ``|\\mathrm{to}⟩⟨\\mathrm{from}|``.
 """
-function transition(b::NLevelBasis, to::Int, from::Int)
+function transition(b::B, to::Int, from::Int) where B<:NLevelBasis
     if to < 1 || b.N < to
         throw(BoundsError("'to' index has to be between 1 and b.N"))
     end
     if from < 1 || b.N < from
         throw(BoundsError("'from' index has to be between 1 and b.N"))
     end
-    op = SparseOperator(b)
+    op = Operator{B,B,SparseMatrixCSC{ComplexF64,Int}}(b, b, spzeros(b.N,b.N))
     op.data[to, from] = 1.
     op
 end

@@ -26,8 +26,8 @@ mutable struct ManyBodyBasis{B<:Basis} <: Basis
     occupations::Vector{Vector{Int}}
     occupations_hash::UInt
 
-    function ManyBodyBasis(onebodybasis::Basis, occupations::Vector{Vector{Int}})
-        new{B<:Basis}([length(occupations)], onebodybasis, occupations, hash(hash.(occupations)))
+    function ManyBodyBasis(onebodybasis::B, occupations::Vector{Vector{Int}}) where B<:Basis
+        new{B}([length(occupations)], onebodybasis, occupations, hash(hash.(occupations)))
     end
 end
 
@@ -92,7 +92,7 @@ end
 Creation operator for the i-th mode of the many-body basis `b`.
 """
 function create(b::B, index::Int) where B<:ManyBodyBasis
-    result = Operator{B,B,SparseMatrixCSC{ComplexF64,Int}}(b)
+    result = Operator(b, spdiagm(0=>zeros(prod(b.shape))))
     # <{m}_i| at |{m}_j>
     for i=1:length(b)
         occ_i = b.occupations[i]
@@ -114,7 +114,7 @@ end
 Annihilation operator for the i-th mode of the many-body basis `b`.
 """
 function destroy(b::B, index::Int) where B<:ManyBodyBasis
-    result = Operator{B,B,SparseMatrixCSC{ComplexF64,Int}}(b)
+    result = Operator(b, spdiagm(0=>zeros(prod(b.shape))))
     # <{m}_j| a |{m}_i>
     for i=1:length(b)
         occ_i = b.occupations[i]
@@ -136,7 +136,7 @@ end
 Particle number operator for the i-th mode of the many-body basis `b`.
 """
 function number(b::ManyBodyBasis, index::Int)
-    result = sparse(Operator(b))
+    result = Operator(b, spdiagm(0=>zeros(prod(b.shape))))
     for i=1:length(b)
         result.data[i, i] = b.occupations[i][index]
     end
@@ -228,18 +228,6 @@ where ``X`` is the N-particle operator, ``x`` is the one-body operator and
 ``|u⟩`` are the one-body states associated to the
 different modes of the N-particle basis.
 """
-# function manybodyoperator(basis::ManyBodyBasis, op::T) where {T<:AbstractOperator{B,B},B<:Basis}
-#     # @assert op.basis_l == op.basis_r
-#     if op.basis_l == basis.onebodybasis
-#         result =  manybodyoperator_1(basis, op)
-#     elseif op.basis_l == basis.onebodybasis ⊗ basis.onebodybasis
-#         result = manybodyoperator_2(basis, op)
-#     else
-#         throw(ArgumentError("The basis of the given operator has to either be equal to b or b ⊗ b where b is the 1st quantization basis associated to the nparticle basis."))
-#     end
-#     result
-# end
-
 function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}}
     N = length(basis)
     S = length(basis.onebodybasis)
@@ -254,7 +242,6 @@ function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{B,B,T}) where {B
     end
     return result
 end
-
 function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{B,B,T}) where {B<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}}
     N = length(basis)
     S = length(basis.onebodybasis)
@@ -275,8 +262,8 @@ function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{B,B,T}) where {B
     return result
 end
 
-function manybodyoperator(basis::ManyBodyBasis{BC}, op::Operator{B,B,T}) where {B<:Basis,BC<:CompositeBasis{Tuple{Vararg{B}}},T<:Matrix{ComplexF64}}
-    @assert basis.onebodybasis == op.basis_l^2
+function manybodyoperator(basis::ManyBodyBasis{B},
+            op::Operator{BC,BC,T}) where {B<:Basis,BC<:CompositeBasis{Tuple{B,B}},T<:Matrix{ComplexF64}}
     N = length(basis)
     S = length(basis.onebodybasis)
     @assert S^2 == length(op.basis_l)
@@ -292,9 +279,7 @@ function manybodyoperator(basis::ManyBodyBasis{BC}, op::Operator{B,B,T}) where {
     end
     return result
 end
-
-function manybodyoperator(basis::ManyBodyBasis{BC}, op::Operator{B,B,T}) where {B<:Basis,BC<:CompositeBasis{Tuple{Vararg{B}}},T<:SparseMatrixCSC{ComplexF64,Int}}
-    @assert basis.onebodybasis == op.basis_l^2
+function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{BC,BC,T}) where {B<:Basis,BC<:CompositeBasis{Tuple{B,B}},T<:SparseMatrixCSC{ComplexF64,Int}}
     N = length(basis)
     S = length(basis.onebodybasis)
     result = sparse(Operator(basis))

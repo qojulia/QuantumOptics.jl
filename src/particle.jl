@@ -160,7 +160,7 @@ samplepoints(b::MomentumBasis) = (dp = spacing(b); Float64[b.pmin + i*dp for i=0
 
 Position operator in real space.
 """
-position(b::PositionBasis) = SparseOperator(b, sparse(Diagonal(complex(samplepoints(b)))))
+position(b::PositionBasis) = Operator(b, spdiagm(0 => complex(samplepoints(b))))
 
 
 """
@@ -178,7 +178,7 @@ end
 
 Momentum operator in momentum space.
 """
-momentum(b::MomentumBasis) = SparseOperator(b, sparse(Diagonal(complex(samplepoints(b)))))
+momentum(b::MomentumBasis) = Operator(b, spdiagm(0 => complex(samplepoints(b))))
 
 """
     momentum(b::PositionBasis)
@@ -350,11 +350,12 @@ function transform(basis_l::PositionBasis, basis_r::MomentumBasis; ket_only::Boo
     end
 end
 
+# TODO: proper dispatching using parametric CompositeBasis fields
 function transform(basis_l::CompositeBasis, basis_r::CompositeBasis; ket_only::Bool=false, index::Vector{Int}=Int[])
     @assert length(basis_l.bases) == length(basis_r.bases)
     if length(index) == 0
-        check_pos = typeof.(basis_l.bases) .== PositionBasis
-        check_mom = typeof.(basis_l.bases) .== MomentumBasis
+        check_pos = [(typeof.(basis_l.bases) .== PositionBasis)...]
+        check_mom = [(typeof.(basis_l.bases) .== MomentumBasis)...]
         if any(check_pos) && !any(check_mom)
             index = [1:length(basis_l.bases);][check_pos]
         elseif any(check_mom) && !any(check_pos)
@@ -472,7 +473,8 @@ operators.dagger(op::FFTKets) = transform(op.basis_r, op.basis_l; ket_only=true)
 operators.tensor(A::FFTOperators, B::FFTOperators) = transform(tensor(A.basis_l, B.basis_l), tensor(A.basis_r, B.basis_r))
 operators.tensor(A::FFTKets, B::FFTKets) = transform(tensor(A.basis_l, B.basis_l), tensor(A.basis_r, B.basis_r); ket_only=true)
 
-function operators.gemv!(alpha_, M::FFTOperator, b::Ket, beta_, result::Ket)
+function mul!(result::Ket{BL}, M::FFTOperator{BL,BR}, b::Ket{BR},
+        alpha_::Number, beta_::Number) where {BL<:Basis,BR<:Basis}
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     N::Int = length(M.basis_r)
@@ -496,8 +498,11 @@ function operators.gemv!(alpha_, M::FFTOperator, b::Ket, beta_, result::Ket)
     end
     nothing
 end
+mul!(result::Ket{BL}, M::FFTOperator{BL,BR}, b::Ket{BR}) where {BL<:Basis,BR<:Basis} =
+    mul!(result, M, b, 1.0, 0.0)
 
-function operators.gemv!(alpha_, b::Bra, M::FFTOperator, beta_, result::Bra)
+function mul!(result::Bra{BR}, b::Bra{BL}, M::FFTOperator{BL,BR},
+        alpha_::Number, beta_::Number) where {BL<:Basis,BR<:Basis}
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     N::Int = length(M.basis_l)
@@ -521,6 +526,8 @@ function operators.gemv!(alpha_, b::Bra, M::FFTOperator, beta_, result::Bra)
     end
     nothing
 end
+mul!(result::Bra{BR}, b::Bra{BL}, M::FFTOperator{BL,BR}) where {BL<:Basis,BR<:Basis} =
+    mul!(result, b, M, 1.0, 0.0)
 
 # TODO: Test with sparse operator data
 function mul!(result::Operator{BL,BR,T}, A::Operator{BL,BR2,T}, B::FFTOperators{BR2,BR}, alpha_::Number, beta_::Number) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}}
@@ -579,6 +586,6 @@ function mul!(result::Operator{BL,BR,T}, A::FFTOperators{BL,BR2}, B::Operator{BR
     nothing
 end
 mul!(result::Operator{BL,BR,T}, A::FFTOperators{BL,BR2}, B::Operator{BR2,BR,T}) where {BL<:Basis,BR<:Basis,BR2<:Basis,T<:Matrix{ComplexF64}} =
-    mul!(result, A, B)
+    mul!(result, A, B, 1.0, 0.0)
 
 end # module
