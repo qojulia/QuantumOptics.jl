@@ -48,7 +48,7 @@ end
 Returns the phase-average of ``ρ`` containing only the diagonal elements.
 """
 function phase_average(rho::Operator{B,B}) where {B<:Basis}
-    return Operator{B,B}(rho.basis,diagm(0 => diag(rho.data)))
+    return Operator(rho.basis_l,diagm(0 => diag(rho.data)))
 end
 
 """
@@ -56,8 +56,8 @@ end
 
 Passive state ``π`` of ``ρ``. IncreasingEigenenergies=true means that higher indices correspond to higher energies.
 """
-function passive_state(rho::Operator{B,B},IncreasingEigenenergies::Bool=true) where B<:Basis
-    return Operator{B,B}(rho.basis,diagm(0 => sort!(abs.(eigvals(rho.data)),rev=IncreasingEigenenergies)))
+function passive_state(rho::Operator{B,B,T},IncreasingEigenenergies::Bool=true) where {B<:Basis,T<:Matrix{ComplexF64}}
+    return Operator(rho.basis_r,diagm(0 => sort!(abs.(eigvals(rho.data)),rev=IncreasingEigenenergies)))
 end
 
 end #module
