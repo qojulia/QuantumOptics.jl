@@ -38,6 +38,7 @@ op_test3 = test_operators(b1 ⊗ b2, b2 ⊗ b1, randoperator(b, b).data)
 @test_throws ArgumentError op_test - 1
 
 @test_throws ArgumentError dagger(op_test)
+@test_throws ArgumentError op_test'
 @test_throws ArgumentError identityoperator(test_operators, b, b)
 @test_throws ArgumentError tr(op_test)
 @test_throws ArgumentError ptrace(op_test, [1])

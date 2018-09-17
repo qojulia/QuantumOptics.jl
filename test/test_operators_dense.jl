@@ -26,6 +26,9 @@ op1 = Operator(b1a, b1b, [1 1 1; 1 1 1])
 op2 = Operator(b1b, b1a, [1 1; 1 1; 1 1])
 @test op1 == dagger(op2)
 
+# Test ' shorthand
+@test dagger(op2) == op2'
+
 # Test copy
 op1 = randoperator(b1a)
 op2 = copy(op1)
@@ -119,6 +122,7 @@ op123 = op1a ⊗ op2a ⊗ op3a
 @test 1e-13 > D((op1a ⊗ op2a) * dagger(op1b ⊗ op2b), (op1a*dagger(op1b)) ⊗ (op2a*dagger(op2b)))
 
 # Transpose
+@test 1e-13 > D(dagger(op1a ⊗ op2a), dagger(op1a) ⊗ dagger(op2a))
 @test 1e-13 > D(dagger(op1a ⊗ op2a), dagger(op1a) ⊗ dagger(op2a))
 
 # Internal layout

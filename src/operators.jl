@@ -50,6 +50,7 @@ basis(a::AbstractOperator) = (check_samebases(a); a.basis_l)
 
 
 dagger(a::AbstractOperator) = arithmetic_unary_error("Hermitian conjugate", a)
+Base.adjoint(a::AbstractOperator) = dagger(a)
 
 conj(a::AbstractOperator) = arithmetic_unary_error("Complex conjugate", a)
 conj!(a::AbstractOperator) = conj(a::AbstractOperator)
