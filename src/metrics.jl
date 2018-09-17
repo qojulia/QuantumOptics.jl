@@ -22,7 +22,7 @@ T(ρ) = Tr\\{\\sqrt{ρ^† ρ}\\}.
 Depending if `rho` is hermitian either [`tracenorm_h`](@ref) or
 [`tracenorm_nh`](@ref) is called.
 """
-function tracenorm(rho::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}}
+function tracenorm(rho::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}}
     ishermitian(rho) ? tracenorm_h(rho) : tracenorm_nh(rho)
 end
 function tracenorm(rho::T) where T<:AbstractOperator
@@ -87,7 +87,8 @@ T(ρ,σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\}.
 It calls [`tracenorm`](@ref) which in turn either uses [`tracenorm_h`](@ref)
 or [`tracenorm_nh`](@ref) depending if ``ρ-σ`` is hermitian or not.
 """
-tracedistance(rho::Operator{BL,BR,T}, sigma::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm(rho - sigma)
+tracedistance(rho::Operator{B,B,T}, sigma::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm(rho - sigma)
+tracedistance(rho::Operator{B1,B2,T}, sigma::Operator{B3,B4,T}) where {B1<:Basis,B2<:Basis,B3<:Basis,B4<:Basis,T<:Matrix{ComplexF64}} = throw(bases.IncompatibleBases())
 function tracedistance(rho::T, sigma::T) where T<:AbstractOperator
     throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
 end
@@ -106,6 +107,7 @@ T(ρ,σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\} = \\frac{1}{2} \
 where ``λ_i`` are the eigenvalues of `rho` - `sigma`.
 """
 tracedistance_h(rho::Operator{B,B,T}, sigma::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm_h(rho - sigma)
+tracedistance_h(rho::Operator{B1,B2,T}, sigma::Operator{B3,B4,T}) where {B1<:Basis,B2<:Basis,B3<:Basis,B4<:Basis,T<:Matrix{ComplexF64}} = throw(bases.IncompatibleBases())
 function tracedistance_h(rho::T, sigma::T) where T<:AbstractOperator
     throw(ArgumentError("tracedistance_h not implemented for $(T). Use dense operators instead."))
 end
