@@ -6,6 +6,7 @@ import ..timeevolution: integrate, recast!
 
 using ..bases, ..states, ..operators, ..operators_dense, ..timeevolution
 
+import LinearAlgebra: mul!
 
 const QuantumState{B<:Basis} = Union{Ket{B}, Operator{B,B}}
 const DecayRates = Union{Nothing, Vector{Float64}, Matrix{Float64}}

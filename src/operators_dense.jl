@@ -153,10 +153,13 @@ function operators.permutesystems(a::Operator{BL,BR,T}, perm::Vector{Int}) where
     Operator(permutesystems(a.basis_l, perm), permutesystems(a.basis_r, perm), data)
 end
 
+# TODO: clean up identityoperator methods
 operators.identityoperator(::Type{Operator{BL,BR,T}}, b1::BL, b2::BR) where {BL<:Basis,BR<:Basis,T<:OperatorDataType} = Operator{BL,BR,T}(b1, b2, T(I, length(b1), length(b2)))
 operators.identityoperator(::Type{Operator{BL1,BR1,T}}, b1::BL2,
         b2::BR2) where {BL1<:Basis,BR1<:Basis,BL2<:Basis,BR2<:Basis,T<:OperatorDataType} =
     Operator{BL2,BR2,T}(b1, b2, T(I, length(b1), length(b2)))
+operators.identityoperator(::Type{T}, b1::Basis, b2::Basis) where {T2<:OperatorDataType,T<:Operator{BL,BR,T2} where BR<:Basis where BL<:Basis} =
+    Operator(b1, b2, T2(I, length(b1), length(b2)))
 
 """
     projector(a::Ket, b::Bra)

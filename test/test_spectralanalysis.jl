@@ -2,7 +2,11 @@ using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
-mutable struct SpectralanalysisTestOperator <: AbstractOperator end
+mutable struct SpectralanalysisTestOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
+    function SpectralanalysisTestOperator()
+        new{Basis,Basis}()
+    end
+end
 
 @testset "spectralanalysis" begin
 

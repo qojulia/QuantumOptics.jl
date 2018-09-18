@@ -6,7 +6,7 @@ import ..integrate, ..recast!, ..QO_CHECKS
 
 using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse
-using SparseArrays
+using SparseArrays, LinearAlgebra
 
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
@@ -210,12 +210,12 @@ end
 
 function dmaster_h(rho::T1, H::AbstractOperator{B,B},
                     rates::Nothing, J::Vector{T2}, Jdagger::Vector{T2},
-                    drho::T1, tmp::T2) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B}}
+                    drho::T1, tmp::T1) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B}}
     mul!(drho, H, rho, -1.0im, 0.0im)
     mul!(drho, rho, H, 1.0im, 1.0)
     for i=1:length(J)
         mul!(tmp, J[i], rho)
-        mul!(tmp, Jdagger[i], drho, 1.0, 1.0)
+        mul!(drho, tmp, Jdagger[i], 1.0, 1.0)
 
         mul!(drho, Jdagger[i], tmp, -0.5, 1.0)
 
@@ -332,7 +332,7 @@ function check_master(rho0::Operator{B,B}, H::AbstractOperator{B,B}, J::Vector{T
         isreducible = false
     end
     for j=J
-        if !(j, Operator)
+        if !isa(j, Operator)
             isreducible = false
         end
     end

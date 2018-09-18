@@ -6,6 +6,7 @@ import ..integrate, ..recast!, ..QO_CHECKS
 
 using ...bases, ...states, ...operators
 
+import LinearAlgebra: mul!
 
 """
     timeevolution.schroedinger(tspan, psi0, H; fout)
