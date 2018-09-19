@@ -70,7 +70,7 @@ function dschroedinger(psi::Ket{B}, H::AbstractOperator{B,B}, dpsi::Ket{B}) wher
 end
 
 function dschroedinger(psi::Bra{B}, H::AbstractOperator{B,B}, dpsi::Bra{B}) where B<:Basis
-    mul!(dpsi, H, psi, 1.0im, 0.0)
+    mul!(dpsi, psi, H, 1.0im, 0.0)
     return dpsi
 end
 

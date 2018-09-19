@@ -370,36 +370,36 @@ Default jump function.
 """
 function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket, rates::Nothing)
     if length(J)==1
-        operators.gemv!(complex(1.), J[1], psi, complex(0.), psi_new)
+        mul!(psi_new, J[1], psi)
         psi_new.data ./= norm(psi_new)
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
-            operators.gemv!(complex(1.), J[i], psi, complex(0.), psi_new)
+            mul!(psi_new, J[i], psi)
             probs[i] = dot(psi_new.data, psi_new.data)
         end
         cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
         i = findfirst(cumprobs.>r)
-        operators.gemv!(complex(1.)/sqrt(probs[i]), J[i], psi, complex(0.), psi_new)
+        mul!(psi_new, J[i], psi, 1.0/sqrt(probs[i]), 0.0)
     end
     return nothing
 end
 
 function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket, rates::Vector{Float64})
     if length(J)==1
-        operators.gemv!(complex(sqrt(rates[1])), J[1], psi, complex(0.), psi_new)
+        mul!(psi_new, J[1], psi, sqrt(rates[1]), 0.0)
         psi_new.data ./= norm(psi_new)
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
-            operators.gemv!(complex(sqrt(rates[i])), J[i], psi, complex(0.), psi_new)
+            mul!(psi_new, J[i], psi, sqrt(rates[i]), 0.0)
             probs[i] = dot(psi_new.data, psi_new.data)
         end
         cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
         i = findfirst(cumprobs.>r)
-        operators.gemv!(complex(sqrt(rates[i]/probs[i])), J[i], psi, complex(0.), psi_new)
+        mul!(psi_new, J[i], psi, sqrt(rates[i]/probs[i]), 0.0)
     end
     return nothing
 end
@@ -412,20 +412,20 @@ the jump operators J.
 """
 function dmcwf_h(psi::Ket, H::AbstractOperator,
                  J::Vector, Jdagger::Vector, dpsi::Ket, tmp::Ket, rates::Nothing)
-    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    mul!(dpsi, H, psi, -1.0im, 0.0)
     for i=1:length(J)
-        operators.gemv!(complex(1.), J[i], psi, complex(0.), tmp)
-        operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
+        mul!(tmp, J[i], psi)
+        mul!(dpsi, Jdagger[i], tmp, -0.5, 1.0)
     end
     return dpsi
 end
 
 function dmcwf_h(psi::Ket, H::AbstractOperator,
                  J::Vector, Jdagger::Vector, dpsi::Ket, tmp::Ket, rates::Vector{Float64})
-    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    mul!(dpsi, H, psi, -1.0im, 0.0)
     for i=1:length(J)
-        operators.gemv!(complex(rates[i]), J[i], psi, complex(0.), tmp)
-        operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
+        mul!(tmp, J[i], psi, rates[i], 0.0)
+        mul!(dpsi, Jdagger[i], tmp, -0.5, 1.0)
     end
     return dpsi
 end
@@ -437,7 +437,7 @@ Evaluate non-hermitian Schroedinger equation.
 The given Hamiltonian is already the non-hermitian version.
 """
 function dmcwf_nh(psi::Ket, Hnh::AbstractOperator, dpsi::Ket)
-    operators.gemv!(complex(0,-1.), Hnh, psi, complex(0.), dpsi)
+    mul!(dpsi, Hnh, psi, -1.0im, 0.0)
     return dpsi
 end
 

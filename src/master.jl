@@ -85,9 +85,9 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
         be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master(tspan, rho0::T1, H::AbstractOperator{B,B}, J::Vector{T2};
+function master(tspan, rho0::T1, H::AbstractOperator{B,B}, J::Vector;
                 rates::DecayRates=nothing,
-                Jdagger::Vector{T2}=dagger.(J),
+                Jdagger::Vector=dagger.(J),
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...) where {B<:Basis,T1<:Operator{B,B},T2<:AbstractOperator{B,B}}
     isreducible = check_master(rho0, H, J, Jdagger, rates)
@@ -116,6 +116,18 @@ function master(tspan, rho0::T1, H::AbstractOperator{B,B}, J::Vector{T2};
         return integrate_master(tspan, dmaster_nh_, rho0, fout; kwargs...)
     end
 end
+
+"""
+    master(tspan, rho0, H; kwargs...)
+
+Solve the von Neumann equation (empty jump operator vector).
+"""
+master(tspan, rho0::T, H::AbstractOperator{B,B}; kwargs...) where {B<:Basis,T<:Operator{B,B}} =
+    master(tspan, rho0, H, T[]; Jdagger=T[])
+master_h(tspan, rho0::T, H::AbstractOperator{B,B}; kwargs...) where {B<:Basis,T<:Operator{B,B}} =
+    master_h(tspan, rho0, H, T[]; Jdagger=T[])
+master_nh(tspan, rho0::T, H::AbstractOperator{B,B}; kwargs...) where {B<:Basis,T<:Operator{B,B}} =
+    master_nh(tspan, rho0, H, T[]; Jdagger=T[])
 
 """
     timeevolution.master_dynamic(tspan, rho0, f; <keyword arguments>)

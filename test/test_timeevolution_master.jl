@@ -157,10 +157,10 @@ tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh_dense, Jrotated_dense; rates=r
 tout, ρt = timeevolution.master(T, ρ₀, Hdense; reltol=1e-7)
 ρ = ρt[end]
 
-tout, ρt = timeevolution.master_h(T, ρ₀, Hdense, []; reltol=1e-7)
+tout, ρt = timeevolution.master_h(T, ρ₀, Hdense; reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
-tout, ρt = timeevolution.master_nh(T, ρ₀, Hdense, []; reltol=1e-7)
+tout, ρt = timeevolution.master_nh(T, ρ₀, Hdense; reltol=1e-7)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
 tout, Ψket_t = timeevolution.schroedinger(T, Ψ₀, Hdense; reltol=1.e-7)
