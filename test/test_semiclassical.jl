@@ -77,7 +77,7 @@ semiclassical.recast!(x, state_)
 
 
 # Test master
-basis = SpinBasis(1//2)
+spinbasis = SpinBasis(1//2)
 
 # Random 2 level Hamiltonian
 a1 = 0.5
@@ -86,18 +86,18 @@ c = 1.3
 d = -4.7
 
 data = [a1 c-1im*d; c+1im*d a2]
-H = DenseOperator(basis, data)
+H = DenseOperator(spinbasis, data)
 
 a = (a1 + a2)/2
 b = (a1 - a2)/2
 r = [c d b]
 
-sigma_r = c*sigmax(basis) + d*sigmay(basis) + b*sigmaz(basis)
+sigma_r = c*sigmax(spinbasis) + d*sigmay(spinbasis) + b*sigmaz(spinbasis)
 
-U(t) = exp(-1im*a*t)*(cos(norm(r)*t)*one(basis) - 1im*sin(norm(r)*t)*sigma_r/norm(r))
+U(t) = exp(-1im*a*t)*(cos(norm(r)*t)*one(spinbasis) - 1im*sin(norm(r)*t)*sigma_r/norm(r))
 
 # Random initial state
-psi0 = randstate(basis)
+psi0 = randstate(spinbasis)
 
 
 T = [0:0.5:1;]
@@ -109,7 +109,7 @@ function fclassical(t, quantumstate, u, du)
 end
 
 state0 = semiclassical.State(psi0, ComplexF64[complex(2., 3.)])
-function f(t, state::semiclassical.State{T}) where T<:Ket
+function f(t, state::semiclassical.State{B,T}) where {B<:Basis,T<:Ket{B}}
     @test 1e-5 > norm(state.quantum - U(t)*psi0)
     @test 1e-5 > abs(state.classical[1] - state0.classical[1]*exp(-t))
 end
@@ -117,7 +117,7 @@ semiclassical.schroedinger_dynamic(T, state0, fquantum_schroedinger, fclassical;
 tout, state_t = semiclassical.schroedinger_dynamic(T, state0, fquantum_schroedinger, fclassical)
 f(T[end], state_t[end])
 
-function f(t, state::semiclassical.State{DenseOperator})
+function f(t, state::semiclassical.State{B,T}) where {B<:Basis,T<:DenseOperator{B,B}}
     @test 1e-5 > tracedistance(state.quantum, dm(U(t)*psi0))
     @test 1e-5 > abs(state.classical[1] - state0.classical[1]*exp(-t))
 end

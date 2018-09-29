@@ -18,11 +18,11 @@ Sparse array implementation of Operator.
 The matrix is stored as the julia built-in type `SparseMatrixCSC`
 in the `data` field.
 """
-mutable struct SparseOperator <: AbstractOperator
-    basis_l::Basis
-    basis_r::Basis
-    data::SparseMatrixCSC{ComplexF64, Int}
-    function SparseOperator(b1::Basis, b2::Basis, data)
+mutable struct SparseOperator{BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}} <: AbstractOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
+    data::T
+    function SparseOperator{BL,BR,T}(b1::Basis, b2::Basis, data::T) where {BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}}
         if length(b1) != size(data, 1) || length(b2) != size(data, 2)
             throw(DimensionMismatch())
         end
@@ -30,6 +30,8 @@ mutable struct SparseOperator <: AbstractOperator
     end
 end
 
+SparseOperator(b1::BL, b2::BR, data::T) where {BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}} = SparseOperator{BL,BR,T}(b1, b2, data)
+SparseOperator(b1::Basis, b2::Basis, data) = SparseOperator(b1, b2, convert(SparseMatrixCSC{ComplexF64,Int}, data))
 SparseOperator(b::Basis, data::SparseMatrixCSC{ComplexF64, Int}) = SparseOperator(b, b, data)
 SparseOperator(b::Basis, data::Matrix{ComplexF64}) = SparseOperator(b, sparse(data))
 SparseOperator(op::DenseOperator) = SparseOperator(op.basis_l, op.basis_r, sparse(op.data))
@@ -116,7 +118,7 @@ function operators.permutesystems(rho::SparseOperator, perm::Vector{Int})
     SparseOperator(permutesystems(rho.basis_l, perm), permutesystems(rho.basis_r, perm), data)
 end
 
-operators.identityoperator(::Type{SparseOperator}, b1::Basis, b2::Basis) = SparseOperator(b1, b2, sparse(ComplexF64(1)*I, length(b1), length(b2)))
+operators.identityoperator(::Type{T}, b1::Basis, b2::Basis) where {T<:SparseOperator} = SparseOperator(b1, b2, sparse(ComplexF64(1)*I, length(b1), length(b2)))
 operators.identityoperator(b1::Basis, b2::Basis) = identityoperator(SparseOperator, b1, b2)
 operators.identityoperator(b::Basis) = identityoperator(b, b)
 

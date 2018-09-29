@@ -20,15 +20,15 @@ specifies in which subsystem the corresponding operator lives. Additionally,
 a complex factor is stored in the `factor` field which allows for fast
 multiplication with numbers.
 """
-mutable struct LazyTensor <: AbstractOperator
-    basis_l::CompositeBasis
-    basis_r::CompositeBasis
+mutable struct LazyTensor{BL<:CompositeBasis,BR<:CompositeBasis} <: AbstractOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     factor::ComplexF64
     indices::Vector{Int}
     operators::Vector{AbstractOperator}
 
     function LazyTensor(op::LazyTensor, factor::Number)
-        new(op.basis_l, op.basis_r, factor, op.indices, op.operators)
+        new{typeof(op.basis_l),typeof(op.basis_r)}(op.basis_l, op.basis_r, factor, op.indices, op.operators)
     end
 
     function LazyTensor(basis_l::Basis, basis_r::Basis,
@@ -54,7 +54,7 @@ mutable struct LazyTensor <: AbstractOperator
             indices = indices[perm]
             ops = ops[perm]
         end
-        new(basis_l, basis_r, complex(factor), indices, ops)
+        new{typeof(basis_l),typeof(basis_r)}(basis_l, basis_r, complex(factor), indices, ops)
     end
 end
 

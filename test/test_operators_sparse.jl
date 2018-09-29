@@ -4,7 +4,7 @@ using Random, SparseArrays, LinearAlgebra
 
 
 # Custom operator type for testing error msg
-mutable struct TestOperator <: AbstractOperator; end
+mutable struct TestOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}; end
 
 
 @testset "operators-sparse" begin
@@ -332,7 +332,7 @@ operators.gemm!(alpha, state, op, beta, result)
 dat = sprandop(b1, b1).data
 @test SparseOperator(b1, dat) == SparseOperator(b1, Matrix{ComplexF64}(dat))
 
-@test_throws ArgumentError sparse(TestOperator())
+@test_throws ArgumentError sparse(TestOperator{Basis,Basis}())
 
 @test 2*SparseOperator(b1, dat) == SparseOperator(b1, dat)*2
 @test copy(op1) == deepcopy(op1)

@@ -7,7 +7,7 @@ import ..timeevolution: integrate, recast!
 using ..bases, ..states, ..operators, ..operators_dense, ..timeevolution
 
 
-const QuantumState = Union{Ket, DenseOperator}
+const QuantumState{B} = Union{Ket{B}, DenseOperator{B,B}}
 const DecayRates = Union{Nothing, Vector{Float64}, Matrix{Float64}}
 
 """
@@ -16,15 +16,18 @@ Semi-classical state.
 It consists of a quantum part, which is either a `Ket` or a `DenseOperator` and
 a classical part that is specified as a complex vector of arbitrary length.
 """
-mutable struct State{T<:QuantumState}
+mutable struct State{B<:Basis,T<:QuantumState{B},C<:Vector{ComplexF64}}
     quantum::T
-    classical::Vector{ComplexF64}
+    classical::C
+    function State(quantum::T, classical::C) where {B<:Basis,T<:QuantumState{B},C<:Vector{ComplexF64}}
+        new{B,T,C}(quantum, classical)
+    end
 end
 
 Base.length(state::State) = length(state.quantum) + length(state.classical)
 Base.copy(state::State) = State(copy(state.quantum), copy(state.classical))
 
-function ==(a::State{T}, b::State{T}) where T<:QuantumState
+function ==(a::State, b::State)
     samebases(a.quantum, b.quantum) &&
     length(a.classical)==length(b.classical) &&
     (a.classical==b.classical) &&
@@ -33,9 +36,9 @@ end
 
 operators.expect(op, state::State) = expect(op, state.quantum)
 operators.variance(op, state::State) = variance(op, state.quantum)
-operators.ptrace(state::State, indices::Vector{Int}) = State{DenseOperator}(ptrace(state.quantum, indices), state.classical)
+operators.ptrace(state::State, indices::Vector{Int}) = State(ptrace(state.quantum, indices), state.classical)
 
-operators_dense.dm(x::State{T}) where T<:Ket = State{DenseOperator}(dm(x.quantum), x.classical)
+operators_dense.dm(x::State{B,T}) where {B<:Basis,T<:Ket{B}} = State(dm(x.quantum), x.classical)
 
 
 """
@@ -57,11 +60,11 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
         normalized nor permanent!
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function schroedinger_dynamic(tspan, state0::State{T}, fquantum::Function, fclassical::Function;
+function schroedinger_dynamic(tspan, state0::State{B,T}, fquantum::Function, fclassical::Function;
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...) where T <: Ket
+                kwargs...) where {B<:Basis,T<:Ket{B}}
     tspan_ = convert(Vector{Float64}, tspan)
-    dschroedinger_(t, state::State{T}, dstate::State{T}) = dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
+    dschroedinger_(t, state::State{B,T}, dstate::State{B,T}) = dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
     x0 = Vector{ComplexF64}(undef, length(state0))
     recast!(state0, x0)
     state = copy(state0)
@@ -88,13 +91,13 @@ Integrate time-dependent master equation coupled to a classical system.
         permanent!
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master_dynamic(tspan, state0::State{DenseOperator}, fquantum, fclassical;
-                rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
+function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical;
+                rates::DecayRates=nothing,
                 fout::Union{Function,Nothing}=nothing,
-                tmp::DenseOperator=copy(state0.quantum),
-                kwargs...)
+                tmp::T=copy(state0.quantum),
+                kwargs...) where {B<:Basis,T<:DenseOperator{B,B}}
     tspan_ = convert(Vector{Float64}, tspan)
-    function dmaster_(t, state::State{DenseOperator}, dstate::State{DenseOperator})
+    function dmaster_(t, state::State{B,T}, dstate::State{B,T})
         dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
     end
     x0 = Vector{ComplexF64}(undef, length(state0))
@@ -104,7 +107,7 @@ function master_dynamic(tspan, state0::State{DenseOperator}, fquantum, fclassica
     integrate(tspan_, dmaster_, x0, state, dstate, fout; kwargs...)
 end
 
-function master_dynamic(tspan, state0::State{T}, fquantum, fclassical; kwargs...) where T<:Ket
+function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical; kwargs...) where {B<:Basis,T<:Ket{B}}
     master_dynamic(tspan, dm(state0), fquantum, fclassical; kwargs...)
 end
 
@@ -122,15 +125,15 @@ function recast!(x::Vector{ComplexF64}, state::State)
     copyto!(state.classical, 1, x, N+1, length(state.classical))
 end
 
-function dschroedinger_dynamic(t::Float64, state::State{T}, fquantum::Function,
-            fclassical::Function, dstate::State{T}) where T<:Ket
+function dschroedinger_dynamic(t::Float64, state::State{B,T}, fquantum::Function,
+            fclassical::Function, dstate::State{B,T}) where {B<:Basis,T<:Ket{B}}
     fquantum_(t, psi) = fquantum(t, state.quantum, state.classical)
     timeevolution.timeevolution_schroedinger.dschroedinger_dynamic(t, state.quantum, fquantum_, dstate.quantum)
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 
-function dmaster_h_dynamic(t::Float64, state::State{DenseOperator}, fquantum::Function,
-            fclassical::Function, rates::DecayRates, dstate::State{DenseOperator}, tmp::DenseOperator)
+function dmaster_h_dynamic(t::Float64, state::State{B,T}, fquantum::Function,
+            fclassical::Function, rates::DecayRates, dstate::State{B,T}, tmp::T) where {B<:Basis,T<:DenseOperator{B,B}}
     fquantum_(t, rho) = fquantum(t, state.quantum, state.classical)
     timeevolution.timeevolution_master.dmaster_h_dynamic(t, state.quantum, fquantum_, rates, dstate.quantum, tmp)
     fclassical(t, state.quantum, state.classical, dstate.classical)

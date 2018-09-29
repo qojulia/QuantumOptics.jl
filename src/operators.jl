@@ -24,7 +24,7 @@ For fast time evolution also at least the function
 implemented. Many other generic multiplication functions can be defined in
 terms of this function and are provided automatically.
 """
-abstract type AbstractOperator end
+abstract type AbstractOperator{BL<:Basis,BR<:Basis} end
 
 
 # Common error messages

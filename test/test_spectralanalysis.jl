@@ -2,7 +2,7 @@ using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
-mutable struct SpectralanalysisTestOperator <: AbstractOperator end
+mutable struct SpectralanalysisTestOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR} end
 
 @testset "spectralanalysis" begin
 
@@ -11,9 +11,9 @@ Random.seed!(0)
 sprandop(b) = sparse(DenseOperator(b, rand(ComplexF64, length(b), length(b))))
 
 # Test diagonalization
-@test_throws ArgumentError eigenstates(SpectralanalysisTestOperator())
+@test_throws ArgumentError eigenstates(SpectralanalysisTestOperator{Basis,Basis}())
 @test_throws bases.IncompatibleBases eigenstates(DenseOperator(GenericBasis(3), GenericBasis(4)))
-@test_throws ArgumentError eigenenergies(SpectralanalysisTestOperator())
+@test_throws ArgumentError eigenenergies(SpectralanalysisTestOperator{Basis,Basis}())
 @test_throws bases.IncompatibleBases eigenenergies(DenseOperator(GenericBasis(3), GenericBasis(4)))
 
 

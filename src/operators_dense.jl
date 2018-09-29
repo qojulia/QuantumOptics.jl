@@ -16,13 +16,20 @@ Dense array implementation of Operator.
 
 The matrix consisting of complex floats is stored in the `data` field.
 """
-mutable struct DenseOperator <: AbstractOperator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct DenseOperator{BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} <: AbstractOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     data::Matrix{ComplexF64}
-    DenseOperator(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
+    function DenseOperator{BL,BR,T}(b1::BL, b2::BR, data::T) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}}
+        if !(length(b1) == size(data, 1) && length(b2) == size(data, 2))
+            throw(DimensionMismatch())
+        end
+        new(b1, b2, data)
+    end
 end
 
+DenseOperator(b1::BL, b2::BR, data::T) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} = DenseOperator{BL,BR,T}(b1, b2, data)
+DenseOperator(b1::Basis, b2::Basis, data) = DenseOperator(b1, b2, convert(Matrix{ComplexF64}, data))
 DenseOperator(b::Basis, data) = DenseOperator(b, b, data)
 DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(ComplexF64, length(b1), length(b2)))
 DenseOperator(b::Basis) = DenseOperator(b, b)
@@ -154,7 +161,7 @@ function operators.permutesystems(a::DenseOperator, perm::Vector{Int})
     DenseOperator(permutesystems(a.basis_l, perm), permutesystems(a.basis_r, perm), data)
 end
 
-operators.identityoperator(::Type{DenseOperator}, b1::Basis, b2::Basis) = DenseOperator(b1, b2, Matrix{ComplexF64}(I, length(b1), length(b2)))
+operators.identityoperator(::Type{T}, b1::Basis, b2::Basis) where {T<:DenseOperator} = DenseOperator(b1, b2, Matrix{ComplexF64}(I, length(b1), length(b2)))
 
 """
     projector(a::Ket, b::Bra)

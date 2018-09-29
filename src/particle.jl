@@ -264,7 +264,7 @@ end
 
 Abstract type for all implementations of FFT operators.
 """
-abstract type FFTOperator <: AbstractOperator end
+abstract type FFTOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR} end
 
 const PlanFFT = FFTW.cFFTWPlan
 
@@ -274,15 +274,24 @@ const PlanFFT = FFTW.cFFTWPlan
 Operator performing a fast fourier transformation when multiplied with a state
 that is a Ket or an Operator.
 """
-mutable struct FFTOperators <: FFTOperator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct FFTOperators{BL<:Basis,BR<:Basis} <: FFTOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     fft_l!::PlanFFT
     fft_r!::PlanFFT
     fft_l2!::PlanFFT
     fft_r2!::PlanFFT
     mul_before::Array{ComplexF64}
     mul_after::Array{ComplexF64}
+    function FFTOperators(b1::BL, b2::BR,
+        fft_l!::PlanFFT,
+        fft_r!::PlanFFT,
+        fft_l2!::PlanFFT,
+        fft_r2!::PlanFFT,
+        mul_before::Array{ComplexF64},
+        mul_after::Array{ComplexF64}) where {BL<:Basis,BR<:Basis}
+        new{BL,BR}(b1, b2, fft_l!, fft_r!, fft_l2!, fft_r2!, mul_before, mul_after)
+    end
 end
 
 """
@@ -291,13 +300,20 @@ end
 Operator that can only perform fast fourier transformations on Kets.
 This is much more memory efficient when only working with Kets.
 """
-mutable struct FFTKets <: FFTOperator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct FFTKets{BL<:Basis,BR<:Basis} <: FFTOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     fft_l!::PlanFFT
     fft_r!::PlanFFT
     mul_before::Array{ComplexF64}
     mul_after::Array{ComplexF64}
+    function FFTKets(b1::BL, b2::BR,
+        fft_l!::PlanFFT,
+        fft_r!::PlanFFT,
+        mul_before::Array{ComplexF64},
+        mul_after::Array{ComplexF64}) where {BL<:Basis,BR<:Basis}
+        new{BL,BR}(b1, b2, fft_l!, fft_r!, mul_before, mul_after)
+    end
 end
 
 """
