@@ -44,8 +44,8 @@ and
 H_s = iCe^{-i\\theta}.
 ```
 """
-function homodyne_carmichael(H0::Operator, C::Vector{T}, theta::Vector{R};
-            normalize_expect::Bool=true) where {T <: Operator, R <: Real}
+function homodyne_carmichael(H0::AbstractOperator, C::Vector{T}, theta::Vector{R};
+            normalize_expect::Bool=true) where {T <: AbstractOperator, R <: Real}
     n = length(C)
     @assert n == length(theta)
     Hs = 1.0im*C .* exp.(-1.0im .* theta)
@@ -67,7 +67,7 @@ function homodyne_carmichael(H0::Operator, C::Vector{T}, theta::Vector{R};
         return fdeterm_un, fstoch
     end
 end
-homodyne_carmichael(H0::Operator, C::Operator, theta::Real; kwargs...) =
+homodyne_carmichael(H0::AbstractOperator, C::AbstractOperator, theta::Real; kwargs...) =
     homodyne_carmichael(H0, [C], [theta]; kwargs...)
 
 end # module

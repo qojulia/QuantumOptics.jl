@@ -4,7 +4,7 @@ using LinearAlgebra
 
 @testset "spin" begin
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
+D(op1::AbstractOperator, op2::AbstractOperator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 
 # Test creation
 @test_throws AssertionError SpinBasis(1//3)
@@ -15,7 +15,7 @@ D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 for spinnumber=[1//2, 1, 3//2, 4//2]
     spinbasis = SpinBasis(spinnumber)
     I = operators.identityoperator(spinbasis)
-    Zero = SparseOperator(spinbasis)
+    Zero = Operator(spinbasis)
     sx = sigmax(spinbasis)
     sy = sigmay(spinbasis)
     sz = sigmaz(spinbasis)
@@ -80,7 +80,7 @@ end
 
 spinbasis = SpinBasis(1//2)
 I = identityoperator(spinbasis)
-Zero = SparseOperator(spinbasis)
+Zero = Operator(spinbasis)
 sx = sigmax(spinbasis)
 sy = sigmay(spinbasis)
 sz = sigmaz(spinbasis)

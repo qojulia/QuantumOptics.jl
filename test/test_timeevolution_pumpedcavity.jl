@@ -31,13 +31,13 @@ function α(t, α0, δc, κ)
 end
 
 D(psi1::Ket, psi2::Ket) = abs(1 - abs2(dagger(psi1)*psi2))
-D(rho1::DenseOperator, rho2::DenseOperator) = tracedistance(rho1, rho2)
+D(rho1::Operator, rho2::Operator) = tracedistance(rho1, rho2)
 
 T = [0:1.:3;]
 
 # No decay
 f_test(t, psi::Ket) = @test 1e-5 > D(psi, coherentstate(b, α(t, α0, δc, 0)))
-f_test(t, rho::DenseOperator) = @test 1e-5 > tracedistance(rho, dm(coherentstate(b, α(t, α0, δc, 0))))
+f_test(t, rho::Operator) = @test 1e-5 > tracedistance(rho, dm(coherentstate(b, α(t, α0, δc, 0))))
 
 timeevolution.schroedinger(T, psi0, Hint; fout=f_test)
 timeevolution.mcwf(T, psi0, Hint, []; fout=f_test)
@@ -47,7 +47,7 @@ timeevolution.master_nh(T, psi0, Hint, []; fout=f_test)
 
 # No decay, rotating
 f_test_td(t, psi::Ket) = @test 1e-5 > D(psi, coherentstate(b, α(t, α0, δc, 0)*exp(-1im*ω*t)))
-f_test_td(t, rho::DenseOperator) = @test 1e-5 > D(rho, dm(coherentstate(b, α(t, α0, δc, 0)*exp(-1im*ω*t))))
+f_test_td(t, rho::Operator) = @test 1e-5 > D(rho, dm(coherentstate(b, α(t, α0, δc, 0)*exp(-1im*ω*t))))
 
 f_H(t, psi) = ωc*n + η*(a*exp(1im*ω*t) + at*exp(-1im*ω*t))
 f_HJ(t, rho) = (f_H(t, psi0), [], [])
@@ -62,14 +62,14 @@ Hint_nh = Hint - 0.5im*κ*n
 J = [a]
 Jdagger = [at]
 
-f_test_decay(t, rho::DenseOperator) = @test 1e-5 > tracedistance(rho, dm(coherentstate(b, α(t, α0, δc, κ))))
+f_test_decay(t, rho::Operator) = @test 1e-5 > tracedistance(rho, dm(coherentstate(b, α(t, α0, δc, κ))))
 
 timeevolution.master(T, psi0, Hint, J; rates=Γ, fout=f_test_decay)
 timeevolution.master_h(T, psi0, Hint, J; rates=Γ, fout=f_test_decay)
 timeevolution.master_nh(T, psi0, Hint_nh, J; rates=Γ, fout=f_test_decay)
 
 # Decay, rotating
-f_test_decay_dynamic(t, rho::DenseOperator) = @test 1e-5 > tracedistance(rho, dm(coherentstate(b, α(t, α0, δc, κ)*exp(-1im*ω*t))))
+f_test_decay_dynamic(t, rho::Operator) = @test 1e-5 > tracedistance(rho, dm(coherentstate(b, α(t, α0, δc, κ)*exp(-1im*ω*t))))
 
 f_HJ_dynamic(t, rho) = (f_H(t, psi0), J, Jdagger)
 f_HJ_dynamic2(t, rho) = (f_H(t, psi0), J, Jdagger, Γ)

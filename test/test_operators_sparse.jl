@@ -4,14 +4,14 @@ using Random, SparseArrays, LinearAlgebra
 
 
 # Custom operator type for testing error msg
-mutable struct TestOperator <: Operator; end
+mutable struct TestOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}; end
 
 
 @testset "operators-sparse" begin
 
 Random.seed!(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
+D(op1::AbstractOperator, op2::AbstractOperator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 sprandop(b1, b2) = sparse(randoperator(b1, b2))
 sprandop(b) = sprandop(b, b)
@@ -27,10 +27,10 @@ b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
 # Test creation
-@test_throws DimensionMismatch DenseOperator(b1a, spzeros(ComplexF64, 3, 2))
-@test_throws DimensionMismatch DenseOperator(b1a, b1b, spzeros(ComplexF64, 3, 2))
-op1 = SparseOperator(b1a, b1b, sparse([1 1 1; 1 1 1]))
-op2 = sparse(DenseOperator(b1b, b1a, [1 1; 1 1; 1 1]))
+@test_throws AssertionError Operator(b1a, spzeros(ComplexF64, 3, 2))
+@test_throws AssertionError Operator(b1a, b1b, spzeros(ComplexF64, 3, 2))
+op1 = Operator(b1a, b1b, sparse([1 1 1; 1 1 1]))
+op2 = sparse(Operator(b1b, b1a, [1 1; 1 1; 1 1]))
 @test op1 == dagger(op2)
 
 # Test copy
@@ -42,7 +42,7 @@ op2.data[1,1] = complex(10.)
 
 # Arithmetic operations
 # =====================
-op_zero = SparseOperator(b_l, b_r)
+op_zero = Operator(b_l, b_r)
 op1 = sprandop(b_l, b_r)
 op2 = sprandop(b_l, b_r)
 op3 = sprandop(b_l, b_r)
@@ -57,13 +57,13 @@ xbra1 = dagger(randstate(b_l))
 xbra2 = dagger(randstate(b_l))
 
 # Addition
-@test_throws bases.IncompatibleBases op1 + dagger(op2)
+@test_throws DimensionMismatch op1 + dagger(op2)
 @test 1e-14 > D(op1+op2, op1_+op2_)
 @test 1e-14 > D(op1+op2, op1+op2_)
 @test 1e-14 > D(op1+op2, op1_+op2)
 
 # Subtraction
-@test_throws bases.IncompatibleBases op1 - dagger(op2)
+@test_throws DimensionMismatch op1 - dagger(op2)
 @test 1e-14 > D(op1-op2, op1_-op2_)
 @test 1e-14 > D(op1-op2, op1-op2_)
 @test 1e-14 > D(op1-op2, op1_-op2)
@@ -71,7 +71,7 @@ xbra2 = dagger(randstate(b_l))
 @test 1e-14 > D(op1+(-1*op2), op1_ - op2_)
 
 # Test multiplication
-@test_throws bases.IncompatibleBases op1*op2
+@test_throws DimensionMismatch op1*op2
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
 @test 1e-11 > D((op1+op2)*(x1+0.3*x2), (op1_+op2_)*(x1+0.3*x2))
@@ -94,23 +94,23 @@ conj!(tmp)
 @test tmp == conj(op1) && conj(tmp.data) == op1.data
 
 # Test identityoperator
-Idense = identityoperator(DenseOperator, b_r)
-I = identityoperator(SparseOperator, b_r)
-@test isa(I, SparseOperator)
-@test dense(I) == Idense
-@test 1e-11 > D(I*x1, x1)
-@test I == identityoperator(SparseOperator, b1b) ⊗ identityoperator(SparseOperator, b2b) ⊗ identityoperator(SparseOperator, b3b)
+Idense = identityoperator(Operator{typeof(b_r),typeof(b_r),Matrix{ComplexF64}}, b_r)
+id = identityoperator(b_r)
+@test isa(id, Operator)
+@test dense(id) == Idense
+@test 1e-11 > D(id*x1, x1)
+@test id == identityoperator(b1b) ⊗ identityoperator(b2b) ⊗ identityoperator(b3b)
 
-Idense = identityoperator(DenseOperator, b_l)
-I = identityoperator(SparseOperator, b_l)
-@test isa(I, SparseOperator)
-@test dense(I) == Idense
-@test 1e-11 > D(xbra1*I, xbra1)
-@test I == identityoperator(SparseOperator, b1a) ⊗ identityoperator(SparseOperator, b2a) ⊗ identityoperator(SparseOperator, b3a)
+Idense = identityoperator(Operator{typeof(b_l),typeof(b_l),Matrix{ComplexF64}}, b_l)
+id = identityoperator(b_l)
+@test isa(id, Operator)
+@test dense(id) == Idense
+@test 1e-11 > D(xbra1*id, xbra1)
+@test id == identityoperator(b1a) ⊗ identityoperator(b2a) ⊗ identityoperator(b3a)
 
 
 # Test tr and normalize
-op = sparse(DenseOperator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5]))
+op = sparse(Operator(GenericBasis(3), [1 3 2;5 2 2;-1 2 5]))
 @test 8 == tr(op)
 op_normalized = normalize(op)
 @test 8 == tr(op)
@@ -226,12 +226,12 @@ op321 = op3⊗op2⊗op1
 
 # Test diagonaloperator
 b = GenericBasis(4)
-I = identityoperator(b)
+id = identityoperator(b)
 
-@test diagonaloperator(b, [1, 1, 1, 1]) == I
-@test diagonaloperator(b, [1., 1., 1., 1.]) == I
-@test diagonaloperator(b, [1im, 1im, 1im, 1im]) == 1im*I
-@test diagonaloperator(b, [0:3;]) == sparse(DenseOperator(b, Diagonal([0:3;])))
+@test diagonaloperator(b, [1, 1, 1, 1]) == id
+@test diagonaloperator(b, [1., 1., 1., 1.]) == id
+@test diagonaloperator(b, [1im, 1im, 1im, 1im]) == 1im*id
+@test diagonaloperator(b, [0:3;]) == sparse(Operator(b, Diagonal([0:3;])))
 
 # Test gemv
 op = sprandop(b_l, b_r)
@@ -242,25 +242,25 @@ xbra = dagger(xket)
 state = randstate(b_r)
 result_ = randstate(b_l)
 result = deepcopy(result_)
-operators.gemv!(complex(1.0), op, state, complex(0.), result)
+mul!(result, op, state)
 @test 1e-13 > D(result, op_*state)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemv!(alpha, op, state, beta, result)
+mul!(result, op, state, alpha, beta)
 @test 1e-13 > D(result, alpha*op_*state + beta*result_)
 
 state = dagger(randstate(b_l))
 result_ = dagger(randstate(b_r))
 result = deepcopy(result_)
-operators.gemv!(complex(1.0), state, op, complex(0.), result)
+mul!(result, state, op)
 @test 1e-13 > D(result, state*op_)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemv!(alpha, state, op, beta, result)
+mul!(result, state, op, alpha, beta)
 @test 1e-13 > D(result, alpha*state*op_ + beta*result_)
 
 # Test gemm small version
@@ -274,25 +274,25 @@ op_ = dense(op)
 state = randoperator(b2, b3)
 result_ = randoperator(b1, b3)
 result = deepcopy(result_)
-operators.gemm!(complex(1.), op, state, complex(0.), result)
+mul!(result, op, state)
 @test 1e-12 > D(result, op_*state)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemm!(alpha, op, state, beta, result)
+mul!(result, op, state, alpha, beta)
 @test 1e-12 > D(result, alpha*op_*state + beta*result_)
 
 state = randoperator(b3, b1)
 result_ = randoperator(b3, b2)
 result = deepcopy(result_)
-operators.gemm!(complex(1.), state, op, complex(0.), result)
+mul!(result, state, op)
 @test 1e-12 > D(result, state*op_)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemm!(alpha, state, op, beta, result)
+mul!(result, state, op, alpha, beta)
 @test 1e-12 > D(result, alpha*state*op_ + beta*result_)
 
 # Test gemm big version
@@ -306,41 +306,60 @@ op_ = dense(op)
 state = randoperator(b2, b3)
 result_ = randoperator(b1, b3)
 result = deepcopy(result_)
-operators.gemm!(complex(1.), op, state, complex(0.), result)
+mul!(result, op, state)
 @test 1e-11 > D(result, op_*state)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemm!(alpha, op, state, beta, result)
+mul!(result, op, state, alpha, beta)
 @test 1e-11 > D(result, alpha*op_*state + beta*result_)
 
 state = randoperator(b3, b1)
 result_ = randoperator(b3, b2)
 result = deepcopy(result_)
-operators.gemm!(complex(1.), state, op, complex(0.), result)
+mul!(result, state, op)
 @test 1e-11 > D(result, state*op_)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemm!(alpha, state, op, beta, result)
+mul!(result, state, op, alpha, beta)
 @test 1e-11 > D(result, alpha*state*op_ + beta*result_)
 
 # Test remaining uncovered code
-@test_throws DimensionMismatch SparseOperator(b1, b2, zeros(10, 10))
+@test_throws AssertionError Operator(b1, b2, zeros(10, 10))
 dat = sprandop(b1, b1).data
-@test SparseOperator(b1, dat) == SparseOperator(b1, Matrix{ComplexF64}(dat))
+@test Operator(b1, dat) == Operator(b1, Matrix{ComplexF64}(dat))
 
-@test_throws ArgumentError sparse(TestOperator())
+@test_throws MethodError sparse(TestOperator())
 
-@test 2*SparseOperator(b1, dat) == SparseOperator(b1, dat)*2
+@test 2*Operator(b1, dat) == Operator(b1, dat)*2
 @test copy(op1) == deepcopy(op1)
 
 # Test Hermitian
 bspin = SpinBasis(1//2)
 bnlevel = NLevelBasis(2)
-@test ishermitian(SparseOperator(bspin, bspin, sparse([1.0 im; -im 2.0]))) == true
-@test ishermitian(SparseOperator(bspin, bnlevel, sparse([1.0 im; -im 2.0]))) == false
+@test ishermitian(Operator(bspin, bspin, sparse([1.0 im; -im 2.0]))) == true
+@test ishermitian(Operator(bspin, bnlevel, sparse([1.0 im; -im 2.0]))) == false
+
+# Sparse-sparse mul!
+b1 = GenericBasis(3)
+b2 = GenericBasis(5)
+b3 = GenericBasis(7)
+
+op = sprandop(b1, b2)
+
+state = sprandop(b2, b3)
+result_ = sprandop(b1, b3)
+result = deepcopy(result_)
+mul!(result, op, state)
+@test 1e-12 > D(result, op*state)
+
+result = deepcopy(result_)
+alpha = complex(1.5)
+beta = complex(2.1)
+mul!(result, op, state, alpha, beta)
+@test 1e-12 > D(result, alpha*op*state + beta*result_)
 
 end # testset

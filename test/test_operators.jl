@@ -2,11 +2,13 @@ using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
-mutable struct test_operators <: Operator
-  basis_l::Basis
-  basis_r::Basis
+mutable struct test_operators{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
+  basis_l::BL
+  basis_r::BR
   data::Matrix{ComplexF64}
-  test_operators(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
+  function test_operators(b1::BL, b2::BR, data) where {BL<:Basis,BR<:Basis}
+      length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new{BL,BR}(b1, b2, data) : throw(DimensionMismatch())
+  end
 end
 
 @testset "operators" begin
@@ -59,7 +61,7 @@ op_test3 = test_operators(b1 ⊗ b2, b2 ⊗ b1, randoperator(b, b).data)
 @test_throws ArgumentError permutesystems(op_test, [1, 2])
 
 @test embed(b, b, 1, op) == embed(b, 1, op)
-@test embed(b, Dict{Vector{Int}, SparseOperator}()) == identityoperator(b)
+@test embed(b, Dict{Vector{Int}, Operator{typeof(b),typeof(b),SparseMatrixCSC{ComplexF64,Int}}}()) == identityoperator(b)
 
 @test_throws ErrorException QuantumOptics.operators.gemm!()
 @test_throws ErrorException QuantumOptics.operators.gemv!()

@@ -13,13 +13,13 @@ using ..bases, ..states, ..operators, ..operators_dense
 
 A basis describing a subspace embedded a higher dimensional Hilbert space.
 """
-mutable struct SubspaceBasis <: Basis
+mutable struct SubspaceBasis{B<:Basis,T<:Ket} <: Basis
     shape::Vector{Int}
-    superbasis::Basis
-    basisstates::Vector{Ket}
+    superbasis::B
+    basisstates::Vector{T}
     basisstates_hash::UInt
 
-    function SubspaceBasis(superbasis::Basis, basisstates::Vector{Ket})
+    function SubspaceBasis{B,T}(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket}
         for state = basisstates
             if state.basis != superbasis
                 throw(ArgumentError("The basis of the basisstates has to be the superbasis."))
@@ -30,7 +30,8 @@ mutable struct SubspaceBasis <: Basis
     end
 end
 
-SubspaceBasis(basisstates::Vector{Ket}) = SubspaceBasis(basisstates[1].basis, basisstates)
+SubspaceBasis(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket} = SubspaceBasis{B,T}(superbasis, basisstates)
+SubspaceBasis(basisstates::Vector{T}) where T<:Ket = SubspaceBasis(basisstates[1].basis, basisstates)
 
 ==(b1::SubspaceBasis, b2::SubspaceBasis) = b1.superbasis==b2.superbasis && b1.basisstates_hash==b2.basisstates_hash
 
@@ -81,7 +82,7 @@ function projector(b1::SubspaceBasis, b2::Basis)
     for (i, state) = enumerate(b1.basisstates)
         data[i,:] = state.data
     end
-    return DenseOperator(b1, b2, data)
+    return Operator(b1, b2, data)
 end
 
 function projector(b1::Basis, b2::SubspaceBasis)
@@ -92,7 +93,7 @@ function projector(b1::Basis, b2::SubspaceBasis)
     for (i, state) = enumerate(b2.basisstates)
         data[:,i] = state.data
     end
-    return DenseOperator(b1, b2, data)
+    return Operator(b1, b2, data)
 end
 
 

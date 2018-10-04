@@ -21,7 +21,7 @@ end
 
 Calculate a random unnormalized dense operator.
 """
-randoperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, rand(ComplexF64, length(b1), length(b2)))
+randoperator(b1::BL, b2::BR) where {BL<:Basis,BR<:Basis} = Operator(b1, b2, rand(ComplexF64, length(b1), length(b2)))
 randoperator(b::Basis) = randoperator(b, b)
 
 """
@@ -29,7 +29,7 @@ randoperator(b::Basis) = randoperator(b, b)
 
 Thermal state ``exp(-H/T)/Tr[exp(-H/T)]``.
 """
-function thermalstate(H::Operator,T::Real)
+function thermalstate(H::AbstractOperator,T::Real)
     return normalize(exp(-dense(H)/T))
 end
 
@@ -38,7 +38,7 @@ end
 
 Coherent thermal state ``D(α)exp(-H/T)/Tr[exp(-H/T)]D^†(α)``.
 """
-function coherentthermalstate(basis::FockBasis,H::Operator,T::Real,alpha::Number)
+function coherentthermalstate(basis::FockBasis,H::AbstractOperator,T::Real,alpha::Number)
     return displace(basis,alpha)*thermalstate(H,T)*dagger(displace(basis,alpha))
 end
 
@@ -47,8 +47,8 @@ end
 
 Returns the phase-average of ``ρ`` containing only the diagonal elements.
 """
-function phase_average(rho::DenseOperator)
-    return DenseOperator(basis(rho),diagm(0 => diag(rho.data)))
+function phase_average(rho::Operator{B,B}) where {B<:Basis}
+    return Operator(rho.basis_l,diagm(0 => diag(rho.data)))
 end
 
 """
@@ -56,8 +56,8 @@ end
 
 Passive state ``π`` of ``ρ``. IncreasingEigenenergies=true means that higher indices correspond to higher energies.
 """
-function passive_state(rho::DenseOperator,IncreasingEigenenergies::Bool=true)
-    return DenseOperator(basis(rho),diagm(0 => sort!(abs.(eigvals(rho.data)),rev=IncreasingEigenenergies)))
+function passive_state(rho::Operator{B,B,T},IncreasingEigenenergies::Bool=true) where {B<:Basis,T<:Matrix{ComplexF64}}
+    return Operator(rho.basis_r,diagm(0 => sort!(abs.(eigvals(rho.data)),rev=IncreasingEigenenergies)))
 end
 
 end #module

@@ -2,19 +2,23 @@ using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
-mutable struct SpectralanalysisTestOperator <: Operator end
+mutable struct SpectralanalysisTestOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
+    function SpectralanalysisTestOperator()
+        new{Basis,Basis}()
+    end
+end
 
 @testset "spectralanalysis" begin
 
 Random.seed!(0)
 
-sprandop(b) = sparse(DenseOperator(b, rand(ComplexF64, length(b), length(b))))
+sprandop(b) = sparse(Operator(b, rand(ComplexF64, length(b), length(b))))
 
 # Test diagonalization
 @test_throws ArgumentError eigenstates(SpectralanalysisTestOperator())
-@test_throws bases.IncompatibleBases eigenstates(DenseOperator(GenericBasis(3), GenericBasis(4)))
+@test_throws bases.IncompatibleBases eigenstates(Operator(GenericBasis(3), GenericBasis(4)))
 @test_throws ArgumentError eigenenergies(SpectralanalysisTestOperator())
-@test_throws bases.IncompatibleBases eigenenergies(DenseOperator(GenericBasis(3), GenericBasis(4)))
+@test_throws bases.IncompatibleBases eigenenergies(Operator(GenericBasis(3), GenericBasis(4)))
 
 
 # Test hermitian diagonalization
@@ -23,7 +27,7 @@ a = randoperator(b)
 H = (a+dagger(a))/2
 U = exp(1im*H)
 d = [-3, -2.6, -0.1, 0.0, 0.6]
-D = DenseOperator(b, diagm(0 => d))
+D = Operator(b, diagm(0 => d))
 Dsp = sparse(D)
 @test eigenenergies(D) ≈ d
 @test eigenenergies(Dsp, 3, info=false) ≈ d[1:3]
@@ -51,7 +55,7 @@ a = randoperator(b)
 H = (a+dagger(a))/2
 U = exp(1im*H)
 d = [-3+0.2im, -2.6-0.1im, -0.1+0.5im, 0.0, 0.6+0.3im]
-D = DenseOperator(b, diagm(0 => d))
+D = Operator(b, diagm(0 => d))
 Dsp = sparse(D)
 @test eigenenergies(D; warning=false) ≈ d
 @test eigenenergies(Dsp, 3; warning=false, info=false) ≈ d[1:3]

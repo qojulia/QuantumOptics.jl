@@ -20,14 +20,14 @@ The basis has to know the associated one-body basis `b` and which occupation sta
 should be included. The occupations_hash is used to speed up checking if two
 many-body bases are equal.
 """
-mutable struct ManyBodyBasis <: Basis
+mutable struct ManyBodyBasis{B<:Basis} <: Basis
     shape::Vector{Int}
-    onebodybasis::Basis
+    onebodybasis::B
     occupations::Vector{Vector{Int}}
     occupations_hash::UInt
 
-    function ManyBodyBasis(onebodybasis::Basis, occupations::Vector{Vector{Int}})
-        new([length(occupations)], onebodybasis, occupations, hash(hash.(occupations)))
+    function ManyBodyBasis(onebodybasis::B, occupations::Vector{Vector{Int}}) where B<:Basis
+        new{B}([length(occupations)], onebodybasis, occupations, hash(hash.(occupations)))
     end
 end
 
@@ -91,8 +91,8 @@ end
 
 Creation operator for the i-th mode of the many-body basis `b`.
 """
-function create(b::ManyBodyBasis, index::Int)
-    result = SparseOperator(b)
+function create(b::B, index::Int) where B<:ManyBodyBasis
+    result = Operator(b, spdiagm(0=>zeros(prod(b.shape))))
     # <{m}_i| at |{m}_j>
     for i=1:length(b)
         occ_i = b.occupations[i]
@@ -113,8 +113,8 @@ end
 
 Annihilation operator for the i-th mode of the many-body basis `b`.
 """
-function destroy(b::ManyBodyBasis, index::Int)
-    result = SparseOperator(b)
+function destroy(b::B, index::Int) where B<:ManyBodyBasis
+    result = Operator(b, spdiagm(0=>zeros(prod(b.shape))))
     # <{m}_j| a |{m}_i>
     for i=1:length(b)
         occ_i = b.occupations[i]
@@ -136,7 +136,7 @@ end
 Particle number operator for the i-th mode of the many-body basis `b`.
 """
 function number(b::ManyBodyBasis, index::Int)
-    result = SparseOperator(b)
+    result = Operator(b, spdiagm(0=>zeros(prod(b.shape))))
     for i=1:length(b)
         result.data[i, i] = b.occupations[i][index]
     end
@@ -149,7 +149,7 @@ end
 Total particle number operator.
 """
 function number(b::ManyBodyBasis)
-    result = SparseOperator(b)
+    result = sparse(Operator(b))
     for i=1:length(b)
         result.data[i, i] = sum(b.occupations[i])
     end
@@ -185,7 +185,7 @@ end
 Operator ``|\\mathrm{to}⟩⟨\\mathrm{from}|`` transferring particles between modes.
 """
 function transition(b::ManyBodyBasis, to::Int, from::Int)
-    result = SparseOperator(b)
+    result = sparse(Operator(b))
     # <{m}_j| at_to a_from |{m}_i>
     for i=1:length(b)
         occ_i = b.occupations[i]
@@ -228,22 +228,10 @@ where ``X`` is the N-particle operator, ``x`` is the one-body operator and
 ``|u⟩`` are the one-body states associated to the
 different modes of the N-particle basis.
 """
-function manybodyoperator(basis::ManyBodyBasis, op::T)::T where T<:Operator
-    @assert op.basis_l == op.basis_r
-    if op.basis_l == basis.onebodybasis
-        result =  manybodyoperator_1(basis, op)
-    elseif op.basis_l == basis.onebodybasis ⊗ basis.onebodybasis
-        result = manybodyoperator_2(basis, op)
-    else
-        throw(ArgumentError("The basis of the given operator has to either be equal to b or b ⊗ b where b is the 1st quantization basis associated to the nparticle basis."))
-    end
-    result
-end
-
-function manybodyoperator_1(basis::ManyBodyBasis, op::DenseOperator)
+function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}}
     N = length(basis)
     S = length(basis.onebodybasis)
-    result = DenseOperator(basis)
+    result = Operator(basis)
     @inbounds for n=1:N, m=1:N
         for j=1:S, i=1:S
             C = coefficient(basis.occupations[m], basis.occupations[n], [i], [j])
@@ -254,11 +242,10 @@ function manybodyoperator_1(basis::ManyBodyBasis, op::DenseOperator)
     end
     return result
 end
-
-function manybodyoperator_1(basis::ManyBodyBasis, op::SparseOperator)
+function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{B,B,T}) where {B<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}}
     N = length(basis)
     S = length(basis.onebodybasis)
-    result = SparseOperator(basis)
+    result = sparse(Operator(basis))
     M = op.data
     @inbounds for colindex = 1:M.n
         for i=M.colptr[colindex]:M.colptr[colindex+1]-1
@@ -275,12 +262,13 @@ function manybodyoperator_1(basis::ManyBodyBasis, op::SparseOperator)
     return result
 end
 
-function manybodyoperator_2(basis::ManyBodyBasis, op::DenseOperator)
+function manybodyoperator(basis::ManyBodyBasis{B},
+            op::Operator{BC,BC,T}) where {B<:Basis,BC<:CompositeBasis{Tuple{B,B}},T<:Matrix{ComplexF64}}
     N = length(basis)
     S = length(basis.onebodybasis)
     @assert S^2 == length(op.basis_l)
     @assert S^2 == length(op.basis_r)
-    result = DenseOperator(basis)
+    result = Operator(basis)
     op_data = reshape(op.data, S, S, S, S)
     occupations = basis.occupations
     @inbounds for m=1:N, n=1:N
@@ -291,11 +279,10 @@ function manybodyoperator_2(basis::ManyBodyBasis, op::DenseOperator)
     end
     return result
 end
-
-function manybodyoperator_2(basis::ManyBodyBasis, op::SparseOperator)
+function manybodyoperator(basis::ManyBodyBasis{B}, op::Operator{BC,BC,T}) where {B<:Basis,BC<:CompositeBasis{Tuple{B,B}},T<:SparseMatrixCSC{ComplexF64,Int}}
     N = length(basis)
     S = length(basis.onebodybasis)
-    result = SparseOperator(basis)
+    result = sparse(Operator(basis))
     occupations = basis.occupations
     rows = rowvals(op.data)
     values = nonzeros(op.data)
@@ -321,9 +308,7 @@ end
 
 Expectation value of the one-body operator `op` in respect to the many-body `state`.
 """
-function onebodyexpect(op::Operator, state::Ket)
-    @assert isa(state.basis, ManyBodyBasis)
-    @assert op.basis_l == op.basis_r
+function onebodyexpect(op::AbstractOperator{B,B}, state::Ket{MB}) where {B<:Basis,MB<:ManyBodyBasis{B}}
     if state.basis.onebodybasis == op.basis_l
         result = onebodyexpect_1(op, state)
     # Not yet implemented:
@@ -335,10 +320,7 @@ function onebodyexpect(op::Operator, state::Ket)
     result
 end
 
-function onebodyexpect(op::Operator, state::Operator)
-    @assert op.basis_l == op.basis_r
-    @assert state.basis_l == state.basis_r
-    @assert isa(state.basis_l, ManyBodyBasis)
+function onebodyexpect(op::AbstractOperator{B,B}, state::AbstractOperator{BM,BM}) where {B<:Basis,BM<:ManyBodyBasis{B}}
     if state.basis_l.onebodybasis == op.basis_l
         result = onebodyexpect_1(op, state)
     # Not yet implemented
@@ -349,9 +331,9 @@ function onebodyexpect(op::Operator, state::Operator)
     end
     result
 end
-onebodyexpect(op::Operator, states::Vector) = [onebodyexpect(op, state) for state=states]
+onebodyexpect(op::AbstractOperator, states::Vector) = [onebodyexpect(op, state) for state=states]
 
-function onebodyexpect_1(op::DenseOperator, state::Ket)
+function onebodyexpect_1(op::Operator{B,B,T}, state::Ket{BM}) where {B<:Basis,T<:Matrix{ComplexF64},BM<:ManyBodyBasis{B}}
     N = length(state.basis)
     S = length(state.basis.onebodybasis)
     result = complex(0.)
@@ -368,7 +350,7 @@ function onebodyexpect_1(op::DenseOperator, state::Ket)
     result
 end
 
-function onebodyexpect_1(op::DenseOperator, state::DenseOperator)
+function onebodyexpect_1(op::Operator{B,B,T}, state::Operator{BM,BM,T}) where {B<:Basis,T<:Matrix{ComplexF64},BM<:ManyBodyBasis{B}}
     N = length(state.basis_l)
     S = length(state.basis_l.onebodybasis)
     result = complex(0.)
@@ -385,7 +367,7 @@ function onebodyexpect_1(op::DenseOperator, state::DenseOperator)
     result
 end
 
-function onebodyexpect_1(op::SparseOperator, state::Ket)
+function onebodyexpect_1(op::Operator{B,B,T}, state::Ket{BM}) where {B<:Basis,T<:SparseMatrixCSC{ComplexF64,Int},BM<:ManyBodyBasis{B}}
     N = length(state.basis)
     S = length(state.basis.onebodybasis)
     result = complex(0.)
@@ -406,7 +388,7 @@ function onebodyexpect_1(op::SparseOperator, state::Ket)
     result
 end
 
-function onebodyexpect_1(op::SparseOperator, state::DenseOperator)
+function onebodyexpect_1(op::Operator{B,B,T}, state::Operator{BM,BM,T2}) where {B<:Basis,T<:SparseMatrixCSC{ComplexF64,Int},BM<:ManyBodyBasis{B},T2<:Matrix{ComplexF64}}
     N = length(state.basis_l)
     S = length(state.basis_l.onebodybasis)
     result = complex(0.)

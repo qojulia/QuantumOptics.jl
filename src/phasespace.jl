@@ -17,15 +17,13 @@ function can either be evaluated on one point α or on a grid specified by
 the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
 done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + i y)``.
 """
-function qfunc(rho::Operator, alpha::Number)
+function qfunc(rho::AbstractOperator{B,B}, alpha::Number) where B<:FockBasis
     b = basis(rho)
-    @assert isa(b, FockBasis)
     _qfunc_operator(rho, convert(ComplexF64, alpha), Ket(b), Ket(b))
 end
 
-function qfunc(rho::Operator, xvec::Vector{Float64}, yvec::Vector{Float64})
+function qfunc(rho::AbstractOperator{B,B}, xvec::Vector{Float64}, yvec::Vector{Float64}) where B<:FockBasis
     b = basis(rho)
-    @assert isa(b, FockBasis)
     Nx = length(xvec)
     Ny = length(yvec)
     tmp1 = Ket(b)
@@ -37,9 +35,8 @@ function qfunc(rho::Operator, xvec::Vector{Float64}, yvec::Vector{Float64})
     result
 end
 
-function qfunc(psi::Ket, alpha::Number)
+function qfunc(psi::Ket{B}, alpha::Number) where B<:FockBasis
     b = basis(psi)
-    @assert isa(b, FockBasis)
     _alpha = convert(ComplexF64, alpha)
     _conj_alpha = conj(_alpha)
     N = length(psi.basis)
@@ -51,9 +48,8 @@ function qfunc(psi::Ket, alpha::Number)
     return abs2(s)*exp(-abs2(_alpha))/pi
 end
 
-function qfunc(psi::Ket, xvec::Vector{Float64}, yvec::Vector{Float64})
+function qfunc(psi::Ket{B}, xvec::Vector{Float64}, yvec::Vector{Float64}) where B<:FockBasis
     b = basis(psi)
-    @assert isa(b, FockBasis)
     Nx = length(xvec)
     Ny = length(yvec)
     points = Nx*Ny
@@ -75,13 +71,14 @@ function qfunc(psi::Ket, xvec::Vector{Float64}, yvec::Vector{Float64})
     result
 end
 
-function qfunc(state::Union{Ket, Operator}, x::Number, y::Number)
+function qfunc(state::Union{Ket, AbstractOperator}, x::Number, y::Number)
     qfunc(state, ComplexF64(x, y)/sqrt(2))
 end
 
-function _qfunc_operator(rho::Operator, alpha::ComplexF64, tmp1::Ket, tmp2::Ket)
+function _qfunc_operator(rho::AbstractOperator, alpha::ComplexF64, tmp1::Ket, tmp2::Ket)
     coherentstate(basis(rho), alpha, tmp1)
-    operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
+    mul!(tmp2, rho, tmp1)
+    # operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
     a = dot(tmp1.data, tmp2.data)
     return a/pi
 end
@@ -97,9 +94,8 @@ function can either be evaluated on one point α or on a grid specified by
 the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
 done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + i y)``.
 """
-function wigner(rho::DenseOperator, x::Number, y::Number)
+function wigner(rho::Operator{B,B}, x::Number, y::Number) where B<:FockBasis
     b = basis(rho)
-    @assert isa(b, FockBasis)
     N = b.N::Int
     _2α = complex(convert(Float64, x), convert(Float64, y))*sqrt(2)
     abs2_2α = abs2(_2α)
@@ -114,7 +110,7 @@ function wigner(rho::DenseOperator, x::Number, y::Number)
     exp(-abs2_2α/2)/pi*real(w)
 end
 
-function wigner(rho::DenseOperator, xvec::Vector{Float64}, yvec::Vector{Float64})
+function wigner(rho::Operator{B,B}, xvec::Vector{Float64}, yvec::Vector{Float64}) where B<:FockBasis
     b = basis(rho)
     @assert isa(b, FockBasis)
     N = b.N::Int
@@ -134,7 +130,7 @@ function wigner(rho::DenseOperator, xvec::Vector{Float64}, yvec::Vector{Float64}
     abs2_2α
 end
 
-wigner(psi::Ket, x, y) = wigner(dm(psi), x, y)
+wigner(psi::Ket{B}, x, y) where B<:FockBasis = wigner(dm(psi), x, y)
 wigner(state, alpha::Number) = wigner(state, real(alpha)*sqrt(2), imag(alpha)*sqrt(2))
 
 
@@ -244,11 +240,10 @@ resolution `(Ntheta, Nphi)`.
 
 This version calculates the Husimi Q SU(2) function at a position given by θ and ϕ.
 """
-function qfuncsu2(psi::Ket, Ntheta::Int; Nphi::Int=2Ntheta)
+function qfuncsu2(psi::Ket{B}, Ntheta::Int; Nphi::Int=2Ntheta) where B<:SpinBasis
     b = psi.basis
     psi_bra_data = psi.data'
     lb = float(b.spinnumber)
-    @assert isa(b, SpinBasis)
     result = Array{Float64}(undef, Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
         result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,pi-i*pi/(Ntheta-1),j*2pi/(Nphi-1)-pi).data)
@@ -256,10 +251,9 @@ function qfuncsu2(psi::Ket, Ntheta::Int; Nphi::Int=2Ntheta)
     return result
 end
 
-function qfuncsu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
+function qfuncsu2(rho::Operator{B,B}, Ntheta::Int; Nphi::Int=2Ntheta) where B<:SpinBasis
     b = basis(rho)
     lb = float(b.spinnumber)
-    @assert isa(b, SpinBasis)
     result = Array{Float64}(undef, Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
         c = coherentspinstate(b,pi-i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi)
@@ -268,19 +262,17 @@ function qfuncsu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
     return result
 end
 
-function qfuncsu2(psi::Ket, theta::Real, phi::Real)
+function qfuncsu2(psi::Ket{B}, theta::Real, phi::Real) where B<:SpinBasis
     b = basis(psi)
     psi_bra_data = psi.data'
     lb = float(b.spinnumber)
-    @assert isa(b, SpinBasis)
     result = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,theta,phi).data)
     return result
 end
 
-function qfuncsu2(rho::DenseOperator, theta::Real, phi::Real)
+function qfuncsu2(rho::Operator{B,B}, theta::Real, phi::Real) where B<:SpinBasis
     b = basis(rho)
     lb = float(b.spinnumber)
-    @assert isa(b, SpinBasis)
     c = coherentspinstate(b,theta,phi)
     result = abs((2*lb+1)/(4pi)*c.data'*rho.data*c.data)
     return result
@@ -301,7 +293,7 @@ decomposing the state into the basis of spherical harmonics.
 
 This version calculates the Wigner SU(2) function at a position given by θ and ϕ
 """
-function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
+function wignersu2(rho::Operator{B,B}, theta::Real, phi::Real) where B<:SpinBasis
 
     N = length(basis(rho))-1
 
@@ -351,7 +343,7 @@ function wignersu2(rho::DenseOperator, theta::Real, phi::Real)
     return wignermap*sqrt((N+1)/(4pi))
 end
 
-function wignersu2(rho::DenseOperator, Ntheta::Int; Nphi::Int=2Ntheta)
+function wignersu2(rho::Operator{B,B}, Ntheta::Int; Nphi::Int=2Ntheta) where B<:SpinBasis
 
     N = length(basis(rho))-1
 

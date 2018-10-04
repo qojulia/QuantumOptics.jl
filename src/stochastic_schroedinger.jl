@@ -7,7 +7,7 @@ using ...operators_dense, ...operators_sparse
 using ...timeevolution
 using LinearAlgebra
 import ...timeevolution: integrate_stoch, recast!, QO_CHECKS
-import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic, check_schroedinger
+import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic
 
 import DiffEqCallbacks
 
@@ -32,7 +32,7 @@ Integrate stochastic Schrödinger equation.
         each time step taken by the solver.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function schroedinger(tspan, psi0::Ket, H::Operator, Hs::Vector;
+function schroedinger(tspan, psi0::Ket, H::AbstractOperator, Hs::Vector;
                 fout::Union{Function,Nothing}=nothing,
                 normalize_state::Bool=false,
                 calback=nothing,
@@ -66,7 +66,7 @@ function schroedinger(tspan, psi0::Ket, H::Operator, Hs::Vector;
                     ncb=ncb,
                     kwargs...)
 end
-schroedinger(tspan, psi0::Ket, H::Operator, Hs::Operator; kwargs...) = schroedinger(tspan, psi0, H, [Hs]; kwargs...)
+schroedinger(tspan, psi0::Ket, H::AbstractOperator, Hs::AbstractOperator; kwargs...) = schroedinger(tspan, psi0, H, [Hs]; kwargs...)
 
 """
     stochastic.schroedinger_dynamic(tspan, state0, fdeterm, fstoch[; fout, ...])
@@ -133,12 +133,12 @@ end
 
 
 function dschroedinger_stochastic(dx::Vector{ComplexF64}, psi::Ket, Hs::Vector{T},
-            dpsi::Ket, index::Int) where T <: Operator
+            dpsi::Ket, index::Int) where T <: AbstractOperator
     recast!(dx, dpsi)
     dschroedinger(psi, Hs[index], dpsi)
 end
 function dschroedinger_stochastic(dx::Array{ComplexF64, 2}, psi::Ket, Hs::Vector{T},
-            dpsi::Ket, n::Int) where T <: Operator
+            dpsi::Ket, n::Int) where T <: AbstractOperator
     for i=1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, dpsi)

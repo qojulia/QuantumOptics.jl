@@ -19,17 +19,17 @@ in respect to a certain basis. These coefficients are stored in the
 `data` field and the basis is defined in the `basis`
 field.
 """
-abstract type StateVector end
+abstract type StateVector{B<:Basis,T<:Vector{ComplexF64}} end
 
 """
     Bra(b::Basis[, data])
 
 Bra state defined by coefficients in respect to the basis.
 """
-mutable struct Bra <: StateVector
-    basis::Basis
-    data::Vector{ComplexF64}
-    function Bra(b::Basis, data)
+mutable struct Bra{B<:Basis,T<:Vector{ComplexF64}} <: StateVector{B,T}
+    basis::B
+    data::T
+    function Bra{B,T}(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}}
         if length(b) != length(data)
             throw(DimensionMismatch())
         end
@@ -42,10 +42,10 @@ end
 
 Ket state defined by coefficients in respect to the given basis.
 """
-mutable struct Ket <: StateVector
-    basis::Basis
-    data::Vector{ComplexF64}
-    function Ket(b::Basis, data)
+mutable struct Ket{B<:Basis,T<:Vector{ComplexF64}} <: StateVector{B,T}
+    basis::B
+    data::T
+    function Ket{B,T}(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}}
         if length(b) != length(data)
             throw(DimensionMismatch())
         end
@@ -53,8 +53,14 @@ mutable struct Ket <: StateVector
     end
 end
 
+Bra(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Bra{B,T}(b, data)
+Ket(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Ket{B,T}(b, data)
+
 Bra(b::Basis) = Bra(b, zeros(ComplexF64, length(b)))
 Ket(b::Basis) = Ket(b, zeros(ComplexF64, length(b)))
+
+Ket(b::Basis, data) = Ket(b, convert(Vector{ComplexF64}, data))
+Bra(b::Basis, data) = Ket(b, convert(Vector{ComplexF64}, data))
 
 copy(a::T) where {T<:StateVector} = T(a.basis, copy(a.data))
 length(a::StateVector) = length(a.basis)::Int
@@ -68,7 +74,7 @@ basis(a::StateVector) = a.basis
 -(a::T) where {T<:StateVector} = T(a.basis, -a.data)
 -(a::T, b::T) where {T<:StateVector} = (check_samebases(a, b); T(a.basis, a.data-b.data))
 
-*(a::Bra, b::Ket) = (check_multiplicable(a, b); sum(a.data.*b.data))
+*(a::Bra{B,D}, b::Ket{B,D}) where {B<:Basis,D<:Vector{ComplexF64}} = sum(a.data.*b.data)
 *(a::Number, b::T) where {T<:StateVector} = T(b.basis, a*b.data)
 *(a::T, b::Number) where {T<:StateVector} = T(a.basis, b*a.data)
 
@@ -88,9 +94,12 @@ dagger(x::Ket) = Bra(x.basis, conj(x.data))
 
 Tensor product ``|x⟩⊗|y⟩⊗|z⟩⊗…`` of the given states.
 """
-tensor(a::T, b::T) where {T<:StateVector} = T(tensor(a.basis, b.basis), kron(b.data, a.data))
+tensor(a::Ket, b::Ket) = Ket(tensor(a.basis, b.basis), kron(b.data, a.data))
+tensor(a::Bra, b::Bra) = Bra(tensor(a.basis, b.basis), kron(b.data, a.data))
 tensor(state::StateVector) = state
-tensor(states::T...) where {T<:StateVector} = reduce(tensor, states)
+tensor(states::Ket...) = reduce(tensor, states)
+tensor(states::Bra...) = reduce(tensor, states)
+tensor(states::Vector{T}) where T<:StateVector = reduce(tensor, states)
 
 # Normalization functions
 """

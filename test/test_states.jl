@@ -22,7 +22,7 @@ ket = Ket(b)
 @test_throws DimensionMismatch Ket(b, [1, 2])
 @test 0 ≈ norm(bra)
 @test 0 ≈ norm(ket)
-@test_throws bases.IncompatibleBases bra*Ket(b1)
+@test_throws MethodError bra*Ket(b1)
 @test bra == bra
 @test length(bra) == length(bra.data) == 15
 @test length(ket) == length(ket.data) == 15

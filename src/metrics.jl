@@ -22,11 +22,10 @@ T(ρ) = Tr\\{\\sqrt{ρ^† ρ}\\}.
 Depending if `rho` is hermitian either [`tracenorm_h`](@ref) or
 [`tracenorm_nh`](@ref) is called.
 """
-function tracenorm(rho::DenseOperator)
-    check_samebases(rho)
+function tracenorm(rho::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}}
     ishermitian(rho) ? tracenorm_h(rho) : tracenorm_nh(rho)
 end
-function tracenorm(rho::T) where T<:Operator
+function tracenorm(rho::T) where T<:AbstractOperator
     throw(ArgumentError("tracenorm not implemented for $(T). Use dense operators instead."))
 end
 
@@ -43,12 +42,11 @@ T(ρ) = Tr\\{\\sqrt{ρ^† ρ}\\} = \\sum_i |λ_i|
 
 where ``λ_i`` are the eigenvalues of `rho`.
 """
-function tracenorm_h(rho::DenseOperator)
-    check_samebases(rho)
+function tracenorm_h(rho::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}}
     s = eigvals(Hermitian(rho.data))
     sum(abs.(s))
 end
-function tracenorm_h(rho::T) where T<:Operator
+function tracenorm_h(rho::T) where T<:AbstractOperator
     throw(ArgumentError("tracenorm_h not implemented for $(T). Use dense operators instead."))
 end
 
@@ -69,8 +67,8 @@ It uses the identity
 
 where ``σ_i`` are the singular values of `rho`.
 """
-tracenorm_nh(rho::DenseOperator) = sum(svdvals(rho.data))
-function tracenorm_nh(rho::T) where T<:Operator
+tracenorm_nh(rho::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} = sum(svdvals(rho.data))
+function tracenorm_nh(rho::T) where T<:AbstractOperator
     throw(ArgumentError("tracenorm_nh not implemented for $(T). Use dense operators instead."))
 end
 
@@ -89,8 +87,9 @@ T(ρ,σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\}.
 It calls [`tracenorm`](@ref) which in turn either uses [`tracenorm_h`](@ref)
 or [`tracenorm_nh`](@ref) depending if ``ρ-σ`` is hermitian or not.
 """
-tracedistance(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm(rho - sigma)
-function tracedistance(rho::T, sigma::T) where T<:Operator
+tracedistance(rho::Operator{B,B,T}, sigma::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm(rho - sigma)
+tracedistance(rho::Operator{B1,B2,T}, sigma::Operator{B3,B4,T}) where {B1<:Basis,B2<:Basis,B3<:Basis,B4<:Basis,T<:Matrix{ComplexF64}} = throw(bases.IncompatibleBases())
+function tracedistance(rho::T, sigma::T) where T<:AbstractOperator
     throw(ArgumentError("tracedistance not implemented for $(T). Use dense operators instead."))
 end
 
@@ -107,8 +106,9 @@ T(ρ,σ) = \\frac{1}{2} Tr\\{\\sqrt{(ρ - σ)^† (ρ - σ)}\\} = \\frac{1}{2} \
 
 where ``λ_i`` are the eigenvalues of `rho` - `sigma`.
 """
-tracedistance_h(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_h(rho - sigma)
-function tracedistance_h(rho::T, sigma::T) where T<:Operator
+tracedistance_h(rho::Operator{B,B,T}, sigma::Operator{B,B,T}) where {B<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm_h(rho - sigma)
+tracedistance_h(rho::Operator{B1,B2,T}, sigma::Operator{B3,B4,T}) where {B1<:Basis,B2<:Basis,B3<:Basis,B4<:Basis,T<:Matrix{ComplexF64}} = throw(bases.IncompatibleBases())
+function tracedistance_h(rho::T, sigma::T) where T<:AbstractOperator
     throw(ArgumentError("tracedistance_h not implemented for $(T). Use dense operators instead."))
 end
 
@@ -129,8 +129,8 @@ It uses the identity
 
 where ``σ_i`` are the singular values of `rho` - `sigma`.
 """
-tracedistance_nh(rho::DenseOperator, sigma::DenseOperator) = 0.5*tracenorm_nh(rho - sigma)
-function tracedistance_nh(rho::T, sigma::T) where T<:Operator
+tracedistance_nh(rho::Operator{BL,BR,T}, sigma::Operator{BL,BR,T}) where {BL<:Basis,BR<:Basis,T<:Matrix{ComplexF64}} = 0.5*tracenorm_nh(rho - sigma)
+function tracedistance_nh(rho::T, sigma::T) where T<:AbstractOperator
     throw(ArgumentError("tracedistance_nh not implemented for $(T). Use dense operators instead."))
 end
 
@@ -153,7 +153,7 @@ natural logarithm and ``0\\log(0) ≡ 0``.
 * `rho`: Density operator of which to calculate Von Neumann entropy.
 * `tol=1e-15`: Tolerance for rounding errors in the computed eigenvalues.
 """
-function entropy_vn(rho::DenseOperator; tol::Float64=1e-15)
+function entropy_vn(rho::Operator{B,B,T}; tol::Float64=1e-15) where {B<:Basis,T<:Matrix{ComplexF64}}
     evals = eigvals(rho.data)
     evals[abs.(evals) .< tol] .= 0.0
     sum([d == 0 ? 0 : -d*log(d) for d=evals])
@@ -173,7 +173,7 @@ F(ρ, σ) = Tr\\left(\\sqrt{\\sqrt{ρ}σ\\sqrt{ρ}}\\right),
 
 where ``\\sqrt{ρ}=\\sum_n\\sqrt{λ_n}|ψ⟩⟨ψ|``.
 """
-fidelity(rho::DenseOperator, sigma::DenseOperator) = tr(sqrt(sqrt(rho.data)*sigma.data*sqrt(rho.data)))
+fidelity(rho::Operator{B,B}, sigma::Operator{B,B}) where B<:Basis = tr(sqrt(sqrt(rho.data)*sigma.data*sqrt(rho.data)))
 
 
 """
@@ -181,9 +181,7 @@ fidelity(rho::DenseOperator, sigma::DenseOperator) = tr(sqrt(sqrt(rho.data)*sigm
 
 Partial transpose of rho with respect to subspace specified by index.
 """
-function ptranspose(rho::DenseOperator, index::Int=1)
-    @assert rho.basis_l == rho.basis_r
-    @assert typeof(rho.basis_l) == CompositeBasis
+function ptranspose(rho::Operator{B,B}, index::Int=1) where B<:CompositeBasis
 
     # Define permutation
     N = length(rho.basis_l.bases)
@@ -210,7 +208,7 @@ end
 
 Peres-Horodecki criterion of partial transpose.
 """
-PPT(rho::DenseOperator, index::Int) = all(real.(eigvals(ptranspose(rho, index).data)) .>= 0.0)
+PPT(rho::Operator{B,B,T}, index::Int) where {B<:Basis,T<:Matrix{ComplexF64}} = all(real.(eigvals(ptranspose(rho, index).data)) .>= 0.0)
 
 
 """
@@ -225,7 +223,7 @@ N(ρ) = \\|ρᵀ\\|,
 ```
 where `ρᵀ` is the partial transpose.
 """
-negativity(rho::DenseOperator, index::Int) = 0.5*(tracenorm(ptranspose(rho, index)) - 1.0)
+negativity(rho::Operator{B,B}, index::Int) where B<:CompositeBasis = 0.5*(tracenorm(ptranspose(rho, index)) - 1.0)
 
 
 """
@@ -238,6 +236,6 @@ N(ρ) = \\log₂\\|ρᵀ\\|,
 ```
 where `ρᵀ` is the partial transpose.
 """
-logarithmic_negativity(rho::DenseOperator, index::Int) = log(2, tracenorm(ptranspose(rho, index)))
+logarithmic_negativity(rho::Operator{B,B}, index::Int) where B<:CompositeBasis = log(2, tracenorm(ptranspose(rho, index)))
 
 end # module

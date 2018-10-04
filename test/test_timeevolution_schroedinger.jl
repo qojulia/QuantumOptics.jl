@@ -25,7 +25,7 @@ psi0 = tensor([coherentstate(basis_fock, i%Ncutoff) for i=1:N]...)
 
 
 # Interaction picture
-Hrot = SparseOperator[]
+Hrot = Operator[]
 for i=1:N, j=1:N
     if i==j
         continue
@@ -37,7 +37,7 @@ Hrot = sum(Hrot)
 
 # Schroedinger picture
 function f(t, psi)
-    H = SparseOperator[embed(basis, i, ω[i]*at*a) for i=1:N]
+    H = Operator[embed(basis, i, ω[i]*at*a) for i=1:N]
     for i=1:N, j=1:N
         if i==j
             continue

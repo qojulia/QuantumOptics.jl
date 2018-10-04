@@ -13,7 +13,7 @@ c = 1.3
 d = -4.7
 
 data = [a1 c-1im*d; c+1im*d a2]
-H = DenseOperator(basis, data)
+H = Operator(basis, data)
 
 a = (a1 + a2)/2
 b = (a1 - a2)/2
@@ -31,7 +31,7 @@ f(t, psi::Ket) = @test 1e-5 > norm(psi - U(t)*psi0)
 timeevolution.schroedinger(T, psi0, H; fout=f)
 timeevolution.mcwf(T, psi0, H, []; fout=f)
 
-f(t, rho::DenseOperator) = @test 1e-5 > tracedistance(rho, dm(U(t)*psi0))
+f(t, rho::Operator) = @test 1e-5 > tracedistance(rho, dm(U(t)*psi0))
 timeevolution.master(T, psi0, H, []; fout=f)
 
 end # testset

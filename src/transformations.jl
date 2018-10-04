@@ -37,7 +37,7 @@ function transform(b1::PositionBasis, b2::FockBasis; x0::Real=1)
             T[i,n+1] = C*horner(A[n+1], u)
         end
     end
-    DenseOperator(b1, b2, T)
+    Operator(b1, b2, T)
 end
 
 function transform(b1::FockBasis, b2::PositionBasis; x0::Real=1)
@@ -53,7 +53,7 @@ function transform(b1::FockBasis, b2::PositionBasis; x0::Real=1)
             T[n+1,i] = C*horner(A[n+1], u)
         end
     end
-    DenseOperator(b1, b2, T)
+    Operator(b1, b2, T)
 end
 
 end # module

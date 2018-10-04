@@ -4,7 +4,7 @@ export SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown
 
 import Base: ==
 
-using ..bases, ..states, ..operators, ..operators_sparse
+using ..bases, ..states, ..operators, ..operators_sparse, ..operators_dense
 using SparseArrays
 
 """
@@ -41,7 +41,7 @@ function sigmax(b::SpinBasis)
     N = length(b)
     diag = ComplexF64[complex(sqrt(real((b.spinnumber + 1)*2*a - a*(a+1)))) for a=1:N-1]
     data = spdiagm(1 => diag, -1 => diag)
-    SparseOperator(b, data)
+    Operator(b, data)
 end
 
 """
@@ -53,7 +53,7 @@ function sigmay(b::SpinBasis)
     N = length(b)
     diag = ComplexF64[1im*complex(sqrt(real((b.spinnumber + 1)*2*a - a*(a+1)))) for a=1:N-1]
     data = spdiagm(-1 => diag, 1 => -diag)
-    SparseOperator(b, data)
+    Operator(b, data)
 end
 
 """
@@ -65,7 +65,7 @@ function sigmaz(b::SpinBasis)
     N = length(b)
     diag = ComplexF64[complex(2*m) for m=b.spinnumber:-1:-b.spinnumber]
     data = spdiagm(0 => diag)
-    SparseOperator(b, data)
+    Operator(b, data)
 end
 
 """
@@ -78,7 +78,7 @@ function sigmap(b::SpinBasis)
     S = (b.spinnumber + 1)*b.spinnumber
     diag = ComplexF64[complex(sqrt(float(S - m*(m+1)))) for m=b.spinnumber-1:-1:-b.spinnumber]
     data = spdiagm(1 => diag)
-    SparseOperator(b, data)
+    Operator(b, data)
 end
 
 """
@@ -91,7 +91,7 @@ function sigmam(b::SpinBasis)
     S = (b.spinnumber + 1)*b.spinnumber
     diag = [complex(sqrt(float(S - m*(m-1)))) for m=b.spinnumber:-1:-b.spinnumber+1]
     data = spdiagm(-1 => diag)
-    SparseOperator(b, data)
+    Operator(b, data)
 end
 
 

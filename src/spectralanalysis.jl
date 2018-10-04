@@ -3,13 +3,13 @@ module spectralanalysis
 export eigenstates, eigenenergies, simdiag
 
 using ..bases, ..states, ..operators, ..operators_dense, ..operators_sparse
-using Arpack, LinearAlgebra
+using Arpack, LinearAlgebra, SparseArrays
 
 
 const nonhermitian_warning = "The given operator is not hermitian. If this is due to a numerical error make the operator hermitian first by calculating (x+dagger(x))/2 first."
 
 """
-    eigenstates(op::Operator[, n::Int; warning=true])
+    eigenstates(op::AbstractOperator[, n::Int; warning=true])
 
 Calculate the lowest n eigenvalues and their corresponding eigenstates.
 
@@ -26,7 +26,7 @@ dense one using `dense(A)`.
 If the given operator is non-hermitian a warning is given. This behavior
 can be turned off using the keyword `warning=false`.
 """
-function eigenstates(op::DenseOperator, n::Int=length(basis(op)); warning=true)
+function eigenstates(op::Operator{B,B,T}, n::Int=length(basis(op)); warning=true) where {B<:Basis,T<:Matrix{ComplexF64}}
     b = basis(op)
     if ishermitian(op)
         D, V = eigen(Hermitian(op.data), 1:n)
@@ -46,10 +46,10 @@ end
 """
 For sparse operators by default it only returns the 6 lowest eigenvalues.
 """
-function eigenstates(op::SparseOperator, n::Int=6; warning::Bool=true,
-        info::Bool=true, kwargs...)
+function eigenstates(op::Operator{B,B,T}, n::Int=6; warning::Bool=true,
+        info::Bool=true, kwargs...) where {B<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}}
     b = basis(op)
-    # TODO: Change to sparese-Hermitian specific algorithm if more efficient
+    # TODO: Change to sparse-Hermitian specific algorithm if more efficient
     ishermitian(op) || (warning && warn(nonhermitian_warning))
     info && println("INFO: Defaulting to sparse diagonalization.
         If storing the full operator is possible, it might be faster to do
@@ -61,7 +61,7 @@ end
 
 
 """
-    eigenenergies(op::Operator[, n::Int; warning=true])
+    eigenenergies(op::AbstractOperator[, n::Int; warning=true])
 
 Calculate the lowest n eigenvalues.
 
@@ -73,7 +73,7 @@ More details can be found at
 If the given operator is non-hermitian a warning is given. This behavior
 can be turned off using the keyword `warning=false`.
 """
-function eigenenergies(op::DenseOperator, n::Int=length(basis(op)); warning=true)
+function eigenenergies(op::Operator{B,B,T}, n::Int=length(basis(op)); warning=true) where {B<:Basis,T<:Matrix{ComplexF64}}
     b = basis(op)
     if ishermitian(op)
         D = eigvals(Hermitian(op.data), 1:n)
@@ -89,12 +89,13 @@ end
 """
 For sparse operators by default it only returns the 6 lowest eigenvalues.
 """
-eigenenergies(op::SparseOperator, n::Int=6; kwargs...) = eigenstates(op, n; kwargs...)[1]
+eigenenergies(op::Operator{B,B,T}, n::Int=6; kwargs...) where {B<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}} =
+    eigenstates(op, n; kwargs...)[1]
 
 
 arithmetic_unary_error = operators.arithmetic_unary_error
-eigenstates(op::Operator, n::Int=0) = arithmetic_unary_error("eigenstates", op)
-eigenenergies(op::Operator, n::Int=0) = arithmetic_unary_error("eigenenergies", op)
+eigenstates(op::AbstractOperator, n::Int=0) = arithmetic_unary_error("eigenstates", op)
+eigenenergies(op::AbstractOperator, n::Int=0) = arithmetic_unary_error("eigenenergies", op)
 
 
 """
@@ -118,7 +119,7 @@ the equation ``A|ψ⟩ = a|ψ⟩``.
         by the eigenvalues of the first operator.
 * `v`: Common eigenvectors.
 """
-function simdiag(ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14) where T<:DenseOperator
+function simdiag(ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14) where {B<:Basis,D<:Matrix{ComplexF64},T<:Operator{B,B,D}}
     # Check input
     for A=ops
         if !ishermitian(A)

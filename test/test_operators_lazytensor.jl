@@ -2,18 +2,18 @@ using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
-mutable struct test_lazytensor <: Operator
-    basis_l::Basis
-    basis_r::Basis
+mutable struct test_lazytensor{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
+    basis_l::BL
+    basis_r::BR
     data::Matrix{ComplexF64}
-    test_lazytensor(b1::Basis, b2::Basis, data) = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new(b1, b2, data) : throw(DimensionMismatch())
+    test_lazytensor(b1::BL, b2::BR, data) where {BL<:Basis,BR<:Basis} = length(b1) == size(data, 1) && length(b2) == size(data, 2) ? new{BL,BR}(b1, b2, data) : throw(DimensionMismatch())
 end
 
 @testset "operators-lazytensor" begin
 
 Random.seed!(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
+D(op1::AbstractOperator, op2::AbstractOperator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 
 b1a = GenericBasis(2)
@@ -105,14 +105,14 @@ xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 @test 1e-14 > D(op1/7, op1_/7)
 
 # Test identityoperator
-Idense = identityoperator(DenseOperator, b_r)
+Idense = identityoperator(Operator{typeof(b_r),typeof(b_r),Matrix{ComplexF64}}, b_r)
 I = identityoperator(LazyTensor, b_r)
 @test isa(I, LazyTensor)
 @test dense(I) == Idense
 @test 1e-11 > D(I*x1, x1)
 @test I == identityoperator(LazyTensor, b1b) ⊗ identityoperator(LazyTensor, b2b) ⊗ identityoperator(LazyTensor, b3b)
 
-Idense = identityoperator(DenseOperator, b_l)
+Idense = identityoperator(Operator{typeof(b_l),typeof(b_l),Matrix{ComplexF64}}, b_l)
 I = identityoperator(LazyTensor, b_l)
 @test isa(I, LazyTensor)
 @test dense(I) == Idense
@@ -157,7 +157,7 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 state = Ket(b_l, rand(ComplexF64, length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
-state = DenseOperator(b_l, b_l, rand(ComplexF64, length(b_l), length(b_l)))
+state = Operator(b_l, b_l, rand(ComplexF64, length(b_l), length(b_l)))
 @test expect(op, state) ≈ expect(op_, state)
 
 # Permute systems
@@ -186,25 +186,25 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 state = Ket(b_r, rand(ComplexF64, length(b_r)))
 result_ = Ket(b_l, rand(ComplexF64, length(b_l)))
 result = deepcopy(result_)
-operators.gemv!(complex(1.), op, state, complex(0.), result)
+mul!(result, op, state)
 @test 1e-13 > D(result, op_*state)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemv!(alpha, op, state, beta, result)
+mul!(result, op, state, alpha, beta)
 @test 1e-13 > D(result, alpha*op_*state + beta*result_)
 
 state = Bra(b_l, rand(ComplexF64, length(b_l)))
 result_ = Bra(b_r, rand(ComplexF64, length(b_r)))
 result = deepcopy(result_)
-operators.gemv!(complex(1.), state, op, complex(0.), result)
+mul!(result, state, op)
 @test 1e-13 > D(result, state*op_)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemv!(alpha, state, op, beta, result)
+mul!(result, state, op, alpha, beta)
 @test 1e-13 > D(result, alpha*state*op_ + beta*result_)
 
 # Test gemm
@@ -220,39 +220,26 @@ op_ = 0.1*subop1 ⊗ I2 ⊗ subop3
 state = randoperator(b_r, b_r2)
 result_ = randoperator(b_l, b_r2)
 result = deepcopy(result_)
-operators.gemm!(complex(1.), op, state, complex(0.), result)
+mul!(result, op, state)
 @test 1e-12 > D(result, op_*state)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemm!(alpha, op, state, beta, result)
+mul!(result, op, state, alpha, beta)
 @test 1e-12 > D(result, alpha*op_*state + beta*result_)
 
 state = randoperator(b_l2, b_l)
 result_ = randoperator(b_l2, b_r)
 result = deepcopy(result_)
-operators.gemm!(complex(1.), state, op, complex(0.), result)
+mul!(result, state, op)
 @test 1e-12 > D(result, state*op_)
 
 result = deepcopy(result_)
 alpha = complex(1.5)
 beta = complex(2.1)
-operators.gemm!(alpha, state, op, beta, result)
+mul!(result, state, op, alpha, beta)
 @test 1e-12 > D(result, alpha*state*op_ + beta*result_)
-
-# Test calling gemv with non-complex factors
-state = Ket(b_r, rand(ComplexF64, length(b_r)))
-result_ = Ket(b_l, rand(ComplexF64, length(b_l)))
-result = deepcopy(result_)
-operators.gemv!(1, op, state, 0, result)
-@test 1e-13 > D(result, op_*state)
-
-state = Bra(b_l, rand(ComplexF64, length(b_l)))
-result_ = Bra(b_r, rand(ComplexF64, length(b_r)))
-result = deepcopy(result_)
-operators.gemv!(1, state, op, 0, result)
-@test 1e-13 > D(result, state*op_)
 
 # Test gemm errors
 test_op = test_lazytensor(b1a, b1a, rand(2, 2))

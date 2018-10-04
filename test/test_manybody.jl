@@ -6,7 +6,7 @@ using Random, SparseArrays, LinearAlgebra
 
 Random.seed!(0)
 
-D(op1::Operator, op2::Operator) = abs(tracedistance_nh(dense(op1), dense(op2)))
+D(op1::AbstractOperator, op2::AbstractOperator) = abs(tracedistance_nh(dense(op1), dense(op2)))
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 
 # Test state creation
@@ -152,8 +152,8 @@ psi = randstate(b)
 @test onebodyexpect(sparse(x), Y) ≈ expect(X, Y)
 @test onebodyexpect(x, [psi, Y]) == [onebodyexpect(x, psi), onebodyexpect(x, Y)]
 
-@test_throws ArgumentError manybodyoperator(b_mb, x)
-@test_throws ArgumentError onebodyexpect(X, psi)
-@test_throws ArgumentError onebodyexpect(X, dm(psi))
+@test_throws MethodError manybodyoperator(b_mb, x)
+@test_throws MethodError onebodyexpect(X, psi)
+@test_throws MethodError onebodyexpect(X, dm(psi))
 
 end # testset

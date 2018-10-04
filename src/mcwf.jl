@@ -23,7 +23,7 @@ Calculate MCWF trajectory where the Hamiltonian is given in hermitian form.
 
 For more information see: [`mcwf`](@ref)
 """
-function mcwf_h(tspan, psi0::Ket, H::Operator, J::Vector;
+function mcwf_h(tspan, psi0::Ket, H::AbstractOperator, J::Vector;
     seed=rand(UInt), rates::DecayRates=nothing,
     fout=nothing, Jdagger::Vector=dagger.(J),
     tmp::Ket=copy(psi0),
@@ -49,10 +49,10 @@ H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 
 For more information see: [`mcwf`](@ref)
 """
-function mcwf_nh(tspan, psi0::Ket, Hnh::Operator, J::Vector;
+function mcwf_nh(tspan, psi0::Ket{B}, Hnh::AbstractOperator{B,B}, J::Vector{T};
     seed=rand(UInt), fout=nothing,
     display_beforeevent=false, display_afterevent=false,
-    kwargs...)
+    kwargs...) where {B<:Basis,T<:AbstractOperator{B,B}}
     check_mcwf(psi0, Hnh, J, J, nothing)
     f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
@@ -97,7 +97,7 @@ operators. If they are not given they are calculated automatically.
 * `display_afterevent=false`: `fout` is called after every jump.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function mcwf(tspan, psi0::Ket, H::Operator, J::Vector;
+function mcwf(tspan, psi0::Ket, H::AbstractOperator, J::Vector;
     seed=rand(UInt), rates::DecayRates=nothing,
     fout=nothing, Jdagger::Vector=dagger.(J),
     display_beforeevent=false, display_afterevent=false,
@@ -370,36 +370,36 @@ Default jump function.
 """
 function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket, rates::Nothing)
     if length(J)==1
-        operators.gemv!(complex(1.), J[1], psi, complex(0.), psi_new)
+        mul!(psi_new, J[1], psi)
         psi_new.data ./= norm(psi_new)
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
-            operators.gemv!(complex(1.), J[i], psi, complex(0.), psi_new)
+            mul!(psi_new, J[i], psi)
             probs[i] = dot(psi_new.data, psi_new.data)
         end
         cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
         i = findfirst(cumprobs.>r)
-        operators.gemv!(complex(1.)/sqrt(probs[i]), J[i], psi, complex(0.), psi_new)
+        mul!(psi_new, J[i], psi, 1.0/sqrt(probs[i]), 0.0)
     end
     return nothing
 end
 
 function jump(rng, t::Float64, psi::Ket, J::Vector, psi_new::Ket, rates::Vector{Float64})
     if length(J)==1
-        operators.gemv!(complex(sqrt(rates[1])), J[1], psi, complex(0.), psi_new)
+        mul!(psi_new, J[1], psi, sqrt(rates[1]), 0.0)
         psi_new.data ./= norm(psi_new)
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
-            operators.gemv!(complex(sqrt(rates[i])), J[i], psi, complex(0.), psi_new)
+            mul!(psi_new, J[i], psi, sqrt(rates[i]), 0.0)
             probs[i] = dot(psi_new.data, psi_new.data)
         end
         cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
         i = findfirst(cumprobs.>r)
-        operators.gemv!(complex(sqrt(rates[i]/probs[i])), J[i], psi, complex(0.), psi_new)
+        mul!(psi_new, J[i], psi, sqrt(rates[i]/probs[i]), 0.0)
     end
     return nothing
 end
@@ -410,22 +410,22 @@ Evaluate non-hermitian Schroedinger equation.
 The non-hermitian Hamiltonian is given in two parts - the hermitian part H and
 the jump operators J.
 """
-function dmcwf_h(psi::Ket, H::Operator,
+function dmcwf_h(psi::Ket, H::AbstractOperator,
                  J::Vector, Jdagger::Vector, dpsi::Ket, tmp::Ket, rates::Nothing)
-    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    mul!(dpsi, H, psi, -1.0im, 0.0)
     for i=1:length(J)
-        operators.gemv!(complex(1.), J[i], psi, complex(0.), tmp)
-        operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
+        mul!(tmp, J[i], psi)
+        mul!(dpsi, Jdagger[i], tmp, -0.5, 1.0)
     end
     return dpsi
 end
 
-function dmcwf_h(psi::Ket, H::Operator,
+function dmcwf_h(psi::Ket, H::AbstractOperator,
                  J::Vector, Jdagger::Vector, dpsi::Ket, tmp::Ket, rates::Vector{Float64})
-    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    mul!(dpsi, H, psi, -1.0im, 0.0)
     for i=1:length(J)
-        operators.gemv!(complex(rates[i]), J[i], psi, complex(0.), tmp)
-        operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
+        mul!(tmp, J[i], psi, rates[i], 0.0)
+        mul!(dpsi, Jdagger[i], tmp, -0.5, 1.0)
     end
     return dpsi
 end
@@ -436,8 +436,8 @@ Evaluate non-hermitian Schroedinger equation.
 
 The given Hamiltonian is already the non-hermitian version.
 """
-function dmcwf_nh(psi::Ket, Hnh::Operator, dpsi::Ket)
-    operators.gemv!(complex(0,-1.), Hnh, psi, complex(0.), dpsi)
+function dmcwf_nh(psi::Ket, Hnh::AbstractOperator, dpsi::Ket)
+    mul!(dpsi, Hnh, psi, -1.0im, 0.0)
     return dpsi
 end
 
@@ -446,25 +446,21 @@ end
 
 Check input of mcwf.
 """
-function check_mcwf(psi0::Ket, H::Operator, J::Vector, Jdagger::Vector, rates::DecayRates)
+function check_mcwf(psi0::Ket{B}, H::AbstractOperator{B,B}, J::Vector{T},
+            Jdagger::Vector{T}, rates::DecayRates) where {B<:Basis,T<:AbstractOperator{B,B}}
     isreducible = true
-    check_samebases(basis(psi0), basis(H))
-    if !(isa(H, DenseOperator) || isa(H, SparseOperator))
+    if !isa(H, Operator)
         isreducible = false
     end
     for j=J
-        @assert isa(j, Operator)
-        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+        if !isa(j, Operator)
             isreducible = false
         end
-        check_samebases(H, j)
     end
     for j=Jdagger
-        @assert isa(j, Operator)
-        if !(isa(j, DenseOperator) || isa(j, SparseOperator))
+        if !isa(j, Operator)
             isreducible = false
         end
-        check_samebases(H, j)
     end
     @assert length(J) == length(Jdagger)
     if typeof(rates) == Matrix{Float64}
@@ -488,7 +484,7 @@ corresponding set of jump operators is calculated.
 * `rates`: Matrix of decay rates.
 * `J`: Vector of jump operators.
 """
-function diagonaljumps(rates::Matrix{Float64}, J::Vector{T}) where T <: Operator
+function diagonaljumps(rates::Matrix{Float64}, J::Vector{T}) where T <: AbstractOperator
     @assert length(J) == size(rates)[1] == size(rates)[2]
     d, v = eigen(rates)
     d, [sum([v[j, i]*J[j] for j=1:length(d)]) for i=1:length(d)]
