@@ -49,15 +49,15 @@ ket_b2 = randstate(b2)
 ket_b3 = randstate(b3)
 
 # Addition
-@test_throws bases.IncompatibleBases bra_b1 + bra_b2
-@test_throws bases.IncompatibleBases ket_b1 + ket_b2
+@test_throws MethodError bra_b1 + bra_b2
+@test_throws MethodError ket_b1 + ket_b2
 @test 1e-14 > D(bra_b1 + Bra(b1), bra_b1)
 @test 1e-14 > D(ket_b1 + Ket(b1), ket_b1)
 @test 1e-14 > D(bra_b1 + dagger(ket_b1), dagger(ket_b1) + bra_b1)
 
 # Subtraction
-@test_throws bases.IncompatibleBases bra_b1 - bra_b2
-@test_throws bases.IncompatibleBases ket_b1 - ket_b2
+@test_throws MethodError bra_b1 - bra_b2
+@test_throws MethodError ket_b1 - ket_b2
 @test 1e-14 > D(bra_b1 - Bra(b1), bra_b1)
 @test 1e-14 > D(ket_b1 - Ket(b1), ket_b1)
 @test 1e-14 > D(bra_b1 - dagger(ket_b1), -dagger(ket_b1) + bra_b1)
@@ -86,9 +86,9 @@ idx = LinearIndices(shape)[1, 4, 3]
 
 
 # Norm
-basis = FockBasis(1)
-bra = Bra(basis, [3im, -4])
-ket = Ket(basis, [-4im, 3])
+bf = FockBasis(1)
+bra = Bra(bf, [3im, -4])
+ket = Ket(bf, [-4im, 3])
 @test 5 ≈ norm(bra)
 @test 5 ≈ norm(ket)
 

@@ -6,7 +6,7 @@ export Basis, GenericBasis, CompositeBasis, basis,
        samebases, multiplicable,
        check_samebases, check_multiplicable, @samebases
 
-import Base: ==, ^
+import Base: ==, ^, eltype
 
 """
 Abstract base class for all specialized bases.
@@ -21,10 +21,13 @@ shape vector `Int[2 2]`.
 Composite systems can be defined with help of the [`CompositeBasis`](@ref)
 class.
 """
-abstract type Basis end
+abstract type Basis{S} end
 
 
 ==(b1::Basis, b2::Basis) = false
+==(b1::T, b2::T) where T<:Basis = true
+
+eltype(a::Basis{S}) where S = S
 
 """
     length(b::Basis)
@@ -53,13 +56,17 @@ Should only be used rarely since it defeats the purpose of checking that the
 bases of state vectors and operators are correct for algebraic operations.
 The preferred way is to specify special bases for different systems.
 """
-mutable struct GenericBasis <: Basis
+mutable struct GenericBasis{S} <: Basis{S}
     shape::Vector{Int}
+    function GenericBasis{S}(shape::Vector{Int}) where S
+        check_bases_parameter(S,length(shape))
+        new(shape)
+    end
 end
-
+GenericBasis(shape::Vector{Int}) = GenericBasis{(shape...,)}(shape)
 GenericBasis(N::Int) = GenericBasis(Int[N])
 
-==(b1::GenericBasis, b2::GenericBasis) = equal_shape(b1.shape, b2.shape)
+# ==(b1::GenericBasis, b2::GenericBasis) = equal_shape(b1.shape, b2.shape)
 
 
 """
@@ -71,14 +78,19 @@ Stores the subbases in a vector and creates the shape vector directly
 from the shape vectors of these subbases. Instead of creating a CompositeBasis
 directly `tensor(b1, b2...)` or `b1 ⊗ b2 ⊗ …` can be used.
 """
-mutable struct CompositeBasis{B<:Vector{Basis}} <: Basis
+mutable struct CompositeBasis{B<:Tuple{Vararg{Basis}},S} <: Basis{S}
     shape::Vector{Int}
     bases::B
+    function CompositeBasis{B,S}(shape::Vector{Int}, bases::B) where {B<:Tuple{Vararg{Basis}},S}
+        check_bases_parameter(S,length(shape))
+        new(shape,bases)
+    end
 end
-CompositeBasis(bases::B) where B<:Vector{Basis} = CompositeBasis{B}(Int[prod(b.shape) for b in bases], bases)
-CompositeBasis(bases::Basis...) = CompositeBasis(Basis[bases...])
-
-==(b1::CompositeBasis, b2::CompositeBasis) = equal_shape(b1.shape, b2.shape) && equal_bases(b1.bases, b2.bases)
+CompositeBasis(shape::Vector{Int}, bases::B) where {B<:Tuple{Vararg{Basis}}} = CompositeBasis{B,(shape...,)}(shape,bases)
+CompositeBasis(shape::Vector{Int}, bases::Vector{B}) where {B<:Basis} = CompositeBasis(shape, (bases...,))
+CompositeBasis(bases::Tuple{Vararg{Basis}}) = CompositeBasis([length(b) for b=bases], bases)
+CompositeBasis(bases::Vector{B}) where {B<:Basis} = CompositeBasis((bases...,))
+CompositeBasis(bases::Basis...) = CompositeBasis((bases...,))
 
 """
     tensor(x, y, z...)
@@ -97,8 +109,8 @@ Create a [`CompositeBasis`](@ref) from the given bases.
 Any given CompositeBasis is expanded so that the resulting CompositeBasis never
 contains another CompositeBasis.
 """
-tensor(b1::Basis, b2::Basis) = CompositeBasis(Int[prod(b1.shape); prod(b2.shape)], Basis[b1, b2])
-tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(Int[b1.shape; b2.shape], Basis[b1.bases; b2.bases])
+tensor(b1::Basis, b2::Basis) = CompositeBasis(Int[prod(b1.shape); prod(b2.shape)], (b1, b2))
+tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(Int[b1.shape; b2.shape], (b1.bases..., b2.bases...,))
 function tensor(b1::CompositeBasis, b2::Basis)
     N = length(b1.bases)
     shape = Vector{Int}(undef, N+1)
@@ -278,6 +290,17 @@ function permutesystems(b::CompositeBasis, perm::Vector{Int})
     @assert length(b.bases) == length(perm)
     @assert isperm(perm)
     CompositeBasis(b.shape[perm], b.bases[perm])
+end
+
+function check_bases_parameter(S,N::Int)
+    if !isa(S,Tuple{Vararg{Int,N}})
+        if isa(S,Tuple{Vararg{Int}})
+            throw(ArgumentError("Bases shape parameter has the wrong length!"))
+        else
+            throw(ArgumentError("Cannot create basis with parametric field $(typeof(S))!
+            Needs to be of type `Tuple{Int,N}`."))
+        end
+    end
 end
 
 end # module

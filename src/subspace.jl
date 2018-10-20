@@ -13,23 +13,24 @@ using ..bases, ..states, ..operators, ..operators_dense
 
 A basis describing a subspace embedded a higher dimensional Hilbert space.
 """
-mutable struct SubspaceBasis{B<:Basis,T<:Ket} <: Basis
+mutable struct SubspaceBasis{B<:Basis,T<:Ket,S} <: Basis{S}
     shape::Vector{Int}
     superbasis::B
     basisstates::Vector{T}
     basisstates_hash::UInt
 
-    function SubspaceBasis{B,T}(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket}
+    function SubspaceBasis{B,T,S}(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket,S}
         for state = basisstates
             if state.basis != superbasis
                 throw(ArgumentError("The basis of the basisstates has to be the superbasis."))
             end
         end
+        bases.check_bases_parameter(S,1)
         basisstates_hash = hash(hash.([hash.(x.data) for x=basisstates]))
         new(Int[length(basisstates)], superbasis, basisstates, basisstates_hash)
     end
 end
-
+SubspaceBasis{B,T}(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket} = SubspaceBasis{B,T,(length(basisstates),)}(superbasis, basisstates)
 SubspaceBasis(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket} = SubspaceBasis{B,T}(superbasis, basisstates)
 SubspaceBasis(basisstates::Vector{T}) where T<:Ket = SubspaceBasis(basisstates[1].basis, basisstates)
 

@@ -27,13 +27,20 @@ of ``x_{min}`` and ``x_{max}`` are due to the periodic boundary conditions
 more or less arbitrary and are chosen to be
 ``-\\pi/dp`` and ``\\pi/dp`` with ``dp=(p_{max}-p_{min})/N``.
 """
-mutable struct PositionBasis <: Basis
+mutable struct PositionBasis{X1,X2,S} <: Basis{S}
     shape::Vector{Int}
     xmin::Float64
     xmax::Float64
     N::Int
-    PositionBasis(xmin::Real, xmax::Real, N::Int) = new([N], xmin, xmax, N)
+    function PositionBasis{X1,X2,S}(xmin::Float64, xmax::Float64, N::Int) where {X1,X2,S}
+        bases.check_bases_parameter(S,1)
+        @assert isa(X1,Float64)
+        @assert isa(X2,Float64)
+        new([N], xmin, xmax, N)
+    end
 end
+PositionBasis(xmin::T, xmax::T, N::Int) where T<:Float64 = PositionBasis{xmin,xmax,(N,)}(xmin, xmax, N)
+PositionBasis(xmin::Real, xmax::Real, N::Int) = PositionBasis(convert(Float64, xmin), convert(Float64, xmax), N)
 
 """
     MomentumBasis(pmin, pmax, Npoints)
@@ -49,19 +56,26 @@ of ``p_{min}`` and ``p_{max}`` are due to the periodic boundary conditions
 more or less arbitrary and are chosen to be
 ``-\\pi/dx`` and ``\\pi/dx`` with ``dx=(x_{max}-x_{min})/N``.
 """
-mutable struct MomentumBasis <: Basis
+mutable struct MomentumBasis{P1,P2,S} <: Basis{S}
     shape::Vector{Int}
     pmin::Float64
     pmax::Float64
     N::Int
-    MomentumBasis(pmin::Real, pmax::Real, N::Int) = new([N], pmin, pmax, N)
+    function MomentumBasis{P1,P2,S}(pmin::Float64, pmax::Float64, N::Int) where {P1,P2,S}
+        bases.check_bases_parameter(S,1)
+        @assert isa(P1,Float64)
+        @assert isa(P2,Float64)
+        new([N], pmin, pmax, N)
+    end
 end
+MomentumBasis(pmin::Float64, pmax::Float64, N::Int) = MomentumBasis{pmin,pmax,(N,)}(pmin, pmax, N)
+MomentumBasis(pmin::Real, pmax::Real, N::Int) = MomentumBasis(convert(Float64,pmin), convert(Float64,pmax), N)
 
 PositionBasis(b::MomentumBasis) = (dp = (b.pmax - b.pmin)/b.N; PositionBasis(-pi/dp, pi/dp, b.N))
 MomentumBasis(b::PositionBasis) = (dx = (b.xmax - b.xmin)/b.N; MomentumBasis(-pi/dx, pi/dx, b.N))
 
-==(b1::PositionBasis, b2::PositionBasis) = b1.xmin==b2.xmin && b1.xmax==b2.xmax && b1.N==b2.N
-==(b1::MomentumBasis, b2::MomentumBasis) = b1.pmin==b2.pmin && b1.pmax==b2.pmax && b1.N==b2.N
+# ==(b1::PositionBasis, b2::PositionBasis) = b1.xmin==b2.xmin && b1.xmax==b2.xmax && b1.N==b2.N
+# ==(b1::MomentumBasis, b2::MomentumBasis) = b1.pmin==b2.pmin && b1.pmax==b2.pmax && b1.N==b2.N
 
 
 """
@@ -368,8 +382,8 @@ end
 function transform(basis_l::CompositeBasis, basis_r::CompositeBasis; ket_only::Bool=false, index::Vector{Int}=Int[])
     @assert length(basis_l.bases) == length(basis_r.bases)
     if length(index) == 0
-        check_pos = typeof.(basis_l.bases) .== PositionBasis
-        check_mom = typeof.(basis_l.bases) .== MomentumBasis
+        check_pos = [isa.(basis_l.bases, PositionBasis)...]
+        check_mom = [isa.(basis_l.bases, MomentumBasis)...]
         if any(check_pos) && !any(check_mom)
             index = [1:length(basis_l.bases);][check_pos]
         elseif any(check_mom) && !any(check_pos)
@@ -378,11 +392,11 @@ function transform(basis_l::CompositeBasis, basis_r::CompositeBasis; ket_only::B
             throw(IncompatibleBases())
         end
     end
-    if all(typeof.(basis_l.bases[index]) .== PositionBasis)
-        @assert all(typeof.(basis_r.bases[index]) .== MomentumBasis)
+    if all(isa.(basis_l.bases[index], PositionBasis))
+        @assert all(isa.(basis_r.bases[index], MomentumBasis))
         transform_xp(basis_l, basis_r, index; ket_only=ket_only)
-    elseif all(typeof.(basis_l.bases[index]) .== MomentumBasis)
-        @assert all(typeof.(basis_r.bases[index]) .== PositionBasis)
+    elseif all(isa.(basis_l.bases[index], MomentumBasis))
+        @assert all(isa.(basis_r.bases[index], PositionBasis))
         transform_px(basis_l, basis_r, index; ket_only=ket_only)
     else
         throw(IncompatibleBases())
