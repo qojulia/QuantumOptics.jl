@@ -57,13 +57,13 @@ xbra1 = dagger(randstate(b_l))
 xbra2 = dagger(randstate(b_l))
 
 # Addition
-@test_throws bases.IncompatibleBases op1 + dagger(op2)
+@test_throws DimensionMismatch op1 + dagger(op2)
 @test 1e-14 > D(op1+op2, op1_+op2_)
 @test 1e-14 > D(op1+op2, op1+op2_)
 @test 1e-14 > D(op1+op2, op1_+op2)
 
 # Subtraction
-@test_throws bases.IncompatibleBases op1 - dagger(op2)
+@test_throws DimensionMismatch op1 - dagger(op2)
 @test 1e-14 > D(op1-op2, op1_-op2_)
 @test 1e-14 > D(op1-op2, op1-op2_)
 @test 1e-14 > D(op1-op2, op1_-op2)
@@ -71,7 +71,7 @@ xbra2 = dagger(randstate(b_l))
 @test 1e-14 > D(op1+(-1*op2), op1_ - op2_)
 
 # Test multiplication
-@test_throws bases.IncompatibleBases op1*op2
+@test_throws DimensionMismatch op1*op2
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
 @test 1e-11 > D((op1+op2)*(x1+0.3*x2), (op1_+op2_)*(x1+0.3*x2))

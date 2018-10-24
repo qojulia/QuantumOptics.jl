@@ -33,6 +33,7 @@ DenseOperator(b1::BL, b2::BR, data::T) where {BL<:Basis,BR<:Basis,T<:Matrix{Comp
 DenseOperator(b1::Basis, b2::Basis, data) = DenseOperator(b1, b2, convert(Matrix{ComplexF64}, data))
 DenseOperator(b::Basis, data) = DenseOperator(b, b, data)
 DenseOperator(b1::Basis, b2::Basis) = DenseOperator(b1, b2, zeros(ComplexF64, length(b1), length(b2)))
+DenseOperator{B1,B2}(b1::B1, b2::B2) where {B1<:Basis,B2<:Basis} = DenseOperator{B1,B2}(b1, b2, zeros(ComplexF64, length(b1), length(b2)))
 DenseOperator(b::Basis) = DenseOperator(b, b)
 DenseOperator(op::AbstractOperator) = dense(op)
 
@@ -139,7 +140,7 @@ function operators.expect(op::DenseOperator{B,B}, state::Ket{B}) where B<:Basis
     state.data' * op.data * state.data
 end
 
-function operators.expect(op::DenseOperator{B,B}, state::AbstractOperator{B,B}) where B<:Basis
+function operators.expect(op::DenseOperator{B1,B2}, state::AbstractOperator{B2,B2}) where {B1<:Basis,B2<:Basis}
     result = ComplexF64(0.)
     @inbounds for i=1:size(op.data, 1), j=1:size(op.data,2)
         result += op.data[i,j]*state.data[j,i]
@@ -151,7 +152,7 @@ function operators.exp(op::T) where {B<:Basis,T<:DenseOperator{B,B}}
     return T(op.basis_l, op.basis_r, exp(op.data))
 end
 
-function operators.permutesystems(a::DenseOperator, perm::Vector{Int})
+function operators.permutesystems(a::DenseOperator{B1,B2}, perm::Vector{Int}) where {B1<:CompositeBasis,B2<:CompositeBasis}
     @assert length(a.basis_l.bases) == length(a.basis_r.bases) == length(perm)
     @assert isperm(perm)
     data = reshape(a.data, [a.basis_l.shape; a.basis_r.shape]...)

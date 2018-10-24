@@ -66,7 +66,7 @@ xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 @test 1e-14 > D(-op1_, -op1)
 
 # Test multiplication
-@test_throws bases.IncompatibleBases op1a*op1a
+@test_throws DimensionMismatch op1a*op1a
 @test 1e-11 > D(op1*(x1 + 0.3*x2), op1_*(x1 + 0.3*x2))
 @test 1e-11 > D((xbra1 + 0.3*xbra2)*op1, (xbra1 + 0.3*xbra2)*op1_)
 @test 1e-11 > D(op1*x1 + 0.3*op1*x2, op1_*x1 + 0.3*op1_*x2)
@@ -79,11 +79,11 @@ xbra2 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
 # Test identityoperator
 Idense = identityoperator(DenseOperator, b_l)
-I = identityoperator(LazyProduct, b_l)
-@test isa(I, LazyProduct)
-@test dense(I) == Idense
-@test 1e-11 > D(I*x1, x1)
-@test 1e-11 > D(xbra1*I, xbra1)
+id = identityoperator(LazyProduct, b_l)
+@test isa(id, LazyProduct)
+@test dense(id) == Idense
+@test 1e-11 > D(id*x1, x1)
+@test 1e-11 > D(xbra1*id, xbra1)
 
 # Test tr and normalize
 op1 = randoperator(b_l)

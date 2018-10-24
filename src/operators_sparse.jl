@@ -31,12 +31,14 @@ mutable struct SparseOperator{BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,
 end
 
 SparseOperator(b1::BL, b2::BR, data::T) where {BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}} = SparseOperator{BL,BR,T}(b1, b2, data)
+SparseOperator{BL,BR}(b1::BL, b2::BR, data::T) where {BL<:Basis,BR<:Basis,T<:SparseMatrixCSC{ComplexF64,Int}} = SparseOperator{BL,BR,T}(b1, b2, data)
 SparseOperator(b1::Basis, b2::Basis, data) = SparseOperator(b1, b2, convert(SparseMatrixCSC{ComplexF64,Int}, data))
 SparseOperator(b::Basis, data::SparseMatrixCSC{ComplexF64, Int}) = SparseOperator(b, b, data)
 SparseOperator(b::Basis, data::Matrix{ComplexF64}) = SparseOperator(b, sparse(data))
 SparseOperator(op::DenseOperator) = SparseOperator(op.basis_l, op.basis_r, sparse(op.data))
 
 SparseOperator(b1::Basis, b2::Basis) = SparseOperator(b1, b2, spzeros(ComplexF64, length(b1), length(b2)))
+SparseOperator{BL,BR}(b1::BL, b2::BR) where {BL<:Basis,BR<:Basis} = SparseOperator{BL,BR}(b1, b2, spzeros(ComplexF64, length(b1), length(b2)))
 SparseOperator(b::Basis) = SparseOperator(b, b)
 
 Base.copy(x::SparseOperator) = SparseOperator(x.basis_l, x.basis_r, copy(x.data))
@@ -51,35 +53,45 @@ sparse(a::AbstractOperator) = throw(ArgumentError("Direct conversion from $(type
 sparse(a::SparseOperator) = copy(a)
 sparse(a::DenseOperator) = SparseOperator(a.basis_l, a.basis_r, sparse(a.data))
 
-==(x::SparseOperator, y::SparseOperator) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && (x.data == y.data)
+==(x::SparseOperator, y::SparseOperator) = false
+==(x::T, y::T) where T<:SparseOperator = (x.data == y.data)
 
 
 # Arithmetic operations
-+(a::SparseOperator, b::SparseOperator) = (check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data+b.data))
-+(a::SparseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data+b.data))
-+(a::DenseOperator, b::SparseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data+b.data))
++(a::SparseOperator, b::SparseOperator) = throw(bases.IncompatibleBases())
++(a::T, b::T) where T<:SparseOperator = T(a.basis_l, a.basis_r, a.data+b.data)
++(a::SparseOperator, b::DenseOperator) = throw(bases.IncompatibleBases())
++(a::SparseOperator{B1,B2}, b::DenseOperator{B1,B2}) where {B1<:Basis,B2<:Basis} = DenseOperator{B1,B2}(a.basis_l, a.basis_r, a.data+b.data)
++(a::DenseOperator, b::SparseOperator) = throw(bases.IncompatibleBases())
++(a::DenseOperator{B1,B2}, b::SparseOperator{B1,B2}) where {B1<:Basis,B2<:Basis} = DenseOperator{B1,B2}(a.basis_l, a.basis_r, a.data+b.data)
 
--(a::SparseOperator) = SparseOperator(a.basis_l, a.basis_r, -a.data)
--(a::SparseOperator, b::SparseOperator) = (check_samebases(a,b); SparseOperator(a.basis_l, a.basis_r, a.data-b.data))
--(a::SparseOperator, b::DenseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
--(a::DenseOperator, b::SparseOperator) = (check_samebases(a,b); DenseOperator(a.basis_l, a.basis_r, a.data-b.data))
+-(a::T) where T<:SparseOperator = T(a.basis_l, a.basis_r, -a.data)
+-(a::SparseOperator, b::SparseOperator) = throw(bases.IncompatibleBases())
+-(a::T, b::T) where T<:SparseOperator = SparseOperator(a.basis_l, a.basis_r, a.data-b.data)
+-(a::SparseOperator, b::DenseOperator) = throw(bases.IncompatibleBases())
+-(a::SparseOperator{B1,B2}, b::DenseOperator{B1,B2}) where {B1<:Basis,B2<:Basis} = DenseOperator{B1,B2}(a.basis_l, a.basis_r, a.data-b.data)
+-(a::DenseOperator, b::SparseOperator) = throw(bases.IncompatibleBases())
+-(a::DenseOperator{B1,B2}, b::SparseOperator{B1,B2}) where {B1<:Basis,B2<:Basis} = DenseOperator{B1,B2}(a.basis_l, a.basis_r, a.data-b.data)
 
-*(a::SparseOperator, b::SparseOperator) = (check_multiplicable(a, b); SparseOperator(a.basis_l, b.basis_r, a.data*b.data))
-*(a::SparseOperator, b::Number) = SparseOperator(a.basis_l, a.basis_r, complex(b)*a.data)
-*(a::Number, b::SparseOperator) = SparseOperator(b.basis_l, b.basis_r, complex(a)*b.data)
+*(a::SparseOperator{B1,B2}, b::SparseOperator{B2,B3}) where {B1<:Basis,B2<:Basis,B3<:Basis} = SparseOperator{B1,B3}(a.basis_l, b.basis_r, a.data*b.data)
+*(a::SparseOperator, b::SparseOperator) = throw(bases.IncompatibleBases())
+*(a::T, b::Number) where T<:SparseOperator = T(a.basis_l, a.basis_r, complex(b)*a.data)
+*(a::Number, b::T) where T<:SparseOperator = T(b.basis_l, b.basis_r, complex(a)*b.data)
 
-/(a::SparseOperator, b::Number) = SparseOperator(a.basis_l, a.basis_r, a.data/complex(b))
+/(a::T, b::Number) where T<:SparseOperator = T(a.basis_l, a.basis_r, a.data/complex(b))
 
 operators.dagger(x::SparseOperator) = SparseOperator(x.basis_r, x.basis_l, x.data')
-operators.ishermitian(A::SparseOperator) = (A.basis_l == A.basis_r) && ishermitian(A.data)
+operators.ishermitian(A::SparseOperator) = false
+operators.ishermitian(A::SparseOperator{B,B}) where B<:Basis = ishermitian(A.data)
 
 operators.tensor(a::SparseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 operators.tensor(a::DenseOperator, b::SparseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 operators.tensor(a::SparseOperator, b::DenseOperator) = SparseOperator(tensor(a.basis_l, b.basis_l), tensor(a.basis_r, b.basis_r), kron(b.data, a.data))
 
-operators.tr(op::SparseOperator) = (check_samebases(op); tr(op.data))
+operators.tr(op::SparseOperator{B,B}) where B<:Basis = tr(op.data)
+operators.tr(op::SparseOperator) = throw(bases.IncompatibleBases())
 
-operators.conj(op::SparseOperator) = SparseOperator(op.basis_l, op.basis_r, conj(op.data))
+operators.conj(op::T) where T<:SparseOperator = T(op.basis_l, op.basis_r, conj(op.data))
 operators.conj!(op::SparseOperator) = conj!(op.data)
 
 function operators.ptrace(op::SparseOperator, indices::Vector{Int})
@@ -91,16 +103,12 @@ function operators.ptrace(op::SparseOperator, indices::Vector{Int})
     SparseOperator(b_l, b_r, data)
 end
 
-function operators.expect(op::SparseOperator, state::Ket)# where T <: Union{Ket, Bra}
-    check_samebases(op.basis_r, state.basis)
-    check_samebases(op.basis_l, state.basis)
+function operators.expect(op::SparseOperator{B,B}, state::Ket{B}) where B<:Basis
     state.data' * op.data * state.data
 end
 
 
-function operators.expect(op::SparseOperator, state::DenseOperator)
-    check_samebases(op.basis_r, state.basis_l)
-    check_samebases(op.basis_l, state.basis_r)
+function operators.expect(op::SparseOperator{B1,B2}, state::DenseOperator{B2,B2}) where {B1<:Basis,B2<:Basis}
     result = ComplexF64(0.)
     @inbounds for colindex = 1:op.data.n
         for i=op.data.colptr[colindex]:op.data.colptr[colindex+1]-1
@@ -110,7 +118,7 @@ function operators.expect(op::SparseOperator, state::DenseOperator)
     result
 end
 
-function operators.permutesystems(rho::SparseOperator, perm::Vector{Int})
+function operators.permutesystems(rho::SparseOperator{B1,B2}, perm::Vector{Int}) where {B1<:CompositeBasis,B2<:CompositeBasis}
     @assert length(rho.basis_l.bases) == length(rho.basis_r.bases) == length(perm)
     @assert isperm(perm)
     shape = [rho.basis_l.shape; rho.basis_r.shape]
@@ -134,9 +142,9 @@ end
 
 
 # Fast in-place multiplication implementations
-operators.gemm!(alpha, M::SparseOperator, b::DenseOperator, beta, result::DenseOperator) = sparsematrix.gemm!(convert(ComplexF64, alpha), M.data, b.data, convert(ComplexF64, beta), result.data)
-operators.gemm!(alpha, a::DenseOperator, M::SparseOperator, beta, result::DenseOperator) = sparsematrix.gemm!(convert(ComplexF64, alpha), a.data, M.data, convert(ComplexF64, beta), result.data)
-operators.gemv!(alpha, M::SparseOperator, b::Ket, beta, result::Ket) = sparsematrix.gemv!(convert(ComplexF64, alpha), M.data, b.data, convert(ComplexF64, beta), result.data)
-operators.gemv!(alpha, b::Bra, M::SparseOperator, beta, result::Bra) = sparsematrix.gemv!(convert(ComplexF64, alpha), b.data, M.data, convert(ComplexF64, beta), result.data)
+operators.gemm!(alpha, M::SparseOperator{B1,B2}, b::DenseOperator{B2,B3}, beta, result::DenseOperator{B1,B3}) where {B1<:Basis,B2<:Basis,B3<:Basis} = sparsematrix.gemm!(convert(ComplexF64, alpha), M.data, b.data, convert(ComplexF64, beta), result.data)
+operators.gemm!(alpha, a::DenseOperator{B1,B2}, M::SparseOperator{B2,B3}, beta, result::DenseOperator{B1,B3}) where {B1<:Basis,B2<:Basis,B3<:Basis} = sparsematrix.gemm!(convert(ComplexF64, alpha), a.data, M.data, convert(ComplexF64, beta), result.data)
+operators.gemv!(alpha, M::SparseOperator{B1,B2}, b::Ket{B2}, beta, result::Ket{B1}) where {B1<:Basis,B2<:Basis} = sparsematrix.gemv!(convert(ComplexF64, alpha), M.data, b.data, convert(ComplexF64, beta), result.data)
+operators.gemv!(alpha, b::Bra{B1}, M::SparseOperator{B1,B2}, beta, result::Bra{B2}) where {B1<:Basis,B2<:Basis} = sparsematrix.gemv!(convert(ComplexF64, alpha), b.data, M.data, convert(ComplexF64, beta), result.data)
 
 end # module

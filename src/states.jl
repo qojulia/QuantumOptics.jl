@@ -59,6 +59,8 @@ Ket{B}(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Ket{B,T}(b, data)
 Bra(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Bra{B,T}(b, data)
 Ket(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Ket{B,T}(b, data)
 
+Bra{B}(b::B) where B<:Basis = Bra{B}(b, zeros(ComplexF64, length(b)))
+Ket{B}(b::B) where B<:Basis = Ket{B}(b, zeros(ComplexF64, length(b)))
 Bra(b::Basis) = Bra(b, zeros(ComplexF64, length(b)))
 Ket(b::Basis) = Ket(b, zeros(ComplexF64, length(b)))
 
