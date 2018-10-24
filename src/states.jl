@@ -121,21 +121,13 @@ In-place normalization of the given bra or ket so that `norm(x)` is one.
 """
 normalize!(x::StateVector) = (rmul!(x.data, 1.0/norm(x)); nothing)
 
-function permutesystems(state::T, perm::Vector{Int}) where T<:Ket
+function permutesystems(state::T, perm::Vector{Int}) where T<:StateVector
     @assert length(state.basis.bases) == length(perm)
     @assert isperm(perm)
     data = reshape(state.data, state.basis.shape...)
     data = permutedims(data, perm)
     data = reshape(data, length(data))
-    Ket(permutesystems(state.basis, perm), data)
-end
-function permutesystems(state::T, perm::Vector{Int}) where T<:Bra
-    @assert length(state.basis.bases) == length(perm)
-    @assert isperm(perm)
-    data = reshape(state.data, state.basis.shape...)
-    data = permutedims(data, perm)
-    data = reshape(data, length(data))
-    Bra(permutesystems(state.basis, perm), data)
+    T(permutesystems(state.basis, perm), data)
 end
 
 # Creation of basis states.

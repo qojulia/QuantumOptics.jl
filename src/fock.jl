@@ -14,20 +14,19 @@ using SparseArrays
 Basis for a Fock space where `N` specifies a cutoff, i.e. what the highest
 included fock state is. Note that the dimension of this basis then is N+1.
 """
-mutable struct FockBasis{S} <: Basis{S}
+mutable struct FockBasis <: Basis
     shape::Vector{Int}
     N::Int
-    function FockBasis{S}(N::Int) where S
-        bases.check_bases_parameter(S,1)
+    function FockBasis(N::Int)
         if N < 0
             throw(DimensionMismatch())
         end
         new([N+1], N)
     end
 end
-FockBasis(N::Int) = FockBasis{(N+1,)}(N)
 
-# ==(b1::FockBasis, b2::FockBasis) = b1.N==b2.N
+
+==(b1::FockBasis, b2::FockBasis) = b1.N==b2.N
 
 """
     number(b::FockBasis)

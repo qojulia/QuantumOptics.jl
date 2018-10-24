@@ -12,19 +12,18 @@ using ..bases, ..states, ..operators, ..operators_sparse
 
 Basis for a system consisting of N states.
 """
-mutable struct NLevelBasis{S} <: Basis{S}
+mutable struct NLevelBasis <: Basis
     shape::Vector{Int}
     N::Int
-    function NLevelBasis{S}(N::Int) where S
+    function NLevelBasis(N::Int)
         if N < 1
             throw(DimensionMismatch())
         end
-        bases.check_bases_parameter(S,1)
         new([N], N)
     end
 end
-NLevelBasis(N::Int) = NLevelBasis{(N,)}(N)
-# ==(b1::NLevelBasis, b2::NLevelBasis) = b1.N == b2.N
+
+==(b1::NLevelBasis, b2::NLevelBasis) = b1.N == b2.N
 
 
 """
