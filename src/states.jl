@@ -53,6 +53,9 @@ mutable struct Ket{B<:Basis,T<:Vector{ComplexF64}} <: StateVector{B,T}
     end
 end
 
+Bra{B}(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Bra{B,T}(b, data)
+Ket{B}(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Ket{B,T}(b, data)
+
 Bra(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Bra{B,T}(b, data)
 Ket(b::B, data::T) where {B<:Basis,T<:Vector{ComplexF64}} = Ket{B,T}(b, data)
 
