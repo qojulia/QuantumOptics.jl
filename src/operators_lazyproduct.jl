@@ -19,41 +19,43 @@ The factors of the product are stored in the `operators` field. Additionally a
 complex factor is stored in the `factor` field which allows for fast
 multiplication with numbers.
 """
-mutable struct LazyProduct{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR}
+mutable struct LazyProduct{BL<:Basis,BR<:Basis,T<:Tuple{Vararg{AbstractOperator}}} <: AbstractOperator{BL,BR}
     basis_l::BL
     basis_r::BR
     factor::ComplexF64
-    operators::Vector{AbstractOperator}
+    operators::T
 
-    function LazyProduct(operators::Vector{AbstractOperator}, factor::Number=1)
-        if length(operators) < 1
-            throw(ArgumentError("LazyProduct needs at least one operator."))
-        end
+    function LazyProduct{BL,BR,T}(operators::T, factor::Number=1) where {BL<:Basis,BR<:Basis,T<:Tuple{Vararg{AbstractOperator}}}
         for i = 2:length(operators)
             check_multiplicable(operators[i-1], operators[i])
         end
-        BL = typeof(operators[1].basis_l)
-        BR = typeof(operators[end].basis_r)
-        new{BL,BR}(operators[1].basis_l, operators[end].basis_r, factor, operators)
+        new(operators[1].basis_l, operators[end].basis_r, factor, operators)
     end
 end
-LazyProduct(operators::Vector, factor::Number=1) = LazyProduct(convert(Vector{AbstractOperator}, operators), factor)
-LazyProduct(operators::AbstractOperator...) = LazyProduct(AbstractOperator[operators...])
+function LazyProduct(operators::T, factor::Number=1) where {T<:Tuple{Vararg{AbstractOperator}}}
+    BL = typeof(operators[1].basis_l)
+    BR = typeof(operators[end].basis_r)
+    LazyProduct{BL,BR,T}(operators, factor)
+end
+LazyProduct(operators::Vector{T}, factor::Number=1) where T<:AbstractOperator = LazyProduct((operators...,), factor)
+LazyProduct(operators::AbstractOperator...) = LazyProduct((operators...,))
+LazyProduct() = throw(ArgumentError("LazyProduct needs at least one operator!"))
 
-Base.copy(x::LazyProduct) = LazyProduct([copy(op) for op in x.operators], x.factor)
+Base.copy(x::T) where T<:LazyProduct = T(([copy(op) for op in x.operators]...,), x.factor)
 
 operators.dense(op::LazyProduct) = op.factor*prod(dense.(op.operators))
+operators.dense(op::LazyProduct{B1,B2,T}) where {B1<:Basis,B2<:Basis,T<:Tuple{AbstractOperator}} = op.factor*dense(op.operators[1])
 SparseArrays.sparse(op::LazyProduct) = op.factor*prod(sparse.(op.operators))
 
-==(x::LazyProduct, y::LazyProduct) = (x.basis_l == y.basis_l) && (x.basis_r == y.basis_r) && x.operators==y.operators && x.factor == y.factor
-
+==(x::LazyProduct, y::LazyProduct) = false
+==(x::T, y::T) where T<:LazyProduct = (x.operators==y.operators && x.factor == y.factor)
 
 # Arithmetic operations
--(a::LazyProduct) = LazyProduct(a.operators, -a.factor)
+-(a::T) where T<:LazyProduct = T(a.operators, -a.factor)
 
-*(a::LazyProduct, b::LazyProduct) = (check_multiplicable(a, b); LazyProduct([a.operators; b.operators], a.factor*b.factor))
-*(a::LazyProduct, b::Number) = LazyProduct(a.operators, a.factor*b)
-*(a::Number, b::LazyProduct) = LazyProduct(b.operators, a*b.factor)
+*(a::LazyProduct{B1,B2}, b::LazyProduct{B2,B3}) where {B1<:Basis,B2<:Basis,B3<:Basis} = LazyProduct((a.operators..., b.operators...), a.factor*b.factor)
+*(a::T, b::Number) where T<:LazyProduct = T(a.operators, a.factor*b)
+*(a::Number, b::T) where T<:LazyProduct = T(b.operators, a*b.factor)
 
 /(a::LazyProduct, b::Number) = LazyProduct(a.operators, a.factor/b)
 
@@ -64,13 +66,13 @@ operators.tr(op::LazyProduct) = throw(ArgumentError("Trace of LazyProduct is not
 
 operators.ptrace(op::LazyProduct, indices::Vector{Int}) = throw(ArgumentError("Partial trace of LazyProduct is not defined. Try to convert to another operator type first with e.g. dense() or sparse()."))
 
-operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(AbstractOperator[permutesystems(op_i, perm) for op_i in op.operators], op.factor)
+operators.permutesystems(op::LazyProduct, perm::Vector{Int}) = LazyProduct(([permutesystems(op_i, perm) for op_i in op.operators]...,), op.factor)
 
 operators.identityoperator(::Type{LazyProduct}, b1::Basis, b2::Basis) = LazyProduct(identityoperator(b1, b2))
 
 
 # Fast in-place multiplication
-function operators.gemv!(alpha, a::LazyProduct, b::Ket, beta, result::Ket)
+function operators.gemv!(alpha, a::LazyProduct{B1,B2}, b::Ket{B2}, beta, result::Ket{B1}) where {B1<:Basis,B2<:Basis}
     tmp1 = Ket(a.operators[end].basis_l)
     operators.gemv!(a.factor, a.operators[end], b, 0, tmp1)
     for i=length(a.operators)-1:-1:2
@@ -81,7 +83,7 @@ function operators.gemv!(alpha, a::LazyProduct, b::Ket, beta, result::Ket)
     operators.gemv!(alpha, a.operators[1], tmp1, beta, result)
 end
 
-function operators.gemv!(alpha, a::Bra, b::LazyProduct, beta, result::Bra)
+function operators.gemv!(alpha, a::Bra{B1}, b::LazyProduct{B1,B2}, beta, result::Bra{B2}) where {B1<:Basis,B2<:Basis}
     tmp1 = Bra(b.operators[1].basis_r)
     operators.gemv!(b.factor, a, b.operators[1], 0, tmp1)
     for i=2:length(b.operators)-1
