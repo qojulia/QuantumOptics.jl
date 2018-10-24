@@ -66,15 +66,26 @@ copy(a::T) where {T<:StateVector} = T(a.basis, copy(a.data))
 length(a::StateVector) = length(a.basis)::Int
 basis(a::StateVector) = a.basis
 
-==(x::T, y::T) where {T<:StateVector} = samebases(x, y) && x.data==y.data
+==(x::T, y::T) where {T<:Ket} = samebases(x, y) && x.data==y.data
+==(x::T, y::T) where {T<:Bra} = samebases(x, y) && x.data==y.data
+==(x::Ket, y::Ket) = false
+==(x::Bra, y::Bra) = false
 
 # Arithmetic operations
-+(a::T, b::T) where {T<:StateVector} = (check_samebases(a, b); T(a.basis, a.data+b.data))
++(a::Ket{B}, b::Ket{B}) where {B<:Basis} = Ket(a.basis, a.data+b.data)
++(a::Bra{B}, b::Bra{B}) where {B<:Basis} = Bra(a.basis, a.data+b.data)
++(a::Ket, b::Ket) = throw(bases.IncompatibleBases())
++(a::Bra, b::Bra) = throw(bases.IncompatibleBases())
+
+-(a::Ket{B}, b::Ket{B}) where {B<:Basis} = Ket(a.basis, a.data-b.data)
+-(a::Bra{B}, b::Bra{B}) where {B<:Basis} = Bra(a.basis, a.data-b.data)
+-(a::Ket, b::Ket) = throw(bases.IncompatibleBases())
+-(a::Bra, b::Bra) = throw(bases.IncompatibleBases())
 
 -(a::T) where {T<:StateVector} = T(a.basis, -a.data)
--(a::T, b::T) where {T<:StateVector} = (check_samebases(a, b); T(a.basis, a.data-b.data))
 
-*(a::Bra{B,D}, b::Ket{B,D}) where {B<:Basis,D<:Vector{ComplexF64}} = (check_multiplicable(a, b); sum(a.data.*b.data))
+*(a::Bra{B,D}, b::Ket{B,D}) where {B<:Basis,D<:Vector{ComplexF64}} = transpose(a.data)*b.data
+*(a::Bra, b::Ket) = throw(bases.IncompatibleBases())
 *(a::Number, b::T) where {T<:StateVector} = T(b.basis, a*b.data)
 *(a::T, b::Number) where {T<:StateVector} = T(a.basis, b*a.data)
 
@@ -121,13 +132,21 @@ In-place normalization of the given bra or ket so that `norm(x)` is one.
 """
 normalize!(x::StateVector) = (rmul!(x.data, 1.0/norm(x)); nothing)
 
-function permutesystems(state::T, perm::Vector{Int}) where T<:StateVector
+function permutesystems(state::T, perm::Vector{Int}) where T<:Ket
     @assert length(state.basis.bases) == length(perm)
     @assert isperm(perm)
     data = reshape(state.data, state.basis.shape...)
     data = permutedims(data, perm)
     data = reshape(data, length(data))
-    T(permutesystems(state.basis, perm), data)
+    Ket(permutesystems(state.basis, perm), data)
+end
+function permutesystems(state::T, perm::Vector{Int}) where T<:Bra
+    @assert length(state.basis.bases) == length(perm)
+    @assert isperm(perm)
+    data = reshape(state.data, state.basis.shape...)
+    data = permutedims(data, perm)
+    data = reshape(data, length(data))
+    Bra(permutesystems(state.basis, perm), data)
 end
 
 # Creation of basis states.

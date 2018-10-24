@@ -22,7 +22,7 @@ ket = Ket(b)
 @test_throws DimensionMismatch Ket(b, [1, 2])
 @test 0 ≈ norm(bra)
 @test 0 ≈ norm(ket)
-@test_throws MethodError bra*Ket(b1)
+@test_throws bases.IncompatibleBases bra*Ket(b1)
 @test bra == bra
 @test length(bra) == length(bra.data) == 15
 @test length(ket) == length(ket.data) == 15
@@ -49,15 +49,15 @@ ket_b2 = randstate(b2)
 ket_b3 = randstate(b3)
 
 # Addition
-@test_throws bases.IncompatibleBases bra_b1 + bra_b2
-@test_throws bases.IncompatibleBases ket_b1 + ket_b2
+@test_throws DimensionMismatch bra_b1 + bra_b2
+@test_throws DimensionMismatch ket_b1 + ket_b2
 @test 1e-14 > D(bra_b1 + Bra(b1), bra_b1)
 @test 1e-14 > D(ket_b1 + Ket(b1), ket_b1)
 @test 1e-14 > D(bra_b1 + dagger(ket_b1), dagger(ket_b1) + bra_b1)
 
 # Subtraction
-@test_throws bases.IncompatibleBases bra_b1 - bra_b2
-@test_throws bases.IncompatibleBases ket_b1 - ket_b2
+@test_throws DimensionMismatch bra_b1 - bra_b2
+@test_throws DimensionMismatch ket_b1 - ket_b2
 @test 1e-14 > D(bra_b1 - Bra(b1), bra_b1)
 @test 1e-14 > D(ket_b1 - Ket(b1), ket_b1)
 @test 1e-14 > D(bra_b1 - dagger(ket_b1), -dagger(ket_b1) + bra_b1)
@@ -86,9 +86,9 @@ idx = LinearIndices(shape)[1, 4, 3]
 
 
 # Norm
-basis = FockBasis(1)
-bra = Bra(basis, [3im, -4])
-ket = Ket(basis, [-4im, 3])
+bf = FockBasis(1)
+bra = Bra(bf, [3im, -4])
+ket = Ket(bf, [-4im, 3])
 @test 5 ≈ norm(bra)
 @test 5 ≈ norm(ket)
 
@@ -122,7 +122,7 @@ x2 = basisstate(b2, 1)
 # Test permutating systems
 b1 = GenericBasis(2)
 b2 = GenericBasis(5)
-b3 = GenericBasis(3)
+b3 = FockBasis(3)
 
 psi1 = randstate(b1)
 psi2 = randstate(b2)

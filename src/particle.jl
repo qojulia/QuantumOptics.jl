@@ -307,13 +307,20 @@ mutable struct FFTKets{BL<:Basis,BR<:Basis} <: FFTOperator{BL,BR}
     fft_r!::PlanFFT
     mul_before::Array{ComplexF64}
     mul_after::Array{ComplexF64}
-    function FFTKets(b1::BL, b2::BR,
+    function FFTKets{BL,BR}(b1::BL, b2::BR,
         fft_l!::PlanFFT,
         fft_r!::PlanFFT,
         mul_before::Array{ComplexF64},
         mul_after::Array{ComplexF64}) where {BL<:Basis,BR<:Basis}
-        new{BL,BR}(b1, b2, fft_l!, fft_r!, mul_before, mul_after)
+        new(b1, b2, fft_l!, fft_r!, mul_before, mul_after)
     end
+end
+function FFTKets(b1::BL, b2::BR,
+    fft_l!::PlanFFT,
+    fft_r!::PlanFFT,
+    mul_before::Array{ComplexF64},
+    mul_after::Array{ComplexF64}) where {BL<:Basis,BR<:Basis}
+    FFTKets{BL,BR}(b1, b2, fft_l!, fft_r!, mul_before, mul_after)
 end
 
 """
@@ -368,8 +375,8 @@ end
 function transform(basis_l::CompositeBasis, basis_r::CompositeBasis; ket_only::Bool=false, index::Vector{Int}=Int[])
     @assert length(basis_l.bases) == length(basis_r.bases)
     if length(index) == 0
-        check_pos = typeof.(basis_l.bases) .== PositionBasis
-        check_mom = typeof.(basis_l.bases) .== MomentumBasis
+        check_pos = [(typeof.(basis_l.bases) .== PositionBasis)...]
+        check_mom = [(typeof.(basis_l.bases) .== MomentumBasis)...]
         if any(check_pos) && !any(check_mom)
             index = [1:length(basis_l.bases);][check_pos]
         elseif any(check_mom) && !any(check_pos)
