@@ -21,10 +21,10 @@ b_l = b1a⊗b2a⊗b3a
 b_r = b1b⊗b2b⊗b3b
 
 # Test creation
-@test_throws AssertionError LazySum()
+@test_throws ArgumentError LazySum()
 @test_throws AssertionError LazySum([1., 2.], [randoperator(b_l)])
-@test_throws AssertionError LazySum(randoperator(b_l, b_r), sparse(randoperator(b_l, b_l)))
-@test_throws AssertionError LazySum(randoperator(b_l, b_r), sparse(randoperator(b_r, b_r)))
+@test_throws bases.IncompatibleBases LazySum(randoperator(b_l, b_r), sparse(randoperator(b_l, b_l)))
+@test_throws bases.IncompatibleBases LazySum(randoperator(b_l, b_r), sparse(randoperator(b_r, b_r)))
 
 # Test copy
 op1 = 2*LazySum(randoperator(b_l, b_r), sparse(randoperator(b_l, b_r)))
@@ -85,16 +85,16 @@ xbra1 = Bra(b_l, rand(ComplexF64, length(b_l)))
 
 # Test identityoperator
 Idense = identityoperator(DenseOperator, b_r)
-I = identityoperator(LazySum, b_r)
-@test isa(I, LazySum)
-@test dense(I) == Idense
-@test 1e-11 > D(I*x1, x1)
+id = identityoperator(LazySum, b_r)
+@test isa(id, LazySum)
+@test dense(id) == Idense
+@test 1e-11 > D(id*x1, x1)
 
 Idense = identityoperator(DenseOperator, b_l)
-I = identityoperator(LazySum, b_l)
-@test isa(I, LazySum)
-@test dense(I) == Idense
-@test 1e-11 > D(xbra1*I, xbra1)
+id = identityoperator(LazySum, b_l)
+@test isa(id, LazySum)
+@test dense(id) == Idense
+@test 1e-11 > D(xbra1*id, xbra1)
 
 # Test tr and normalize
 op1 = randoperator(b_l)

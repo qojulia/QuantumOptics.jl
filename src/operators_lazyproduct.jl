@@ -46,6 +46,7 @@ Base.copy(x::T) where T<:LazyProduct = T(([copy(op) for op in x.operators]...,),
 operators.dense(op::LazyProduct) = op.factor*prod(dense.(op.operators))
 operators.dense(op::LazyProduct{B1,B2,T}) where {B1<:Basis,B2<:Basis,T<:Tuple{AbstractOperator}} = op.factor*dense(op.operators[1])
 SparseArrays.sparse(op::LazyProduct) = op.factor*prod(sparse.(op.operators))
+SparseArrays.sparse(op::LazyProduct{B1,B2,T}) where {B1<:Basis,B2<:Basis,T<:Tuple{AbstractOperator}} = op.factor*sparse(op.operators[1])
 
 ==(x::LazyProduct, y::LazyProduct) = false
 ==(x::T, y::T) where T<:LazyProduct = (x.operators==y.operators && x.factor == y.factor)
