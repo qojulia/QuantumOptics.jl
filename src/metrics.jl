@@ -145,7 +145,7 @@ S(ρ) = -Tr(ρ \\log(ρ)) = -\\sum_n λ_n\\log(λ_n)
 ```
 
 where ``λ_n`` are the eigenvalues of the density matrix ``ρ``, ``\\log`` is the
-natural logarithm and ``\\log(0) ≡ 0``.
+natural logarithm and ``0\\log(0) ≡ 0``.
 
 # Arguments
 * `rho`: Density operator of which to calculate Von Neumann entropy.
