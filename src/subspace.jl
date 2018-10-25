@@ -13,24 +13,28 @@ using ..bases, ..states, ..operators, ..operators_dense
 
 A basis describing a subspace embedded a higher dimensional Hilbert space.
 """
-mutable struct SubspaceBasis{B<:Basis,T<:Ket} <: Basis
+mutable struct SubspaceBasis{B<:Basis,T<:Ket,H} <: Basis
     shape::Vector{Int}
     superbasis::B
     basisstates::Vector{T}
     basisstates_hash::UInt
 
-    function SubspaceBasis{B,T}(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket}
+    function SubspaceBasis{B,T,H}(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket,H}
         for state = basisstates
             if state.basis != superbasis
                 throw(ArgumentError("The basis of the basisstates has to be the superbasis."))
             end
         end
+        @assert isa(H, UInt)
         basisstates_hash = hash(hash.([hash.(x.data) for x=basisstates]))
         new(Int[length(basisstates)], superbasis, basisstates, basisstates_hash)
     end
 end
 
-SubspaceBasis(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket} = SubspaceBasis{B,T}(superbasis, basisstates)
+function SubspaceBasis(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket}
+    basisstates_hash = hash(hash.([hash.(x.data) for x=basisstates]))
+    SubspaceBasis{B,T,basisstates_hash}(superbasis, basisstates)
+end
 SubspaceBasis(basisstates::Vector{T}) where T<:Ket = SubspaceBasis(basisstates[1].basis, basisstates)
 
 ==(b1::SubspaceBasis, b2::SubspaceBasis) = b1.superbasis==b2.superbasis && b1.basisstates_hash==b2.basisstates_hash
