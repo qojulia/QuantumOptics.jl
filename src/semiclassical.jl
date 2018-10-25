@@ -60,11 +60,11 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
         normalized nor permanent!
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function schroedinger_dynamic(tspan, state0::State{B,T}, fquantum::Function, fclassical::Function;
+function schroedinger_dynamic(tspan, state0::S, fquantum::Function, fclassical::Function;
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...) where {B<:Basis,T<:Ket{B}}
+                kwargs...) where {B<:Basis,T<:Ket{B},S<:State{B,T}}
     tspan_ = convert(Vector{Float64}, tspan)
-    dschroedinger_(t, state::State{B,T}, dstate::State{B,T}) = dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
+    dschroedinger_(t::Float64, state::S, dstate::S) = dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
     x0 = Vector{ComplexF64}(undef, length(state0))
     recast!(state0, x0)
     state = copy(state0)
@@ -97,7 +97,7 @@ function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical;
                 tmp::T=copy(state0.quantum),
                 kwargs...) where {B<:Basis,T<:DenseOperator{B,B}}
     tspan_ = convert(Vector{Float64}, tspan)
-    function dmaster_(t, state::State{B,T}, dstate::State{B,T})
+    function dmaster_(t::Float64, state::S, dstate::S) where {B<:Basis,T<:DenseOperator{B,B},S<:State{B,T}}
         dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
     end
     x0 = Vector{ComplexF64}(undef, length(state0))
@@ -112,14 +112,14 @@ function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical; kwargs.
 end
 
 
-function recast!(state::State, x::Vector{ComplexF64})
+function recast!(state::State{B,T,C}, x::C) where {B<:Basis,T<:QuantumState{B},C<:Vector{ComplexF64}}
     N = length(state.quantum)
     copyto!(x, 1, state.quantum.data, 1, N)
     copyto!(x, N+1, state.classical, 1, length(state.classical))
     x
 end
 
-function recast!(x::Vector{ComplexF64}, state::State)
+function recast!(x::C, state::State{B,T,C}) where {B<:Basis,T<:QuantumState{B},C<:Vector{ComplexF64}}
     N = length(state.quantum)
     copyto!(state.quantum.data, 1, x, 1, N)
     copyto!(state.classical, 1, x, N+1, length(state.classical))
