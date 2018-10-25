@@ -59,8 +59,8 @@ function schroedinger_dynamic(tspan, psi0::T, f::Function;
 end
 
 
-recast!(x::Vector{ComplexF64}, psi::StateVector) = (psi.data = x);
-recast!(psi::StateVector, x::Vector{ComplexF64}) = nothing
+recast!(x::D, psi::StateVector{B,D}) where {B<:Basis, D<:Vector{ComplexF64}} = (psi.data = x);
+recast!(psi::StateVector{B,D}, x::D) where {B<:Basis, D<:Vector{ComplexF64}} = nothing
 
 
 function dschroedinger(psi::Ket{B}, H::AbstractOperator{B,B}, dpsi::Ket{B}) where B<:Basis
