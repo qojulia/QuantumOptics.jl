@@ -49,8 +49,8 @@ sigma = tensor(psi2, dagger(psi2))
 @test tracedistance(sigma, sigma) ≈ 0.
 
 rho = spinup(b1) ⊗ dagger(coherentstate(b2, 0.1))
-@test_throws bases.IncompatibleBases tracedistance(rho, rho)
-@test_throws bases.IncompatibleBases tracedistance_h(rho, rho)
+@test_throws ArgumentError tracedistance(rho, rho)
+@test_throws ArgumentError tracedistance_h(rho, rho)
 
 @test tracedistance_nh(rho, rho) ≈ 0.
 
@@ -77,8 +77,8 @@ rho_pT2 = ptranspose(rho, 2)
 @test rho_pT1.data ≈ rho_pT1_an.data
 @test rho_pT2.data ≈ rho_pT1_an.data
 
-@test_throws AssertionError ptranspose(e ⊗ dagger(psi1))
-@test_throws AssertionError ptranspose(dm(e))
+@test_throws MethodError ptranspose(e ⊗ dagger(psi1))
+@test_throws MethodError ptranspose(dm(e))
 
 rho = rho ⊗ dm(g)
 @test PPT(rho, 1) == PPT(rho, 2) == false
