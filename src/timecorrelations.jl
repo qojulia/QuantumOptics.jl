@@ -2,7 +2,7 @@ module timecorrelations
 
 export correlation, spectrum, correlation2spectrum
 
-using ..states, ..operators, ..operators_dense
+using ..states, ..operators, ..operators_dense, ..bases
 using ..metrics, ..timeevolution, ..steadystate
 
 using FFTW
@@ -33,11 +33,11 @@ criterion specified in [`steadystate.master`](@ref).
 * `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::AbstractOperator, J::Vector,
-                     op1::AbstractOperator, op2::AbstractOperator;
+function correlation(tspan::Vector{Float64}, rho0::DenseOperator{B,B}, H::AbstractOperator{B,B}, J::Vector,
+                     op1::AbstractOperator{B,B}, op2::AbstractOperator{B,B};
                      rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
                      Jdagger::Vector=dagger.(J),
-                     kwargs...)
+                     kwargs...) where B<:Basis
     function fout(t, rho)
         expect(op1, rho)
     end
@@ -46,12 +46,12 @@ function correlation(tspan::Vector{Float64}, rho0::DenseOperator, H::AbstractOpe
     u
 end
 
-function correlation(rho0::DenseOperator, H::AbstractOperator, J::Vector,
-                     op1::AbstractOperator, op2::AbstractOperator;
+function correlation(rho0::DenseOperator{B,B}, H::AbstractOperator{B,B}, J::Vector,
+                     op1::AbstractOperator{B,B}, op2::AbstractOperator{B,B};
                      tol::Float64=1e-4, h0=10.,
                      rates::Union{Vector{Float64}, Matrix{Float64}, Nothing}=nothing,
                      Jdagger::Vector=dagger.(J),
-                     kwargs...)
+                     kwargs...) where B<:Basis
     op2rho0 = op2*rho0
     exp1 = expect(op1, op2rho0)
     function fout(t, rho)
@@ -96,11 +96,11 @@ automatically.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function spectrum(omega_samplepoints::Vector{Float64},
-                H::AbstractOperator, J::Vector, op::AbstractOperator;
-                rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
+                H::AbstractOperator{B,B}, J::Vector, op::AbstractOperator{B,B};
+                rho0::DenseOperator{B,B}=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol::Float64=1e-4,
-                rho_ss::DenseOperator=steadystate.master(H, J; tol=tol, rho0=rho0)[end][end],
-                kwargs...)
+                rho_ss::DenseOperator{B,B}=steadystate.master(H, J; tol=tol, rho0=rho0)[end][end],
+                kwargs...) where B<:Basis
     domega = minimum(diff(omega_samplepoints))
     dt = 2*pi/abs(omega_samplepoints[end] - omega_samplepoints[1])
     T = 2*pi/domega
@@ -110,11 +110,11 @@ function spectrum(omega_samplepoints::Vector{Float64},
     return omega_samplepoints, S
 end
 
-function spectrum(H::AbstractOperator, J::Vector, op::AbstractOperator;
-                rho0::DenseOperator=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
+function spectrum(H::AbstractOperator{B,B}, J::Vector, op::AbstractOperator{B,B};
+                rho0::DenseOperator{B,B}=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol::Float64=1e-4, h0=10.,
-                rho_ss::DenseOperator=steadystate.master(H, J; tol=tol)[end][end],
-                kwargs...)
+                rho_ss::DenseOperator{B,B}=steadystate.master(H, J; tol=tol)[end][end],
+                kwargs...) where B<:Basis
     tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, tol=tol, h0=h0, kwargs...)
     dtmin = minimum(diff(tspan))
     T = tspan[end] - tspan[1]
