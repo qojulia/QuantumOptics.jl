@@ -25,18 +25,18 @@ A_{bl_1,bl_2} = S_{(bl_1,bl_2) ↔ (br_1,br_2)} B_{br_1,br_2}
 A_{br_1,br_2} = B_{bl_1,bl_2} S_{(bl_1,bl_2) ↔ (br_1,br_2)}
 ```
 """
-abstract type SuperOperator end
+abstract type SuperOperator{B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis}} end
 
 """
     DenseSuperOperator(b1[, b2, data])
 
 SuperOperator stored as dense matrix.
 """
-mutable struct DenseSuperOperator <: SuperOperator
-    basis_l::Tuple{Basis, Basis}
-    basis_r::Tuple{Basis, Basis}
-    data::Matrix{ComplexF64}
-    function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::Matrix{ComplexF64})
+mutable struct DenseSuperOperator{B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis},T<:Matrix{ComplexF64}} <: SuperOperator{B1,B2}
+    basis_l::B1
+    basis_r::B2
+    data::T
+    function DenseSuperOperator{BL,BR,T}(basis_l::BL, basis_r::BR, data::T) where {BL<:Tuple{Basis,Basis},BR<:Tuple{Basis,Basis},T<:Matrix{ComplexF64}}
         if length(basis_l[1])*length(basis_l[2]) != size(data, 1) ||
            length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
@@ -44,6 +44,7 @@ mutable struct DenseSuperOperator <: SuperOperator
         new(basis_l, basis_r, data)
     end
 end
+DenseSuperOperator(basis_l::BL, basis_r::BR, data::T) where {BL<:Tuple{Basis,Basis},BR<:Tuple{Basis,Basis},T<:Matrix{ComplexF64}} = DenseSuperOperator{BL,BR,T}(basis_l, basis_r, data)
 
 function DenseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis})
     Nl = length(basis_l[1])*length(basis_l[2])
@@ -58,11 +59,11 @@ end
 
 SuperOperator stored as sparse matrix.
 """
-mutable struct SparseSuperOperator <: SuperOperator
-    basis_l::Tuple{Basis, Basis}
-    basis_r::Tuple{Basis, Basis}
-    data::SparseMatrixCSC{ComplexF64, Int}
-    function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis}, data::SparseMatrixCSC{ComplexF64, Int})
+mutable struct SparseSuperOperator{B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis},T<:SparseMatrixCSC{ComplexF64,Int}} <: SuperOperator{B1,B2}
+    basis_l::B1
+    basis_r::B2
+    data::T
+    function SparseSuperOperator{B1,B2,T}(basis_l::B1, basis_r::B2, data::T) where {B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis},T<:SparseMatrixCSC{ComplexF64,Int}}
         if length(basis_l[1])*length(basis_l[2]) != size(data, 1) ||
            length(basis_r[1])*length(basis_r[2]) != size(data, 2)
             throw(DimensionMismatch())
@@ -70,6 +71,7 @@ mutable struct SparseSuperOperator <: SuperOperator
         new(basis_l, basis_r, data)
     end
 end
+SparseSuperOperator(basis_l::B1, basis_r::B2, data::T) where {B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis},T<:SparseMatrixCSC{ComplexF64,Int}} = SparseSuperOperator{B1,B2,T}(basis_l, basis_r, data)
 
 function SparseSuperOperator(basis_l::Tuple{Basis, Basis}, basis_r::Tuple{Basis, Basis})
     Nl = length(basis_l[1])*length(basis_l[2])
@@ -80,6 +82,8 @@ end
 
 SuperOperator(basis_l, basis_r, data::SparseMatrixCSC{ComplexF64, Int}) = SparseSuperOperator(basis_l, basis_r, data)
 SuperOperator(basis_l, basis_r, data::Matrix{ComplexF64}) = DenseSuperOperator(basis_l, basis_r, data)
+SuperOperator{B1,B2}(basis_l::B1, basis_r::B2, data::SparseMatrixCSC{ComplexF64, Int}) where {B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis}} = SparseSuperOperator(basis_l, basis_r, data)
+SuperOperator{B1,B2}(basis_l::B1, basis_r::B2, data::Matrix{ComplexF64}) where {B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis}} = DenseSuperOperator(basis_l, basis_r, data)
 
 
 Base.copy(a::T) where {T<:SuperOperator} = T(a.basis_l, a.basis_r, copy(a.data))
@@ -90,7 +94,8 @@ operators.dense(a::DenseSuperOperator) = copy(a)
 sparse(a::DenseSuperOperator) = SparseSuperOperator(a.basis_l, a.basis_r, sparse(a.data))
 sparse(a::SparseSuperOperator) = copy(a)
 
-==(a::T, b::T) where {T<:SuperOperator} = samebases(a, b) && (a.data == b.data)
+==(a::T, b::T) where {T<:SuperOperator} = a.data == b.data
+==(a::SuperOperator, b::SuperOperator) = false
 
 Base.length(a::SuperOperator) = length(a.basis_l[1])*length(a.basis_l[2])*length(a.basis_r[1])*length(a.basis_r[2])
 bases.samebases(a::SuperOperator, b::SuperOperator) = samebases(a.basis_l[1], b.basis_l[1]) && samebases(a.basis_l[2], b.basis_l[2]) &&
@@ -100,31 +105,30 @@ bases.multiplicable(a::SuperOperator, b::AbstractOperator) = multiplicable(a.bas
 
 
 # Arithmetic operations
-function *(a::SuperOperator, b::DenseOperator)
-    check_multiplicable(a, b)
+function *(a::SuperOperator{B1,B2}, b::DenseOperator{BL,BR}) where {BL<:Basis,BR<:Basis,B1<:Tuple{Basis,Basis},B2<:Tuple{BL,BR}}
     data = a.data*reshape(b.data, length(b.data))
     return DenseOperator(a.basis_l[1], a.basis_l[2], reshape(data, length(a.basis_l[1]), length(a.basis_l[2])))
 end
-function *(a::SuperOperator, b::SparseOperator)
-    check_multiplicable(a, b)
+function *(a::SuperOperator{B1,B2}, b::SparseOperator{BL,BR}) where {BL<:Basis,BR<:Basis,B1<:Tuple{Basis,Basis},B2<:Tuple{BL,BR}}
     data = a.data*reshape(b.data, length(b.data))
     return SparseOperator(a.basis_l[1], a.basis_l[2], reshape(data, length(a.basis_l[1]), length(a.basis_l[2])))
 end
 
-function *(a::SuperOperator, b::SuperOperator)
-    check_multiplicable(a, b)
-    return SuperOperator(a.basis_l, b.basis_r, a.data*b.data)
+function *(a::SuperOperator{B1,B2}, b::SuperOperator{B2,B3}) where {B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis},B3<:Tuple{Basis,Basis}}
+    return SuperOperator{B1,B3}(a.basis_l, b.basis_r, a.data*b.data)
 end
 
-*(a::SuperOperator, b::Number) = SuperOperator(a.basis_l, a.basis_r, a.data*b)
-*(a::Number, b::SuperOperator) = SuperOperator(b.basis_l, b.basis_r, a*b.data)
+*(a::T, b::Number) where T<:SuperOperator = T(a.basis_l, a.basis_r, a.data*b)
+*(a::Number, b::T) where T<:SuperOperator = T(b.basis_l, b.basis_r, a*b.data)
 
-/(a::SuperOperator, b::Number) = SuperOperator(a.basis_l, a.basis_r, a.data/b)
+/(a::T, b::Number) where T<:SuperOperator = T(a.basis_l, a.basis_r, a.data/b)
 
-+(a::SuperOperator, b::SuperOperator) = (check_samebases(a, b); SuperOperator(a.basis_l, a.basis_r, a.data+b.data))
++(a::SuperOperator{B1,B2}, b::SuperOperator{B1,B2}) where {B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis}} = SuperOperator{B1,B2}(a.basis_l, a.basis_r, a.data+b.data)
++(a::SuperOperator, b::SuperOperator) = throw(bases.IncompatibleBases())
 
+-(a::SuperOperator{B1,B2}, b::SuperOperator{B1,B2}) where {B1<:Tuple{Basis,Basis},B2<:Tuple{Basis,Basis}} = SuperOperator{B1,B2}(a.basis_l, a.basis_r, a.data-b.data)
 -(a::SuperOperator) = SuperOperator(a.basis_l, a.basis_r, -a.data)
--(a::SuperOperator, b::SuperOperator) = (check_samebases(a, b); SuperOperator(a.basis_l, a.basis_r, a.data-b.data))
+-(a::SuperOperator, b::SuperOperator) = throw(bases.IncompatibleBases())
 
 """
     spre(op)
@@ -155,14 +159,13 @@ holds. `op` can be a dense or a sparse operator.
 spost(op::AbstractOperator) = SuperOperator((op.basis_r, op.basis_r), (op.basis_l, op.basis_l), kron(permutedims(op.data), identityoperator(op).data))
 
 
-function _check_input(H::AbstractOperator, J::Vector, Jdagger::Vector, rates::Union{Vector{Float64}, Matrix{Float64}})
+function _check_input(H::AbstractOperator{B1,B2}, J::Vector, Jdagger::Vector, rates::Union{Vector{Float64}, Matrix{Float64}}) where {B1<:Basis,B2<:Basis}
+    # TODO: replace basis checks by dispatch; make type of J known
     for j=J
-        @assert typeof(j) <: AbstractOperator
-        check_samebases(H, j)
+        @assert isa(j, AbstractOperator{B1,B2})
     end
     for j=Jdagger
-        @assert typeof(j) <: AbstractOperator
-        check_samebases(H, j)
+        @assert isa(j, AbstractOperator{B1,B2})
     end
     @assert length(J)==length(Jdagger)
     if typeof(rates) == Matrix{Float64}

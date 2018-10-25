@@ -172,9 +172,6 @@ tout, ρt = timeevolution.master([0.,1.], ρ₀, H, J; reltol=1e-7)
 
 @test dense(spre(op1)) == spre(op1)
 
-@test_throws bases.IncompatibleBases L*op1
-@test_throws bases.IncompatibleBases L*spre(sm)
-
 @test L/2.0 == 0.5*L == L*0.5
 @test -L == SparseSuperOperator(L.basis_l, L.basis_r, -L.data)
 

@@ -38,7 +38,7 @@ end
 
 Coherent thermal state ``D(α)exp(-H/T)/Tr[exp(-H/T)]D^†(α)``.
 """
-function coherentthermalstate(basis::FockBasis,H::AbstractOperator,T::Real,alpha::Number)
+function coherentthermalstate(basis::B,H::AbstractOperator{B,B},T::Real,alpha::Number) where B<:FockBasis
     return displace(basis,alpha)*thermalstate(H,T)*dagger(displace(basis,alpha))
 end
 
