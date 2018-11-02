@@ -272,7 +272,7 @@ end
 
 Abstract type for all implementations of FFT operators.
 """
-abstract type FFTOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR} end
+abstract type FFTOperator{BL<:Basis, BR<:Basis, DIM} <: AbstractOperator{BL,BR} end
 
 const PlanFFT = FFTW.cFFTWPlan
 
@@ -282,23 +282,23 @@ const PlanFFT = FFTW.cFFTWPlan
 Operator performing a fast fourier transformation when multiplied with a state
 that is a Ket or an Operator.
 """
-mutable struct FFTOperators{BL<:Basis,BR<:Basis} <: FFTOperator{BL,BR}
+mutable struct FFTOperators{BL<:Basis, BR<:Basis, DIM} <: FFTOperator{BL, BR, DIM}
     basis_l::BL
     basis_r::BR
     fft_l!::PlanFFT
     fft_r!::PlanFFT
     fft_l2!::PlanFFT
     fft_r2!::PlanFFT
-    mul_before::Array{ComplexF64}
-    mul_after::Array{ComplexF64}
+    mul_before::Array{ComplexF64, DIM}
+    mul_after::Array{ComplexF64, DIM}
     function FFTOperators(b1::BL, b2::BR,
         fft_l!::PlanFFT,
         fft_r!::PlanFFT,
         fft_l2!::PlanFFT,
         fft_r2!::PlanFFT,
-        mul_before::Array{ComplexF64},
-        mul_after::Array{ComplexF64}) where {BL<:Basis,BR<:Basis}
-        new{BL,BR}(b1, b2, fft_l!, fft_r!, fft_l2!, fft_r2!, mul_before, mul_after)
+        mul_before::Array{ComplexF64, DIM},
+        mul_after::Array{ComplexF64, DIM}) where {BL<:Basis, BR<:Basis, DIM}
+        new{BL, BR, DIM}(b1, b2, fft_l!, fft_r!, fft_l2!, fft_r2!, mul_before, mul_after)
     end
 end
 
@@ -308,29 +308,28 @@ end
 Operator that can only perform fast fourier transformations on Kets.
 This is much more memory efficient when only working with Kets.
 """
-mutable struct FFTKets{BL<:Basis,BR<:Basis} <: FFTOperator{BL,BR}
+mutable struct FFTKets{BL<:Basis, BR<:Basis, DIM} <: FFTOperator{BL, BR, DIM}
     basis_l::BL
     basis_r::BR
     fft_l!::PlanFFT
     fft_r!::PlanFFT
-    mul_before::Array{ComplexF64}
-    mul_after::Array{ComplexF64}
+    mul_before::Array{ComplexF64, DIM}
+    mul_after::Array{ComplexF64, DIM}
     function FFTKets{BL,BR}(b1::BL, b2::BR,
         fft_l!::PlanFFT,
         fft_r!::PlanFFT,
-        mul_before::Array{ComplexF64},
-        mul_after::Array{ComplexF64}) where {BL<:Basis,BR<:Basis}
-        new(b1, b2, fft_l!, fft_r!, mul_before, mul_after)
+        mul_before::Array{ComplexF64, DIM},
+        mul_after::Array{ComplexF64, DIM}) where {BL<:Basis,BR<:Basis, DIM}
+        new{BL, BR, DIM}(b1, b2, fft_l!, fft_r!, mul_before, mul_after)
     end
 end
 function FFTKets(b1::BL, b2::BR,
     fft_l!::PlanFFT,
     fft_r!::PlanFFT,
     mul_before::Array{ComplexF64},
-    mul_after::Array{ComplexF64}) where {BL<:Basis,BR<:Basis}
-    FFTKets{BL,BR}(b1, b2, fft_l!, fft_r!, mul_before, mul_after)
+    mul_after::Array{ComplexF64}) where {BL<:Basis, BR<:Basis}
+    FFTKets{BL, BR}(b1, b2, fft_l!, fft_r!, mul_before, mul_after)
 end
-
 """
     transform(b1::MomentumBasis, b2::PositionBasis)
     transform(b1::PositionBasis, b2::MomentumBasis)
