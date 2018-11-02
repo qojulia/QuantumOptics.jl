@@ -501,7 +501,7 @@ operators.dagger(op::FFTKets) = transform(op.basis_r, op.basis_l; ket_only=true)
 operators.tensor(A::FFTOperators, B::FFTOperators) = transform(tensor(A.basis_l, B.basis_l), tensor(A.basis_r, B.basis_r))
 operators.tensor(A::FFTKets, B::FFTKets) = transform(tensor(A.basis_l, B.basis_l), tensor(A.basis_r, B.basis_r); ket_only=true)
 
-function operators.gemv!(alpha_, M::FFTOperator, b::Ket, beta_, result::Ket)
+function operators.gemv!(alpha_, M::FFTOperator{B1,B2}, b::Ket{B2}, beta_, result::Ket{B1}) where {B1<:Basis,B2<:Basis}
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     N::Int = length(M.basis_r)
@@ -526,7 +526,7 @@ function operators.gemv!(alpha_, M::FFTOperator, b::Ket, beta_, result::Ket)
     nothing
 end
 
-function operators.gemv!(alpha_, b::Bra, M::FFTOperator, beta_, result::Bra)
+function operators.gemv!(alpha_, b::Bra{B1}, M::FFTOperator{B1,B2}, beta_, result::Bra{B2}) where {B1<:Basis,B2<:Basis}
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     N::Int = length(M.basis_l)
@@ -551,7 +551,7 @@ function operators.gemv!(alpha_, b::Bra, M::FFTOperator, beta_, result::Bra)
     nothing
 end
 
-function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, result::DenseOperator)
+function operators.gemm!(alpha_, A::DenseOperator{B1,B2}, B::FFTOperators{B2,B3}, beta_, result::DenseOperator{B1,B3}) where {B1<:Basis,B2<:Basis,B3<:Basis}
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     if beta != Complex(0.)
@@ -581,7 +581,7 @@ function operators.gemm!(alpha_, A::DenseOperator, B::FFTOperators, beta_, resul
     nothing
 end
 
-function operators.gemm!(alpha_, A::FFTOperators, B::DenseOperator, beta_, result::DenseOperator)
+function operators.gemm!(alpha_, A::FFTOperators{B1,B2}, B::DenseOperator{B2,B3}, beta_, result::DenseOperator{B1,B3}) where {B1<:Basis,B2<:Basis,B3<:Basis}
     alpha = convert(ComplexF64, alpha_)
     beta = convert(ComplexF64, beta_)
     if beta != Complex(0.)
