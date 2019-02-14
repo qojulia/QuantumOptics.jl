@@ -42,7 +42,7 @@ psi2.data[1] = complex(10.)
 # =====================
 bra_b1 = dagger(randstate(b1))
 bra_b2 = dagger(randstate(b2))
-bra_b3 = dagger(randstate(b3))
+bra_b3 = randstate(b3)'
 
 ket_b1 = randstate(b1)
 ket_b2 = randstate(b2)

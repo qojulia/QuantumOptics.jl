@@ -104,6 +104,7 @@ Hermitian conjugate.
 """
 dagger(x::Bra) = Ket(x.basis, conj(x.data))
 dagger(x::Ket) = Bra(x.basis, conj(x.data))
+Base.adjoint(a::StateVector) = dagger(a)
 
 """
     tensor(x::Ket, y::Ket, z::Ket...)

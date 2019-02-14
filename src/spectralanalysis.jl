@@ -33,7 +33,7 @@ function eigenstates(op::DenseOperator, n::Int=length(basis(op)); warning=true)
         states = [Ket(b, V[:, k]) for k=1:length(D)]
         return D, states
     else
-        warning && warn(nonhermitian_warning)
+        warning && @warn(nonhermitian_warning)
         D, V = eigen(op.data)
         states = [Ket(b, V[:, k]) for k=1:length(D)]
         perm = sortperm(D, by=real)
@@ -50,7 +50,7 @@ function eigenstates(op::SparseOperator, n::Int=6; warning::Bool=true,
         info::Bool=true, kwargs...)
     b = basis(op)
     # TODO: Change to sparese-Hermitian specific algorithm if more efficient
-    ishermitian(op) || (warning && warn(nonhermitian_warning))
+    ishermitian(op) || (warning && @warn(nonhermitian_warning))
     info && println("INFO: Defaulting to sparse diagonalization.
         If storing the full operator is possible, it might be faster to do
         eigenstates(dense(op)). Set info=false to turn off this message.")
@@ -79,7 +79,7 @@ function eigenenergies(op::DenseOperator, n::Int=length(basis(op)); warning=true
         D = eigvals(Hermitian(op.data), 1:n)
         return D
     else
-        warning && warn(nonhermitian_warning)
+        warning && @warn(nonhermitian_warning)
         D = eigvals(op.data)
         sort!(D, by=real)
         return D[1:n]
