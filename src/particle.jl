@@ -81,14 +81,14 @@ Create a Gaussian state around `x0` and` p0` with width `sigma`.
 In real space the gaussian state is defined as
 
 ```math
-\\Psi(x) = \\frac{\\sqrt{\\Delta x}}{\\pi^{1/4}\\sqrt{\\sigma}}
+\\Psi(x) = \\frac{1}{\\pi^{1/4}\\sqrt{\\sigma}}
             e^{i p_0 (x-\\frac{x_0}{2}) - \\frac{(x-x_0)^2}{2 \\sigma^2}}
 ```
 
 and is connected to the momentum space definition
 
 ```math
-\\Psi(p) = \\frac{\\sqrt{\\sigma} \\sqrt{\\Delta x}}{\\pi^{1/4}}
+\\Psi(p) = \\frac{\\sqrt{\\sigma}}{\\pi^{1/4}}
             e^{-i x_0 (p-\\frac{p_0}{2}) - \\frac{1}{2}(p-p_0)^2 \\sigma^2}
 ```
 
@@ -107,8 +107,8 @@ The state has the properties
 * ``\\mathrm{Var}(p) = \\frac{1}{2 σ^2}``
 
 Due to the numerically necessary discretization additional scaling
-factora ``\\sqrt{Δx}`` and ``\\sqrt{Δp}`` are used so that
-``Ψx_i = \\sqrt{Δ x} Ψ(x_i)`` and ``Ψp_i = \\sqrt{Δ x} Ψ(p_i)`` so
+factors ``\\sqrt{Δx}`` and ``\\sqrt{Δp}`` are used so that
+``\\langle x_i|Ψ\\rangle = \\sqrt{Δ x} Ψ(x_i)`` and ``\\langle p_i|Ψ\\rangle = \\sqrt{Δ p} Ψ(p_i)`` so
 that the resulting Ket state is normalized.
 """
 function gaussianstate(b::PositionBasis, x0::Real, p0::Real, sigma::Real)
