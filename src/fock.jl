@@ -1,6 +1,6 @@
 module fock
 
-export FockBasis, number, destroy, create, displace, fockstate, coherentstate
+export FockBasis, number, destroy, create, displace, fockstate, coherentstate, coherentstate!
 
 import Base: ==
 
@@ -83,14 +83,24 @@ end
 
 Coherent state ``|α⟩`` for the specified Fock space.
 """
-function coherentstate(b::FockBasis, alpha::Number, result=Ket(b, Vector{ComplexF64}(undef, length(b))))
+function coherentstate(b::FockBasis, alpha::Number)
+    result = Ket(b, Vector{ComplexF64}(undef, length(b)))
+    coherentstate!(result, b, alpha)
+    return result
+end
+
+"""
+    coherentstate!(ket::Ket, b::FockBasis, alpha)
+
+Inplace creation of coherent state ``|α⟩`` for the specified Fock space.
+"""
+function coherentstate!(ket::Ket, b::FockBasis, alpha::Number)
     alpha = complex(alpha)
-    data = result.data
+    data = ket.data
     data[1] = exp(-abs2(alpha)/2)
     @inbounds for n=1:b.N
         data[n+1] = data[n]*alpha/sqrt(n)
     end
-    return result
 end
 
 end # module

@@ -76,7 +76,7 @@ function qfunc(state::Union{Ket{B}, AbstractOperator{B,B}}, x::Number, y::Number
 end
 
 function _qfunc_operator(rho::AbstractOperator{B,B}, alpha::ComplexF64, tmp1::Ket, tmp2::Ket) where B<:FockBasis
-    coherentstate(basis(rho), alpha, tmp1)
+    coherentstate!(tmp1, basis(rho), alpha)
     operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
     a = dot(tmp1.data, tmp2.data)
     return a/pi
