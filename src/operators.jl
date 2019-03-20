@@ -98,6 +98,10 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     N = length(basis_l.bases)
     @assert length(basis_r.bases) == N
     @assert length(indices) == length(operators)
+    for (idx, op) in zip(indices, operators)
+        @assert op.basis_l == basis_l.bases[idx]
+        @assert op.basis_r == basis_r.bases[idx]
+    end
     sortedindices.check_indices(N, indices)
     tensor([i ∈ indices ? operators[indexin(i, indices)[1]] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
 end
