@@ -130,6 +130,7 @@ function operators.permutesystems(rho::SparseOperator{B1,B2}, perm::Vector{Int})
 end
 
 operators.identityoperator(::Type{T}, b1::Basis, b2::Basis) where {T<:SparseOperator} = SparseOperator(b1, b2, sparse(ComplexF64(1)*I, length(b1), length(b2)))
+operators.identityoperator(::Type{T}, b1::Basis, b2::Basis) where {T<:DataOperator} = SparseOperator(b1, b2, sparse(ComplexF64(1)*I, length(b1), length(b2)))
 operators.identityoperator(b1::Basis, b2::Basis) = identityoperator(SparseOperator, b1, b2)
 operators.identityoperator(b::Basis) = identityoperator(b, b)
 

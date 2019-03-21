@@ -97,17 +97,45 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
                indices::Vector{Int}, operators::Vector{T}) where T<:AbstractOperator
     N = length(basis_l.bases)
     @assert length(basis_r.bases) == N
-    @assert length(indices) == length(operators)
-    for (idx, op) in zip(indices, operators)
-        @assert op.basis_l == basis_l.bases[idx]
-        @assert op.basis_r == basis_r.bases[idx]
+    @assert length(indices) >= length(operators)
+    op_b_len = Int[isa(op.basis_l, CompositeBasis) ? length(op.basis_l.bases) : 1 for op=operators]
+
+    # Neglect indices covered by composite operators
+    k = 1
+    new_idx = Int[]
+    for i=1:length(operators)
+        push!(new_idx, indices[k])
+        ptr_index = filter(p->!(p ∈ indices[k:k+op_b_len[i]-1]), 1:N)
+        operators[i].basis_l == ptrace(basis_l, ptr_index) || throw(bases.IncompatibleBases())
+        operators[i].basis_r == ptrace(basis_r, ptr_index) || throw(bases.IncompatibleBases())
+        k += op_b_len[i]
     end
-    sortedindices.check_indices(N, indices)
-    tensor([i ∈ indices ? operators[indexin(i, indices)[1]] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
+    # Recursively lower index to fit length
+    for i=1:length(operators)-1
+        new_idx[i+1:end] .-= (op_b_len[i] - 1)
+    end
+
+    n = N-sum(op_b_len) + length(operators)
+    # Assign operators according to their position
+    out = Array{AbstractOperator,1}(undef, n)
+    for i=1:length(operators)
+        out[new_idx[i]] = operators[i]
+    end
+    # Find positions and assign identities
+    id_idx = filter(p->!(p ∈ indices), 1:N)
+    new_id_idx = filter(p->!(p ∈ new_idx), 1:n)
+    @assert length(id_idx) == length(new_id_idx)
+    for i=1:length(id_idx)
+        out[new_id_idx[i]] = identityoperator(T, basis_l.bases[id_idx[i]], basis_r.bases[id_idx[i]])
+    end
+
+    return tensor(out...)
 end
 embed(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Int, op::AbstractOperator) = embed(basis_l, basis_r, Int[index], [op])
+embed(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Vector{Int}, op::AbstractOperator) = embed(basis_l, basis_r, index, [op])
 embed(basis::CompositeBasis, index::Int, op::AbstractOperator) = embed(basis, basis, Int[index], [op])
 embed(basis::CompositeBasis, indices::Vector{Int}, operators::Vector{T}) where {T<:AbstractOperator} = embed(basis, basis, indices, operators)
+embed(basis::CompositeBasis, index::Vector{Int}, op::AbstractOperator) = embed(basis, basis, index, [op])
 
 """
     embed(basis1[, basis2], operators::Dict)

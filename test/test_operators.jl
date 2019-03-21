@@ -13,10 +13,11 @@ end
 
 Random.seed!(0)
 
-b1 = GenericBasis(5)
-b2 = GenericBasis(3)
+b1 = GenericBasis(3)
+b2 = GenericBasis(2)
 b = b1 ⊗ b2
 op1 = randoperator(b1)
+op2 = randoperator(b2)
 op = randoperator(b, b)
 op_test = test_operators(b, b, op.data)
 op_test2 = test_operators(b1, b, randoperator(b1, b).data)
@@ -25,7 +26,7 @@ op_test3 = test_operators(b1 ⊗ b2, b2 ⊗ b1, randoperator(b, b).data)
 ρ = randoperator(b)
 
 @test basis(op1) == b1
-@test length(op1) == length(op1.data) == 25
+@test length(op1) == length(op1.data) == length(b1)^2
 
 @test_throws ArgumentError op_test*op_test
 @test_throws ArgumentError -op_test
@@ -59,8 +60,17 @@ op_test3 = test_operators(b1 ⊗ b2, b2 ⊗ b1, randoperator(b, b).data)
 @test_throws ArgumentError tensor(op_test, op_test)
 @test_throws ArgumentError permutesystems(op_test, [1, 2])
 
-@test embed(b, b, 1, op) == embed(b, 1, op)
+@test embed(b, b, [1,2], op) == embed(b, [1,2], op)
 @test embed(b, Dict{Vector{Int}, SparseOperator}()) == identityoperator(b)
+
+b_comp = b⊗b
+@test embed(b_comp, [1,3,4], [op1,op]) == dense(op1 ⊗ one(b2) ⊗ op)
+@test embed(b_comp, [1,2,4], [op,op2]) == dense(op ⊗ one(b1) ⊗ op2)
+@test_throws bases.IncompatibleBases embed(b_comp, [1,2,3], [op,op2])
+@test_throws bases.IncompatibleBases embed(b_comp, [1,3,4], [op,op2])
+
+b_comp = b_comp⊗b_comp
+@test embed(b_comp, [1,3,4,7], [op1,op,op1]) == dense(tensor([op1,one(b2),op,one(b1),one(b2),op1,one(b2)]...))
 
 @test_throws ErrorException QuantumOptics.operators.gemm!()
 @test_throws ErrorException QuantumOptics.operators.gemv!()
