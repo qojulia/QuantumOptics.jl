@@ -62,6 +62,7 @@ op_test3 = test_operators(b1 ⊗ b2, b2 ⊗ b1, randoperator(b, b).data)
 
 @test embed(b, b, [1,2], op) == embed(b, [1,2], op)
 @test embed(b, Dict{Vector{Int}, SparseOperator}()) == identityoperator(b)
+@test_throws bases.IncompatibleBases embed(b1⊗b2, [2], [op1])
 
 b_comp = b⊗b
 @test embed(b_comp, [1,3,4], [op1,op]) == dense(op1 ⊗ one(b2) ⊗ op)
