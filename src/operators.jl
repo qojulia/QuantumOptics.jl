@@ -90,48 +90,58 @@ tensor(op::AbstractOperator) = op
 tensor(operators::AbstractOperator...) = reduce(tensor, operators)
 
 
+
+"""
+docstring
+"""
+function check_indices(indices::Array)
+    status = true
+    # Check that no sub-list contains duplicates.
+    for i in filter(x -> typeof(x) <: Array, indices)
+        status &= (length(Set(i)) == length(i))
+    end
+    # Check that there are no duplicates across `indices`
+    for (idx, i) in enumerate(indices[1:end-1])
+        for j in indices[idx+1:end]
+            status &= (length(intersect(i, j)) == 0)
+        end
+    end
+    return status
+end
+
+
 """
     embed(basis1[, basis2], indices::Vector, operators::Vector)
 
 Tensor product of operators where missing indices are filled up with identity operators.
 """
 function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
-               indices::Vector{Int}, operators::Vector{T}) where T<:AbstractOperator
+               indices::Vector, operators::Vector{T}) where T<:AbstractOperator
+
+    @assert check_indices(indices)
+
     N = length(basis_l.bases)
     @assert length(basis_r.bases) == N
-    @assert length(indices) >= length(operators)
-    op_b_len = Int[isa(op.basis_l, CompositeBasis) ? length(op.basis_l.bases) : 1 for op=operators]
+    @assert length(indices) == length(operators)
 
-    # Neglect indices covered by composite operators
-    k = 1
-    new_idx = Int[]
-    for i=1:length(operators)
-        push!(new_idx, indices[k])
-        ptr_index = filter(p->!(p ∈ indices[k:k+op_b_len[i]-1]), 1:N)
-        operators[i].basis_l == ptrace(basis_l, ptr_index) || throw(bases.IncompatibleBases())
-        operators[i].basis_r == ptrace(basis_r, ptr_index) || throw(bases.IncompatibleBases())
-        k += op_b_len[i]
-    end
-    # Recursively lower index to fit length
-    for i=1:length(operators)-1
-        new_idx[i+1:end] .-= (op_b_len[i] - 1)
+    idxop_sb = [x for x in zip(indices, operators) if typeof(x[1]) <: Int64]
+    indices_sb = [x[1] for x in idxop_sb]
+    ops_sb = [x[2] for x in idxop_sb]
+
+    for (idxsb, opsb) in zip(indices_sb, ops_sb)
+        @assert (opsb.basis_l == basis_l.bases[idxsb]) || throw(bases.IncompatibleBases())
+        @assert (opsb.basis_r == basis_r.bases[idxsb]) || throw(bases.IncompatibleBases())
     end
 
-    n = N-sum(op_b_len) + length(operators)
-    # Assign operators according to their position
-    out = Array{AbstractOperator,1}(undef, n)
-    for i=1:length(operators)
-        out[new_idx[i]] = operators[i]
-    end
-    # Find positions and assign identities
-    id_idx = filter(p->!(p ∈ indices), 1:N)
-    new_id_idx = filter(p->!(p ∈ new_idx), 1:n)
-    @assert length(id_idx) == length(new_id_idx)
-    for i=1:length(id_idx)
-        out[new_id_idx[i]] = identityoperator(T, basis_l.bases[id_idx[i]], basis_r.bases[id_idx[i]])
+    embed_op = tensor([i ∈ indices_sb ? ops_sb[indexin(i, indices_sb)[1]] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
+
+    idxop_comp = [x for x in zip(indices, operators) if typeof(x[1]) <: Array]
+
+    for (idxs, op) in idxop_comp
+        embed_op *= embed(basis_l, basis_r, idxs, op)
     end
 
-    return tensor(out...)
+    return embed_op
 end
 
 
@@ -145,16 +155,16 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     N = length(basis_l.bases)
     @assert length(basis_r.bases) == N
 
-    @assert reduce(tensor, basis_l.bases[indices]) == op.basis_l
-    @assert reduce(tensor, basis_r.bases[indices]) == op.basis_r
+    @assert reduce(tensor, basis_l.bases[indices]) == op.basis_l || throw(bases.IncompatibleBases())
+    @assert reduce(tensor, basis_r.bases[indices]) == op.basis_r || throw(bases.IncompatibleBases())
 
     index_order = [idx for idx in 1:length(basis_l.bases) if idx ∉ indices]
     all_operators = AbstractOperator[identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i in index_order]
 
-    for idx in indices[end:-1:1]
+    for idx in indices
         pushfirst!(index_order, idx)
     end
-    pushfirst!(all_operators, op)
+    push!(all_operators, op)
 
     sortedindices.check_indices(N, indices)
 
@@ -165,8 +175,8 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     unpermuted_op = copy(permuted_op)
 
     # Create the correctly ordered basis.
-    unpermuted_op.basis_l = permutesystems(permuted_op.basis_l, index_order)
-    unpermuted_op.basis_r = permutesystems(permuted_op.basis_r, index_order)
+    unpermuted_op.basis_l = basis_l
+    unpermuted_op.basis_r = basis_r
 
     # Reorient the matrix to act in the correctly ordered basis.
     # Get the dimensions necessary for index permuting.
@@ -181,8 +191,8 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     expand_dims_r = dims_r[expand_order]
 
     # Prepare the permutation to the correctly ordered basis.
-    perm_order_l = [indexin(idx, length(dims_l):-1:1)[1] for idx in expand_order]
-    perm_order_r = [indexin(idx, length(dims_r):-1:1)[1] for idx in expand_order]
+    perm_order_l = [indexin(idx, expand_order)[1] for idx in 1:length(dims_l)]
+    perm_order_r = [indexin(idx, expand_order)[1] for idx in 1:length(dims_r)]
 
     # Perform the index expansion, the permutation, and the index collapse.
     M = (reshape(permuted_op.data, tuple([expand_dims_l; expand_dims_r]...)) |>
@@ -195,7 +205,7 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
 end
 embed(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Int, op::AbstractOperator) = embed(basis_l, basis_r, Int[index], [op])
 embed(basis::CompositeBasis, index::Int, op::AbstractOperator) = embed(basis, basis, Int[index], [op])
-embed(basis::CompositeBasis, indices::Vector{Int}, operators::Vector{T}) where {T<:AbstractOperator} = embed(basis, basis, indices, operators)
+embed(basis::CompositeBasis, indices::Vector, operators::Vector{T}) where {T<:AbstractOperator} = embed(basis, basis, indices, operators)
 embed(basis::CompositeBasis, indices::Vector{Int}, op::AbstractOperator) = embed(basis, basis, indices, op)
 
 """

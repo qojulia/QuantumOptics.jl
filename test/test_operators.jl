@@ -65,13 +65,22 @@ op_test3 = test_operators(b1 ⊗ b2, b2 ⊗ b1, randoperator(b, b).data)
 @test_throws bases.IncompatibleBases embed(b1⊗b2, [2], [op1])
 
 b_comp = b⊗b
-@test embed(b_comp, [1,3,4], [op1,op]) == dense(op1 ⊗ one(b2) ⊗ op)
-@test embed(b_comp, [1,2,4], [op,op2]) == dense(op ⊗ one(b1) ⊗ op2)
-@test_throws bases.IncompatibleBases embed(b_comp, [1,2,3], [op,op2])
-@test_throws bases.IncompatibleBases embed(b_comp, [1,3,4], [op,op2])
+@test embed(b_comp, [1,[3,4]], [op1,op]) == dense(op1 ⊗ one(b2) ⊗ op)
+@test embed(b_comp, [[1,2],4], [op,op2]) == dense(op ⊗ one(b1) ⊗ op2)
+@test_throws bases.IncompatibleBases embed(b_comp, [[1,2],3], [op,op2])
+@test_throws bases.IncompatibleBases embed(b_comp, [[1,3],4], [op,op2])
 
 b_comp = b_comp⊗b_comp
-@test embed(b_comp, [1,3,4,7], [op1,op,op1]) == dense(tensor([op1,one(b2),op,one(b1),one(b2),op1,one(b2)]...))
+OP_test1 = dense(tensor([op1,one(b2),op,one(b1),one(b2),op1,one(b2)]...))
+OP_test2 = embed(b_comp, [1,[3,4],7], [op1,op,op1])
+OP_dif_data = (OP_test1 - OP_test2).data
+@test real(sum(abs.(OP_dif_data))) < 1e-10
+
+b8 = b2⊗b2⊗b2
+cnot = [1 0 0 0; 0 1 0 0; 0 0 0 1; 0 0 1 0]
+op_cnot = DenseOperator(b2⊗b2, cnot)
+OP_cnot = embed(b8, [1,3], op_cnot)
+@assert ptrace(OP_cnot, [2])/2. == op_cnot
 
 @test_throws ErrorException QuantumOptics.operators.gemm!()
 @test_throws ErrorException QuantumOptics.operators.gemv!()
