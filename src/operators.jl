@@ -9,7 +9,6 @@ import LinearAlgebra: tr, ishermitian
 import SparseArrays: sparse
 import ..bases: basis, tensor, ptrace, permutesystems,
             samebases, check_samebases, multiplicable
-# import ..operators_sparse: SparseOperator
 import ..states: dagger, normalize, normalize!
 
 using ..sortedindices, ..bases, ..states
@@ -92,7 +91,10 @@ tensor(operators::AbstractOperator...) = reduce(tensor, operators)
 
 
 """
-docstring
+    check_indices(indices::Array)
+
+Determine whether a collection of indices, written as a list of (integers or lists of integers) is unique.
+This assures that the embedded operators are in non-overlapping subspaces.
 """
 function check_indices(indices::Array)
     status = true
@@ -124,6 +126,7 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     @assert length(basis_r.bases) == N
     @assert length(indices) == length(operators)
 
+    # Embed all single-subspace operators.
     idxop_sb = [x for x in zip(indices, operators) if typeof(x[1]) <: Int64]
     indices_sb = [x[1] for x in idxop_sb]
     ops_sb = [x[2] for x in idxop_sb]
@@ -135,6 +138,7 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
 
     embed_op = tensor([i ∈ indices_sb ? ops_sb[indexin(i, indices_sb)[1]] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
 
+    # Embed all joint-subspace operators.
     idxop_comp = [x for x in zip(indices, operators) if typeof(x[1]) <: Array]
 
     for (idxs, op) in idxop_comp

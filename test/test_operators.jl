@@ -70,17 +70,45 @@ b_comp = b⊗b
 @test_throws bases.IncompatibleBases embed(b_comp, [[1,2],3], [op,op2])
 @test_throws bases.IncompatibleBases embed(b_comp, [[1,3],4], [op,op2])
 
+function basis_vec(n, N)
+    x = zeros(Complex{Float64}, N)
+    x[n+1] = 1
+    return x
+end
+function basis_maker(dims...)
+    function bm(ns...)
+        bases = [basis_vec(n, dim) for (n, dim) in zip(ns, dims)][end:-1:1]
+        return reduce(kron, bases)
+    end
+end
+
+embed_op = embed(b_comp, [1,4], op)
+bv = basis_maker(3,2,3,2)
+all_idxs = [(idx, jdx) for (idx, jdx) in [Iterators.product(0:1, 0:2)...]]
+
+m11 = reshape([Bra(b_comp, bv(0,idx,jdx,0)) * embed_op * Ket(b_comp, bv(0,kdx,ldx,0))
+              for ((idx, jdx), (kdx, ldx)) in Iterators.product(all_idxs, all_idxs)], (6,6))
+@test isapprox(m11 / op.data[1, 1], diagm(0=>ones(Complex{Float64}, 6)))
+
+m21 = reshape([Bra(b_comp, bv(1,idx,jdx,0)) * embed_op * Ket(b_comp, bv(0,kdx,ldx,0))
+              for ((idx, jdx), (kdx, ldx)) in Iterators.product(all_idxs, all_idxs)], (6,6))
+@test isapprox(m21 / op.data[2,1], diagm(0=>ones(Complex{Float64}, 6)))
+
+m12 = reshape([Bra(b_comp, bv(0,idx,jdx,0)) * embed_op * Ket(b_comp, bv(1,kdx,ldx,0))
+              for ((idx, jdx), (kdx, ldx)) in Iterators.product(all_idxs, all_idxs)], (6,6))
+@test isapprox(m12 / op.data[1,2], diagm(0=>ones(Complex{Float64}, 6)))
+
+
 b_comp = b_comp⊗b_comp
 OP_test1 = dense(tensor([op1,one(b2),op,one(b1),one(b2),op1,one(b2)]...))
 OP_test2 = embed(b_comp, [1,[3,4],7], [op1,op,op1])
-OP_dif_data = (OP_test1 - OP_test2).data
-@test real(sum(abs.(OP_dif_data))) < 1e-10
+@test isapprox(OP_test1.data, OP_test2.data)
 
 b8 = b2⊗b2⊗b2
 cnot = [1 0 0 0; 0 1 0 0; 0 0 0 1; 0 0 1 0]
 op_cnot = DenseOperator(b2⊗b2, cnot)
 OP_cnot = embed(b8, [1,3], op_cnot)
-@assert ptrace(OP_cnot, [2])/2. == op_cnot
+@test ptrace(OP_cnot, [2])/2. == op_cnot
 
 @test_throws ErrorException QuantumOptics.operators.gemm!()
 @test_throws ErrorException QuantumOptics.operators.gemv!()
