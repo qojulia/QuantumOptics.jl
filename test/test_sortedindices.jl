@@ -52,4 +52,9 @@ s.reducedindices!(x, [2, 3, 5, 6])
 @test s.check_sortedindices(5, Int[]) == nothing
 @test s.check_sortedindices(5, [1, 3]) == nothing
 
+@test s.check_embed_indices([1,[3,5],10,2,[70,11]]) == true
+@test s.check_embed_indices([1,3,1]) == false
+@test s.check_embed_indices([1,[10,11],7,[3,1]]) == false
+@test s.check_embed_indices([[10,3],5,6,[3,7]]) == false
+@test s.check_embed_indices([]) == true
 end # testset

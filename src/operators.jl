@@ -89,29 +89,6 @@ tensor(op::AbstractOperator) = op
 tensor(operators::AbstractOperator...) = reduce(tensor, operators)
 
 
-
-"""
-    check_indices(indices::Array)
-
-Determine whether a collection of indices, written as a list of (integers or lists of integers) is unique.
-This assures that the embedded operators are in non-overlapping subspaces.
-"""
-function check_indices(indices::Array)
-    status = true
-    # Check that no sub-list contains duplicates.
-    for i in filter(x -> typeof(x) <: Array, indices)
-        status &= (length(Set(i)) == length(i))
-    end
-    # Check that there are no duplicates across `indices`
-    for (idx, i) in enumerate(indices[1:end-1])
-        for j in indices[idx+1:end]
-            status &= (length(intersect(i, j)) == 0)
-        end
-    end
-    return status
-end
-
-
 """
     embed(basis1[, basis2], indices::Vector, operators::Vector)
 
@@ -120,7 +97,7 @@ Tensor product of operators where missing indices are filled up with identity op
 function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
                indices::Vector, operators::Vector{T}) where T<:AbstractOperator
 
-    @assert check_indices(indices)
+    @assert sortedindices.check_embed_indices(indices)
 
     N = length(basis_l.bases)
     @assert length(basis_r.bases) == N
@@ -132,15 +109,14 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     ops_sb = [x[2] for x in idxop_sb]
 
     for (idxsb, opsb) in zip(indices_sb, ops_sb)
-        @assert (opsb.basis_l == basis_l.bases[idxsb]) || throw(bases.IncompatibleBases())
-        @assert (opsb.basis_r == basis_r.bases[idxsb]) || throw(bases.IncompatibleBases())
+        (opsb.basis_l == basis_l.bases[idxsb]) || throw(bases.IncompatibleBases())
+        (opsb.basis_r == basis_r.bases[idxsb]) || throw(bases.IncompatibleBases())
     end
 
     embed_op = tensor([i ∈ indices_sb ? ops_sb[indexin(i, indices_sb)[1]] : identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i=1:N]...)
 
     # Embed all joint-subspace operators.
     idxop_comp = [x for x in zip(indices, operators) if typeof(x[1]) <: Array]
-
     for (idxs, op) in idxop_comp
         embed_op *= embed(basis_l, basis_r, idxs, op)
     end
@@ -159,8 +135,8 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     N = length(basis_l.bases)
     @assert length(basis_r.bases) == N
 
-    @assert reduce(tensor, basis_l.bases[indices]) == op.basis_l || throw(bases.IncompatibleBases())
-    @assert reduce(tensor, basis_r.bases[indices]) == op.basis_r || throw(bases.IncompatibleBases())
+    reduce(tensor, basis_l.bases[indices]) == op.basis_l || throw(bases.IncompatibleBases())
+    reduce(tensor, basis_r.bases[indices]) == op.basis_r || throw(bases.IncompatibleBases())
 
     index_order = [idx for idx in 1:length(basis_l.bases) if idx ∉ indices]
     all_operators = AbstractOperator[identityoperator(T, basis_l.bases[i], basis_r.bases[i]) for i in index_order]

@@ -176,4 +176,31 @@ function check_sortedindices(imax::Int, indices::Vector{Int})
     end
 end
 
+"""
+    check_embed_indices(indices::Array)
+
+Determine whether a collection of indices, written as a list of (integers or lists of integers) is unique.
+This assures that the embedded operators are in non-overlapping subspaces.
+"""
+function check_embed_indices(indices::Array)
+    # Check whether `indices` is empty.
+    (length(indices) == 0) ? (return true) : nothing
+
+    err_str = "Variable `indices` comes in an unexpected form. Expecting `Array{Union{Int64, Array{Int64, 1}}, 1}`"
+    @assert mapreduce(x -> typeof(x)<:Array || typeof(x)<:Int64, &, indices) err_str
+
+    isunique = true
+    # Check that no sub-list contains duplicates.
+    for i in filter(x -> typeof(x) <: Array, indices)
+        isunique &= (length(Set(i)) == length(i))
+    end
+    # Check that there are no duplicates across `indices`
+    for (idx, i) in enumerate(indices[1:end-1])
+        for j in indices[idx+1:end]
+            isunique &= (length(Base.intersect(i, j)) == 0)
+        end
+    end
+    return isunique
+end
+
 end # module

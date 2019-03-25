@@ -109,6 +109,7 @@ cnot = [1 0 0 0; 0 1 0 0; 0 0 0 1; 0 0 1 0]
 op_cnot = DenseOperator(b2⊗b2, cnot)
 OP_cnot = embed(b8, [1,3], op_cnot)
 @test ptrace(OP_cnot, [2])/2. == op_cnot
+@test_throws AssertionError embed(b2⊗b2, [1,1], op_cnot)
 
 @test_throws ErrorException QuantumOptics.operators.gemm!()
 @test_throws ErrorException QuantumOptics.operators.gemv!()
