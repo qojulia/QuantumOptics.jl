@@ -90,7 +90,7 @@ SparseArrays.sparse(op::LazyTensor) = op.factor*embed(op.basis_l, op.basis_r, op
 -(a::LazyTensor) = LazyTensor(a, -a.factor)
 
 function *(a::LazyTensor{B1,B2}, b::LazyTensor{B2,B3}) where {B1<:Basis,B2<:Basis,B3<:Basis}
-    indices = sortedindices.union(a.indices, b.indices)
+    indices = sort(union(a.indices, b.indices))
     ops = Vector{AbstractOperator}(undef, length(indices))
     for n in 1:length(indices)
         i = indices[n]
