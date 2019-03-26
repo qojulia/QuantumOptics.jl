@@ -104,7 +104,7 @@ function embed(basis_l::CompositeBasis, basis_r::CompositeBasis,
     @assert length(indices) == length(operators)
 
     # Embed all single-subspace operators.
-    idxop_sb = [x for x in zip(indices, operators) if typeof(x[1]) <: Int64]
+    idxop_sb = [x for x in zip(indices, operators) if typeof(x[1]) <: Int]
     indices_sb = [x[1] for x in idxop_sb]
     ops_sb = [x[2] for x in idxop_sb]
 

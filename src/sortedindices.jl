@@ -186,8 +186,8 @@ function check_embed_indices(indices::Array)
     # Check whether `indices` is empty.
     (length(indices) == 0) ? (return true) : nothing
 
-    err_str = "Variable `indices` comes in an unexpected form. Expecting `Array{Union{Int64, Array{Int64, 1}}, 1}`"
-    @assert mapreduce(x -> typeof(x)<:Array || typeof(x)<:Int64, &, indices) err_str
+    err_str = "Variable `indices` comes in an unexpected form. Expecting `Array{Union{Int, Array{Int, 1}}, 1}`"
+    @assert mapreduce(x -> typeof(x)<:Array || typeof(x)<:Int, &, indices) err_str
 
     isunique = true
     # Check that no sub-list contains duplicates.
