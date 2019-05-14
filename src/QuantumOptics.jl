@@ -35,7 +35,7 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         steadystate,
         timecorrelations,
         semiclassical,
-        stochastic
+        stochastic, PauliBasis, PauliTransferMatrix, ChiMatrix
 
 
 include("sortedindices.jl")
@@ -86,6 +86,7 @@ module stochastic
     using .stochastic_definitions
 end
 include("printing.jl")
+include("pauli.jl")
 
 using .bases
 using .states
@@ -109,6 +110,7 @@ using .metrics
 using .spectralanalysis
 using .timecorrelations
 using .printing
+using .pauli
 
 
 end # module

@@ -115,6 +115,12 @@ x = -s1
 @test x.basis_l == (b1, b2)
 @test x.basis_r == (b3, b4)
 
+# Test conversion of unitary matrices to superoperators.
+b5 = GenericBasis(4)
+CZ = DenseOperator(b5, b5, diagm(0 => [1,1,1,-1]))
+sopCZ = SuperOperator(CZ)
+@test diag(sopCZ.data) ==  ComplexF64[1,1,1,-1,1,1,1,-1,1,1,1,-1,-1,-1,-1,1]
+@test sopCZ.basis_l == sopCZ.basis_r == (b5, b5)
 
 # TODO: Clean-up this part
 ωc = 1.2
