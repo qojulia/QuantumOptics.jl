@@ -1,6 +1,6 @@
 module timeevolution_bloch_redfield_master
 
-export bloch_redfield_tensor, bloch_redfield_dynamics, #tidyup!
+export bloch_redfield_tensor, bloch_redfield_dynamics, tidyup!
 
 #using QuantumOptics, LinearAlgebra, SparseArrays, DifferentialEquations #, SubspaceTransportModel_v3
 using ...bases, ...states, ...operators
@@ -8,16 +8,16 @@ using ...operators_dense, ...operators_sparse, ...superoperators
 using LinearAlgebra, SparseArrays, OrdinaryDiffEq #DifferentialEquations
 
 
-# #Define an equivalent to QuTiP's 'Qobj.tidyup()' method
-# function tidyup!(obj::AbstractOperator, tol=1e-12)
+#Define an equivalent to QuTiP's 'Qobj.tidyup()' method
+function tidyup!(obj::AbstractOperator, tol=1e-12)
 
-#     for ele in eachindex(obj.data)
-#         if abs(obj.data[ele]) < tol
-#             obj.data[ele] = complex(0, 0)
-#         end
-#     end
-#     return obj
-# end
+    for ele in eachindex(obj.data)
+        if abs(obj.data[ele]) < tol
+            obj.data[ele] = complex(0, 0)
+        end
+    end
+    return obj
+end
 
 
 
