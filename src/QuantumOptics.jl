@@ -16,7 +16,7 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         superoperators, SuperOperator, DenseSuperOperator, SparseSuperOperator,
                 spre, spost, liouvillian,
         fock, FockBasis, number, destroy, create,
-                fockstate, coherentstate, coherentstate!, displace,
+                fockstate, coherentstate, displace,
         randstate, randoperator, thermalstate, coherentthermalstate, phase_average, passive_state,
         spin, SpinBasis, sigmax, sigmay, sigmaz, sigmap, sigmam, spinup, spindown,
         subspace, SubspaceBasis, projector,
@@ -66,6 +66,9 @@ module timeevolution
     include("master.jl")
     include("schroedinger.jl")
     include("mcwf.jl")
+    include("bloch_redfield_master.jl")
+
+    using .timeevolution_bloch_redfield_master
     using .timeevolution_master
     using .timeevolution_schroedinger
     using .timeevolution_mcwf
