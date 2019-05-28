@@ -5,20 +5,12 @@ export bloch_redfield_tensor, bloch_redfield_dynamics, tidyup!
 using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse, ...superoperators
 
-using LinearAlgebra, SparseArrays, OrdinaryDiffEq
+using LinearAlgebra, SparseArrays
 
 
-
-#Define a function for converting vector indices to matrix indices
-function vec2mat_index(N, I)
-    j = Int(round(I/N, RoundDown))
-    i = I - N*j
-    return [i, j]
-end
-
-
-
-#Main BR tensor function
+"""
+    bloch_redfield_tensor(H, a_ops; c_ops=[], use_secular=true, secular_cutoff=0.1)
+"""
 function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; c_ops=[], use_secular=true, secular_cutoff=0.1)
 
     # use the eigenbasis
@@ -70,9 +62,10 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; c_ops=[], use_
 
     #Pre-calculate mapping between global index I and system indices a,b
     Iabs = Array{Int}(undef, N*N, 3)
+    indices = CartesianIndices((N,2))
     for I in 1:N*N
         Iabs[I, 1] = I
-        Iabs[I, 2:3] = vec2mat_index(N, I-1) .+ 1 #.+1 to account for 1 based indexing
+        Iabs[I, 2:3] = [indices[I].I...]
     end
 
     # Calculate Liouvillian for Lindblad temrs (unitary part + dissipation from c_ops (if given)):
