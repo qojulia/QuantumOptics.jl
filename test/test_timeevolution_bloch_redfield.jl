@@ -27,4 +27,8 @@ known_result =  [0.0+0.0im        0.0+0.0im            0.0+0.0im       0.245145+
 
 @test isapprox(dense(R).data, known_result, atol=1e-5)
 
+psi0 = spindown(b)
+tout, ρt = timeevolution.master_bloch_redfield([0.0:0.1:2.0;], psi0, R, H)
+
+
 end # testset

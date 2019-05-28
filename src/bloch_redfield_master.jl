@@ -1,6 +1,8 @@
 module timeevolution_bloch_redfield_master
 
-export bloch_redfield_tensor, bloch_redfield_dynamics, tidyup!
+export bloch_redfield_tensor, master_bloch_redfield
+
+import ..integrate
 
 using ...bases, ...states, ...operators
 using ...operators_dense, ...operators_sparse, ...superoperators
@@ -148,28 +150,43 @@ end #Function
 
 
 #Function for obtaining dynamics from Bloch-Redfield tensor (Liouvillian)
-function bloch_redfield_dynamics(tspan, step_spacing, init::Ket, L::SuperOperator, H::AbstractOperator) #Need H for basis transformations
+function master_bloch_redfield(tspan::Vector{Float64},
+        rho0::T, L::SuperOperator{Tuple{B,B},Tuple{B,B}},
+        H::AbstractOperator{B,B}; fout::Union{Function,Nothing}=nothing,
+        kwargs...) where {B<:Basis,T<:DenseOperator{B,B}}
 
     #Prep basis transf
     evals, transf_mat = eigen(dense(H).data)
+    inv_transf_mat = inv(transf_mat)
     N = length(evals) #Hilbert space dimension
 
-    #Define ODE problem
-    ρ0 = tensor(init, dagger(init)).data
-    ρ0_eb = reshape(inv(transf_mat) * ρ0 * transf_mat, N*N, 1) #Transform to H eb and convert to vector
-    ρ_dot(ρ, p, t) = L.data * ρ
-    prob = ODEProblem(ρ_dot, ρ0_eb, tspan)
-    #Solve the ODE problem
-    sol = solve(prob, saveat=step_spacing)
+    # rho as Ket and L as DataOperator
+    basis_comp = rho0.basis_l^2
+    rho0_eb = Ket(basis_comp, (inv_transf_mat * rho0.data * transf_mat)[:]) #Transform to H eb and convert to vector
+    drho = copy(rho0_eb)
+    L_ = isa(L, DenseSuperOperator) ? DenseOperator(basis_comp, L.data) : SparseOperator(basis_comp, L.data)
+    dmaster_br_(t::Float64, rho::T2, drho::T2) where T2<:Ket = dmaster_br(drho, rho, L_)
 
-    #Convert all states back density matrix then back to site basis
-    states = reshape.(sol.u, N, N)
-    states = [transf_mat * st * inv(transf_mat) for st in states]
-    states = [DenseOperator(H.basis_l, st) for st in states]
+    # Define fout
+    rho_out = copy(rho0)
+    if isa(fout, Nothing)
+        fout_(t::Float64, rho::T) = copy(rho)
+    else
+        fout_ = fout
+    end
+    # TODO: Make fout more efficient
+    function _fout_(t::Float64, rho::Ket)
+        rho_ = DenseOperator(rho.basis.bases[1], rho.basis.bases[1], transf_mat * reshape(rho.data,N,N) * inv_transf_mat)
+        return fout_(t::Float64, rho_)
+    end
 
-    return sol.t, states
+    return integrate(tspan, dmaster_br_, copy(rho0_eb.data), rho0_eb, drho, _fout_; kwargs...)
 end
+master_bloch_redfield(tspan::Vector{Float64}, psi::Ket, args...) = master_bloch_redfield(tspan::Vector{Float64}, dm(psi), args...)
 
+function dmaster_br(drho::T, rho::T, L::DataOperator{B,B}) where {B<:Basis,T<:Ket{B}}
+    operators.gemv!(1.0, L, rho, 0.0, drho)
+end
 
 
 end #Module
