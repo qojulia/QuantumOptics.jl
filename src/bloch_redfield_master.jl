@@ -11,9 +11,22 @@ using LinearAlgebra, SparseArrays
 
 
 """
-    bloch_redfield_tensor(H, a_ops; c_ops=[], use_secular=true, secular_cutoff=0.1)
+    bloch_redfield_tensor(H, a_ops; J=[], use_secular=true, secular_cutoff=0.1)
+
+    Create the super-operator for the Bloch-Redfield master equation such that ``\\dot ρ = R ρ`` based on the QuTiP implementation.
+
+    See QuTiP's documentation (http://qutip.org/docs/latest/guide/dynamics/dynamics-bloch-redfield.html) for more information and a brief derivation.
+
+    # Arguments
+* `H`: Hamiltonian.
+* `a_ops`: Nested list of [interaction operator, callback function] pairs for the Bloch-Redfield type processes where the callback function describes the environment spectrum for the corresponding interaction operator. 
+           The spectral functions must take the angular frequency as their only argument.
+* `J=[]`: Vector containing the jump operators for the Linblad type processes (optional).
+* `use_secular=true`: Specify whether or not to use the secular approximation.
+* `secular_cutoff=0.1`: Cutoff to allow a degree of partial secularization. Terms are discarded if they are greater than (dw\\_min * secular cutoff) where dw\\_min is the smallest (non-zero) difference between any two eigenenergies of H. 
+                        This argument is only taken into account if use_secular=true.
 """
-function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; c_ops=[], use_secular=true, secular_cutoff=0.1)
+function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secular=true, secular_cutoff=0.1)
 
     # use the eigenbasis
     H_evals, transf_mat = eigen(DenseOperator(H).data)
@@ -34,7 +47,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; c_ops=[], use_
     #If only Lindblad collapse terms
     if K==0
         Heb = to_Heb(H)
-        L = liouvillian(Heb, to_Heb.(c_ops))
+        L = liouvillian(Heb, to_Heb.(J))
         return L, H_ekets
     end
 
@@ -70,9 +83,9 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; c_ops=[], use_
         Iabs[I, 2:3] = [indices[I].I...]
     end
 
-    # Calculate Liouvillian for Lindblad temrs (unitary part + dissipation from c_ops (if given)):
+    # Calculate Liouvillian for Lindblad temrs (unitary part + dissipation from J (if given)):
     Heb = to_Heb(H)
-    L = liouvillian(Heb, to_Heb.(c_ops))
+    L = liouvillian(Heb, to_Heb.(J))
 
     # Main Bloch-Redfield operators part
     rows = Int[]
@@ -148,8 +161,25 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; c_ops=[], use_
 end #Function
 
 
+"""
+    timeevolution.master_bloch_redfield(tspan, rho0, R, H; <keyword arguments>)
 
-#Function for obtaining dynamics from Bloch-Redfield tensor (Liouvillian)
+Time-evolution according to a Bloch-Redfield master equation.
+
+
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should
+        be displayed.
+* `rho0`: Initial density operator. Can also be a state vector which is
+        automatically converted into a density operator.
+* `H`: Arbitrary operator specifying the Hamiltonian.
+* `R`: Bloch-Redfield tensor describing the time-evolution ``\\dot ρ = R ρ`` (see timeevolution.bloch\\_redfield\\_tensor).
+* `fout=nothing`: If given, this function `fout(t, rho)` is called every time
+        an output should be displayed. ATTENTION: The given state rho is not
+        permanent! It is still in use by the ode solver and therefore must not
+        be changed.
+* `kwargs...`: Further arguments are passed on to the ode solver.
+"""
 function master_bloch_redfield(tspan::Vector{Float64},
         rho0::T, L::SuperOperator{Tuple{B,B},Tuple{B,B}},
         H::AbstractOperator{B,B}; fout::Union{Function,Nothing}=nothing,
