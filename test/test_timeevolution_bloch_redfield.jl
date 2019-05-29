@@ -30,5 +30,9 @@ known_result =  [0.0+0.0im        0.0+0.0im            0.0+0.0im       0.245145+
 psi0 = spindown(b)
 tout, ρt = timeevolution.master_bloch_redfield([0.0:0.1:2.0;], psi0, R, H)
 
+rho_end = [0.38206-0.0im 0.0466443+0.0175017im
+            0.0466443-0.0175017im 0.61794+0.0im]
+
+@test isapprox(ρt[end].data, rho_end, atol=1e-5)
 
 end # testset

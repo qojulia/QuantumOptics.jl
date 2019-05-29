@@ -19,11 +19,11 @@ using LinearAlgebra, SparseArrays
 
     # Arguments
 * `H`: Hamiltonian.
-* `a_ops`: Nested list of [interaction operator, callback function] pairs for the Bloch-Redfield type processes where the callback function describes the environment spectrum for the corresponding interaction operator. 
+* `a_ops`: Nested list of [interaction operator, callback function] pairs for the Bloch-Redfield type processes where the callback function describes the environment spectrum for the corresponding interaction operator.
            The spectral functions must take the angular frequency as their only argument.
 * `J=[]`: Vector containing the jump operators for the Linblad type processes (optional).
 * `use_secular=true`: Specify whether or not to use the secular approximation.
-* `secular_cutoff=0.1`: Cutoff to allow a degree of partial secularization. Terms are discarded if they are greater than (dw\\_min * secular cutoff) where dw\\_min is the smallest (non-zero) difference between any two eigenenergies of H. 
+* `secular_cutoff=0.1`: Cutoff to allow a degree of partial secularization. Terms are discarded if they are greater than (dw\\_min * secular cutoff) where dw\\_min is the smallest (non-zero) difference between any two eigenenergies of H.
                         This argument is only taken into account if use_secular=true.
 """
 function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secular=true, secular_cutoff=0.1)
@@ -77,7 +77,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
 
     #Pre-calculate mapping between global index I and system indices a,b
     Iabs = Array{Int}(undef, N*N, 3)
-    indices = CartesianIndices((N,2))
+    indices = CartesianIndices((N,N))
     for I in 1:N*N
         Iabs[I, 1] = I
         Iabs[I, 2:3] = [indices[I].I...]
@@ -198,16 +198,26 @@ function master_bloch_redfield(tspan::Vector{Float64},
     dmaster_br_(t::Float64, rho::T2, drho::T2) where T2<:Ket = dmaster_br(drho, rho, L_)
 
     # Define fout
-    rho_out = copy(rho0)
     if isa(fout, Nothing)
-        fout_(t::Float64, rho::T) = copy(rho)
+        fout_(t::Float64, rho::T)::T = copy(rho)
     else
         fout_ = fout
     end
-    # TODO: Make fout more efficient
+
+    # Pre-allocate for in-place transformation for saving
+    rho_out = copy(rho0)
+    tmp = copy(rho0)
+    tmp2 = copy(rho0)
+    transf_op = DenseOperator(rho0.basis_l, transf_mat)
+    inv_transf_op = DenseOperator(rho0.basis_l, inv_transf_mat)
+
+    # TODO: Make fout type-stable
+    # Perform back transformation from the eigenbasis before calling fout_
     function _fout_(t::Float64, rho::Ket)
-        rho_ = DenseOperator(rho.basis.bases[1], rho.basis.bases[1], transf_mat * reshape(rho.data,N,N) * inv_transf_mat)
-        return fout_(t::Float64, rho_)
+        tmp.data[:] = rho.data
+        operators.gemm!(1.0, transf_op, tmp, 0.0, tmp2)
+        operators.gemm!(1.0, tmp2, inv_transf_op, 0.0, rho_out)
+        return fout_(t::Float64, rho_out)
     end
 
     return integrate(tspan, dmaster_br_, copy(rho0_eb.data), rho0_eb, drho, _fout_; kwargs...)
