@@ -187,46 +187,64 @@ function master_bloch_redfield(tspan::Vector{Float64},
 
     #Prep basis transf
     evals, transf_mat = eigen(dense(H).data)
-    inv_transf_mat = inv(transf_mat)
-    N = length(evals) #Hilbert space dimension
+    transf_op = DenseOperator(rho0.basis_l, transf_mat)
+    inv_transf_op = DenseOperator(rho0.basis_l, inv(transf_mat))
 
     # rho as Ket and L as DataOperator
     basis_comp = rho0.basis_l^2
-    rho0_eb = Ket(basis_comp, (inv_transf_mat * rho0.data * transf_mat)[:]) #Transform to H eb and convert to vector
-    drho = copy(rho0_eb)
+    rho0_eb = Ket(basis_comp, (inv_transf_op * rho0 * transf_op).data[:]) #Transform to H eb and convert to Ket
     L_ = isa(L, DenseSuperOperator) ? DenseOperator(basis_comp, L.data) : SparseOperator(basis_comp, L.data)
+
+    # Derivative function
     dmaster_br_(t::Float64, rho::T2, drho::T2) where T2<:Ket = dmaster_br(drho, rho, L_)
 
-    # Define fout
-    if isa(fout, Nothing)
-        fout_(t::Float64, rho::T)::T = copy(rho)
-    else
-        fout_ = fout
-    end
-
-    # Pre-allocate for in-place transformation for saving
-    rho_out = copy(rho0)
-    tmp = copy(rho0)
-    tmp2 = copy(rho0)
-    transf_op = DenseOperator(rho0.basis_l, transf_mat)
-    inv_transf_op = DenseOperator(rho0.basis_l, inv_transf_mat)
-
-    # TODO: Make fout type-stable
-    # Perform back transformation from the eigenbasis before calling fout_
-    function _fout_(t::Float64, rho::Ket)
-        tmp.data[:] = rho.data
-        operators.gemm!(1.0, transf_op, tmp, 0.0, tmp2)
-        operators.gemm!(1.0, tmp2, inv_transf_op, 0.0, rho_out)
-        return fout_(t::Float64, rho_out)
-    end
-
-    return integrate(tspan, dmaster_br_, copy(rho0_eb.data), rho0_eb, drho, _fout_; kwargs...)
+    return integrate_br(tspan, dmaster_br_, rho0_eb, transf_op, inv_transf_op, fout; kwargs...)
 end
-master_bloch_redfield(tspan::Vector{Float64}, psi::Ket, args...) = master_bloch_redfield(tspan::Vector{Float64}, dm(psi), args...)
+master_bloch_redfield(tspan::Vector{Float64}, psi::Ket, args...; kwargs...) = master_bloch_redfield(tspan::Vector{Float64}, dm(psi), args...; kwargs...)
 
+# Derivative ∂ₜρ = Lρ
 function dmaster_br(drho::T, rho::T, L::DataOperator{B,B}) where {B<:Basis,T<:Ket{B}}
     operators.gemv!(1.0, L, rho, 0.0, drho)
 end
 
+# Integrate if there is no fout specified
+function integrate_br(tspan::Vector{Float64}, dmaster_br::Function, rho::T,
+                transf_op::T2, inv_transf_op::T2, ::Nothing;
+                kwargs...) where {T<:Ket,T2<:DenseOperator}
+    # Pre-allocate for in-place back-transformation from eigenbasis
+    rho_out = copy(transf_op)
+    tmp = copy(transf_op)
+    tmp2 = copy(transf_op)
+
+    # Define fout
+    function fout(t::Float64, rho::T)
+        tmp.data[:] = rho.data
+        operators.gemm!(1.0, transf_op, tmp, 0.0, tmp2)
+        operators.gemm!(1.0, tmp2, inv_transf_op, 0.0, rho_out)
+        return copy(rho_out)
+    end
+
+    return integrate(tspan, dmaster_br, copy(rho.data), rho, copy(rho), fout; kwargs...)
+end
+
+# Integrate with given fout
+function integrate_br(tspan::Vector{Float64}, dmaster_br::Function, rho::T,
+                transf_op::T2, inv_transf_op::T2, fout::Function;
+                kwargs...) where {T<:Ket,T2<:DenseOperator}
+    # Pre-allocate for in-place back-transformation from eigenbasis
+    rho_out = copy(transf_op)
+    tmp = copy(transf_op)
+    tmp2 = copy(transf_op)
+
+    # Perform back-transfomration before calling fout
+    function fout_(t::Float64, rho::T)
+        tmp.data[:] = rho.data
+        operators.gemm!(1.0, transf_op, tmp, 0.0, tmp2)
+        operators.gemm!(1.0, tmp2, inv_transf_op, 0.0, rho_out)
+        return fout(t, rho_out)
+    end
+
+    return integrate(tspan, dmaster_br, copy(rho.data), rho, copy(rho), fout_; kwargs...)
+end
 
 end #Module
