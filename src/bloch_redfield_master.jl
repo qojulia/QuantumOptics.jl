@@ -13,11 +13,12 @@ using LinearAlgebra, SparseArrays
 """
     bloch_redfield_tensor(H, a_ops; J=[], use_secular=true, secular_cutoff=0.1)
 
-    Create the super-operator for the Bloch-Redfield master equation such that ``\\dot ρ = R ρ`` based on the QuTiP implementation.
+Create the super-operator for the Bloch-Redfield master equation such that ``\\dot ρ = R ρ`` based on the QuTiP implementation.
 
-    See QuTiP's documentation (http://qutip.org/docs/latest/guide/dynamics/dynamics-bloch-redfield.html) for more information and a brief derivation.
+See QuTiP's documentation (http://qutip.org/docs/latest/guide/dynamics/dynamics-bloch-redfield.html) for more information and a brief derivation.
 
-    # Arguments
+
+# Arguments
 * `H`: Hamiltonian.
 * `a_ops`: Nested list of [interaction operator, callback function] pairs for the Bloch-Redfield type processes where the callback function describes the environment spectrum for the corresponding interaction operator.
            The spectral functions must take the angular frequency as their only argument.
