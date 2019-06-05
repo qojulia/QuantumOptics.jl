@@ -11,6 +11,7 @@ import SparseArrays: sparse
 using ..bases, ..operators, ..operators_dense, ..operators_sparse
 using SparseArrays
 
+
 """
 Base class for all super operator classes.
 

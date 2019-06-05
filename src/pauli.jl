@@ -55,6 +55,8 @@ mutable struct DensePauliTransferMatrix{B1<:Tuple{PauliBasis, PauliBasis},
     end
 end
 
+PauliTransferMatrix(ptm::DensePauliTransferMatrix{B, B, Array{Float64, 2}}) where B <: Tuple{PauliBasis, PauliBasis} = ptm
+
 """
 Base class for χ (process) matrix classes.
 """
@@ -81,6 +83,8 @@ mutable struct DenseChiMatrix{B1<:Tuple{PauliBasis, PauliBasis},
         new{BL, BR, T}(basis_l, basis_r, data)
     end
 end
+
+DenseChiMatrix(chi_matrix::DenseChiMatrix{B, B, Array{Complex{Float64}, 2}}) where B <: Tuple{PauliBasis, PauliBasis} = chi_matrix
 
 """
     pauli_operators(num_qubits::Int64)
@@ -120,13 +124,12 @@ function PauliTransferMatrix(sop::DenseSuperOperator{B, B, Array{Complex{Float64
     pbv = pauli_basis_vectors(num_qubits)
     sop_dim = 2 ^ (2 * num_qubits)
     data = Array{Float64}(undef, (sop_dim, sop_dim))
-    data .= pbv' * sop.data * pbv / √sop_dim
+    data .= real.(pbv' * sop.data * pbv / √sop_dim)
     return DensePauliTransferMatrix(sop.basis_l, sop.basis_r, data)
 end
 
-function SuperOperator(unitary::DenseOperator{B, B, Array{Complex{Float64},2}}) where B <: PauliBasis
-    return spre(unitary) * spost(unitary')
-end
+SuperOperator(unitary::DenseOperator{B, B, Array{Complex{Float64},2}}) where B <: PauliBasis = spre(unitary) * spost(unitary')
+SuperOperator(sop::DenseSuperOperator{B, B, Array{Complex{Float64}, 2}}) where B <: Tuple{PauliBasis, PauliBasis} = sop
 
 """
     SuperOperator(ptm::DensePauliTransferMatrix)
@@ -173,7 +176,7 @@ function ChiMatrix(sop::DenseSuperOperator{B, B, Array{Complex{Float64}, 2}}) wh
     po = pauli_operators(num_qubits)
     data = Array{Complex{Float64}, 2}(undef, (sop_dim, sop_dim))
     for (idx, jdx) in Iterators.product(1:sop_dim, 1:sop_dim)
-        data[idx, jdx] = tr((spre(po[idx]) * spost(po[jdx])).data' .* sop.data) / √sop_dim
+        data[idx, jdx] = tr((spre(po[idx]) * spost(po[jdx])).data' * sop.data) / √sop_dim
     end
     return DenseChiMatrix(sop.basis_l, sop.basis_r, data)
 end
@@ -191,7 +194,7 @@ function PauliTransferMatrix(chi_matrix::DenseChiMatrix{B, B, Array{Complex{Floa
     for (idx, jdx) in Iterators.product(1:sop_dim, 1:sop_dim)
         data[idx, jdx] = tr(mapreduce(x -> po[idx] * po[x[1]] * po[jdx] * po[x[2]] * chi_matrix.data[x[1], x[2]],
                                       +,
-                                      Iterators.product(1:16, 1:16)).data) / sop_dim
+                                      Iterators.product(1:16, 1:16)).data) / sop_dim |> real
     end
     return DensePauliTransferMatrix(chi_matrix.basis_l, chi_matrix.basis_r, data)
 end
@@ -213,5 +216,14 @@ Convert a Pauli transfer matrix to its representation as a χ matrix.
 function ChiMatrix(ptm::DensePauliTransferMatrix{B, B, Array{Float64, 2}}) where B <: Tuple{PauliBasis, PauliBasis}
     return ChiMatrix(SuperOperator(ptm))
 end
+
+"""
+Equality for all varieties of superoperators.
+"""
+==(sop1::Union{DensePauliTransferMatrix, DenseSuperOperator, DenseChiMatrix},
+   sop2::Union{DensePauliTransferMatrix, DenseSuperOperator, DenseChiMatrix}) = ((typeof(sop1) == typeof(sop2)) &
+                                                                                 (sop1.basis_l == sop2.basis_l) &
+                                                                                 (sop1.basis_r == sop2.basis_r) &
+                                                                                  isapprox(sop1.data, sop2.data))
 
 end # end module

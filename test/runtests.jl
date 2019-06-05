@@ -46,6 +46,7 @@ names = [
     "test_stochastic_schroedinger.jl",
     "test_stochastic_master.jl",
     "test_stochastic_semiclassical.jl",
+    "test_pauli.jl",
 
     "test_printing.jl"
 ]
