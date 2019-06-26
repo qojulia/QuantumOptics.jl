@@ -15,13 +15,13 @@ using LinearAlgebra: tr
 """
     PauliBasis(num_qubits::Int)
 
-Basis for an N-qubit space where `num_qubits` specifices the number of qubits.
+Basis for an N-qubit space where `num_qubits` specifies the number of qubits.
 The dimension of the basis is 2²ᴺ.
 """
 mutable struct PauliBasis{B<:Tuple{Vararg{Basis}}} <: Basis
     shape::Vector{Int}
     bases::B
-    function PauliBasis(num_qubits::Int64)
+    function PauliBasis(num_qubits::Int)
         return new{Tuple{(SpinBasis{1//2} for _ in 1:num_qubits)...}}([2 for _ in 1:num_qubits], Tuple(SpinBasis(1//2) for _ in 1:num_qubits))
     end
 end
@@ -34,7 +34,7 @@ abstract type PauliTransferMatrix{B1<:Tuple{PauliBasis, PauliBasis}, B2<:Tuple{P
 
 
 """
-    DensePauliTransferMatrix(b, b, data)
+    DensePauliTransferMatrix(B1, B2, data)
 
 DensePauliTransferMatrix stored as a dense matrix.
 """
@@ -87,12 +87,12 @@ end
 DenseChiMatrix(chi_matrix::DenseChiMatrix{B, B, Array{Complex{Float64}, 2}}) where B <: Tuple{PauliBasis, PauliBasis} = chi_matrix
 
 """
-    pauli_operators(num_qubits::Int64)
+    pauli_operators(num_qubits::Int)
 
 Generate a matrix of basis vectors in the Pauli representation given a number
 of qubits.
 """
-function pauli_operators(num_qubits::Int64)
+function pauli_operators(num_qubits::Int)
     pauli_funcs = (identityoperator, sigmax, sigmay, sigmaz)
     po = []
     for paulis in Iterators.product((pauli_funcs for _ in 1:num_qubits)...)
@@ -103,12 +103,12 @@ function pauli_operators(num_qubits::Int64)
 end
 
 """
-    pauli_basis_vectors(num_qubits::Int64)
+    pauli_basis_vectors(num_qubits::Int)
 
 Generate a matrix of basis vectors in the Pauli representation given a number
 of qubits.
 """
-function pauli_basis_vectors(num_qubits::Int64)
+function pauli_basis_vectors(num_qubits::Int)
     po = pauli_operators(num_qubits)
     sop_dim = length(po)
     return mapreduce(x -> sparse(reshape(x.data, sop_dim)), (x, y) -> [x y], po)
@@ -209,7 +209,7 @@ function SuperOperator(chi_matrix::DenseChiMatrix{B, B, Array{Complex{Float64}, 
 end
 
 """
-    ChiMatrix(ptm::PauliTransferMatrix)
+    ChiMatrix(ptm::DensePauliTransferMatrix)
 
 Convert a Pauli transfer matrix to its representation as a χ matrix.
 """
