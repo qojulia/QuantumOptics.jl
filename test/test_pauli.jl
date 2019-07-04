@@ -9,6 +9,7 @@ using QuantumOptics
 
 # Test conversion of unitary matrices to superoperators.
 q2 = PauliBasis(2)
+q3 = PauliBasis(3)
 CZ = DenseOperator(q2, q2, diagm(0 => [1,1,1,-1]))
 CZ_sop = SuperOperator(CZ)
 
@@ -19,17 +20,41 @@ CZ_sop = SuperOperator(CZ)
 # Test conversion of superoperator to Pauli transfer matrix.
 CZ_ptm = PauliTransferMatrix(CZ_sop)
 
-CZ_ptm_test = zeros(Float64, (16, 16))
-CZ_ptm_test[[1,30,47,52,72,91,117,140,166,185,205,210,227,256]] = ones(14)
-CZ_ptm_test[[106,151]] = -1 * ones(2)
+# Test DensePauliTransferMatrix constructor.
+@test_throws DimensionMismatch DensePauliTransferMatrix((q2, q2), (q3, q3), CZ_ptm.data)
+@test DensePauliTransferMatrix((q2, q2), (q2, q2), CZ_ptm.data) == CZ_ptm
 
-@test CZ_ptm.data == CZ_ptm_test
+@test all(isapprox.(CZ_ptm.data[[1,30,47,52,72,91,117,140,166,185,205,210,227,256]], 1))
+@test all(isapprox.(CZ_ptm.data[[106,151]], -1))
+
 @test CZ_ptm == PauliTransferMatrix(ChiMatrix(CZ))
 
-# Test conversion among all three bases.
-cphase = Complex{Float64}[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 exp(1im*.6)]
+# Test construction of non-symmetric unitary.
+CNOT = DenseOperator(q2, q2, diagm(0 => [1,1,0,0], 1 => [0,0,1], -1 => [0,0,1]))
+CNOT_sop = SuperOperator(CNOT)
+CNOT_chi = ChiMatrix(CNOT)
+CNOT_ptm = PauliTransferMatrix(CNOT)
 
-q2 = PauliBasis(2)
+@test CNOT_sop.basis_l == CNOT_sop.basis_r == (q2, q2)
+@test CNOT_chi.basis_l == CNOT_chi.basis_r == (q2, q2)
+@test CNOT_ptm.basis_l == CNOT_ptm.basis_r == (q2, q2)
+
+@test all(isapprox.(imag.(CNOT_sop.data), 0))
+@test all(isapprox.(imag.(CNOT_chi.data), 0))
+@test all(isapprox.(imag.(CNOT_ptm.data), 0))
+
+@test all(isapprox.(CNOT_sop.data[[1,18,36,51,69,86,104,119,141,158,176,191,201,218,236,251]], 1))
+@test all(isapprox.(CNOT_chi.data[[1,2,13,17,18,29,193,194,205,222]], 1))
+@test all(isapprox.(CNOT_chi.data[[14,30,206,209,210,221]], -1))
+@test all(isapprox.(CNOT_ptm.data[[1,18,47,64,70,85,108,138,153,183,205,222,227,244,]], 1))
+@test all(isapprox.(CNOT_ptm.data[[123,168]], -1))
+
+# Test DenseChiMatrix constructor.
+@test_throws DimensionMismatch DenseChiMatrix((q2, q2), (q3, q3), CNOT_chi.data)
+@test DenseChiMatrix((q2, q2), (q2, q2), CNOT_chi.data) == CNOT_chi
+
+# Test equality and conversion among all three bases.
+cphase = Complex{Float64}[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 exp(1im*.6)]
 
 CPHASE = DenseOperator(q2, cphase)
 

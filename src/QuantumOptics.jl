@@ -35,7 +35,8 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         steadystate,
         timecorrelations,
         semiclassical,
-        stochastic, PauliBasis, PauliTransferMatrix, ChiMatrix
+        stochastic, PauliBasis, PauliTransferMatrix, DensePauliTransferMatrix,
+        ChiMatrix, DenseChiMatrix
 
 
 include("sortedindices.jl")
