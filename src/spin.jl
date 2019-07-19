@@ -35,18 +35,6 @@ SpinBasis(spinnumber::Int) = SpinBasis(convert(Rational{Int}, spinnumber))
 ==(b1::SpinBasis, b2::SpinBasis) = b1.spinnumber==b2.spinnumber
 
 """
-    identityoperator(b::SpinBasis)
-
-Pauli ``I`` operator for the given Spin basis.
-"""
-function identityoperator(b::SpinBasis)
-    N = length(b)
-    diag = ComplexF64[complex(1) for m=b.spinnumber:-1:-b.spinnumber]
-    data = spdiagm(0 => diag)
-    SparseOperator(b, data)
-end
-
-"""
     sigmax(b::SpinBasis)
 
 Pauli ``σ_x`` operator for the given Spin basis.

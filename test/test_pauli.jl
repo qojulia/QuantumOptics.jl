@@ -69,4 +69,8 @@ CPHASE_ptm = PauliTransferMatrix(CPHASE)
 @test PauliTransferMatrix(CPHASE_sop) == CPHASE_ptm
 @test PauliTransferMatrix(CPHASE_chi) == CPHASE_ptm
 
+# Test composition.
+@test ChiMatrix(CPHASE) * ChiMatrix(CNOT) == ChiMatrix(CPHASE * CNOT)
+@test PauliTransferMatrix(CPHASE) * PauliTransferMatrix(CNOT) == PauliTransferMatrix(CPHASE * CNOT)
+
 end # testset

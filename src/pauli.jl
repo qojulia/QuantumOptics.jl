@@ -4,6 +4,7 @@ export PauliBasis, PauliTransferMatrix, DensePauliTransferMatrix,
         ChiMatrix, DenseChiMatrix
 
 import Base: ==
+import Base: *
 
 using ..bases, ..spin, ..superoperators
 using ..operators: identityoperator, AbstractOperator
@@ -23,10 +24,9 @@ mutable struct PauliBasis{B<:Tuple{Vararg{Basis}}} <: Basis
     shape::Vector{Int}
     bases::B
     function PauliBasis(num_qubits::Int)
-        type = Tuple{(SpinBasis{1//2} for _ in 1:num_qubits)...}
         shape = [2 for _ in 1:num_qubits]
         bases = Tuple(SpinBasis(1//2) for _ in 1:num_qubits)
-        return new{type}(shape, bases)
+        return new{typeof(bases)}(shape, bases)
     end
 end
 ==(pb1::PauliBasis, pb2::PauliBasis) = length(pb1.bases) == length(pb2.bases)
@@ -61,6 +61,11 @@ end
 
 PauliTransferMatrix(ptm::DensePauliTransferMatrix{B, B, Matrix{Float64}}) where B <: Tuple{PauliBasis, PauliBasis} = ptm
 
+function *(ptm0::DensePauliTransferMatrix{B, B, Matrix{Float64}},
+           ptm1::DensePauliTransferMatrix{B, B, Matrix{Float64}}) where B <: Tuple{PauliBasis, PauliBasis}
+    return DensePauliTransferMatrix(ptm0.basis_l, ptm1.basis_r, ptm0.data*ptm1.data)
+end
+
 """
     Base class for χ (process) matrix classes.
 """
@@ -89,6 +94,77 @@ mutable struct DenseChiMatrix{B1<:Tuple{PauliBasis, PauliBasis},
 end
 
 ChiMatrix(chi_matrix::DenseChiMatrix{B, B, Matrix{ComplexF64}}) where B <: Tuple{PauliBasis, PauliBasis} = chi_matrix
+
+"""
+A dictionary that represents the Pauli algebra - for a pair of Pauli operators
+σᵢσⱼ information about their product is given under the key "ij". The first
+element of the dictionary value is the Pauli operator, and the second is the
+scalar multiplier. For example, σ₀σ₁ = σ₁, and `"01" => ("1", 1)`.
+"""
+const pauli_multiplication_dict = Dict(
+  "00" => ("0", 1.0+0.0im),
+  "23" => ("1", 0.0+1.0im),
+  "30" => ("3", 1.0+0.0im),
+  "22" => ("0", 1.0+0.0im),
+  "21" => ("3", -0.0-1.0im),
+  "10" => ("1", 1.0+0.0im),
+  "31" => ("2", 0.0+1.0im),
+  "20" => ("2", 1.0+0.0im),
+  "01" => ("1", 1.0+0.0im),
+  "33" => ("0", 1.0+0.0im),
+  "13" => ("2", -0.0-1.0im),
+  "32" => ("1", -0.0-1.0im),
+  "11" => ("0", 1.0+0.0im),
+  "03" => ("3", 1.0+0.0im),
+  "12" => ("3", 0.0+1.0im),
+  "02" => ("2", 1.0+0.0im),
+)
+
+"""
+    multiply_pauli_matirices(i4::String, j4::String)
+
+A function to algebraically determine result of multiplying two
+(N-qubit) Pauli matrices. Each Pauli matrix is represented by a string
+in base 4. For example, σ₃⊗σ₀⊗σ₂ would be "302". The product of any pair of
+Pauli matrices will itself be a Pauli matrix multiplied by any of the 1/4 roots
+of 1.
+"""
+pauli_multiplication_cache = Dict()
+function multiply_pauli_matirices(i4::String, j4::String)
+    if !((i4, j4) in keys(pauli_multiplication_cache))
+        pauli_multiplication_cache[(i4, j4)] = mapreduce(x -> pauli_multiplication_dict[prod(x)],
+                                                         (x,y) -> (x[1] * y[1], x[2] * y[2]),
+                                                         zip(i4, j4))
+    end
+    return pauli_multiplication_cache[(i4, j4)]
+end
+
+
+function *(chi_matrix0::DenseChiMatrix{B, B, Matrix{ComplexF64}},
+           chi_matrix1::DenseChiMatrix{B, B, Matrix{ComplexF64}}) where B <: Tuple{PauliBasis, PauliBasis}
+
+    num_qubits = length(chi_matrix0.basis_l[1].shape)
+    sop_dim = 2 ^ prod(chi_matrix0.basis_l[1].shape)
+    ret = zeros(ComplexF64, (sop_dim, sop_dim))
+
+    for ijkl in Iterators.product(0:(sop_dim-1),
+                                  0:(sop_dim-1),
+                                  0:(sop_dim-1),
+                                  0:(sop_dim-1))
+        i, j, k, l = ijkl
+        if (chi_matrix0.data[i+1, j+1] != 0.0) & (chi_matrix1.data[k+1, l+1] != 0.0)
+            i4, j4, k4, l4 = map(x -> string(x, base=4, pad=2), ijkl)
+
+            pauli_product_ik = multiply_pauli_matirices(i4, k4)
+            pauli_product_lj = multiply_pauli_matirices(l4, j4)
+
+            ret[parse(Int, pauli_product_ik[1], base=4)+1,
+                parse(Int, pauli_product_lj[1], base=4)+1] += (pauli_product_ik[2] * pauli_product_lj[2] * chi_matrix0.data[i+1, j+1] * chi_matrix1.data[k+1, l+1])
+        end
+    end
+    return DenseChiMatrix(chi_matrix0.basis_l, chi_matrix0.basis_r, ret / 2^num_qubits)
+end
+
 
 # TODO MAKE A GENERATOR FUNCTION
 """

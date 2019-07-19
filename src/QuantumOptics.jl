@@ -35,7 +35,8 @@ export bases, Basis, GenericBasis, CompositeBasis, basis,
         steadystate,
         timecorrelations,
         semiclassical,
-        stochastic, PauliBasis, PauliTransferMatrix, DensePauliTransferMatrix,
+        stochastic,
+        PauliBasis, PauliTransferMatrix, DensePauliTransferMatrix,
         ChiMatrix, DenseChiMatrix
 
 
