@@ -129,16 +129,18 @@ in base 4. For example, σ₃⊗σ₀⊗σ₂ would be "302". The product of any
 Pauli matrices will itself be a Pauli matrix multiplied by any of the 1/4 roots
 of 1.
 """
-pauli_multiplication_cache = Dict()
-function multiply_pauli_matirices(i4::String, j4::String)
-    if !((i4, j4) in keys(pauli_multiplication_cache))
-        pauli_multiplication_cache[(i4, j4)] = mapreduce(x -> pauli_multiplication_dict[prod(x)],
-                                                         (x,y) -> (x[1] * y[1], x[2] * y[2]),
-                                                         zip(i4, j4))
+cache_multiply_pauli_matrices() = begin
+    local pauli_multiplication_cache = Dict()
+    function _multiply_pauli_matirices(i4::String, j4::String)
+        if (i4, j4) ∉ keys(pauli_multiplication_cache)
+            pauli_multiplication_cache[(i4, j4)] = mapreduce(x -> pauli_multiplication_dict[prod(x)],
+                                                             (x,y) -> (x[1] * y[1], x[2] * y[2]),
+                                                             zip(i4, j4))
+        end
+        return pauli_multiplication_cache[(i4, j4)]
     end
-    return pauli_multiplication_cache[(i4, j4)]
 end
-
+multiply_pauli_matirices = cache_multiply_pauli_matrices()
 
 function *(chi_matrix0::DenseChiMatrix{B, B, Matrix{ComplexF64}},
            chi_matrix1::DenseChiMatrix{B, B, Matrix{ComplexF64}}) where B <: Tuple{PauliBasis, PauliBasis}
