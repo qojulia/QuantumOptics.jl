@@ -4,6 +4,7 @@ export PauliBasis, PauliTransferMatrix, DensePauliTransferMatrix,
         ChiMatrix, DenseChiMatrix
 
 import Base: ==
+import Base: isapprox
 import Base: *
 
 using ..bases, ..spin, ..superoperators
@@ -300,10 +301,12 @@ function ChiMatrix(ptm::DensePauliTransferMatrix{B, B, Matrix{Float64}}) where B
 end
 
 """Equality for all varieties of superoperators."""
-==(sop1::Union{DensePauliTransferMatrix, DenseSuperOperator, DenseChiMatrix},
-   sop2::Union{DensePauliTransferMatrix, DenseSuperOperator, DenseChiMatrix}) = ((typeof(sop1) == typeof(sop2)) &
-                                                                                 (sop1.basis_l == sop2.basis_l) &
-                                                                                 (sop1.basis_r == sop2.basis_r) &
-                                                                                  isapprox(sop1.data, sop2.data))
+==(sop1::T, sop2::T) where T<:Union{DensePauliTransferMatrix, DenseSuperOperator, DenseChiMatrix} = sop1.data == sop2.data
+==(sop1::Union{DensePauliTransferMatrix, DenseSuperOperator, DenseChiMatrix}, sop2::Union{DensePauliTransferMatrix, DenseSuperOperator, DenseChiMatrix}) = false
+
+"""Approximate equality for all varieties of superoperators."""
+function isapprox(sop1::T, sop2::T; kwargs...) where T<:Union{DensePauliTransferMatrix, DenseSuperOperator, DenseChiMatrix}
+    return isapprox(sop1.data, sop2.data; kwargs...)
+end
 
 end # end module

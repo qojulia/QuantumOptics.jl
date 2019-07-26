@@ -54,6 +54,22 @@ CNOT_ptm = PauliTransferMatrix(CNOT)
 @test DenseChiMatrix((q2, q2), (q2, q2), CNOT_chi.data) == CNOT_chi
 
 # Test equality and conversion among all three bases.
+ident = Complex{Float64}[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]
+
+IDENT = DenseOperator(q2, ident)
+
+IDENT_sop = SuperOperator(IDENT)
+IDENT_chi = ChiMatrix(IDENT)
+IDENT_ptm = PauliTransferMatrix(IDENT)
+
+@test ChiMatrix(IDENT_sop) == IDENT_chi
+@test ChiMatrix(IDENT_ptm) == IDENT_chi
+@test SuperOperator(IDENT_chi) == IDENT_sop
+@test SuperOperator(IDENT_ptm) == IDENT_sop
+@test PauliTransferMatrix(IDENT_sop) == IDENT_ptm
+@test PauliTransferMatrix(IDENT_chi) == IDENT_ptm
+
+# Test approximate equality and conversion among all three bases.
 cphase = Complex{Float64}[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 exp(1im*.6)]
 
 CPHASE = DenseOperator(q2, cphase)
@@ -62,15 +78,15 @@ CPHASE_sop = SuperOperator(CPHASE)
 CPHASE_chi = ChiMatrix(CPHASE)
 CPHASE_ptm = PauliTransferMatrix(CPHASE)
 
-@test ChiMatrix(CPHASE_sop) == CPHASE_chi
-@test ChiMatrix(CPHASE_ptm) == CPHASE_chi
-@test SuperOperator(CPHASE_chi) == CPHASE_sop
-@test SuperOperator(CPHASE_ptm) == CPHASE_sop
-@test PauliTransferMatrix(CPHASE_sop) == CPHASE_ptm
-@test PauliTransferMatrix(CPHASE_chi) == CPHASE_ptm
+@test isapprox(ChiMatrix(CPHASE_sop), CPHASE_chi)
+@test isapprox(ChiMatrix(CPHASE_ptm), CPHASE_chi)
+@test isapprox(SuperOperator(CPHASE_chi), CPHASE_sop)
+@test isapprox(SuperOperator(CPHASE_ptm), CPHASE_sop)
+@test isapprox(PauliTransferMatrix(CPHASE_sop), CPHASE_ptm)
+@test isapprox(PauliTransferMatrix(CPHASE_chi), CPHASE_ptm)
 
 # Test composition.
-@test ChiMatrix(CPHASE) * ChiMatrix(CNOT) == ChiMatrix(CPHASE * CNOT)
-@test PauliTransferMatrix(CPHASE) * PauliTransferMatrix(CNOT) == PauliTransferMatrix(CPHASE * CNOT)
+@test isapprox(ChiMatrix(CPHASE) * ChiMatrix(CNOT), ChiMatrix(CPHASE * CNOT))
+@test isapprox(PauliTransferMatrix(CPHASE) * PauliTransferMatrix(CNOT), PauliTransferMatrix(CPHASE * CNOT))
 
 end # testset
