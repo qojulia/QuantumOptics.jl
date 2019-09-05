@@ -373,6 +373,7 @@ function jump(rng, t::Float64, psi::T, J::Vector, psi_new::T, rates::Nothing) wh
     if length(J)==1
         operators.gemv!(complex(1.), J[1], psi, complex(0.), psi_new)
         psi_new.data ./= norm(psi_new)
+        i=1
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
@@ -384,13 +385,14 @@ function jump(rng, t::Float64, psi::T, J::Vector, psi_new::T, rates::Nothing) wh
         i = findfirst(cumprobs.>r)
         operators.gemv!(complex(1.)/sqrt(probs[i]), J[i], psi, complex(0.), psi_new)
     end
-    return nothing
+    return i
 end
 
 function jump(rng, t::Float64, psi::T, J::Vector, psi_new::T, rates::Vector{Float64}) where T<:Ket
     if length(J)==1
         operators.gemv!(complex(sqrt(rates[1])), J[1], psi, complex(0.), psi_new)
         psi_new.data ./= norm(psi_new)
+        i=1
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
@@ -402,7 +404,7 @@ function jump(rng, t::Float64, psi::T, J::Vector, psi_new::T, rates::Vector{Floa
         i = findfirst(cumprobs.>r)
         operators.gemv!(complex(sqrt(rates[i]/probs[i])), J[i], psi, complex(0.), psi_new)
     end
-    return nothing
+    return i
 end
 
 """

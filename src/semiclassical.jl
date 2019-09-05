@@ -111,6 +111,43 @@ function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical; kwargs.
     master_dynamic(tspan, dm(state0), fquantum, fclassical; kwargs...)
 end
 
+###############################
+"""
+    semiclassical.mcwf(tspan, state0, fquantum, fclassical; <keyword arguments>)
+
+Calculate MCWF trajectories coupled to a classical system.
+
+# Arguments
+* `tspan`: Vector specifying the points of time for which output should
+        be displayed.
+* `rho0`: Initial semi-classical state [`semiclassical.State`](@ref).
+* `fquantum`: Function `f(t, rho, u) -> (H, J, Jdagger)` returning the time
+        and/or state dependent Hamiltonian and Jump operators.
+* `fclassical`: Function `f(t, rho, u, du)` calculating the possibly time and
+        state dependent derivative of the classical equations and storing it
+        in the complex vector `du`.
+* `fout=nothing`: If given, this function `fout(t, state)` is called every time
+        an output should be displayed. ATTENTION: The given state is not
+        permanent!
+* `kwargs...`: Further arguments are passed on to the ode solver.
+"""
+function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum, fclassical;
+                seed=rand(UInt),
+                rates::DecayRates=nothing,
+                fout::Union{Function,Nothing}=nothing,
+                tmp::T=copy(state0.quantum),
+                kwargs...) where {B<:Basis,T<:Ket{B}}
+    tspan_ = convert(Vector{Float64}, tspan)
+    function dmcwf_(t::Float64, psi::S, dpsi::S) where {B<:Basis,T<:Ket{B},S<:State{B,T}}
+        dmcwf_h_dynamic(t, psi, fquantum, fclassical, rates, dpsi, tmp)
+    end
+    x0 = Vector{ComplexF64}(undef, length(psi0))
+    recast!(psi0, x0)
+    psi = copy(psi0)
+    dpsi = copy(psi0)
+    integrate_mcwf(dmcwf_, j, tspan_, psi, fout; kwargs...) #change###################################################################
+end
+#################################
 
 function recast!(state::State{B,T,C}, x::C) where {B<:Basis,T<:QuantumState{B},C<:Vector{ComplexF64}}
     N = length(state.quantum)
@@ -139,4 +176,16 @@ function dmaster_h_dynamic(t::Float64, state::State{B,T}, fquantum::Function,
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 
+###################
+function dmcwf_h_dynamic(t::Float64, psi::T, fquantum::Function, fclassical::Function, rates::DecayRates,
+                    dpsi::T, tmp::T) where T<:Ket
+    fquantum_(t, rho) = fquantum(t, psi.quantum, psi.classical)
+    timeevolution.timeevolution_mcfw.dmcwf_h_dynamic(t, psi.quantum, fquantum_, rates, dpsi.quantum, tmp)
+    fclassical(t, state.quantum, psi.classical, dpsi.classical)
+end
+
+function jump_cl(t::Float64, psi_scl::T, fjump_classical::Function, jump_index where T<:semiclassical.State
+    fjump_classical(t, psi_scl.quantum, psi_scl.classical, jump_index)
+end
+###################
 end # module
