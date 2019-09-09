@@ -152,9 +152,9 @@ natural logarithm and ``0\\log(0) ≡ 0``.
 * `tol=1e-15`: Tolerance for rounding errors in the computed eigenvalues.
 """
 function entropy_vn(rho::DenseOperator{B,B}; tol::Float64=1e-15) where B<:Basis
-    evals = eigvals(rho.data)
-    evals[abs.(evals) .< tol] .= 0.0
-    sum([d == 0 ? 0 : -d*log(d) for d=evals])
+    evals::Vector{ComplexF64} = eigvals(rho.data)
+    evals[abs.(evals) .< tol] .= 0.0im
+    sum([d == 0.0im ? 0.0im : -d*log(d) for d=evals])
 end
 entropy_vn(psi::StateVector; kwargs...) = entropy_vn(dm(psi); kwargs...)
 
