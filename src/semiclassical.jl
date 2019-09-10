@@ -120,9 +120,8 @@ function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical; kwargs.
     master_dynamic(tspan, dm(state0), fquantum, fclassical; kwargs...)
 end
 
-###############################
 """
-    semiclassical.mcwf_dynamic(tspan, state0, fquantum, fclassical, fjump_classical; <keyword arguments>)
+    semiclassical.mcwf_dynamic(tspan, psi0, fquantum, fclassical, fjump_classical; <keyword arguments>)
 
 Calculate MCWF trajectories coupled to a classical system.
 
@@ -135,6 +134,9 @@ Calculate MCWF trajectories coupled to a classical system.
 * `fclassical`: Function `f(t, rho, u, du)` calculating the possibly time and
         state dependent derivative of the classical equations and storing it
         in the complex vector `du`.
+* `fjump_classical`: Function `f(t, rho, u, i)` making a classical jump when a
+        quantum jump of the i-th jump operator occurs.
+
 * `fout=nothing`: If given, this function `fout(t, state)` is called every time
         an output should be displayed. ATTENTION: The given state is not
         permanent!
@@ -157,7 +159,6 @@ function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum, fclassical, fjump_class
     dpsi = copy(psi0)
     integrate_mcwf(dmcwf_, j_, tspan_, psi, seed, fout; kwargs...)
 end
-#################################
 
 function recast!(state::State{B,T,C}, x::C) where {B<:Basis,T<:QuantumState{B},C<:Vector{ComplexF64}}
     N = length(state.quantum)
@@ -186,7 +187,6 @@ function dmaster_h_dynamic(t::Float64, state::State{B,T}, fquantum::Function,
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 
-###################
 function dmcwf_h_dynamic(t::Float64, psi::T, fquantum::Function, fclassical::Function, rates::DecayRates,
                     dpsi::T, tmp::K) where {T,K}
     fquantum_(t, rho) = fquantum(t, psi.quantum, psi.classical)
@@ -203,11 +203,11 @@ function jump_dynamic(rng, t::Float64, psi::T, fquantum::Function, fclassical::F
     else
         rates_ = result[4]
     end
-    i = jump(rng, t, psi.quantum, J, psi_new.quantum, rates)
-    fjump_classical(t, psi_new.quantum, psi_new.classical, i)
+    i = jump(rng, t, psi.quantum, J, psi_new.quantum, rates_)
+    fjump_classical(t, psi_new.quantum, psi.classical, i)
+    psi_new.classical .= psi.classical
 end
 
-##########################hier weiter##########################################################
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                         psi0::T, seed, fout::Function;
                         display_beforeevent=false, display_afterevent=false,
@@ -317,5 +317,5 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     end
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed, fout_; kwargs...)
 end
-###################
+
 end # module

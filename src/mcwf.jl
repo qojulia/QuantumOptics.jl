@@ -204,7 +204,7 @@ function dmcwf_h_dynamic(t::Float64, psi::T, f::Function, rates::DecayRates,
         H, J, Jdagger, rates_ = result
     end
     QO_CHECKS[] && check_mcwf(psi, H, J, Jdagger, rates_)
-    dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+    dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates_)
 end
 
 function dmcwf_nh_dynamic(t::Float64, psi::T, f::Function, dpsi::T) where T<:Ket
@@ -224,7 +224,7 @@ function jump_dynamic(rng, t::Float64, psi::T, f::Function, psi_new::T, rates::D
     else
         rates_ = result[4]
     end
-    jump(rng, t, psi, J, psi_new, rates)
+    jump(rng, t, psi, J, psi_new, rates_)
 end
 
 """
