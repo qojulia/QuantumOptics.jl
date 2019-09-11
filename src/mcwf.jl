@@ -251,7 +251,7 @@ Integrate a single Monte Carlo wave function trajectory.
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                         psi0::T, seed, fout::Function;
                         display_beforeevent=false, display_afterevent=false,
-                        display_which=false, display_jump_t=false,
+                        display_which=false, display_t=false,
                         #TODO: Remove kwargs
                         save_everystep=false, callback=nothing,
                         alg=OrdinaryDiffEq.DP5(),
@@ -267,14 +267,14 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     # Display jump operator index and times
     jump_t = Float64[]
     jump_index = Int[]
-    save_t_index = if !display_which && !display_jump_t
+    save_t_index = if !display_which && !display_t
             (t,i) -> nothing
-        elseif display_which && !display_jump_t
+        elseif display_which && !display_t
             function(::Float64,i)
                 push!(jump_index,i)
                 return nothing
             end
-        elseif !display_which && display_jump_t
+        elseif !display_which && display_t
             function(t,::Int)
                 push!(jump_t,t)
                 return nothing
@@ -376,11 +376,11 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     end
 
     # Get return values
-    ret = if !display_jump_t && !display_which
+    ret = if !display_t && !display_which
         (tout, out_vals)
-    elseif display_which && !display_jump_t
+    elseif display_which && !display_t
         (tout, out_vals, jump_index)
-    elseif !display_which && display_jump_t
+    elseif !display_which && display_t
         (tout, out_vals, jump_t)
     else
         (tout, out_vals, jump_t, jump_index)

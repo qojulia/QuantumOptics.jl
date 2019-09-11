@@ -212,6 +212,7 @@ end
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                         psi0::T, seed, fout::Function;
                         display_beforeevent=false, display_afterevent=false,
+                        display_which=false, display_t=false,
                         #TODO: Remove kwargs
                         save_everystep=false, callback=nothing,
                         alg=OrdinaryDiffEq.DP5(),
@@ -225,20 +226,45 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     n = length(psi0.quantum)
     djumpnorm(x::Vector{ComplexF64}, t::Float64, integrator) = norm(x[1:n])^2 - (1-jumpnorm[])
 
+    # Display jump operator index and times
+    jump_t = Float64[]
+    jump_index = Int[]
+    save_t_index = if !display_which && !display_t
+            (t,i) -> nothing
+        elseif display_which && !display_t
+            function(::Float64,i)
+                push!(jump_index,i)
+                return nothing
+            end
+        elseif !display_which && display_t
+            function(t,::Int)
+                push!(jump_t,t)
+                return nothing
+            end
+        else
+            function(t,i)
+                push!(jump_t,t)
+                push!(jump_index,i)
+                return nothing
+            end
+        end
+
     if !display_beforeevent && !display_afterevent
         function dojump(integrator)
             x = integrator.u
             recast!(x, psi_tmp)
             t = integrator.t
-            jumpfun(rng, t, psi_tmp, tmp)
+            i = jumpfun(rng, t, psi_tmp, tmp)
             recast!(tmp, x)
             jumpnorm[] = rand(rng)
+            save_t_index(t,i)
+            return nothing
         end
         cb = OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
                          save_positions = (display_beforeevent,display_afterevent))
 
 
-        timeevolution.integrate(float(tspan), dmcwf, x0,
+        tout, out_vals = timeevolution.integrate(float(tspan), dmcwf, x0,
                     copy(psi0), copy(psi0), fout;
                     callback = cb,
                     kwargs...)
@@ -281,6 +307,8 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                     affect!.save_func(integrator.u, integrator.t, integrator),Val{false})
             end
             jumpnorm[] = rand(rng)
+            save_t_index(t,i)
+            return nothing
         end
 
         cb = OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump_display,
@@ -304,8 +332,21 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                     save_everystep = false, save_start = false,
                     save_end = false,
                     callback=full_cb, kwargs...)
-        return out.t, out.saveval
+        tout, out_vals = out.t, out.saveval
     end
+
+    # Get return values
+    ret = if !display_t && !display_which
+        (tout, out_vals)
+    elseif display_which && !display_t
+        (tout, out_vals, jump_index)
+    elseif !display_which && display_t
+        (tout, out_vals, jump_t)
+    else
+        (tout, out_vals, jump_t, jump_index)
+    end
+
+    return ret
 end
 
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
