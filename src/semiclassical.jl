@@ -11,6 +11,7 @@ import OrdinaryDiffEq
 
 # TODO: Remove imports
 import DiffEqCallbacks, RecursiveArrayTools.copyat_or_push!
+Base.@pure pure_inference(fout,T) = Core.Compiler.return_type(fout, T)
 
 using ..bases, ..states, ..operators, ..operators_dense, ..timeevolution
 
@@ -271,7 +272,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
 
             recast!(x, psi_tmp)
             jumpfun(rng, t, psi_tmp, tmp)
-            x .= tmp.data
+            recast!(tmp, x)
 
             if display_afterevent
                 affect!.saveiter += 1
@@ -293,7 +294,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
             recast!(dstate, dx)
         end
 
-        prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0),(tspan[1],tspan[end]))
+        prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(tspan[1],tspan[end]))
 
         sol = OrdinaryDiffEq.solve(
                     prob,
