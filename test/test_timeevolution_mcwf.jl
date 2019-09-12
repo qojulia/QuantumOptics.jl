@@ -257,16 +257,15 @@ for i=1:length(T)
 end
 
 # Test displaying of jumps
-tout, Ψt, j_index = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7, display_which=true)
-tout, Ψt, t_jump = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7, display_t=true)
-tout, Ψt, t_jump2, j_index2 = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7, display_which=true, display_t=true)
+tout, Ψt, t_jump, j_index = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7, display_jumps=true)
+tout, Ψt, t_jump2, j_index2 = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7, display_jumps=true)
 
 @test length(j_index) == length(t_jump) == length(t_jump2) == length(j_index2)
 @test j_index == j_index2
 @test t_jump == t_jump2
 
 ψ0 = spinup(spinbasis)⊗fockstate(fockbasis,0)
-tout, ψt, t_jump, j_index = timeevolution.mcwf(T, ψ0, 0Hdense, Jdense; display_which=true, display_t=true)
+tout, ψt, t_jump, j_index = timeevolution.mcwf(T, ψ0, 0Hdense, Jdense; display_jumps=true)
 
 @test length(t_jump) == length(j_index) == 1
 @test j_index[1] == 1
