@@ -254,14 +254,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                         display_jumps=false,
                         save_everystep=false, callback=nothing,
                         alg=OrdinaryDiffEq.DP5(),
-                        kwargs...) where {B<:Basis,D<:Vector{ComplexF64},T<:Ket{B,D}}
-
-    tmp = copy(psi0)
-    psi_tmp = copy(psi0)
-
-    rng = MersenneTwister(convert(UInt, seed))
-    jumpnorm = Ref(rand(rng))
-    djumpnorm(x::D, t::Float64, integrator) = norm(x)^2 - (1-jumpnorm[])
+                        kwargs...) where T
 
     # Display before or after events
     function save_func!(affect!,integrator)
@@ -287,7 +280,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
         (t,i)->nothing
     end
 
-    function fout_(x::D, t::Float64, integrator)
+    function fout_(x::Vector{ComplexF64}, t::Float64, integrator)
         recast!(x, state)
         fout(t, state)
     end
@@ -300,34 +293,17 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                                          save_everystep=save_everystep,
                                          save_start = false)
 
-    function dojump(integrator)
-        x = integrator.u
-        t = integrator.t
-
-        affect! = scb.affect!
-        save_before!(affect!,integrator)
-        recast!(x, psi_tmp)
-        i = jumpfun(rng, t, psi_tmp, tmp)
-        x .= tmp.data
-        save_after!(affect!,integrator)
-        save_t_index(t,i)
-
-        jumpnorm[] = rand(rng)
-        return nothing
-    end
-
-    cb = OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
-                     save_positions = (false,false))
+    cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0)
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
 
-    function df_(dx::D, x::D, p, t)
+    function df_(dx::D, x::D, p, t) where D<:Vector{ComplexF64}
         recast!(x, state)
         recast!(dx, dstate)
         dmcwf(t, state, dstate)
         recast!(dstate, dx)
     end
 
-    prob = OrdinaryDiffEq.ODEProblem{true}(df_, psi0.data,(tspan[1],tspan[end]))
+    prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0),(tspan[1],tspan[end]))
 
     sol = OrdinaryDiffEq.solve(
                 prob,
@@ -347,14 +323,43 @@ end
 
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                         psi0::T, seed, fout::Nothing;
-                        kwargs...) where {T<:Ket}
+                        kwargs...) where T
     function fout_(t::Float64, x::T)
-        psi = copy(x)
-        psi /= norm(psi)
-        return psi
+        return normalize(x)
     end
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed, fout_; kwargs...)
 end
+
+function jump_callback(jumpfun::Function, seed, scb, save_before!::Function,
+                        save_after!::Function, save_t_index::Function, psi0::Ket)
+
+    tmp = copy(psi0)
+    psi_tmp = copy(psi0)
+
+    rng = MersenneTwister(convert(UInt, seed))
+    jumpnorm = Ref(rand(rng))
+    djumpnorm(x::Vector{ComplexF64}, t::Float64, integrator) = norm(x)^2 - (1-jumpnorm[])
+
+    function dojump(integrator)
+        x = integrator.u
+        t = integrator.t
+
+        affect! = scb.affect!
+        save_before!(affect!,integrator)
+        recast!(x, psi_tmp)
+        i = jumpfun(rng, t, psi_tmp, tmp)
+        x .= tmp.data
+        save_after!(affect!,integrator)
+        save_t_index(t,i)
+
+        jumpnorm[] = rand(rng)
+        return nothing
+    end
+
+    return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
+                     save_positions = (false,false))
+end
+as_vector(psi::StateVector) = psi.data
 
 """
     jump(rng, t, psi, J, psi_new)
