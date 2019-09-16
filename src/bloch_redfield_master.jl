@@ -31,7 +31,8 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
 
     # use the eigenbasis
     H_evals, transf_mat = eigen(DenseOperator(H).data)
-    H_ekets = [Ket(H.basis_l, transf_mat[:, i]) for i in 1:length(H_evals)]
+    H_ekets = [Ket(H.basis_l, transf_mat[:, i]) for i in 1:length(H_evals)]::Array{Ket{typeof(H.basis_l), Array{Complex{Float64}, 1}}, 1}
+
 
     #Define function for transforming to Hamiltonian eigenbasis
     function to_Heb(op)
@@ -49,11 +50,12 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     if K==0
         Heb = to_Heb(H)
         L = liouvillian(Heb, to_Heb.(J))
+        L = sparse(L)
         return L, H_ekets
     end
 
     #Transform interaction operators to Hamiltonian eigenbasis
-    A = Array{Complex}(undef, N, N, K)
+    A = Array{Complex{Float64}}(undef, N, N, K)
     for k in 1:K
         A[:, :, k] = to_Heb(a_ops[k][1]).data
     end
@@ -87,6 +89,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     # Calculate Liouvillian for Lindblad temrs (unitary part + dissipation from J (if given)):
     Heb = to_Heb(H)
     L = liouvillian(Heb, to_Heb.(J))
+    L = sparse(L)
 
     # Main Bloch-Redfield operators part
     rows = Int[]
@@ -126,7 +129,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
             elem = 0.5 * sum(view(A, c, a, :) .* view(A, b, d, :) .* (view(Jw, c, a, :) + view(Jw, d, b, :) ))
 
             if b == d
-            elem -= 0.5 * sum(transpose(view(A, a, :, :)) .* transpose(view(A, c, :, :)) .* transpose(view(Jw, c, :, :) ))
+                elem -= 0.5 * sum(transpose(view(A, a, :, :)) .* transpose(view(A, c, :, :)) .* transpose(view(Jw, c, :, :) ))
             end
 
             if a == c
