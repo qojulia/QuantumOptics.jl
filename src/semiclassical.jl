@@ -137,7 +137,6 @@ Calculate MCWF trajectories coupled to a classical system.
         in the complex vector `du`.
 * `fjump_classical`: Function `f(t, rho, u, i)` making a classical jump when a
         quantum jump of the i-th jump operator occurs.
-
 * `fout=nothing`: If given, this function `fout(t, state)` is called every time
         an output should be displayed. ATTENTION: The given state is not
         permanent!
