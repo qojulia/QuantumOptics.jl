@@ -21,13 +21,13 @@ using LinearAlgebra: tr
 Basis for an N-qubit space where `num_qubits` specifies the number of qubits.
 The dimension of the basis is 2²ᴺ.
 """
-mutable struct PauliBasis{B<:Tuple{Vararg{Basis}}} <: Basis
-    shape::Vector{Int}
+struct PauliBasis{S,B<:Tuple{Vararg{Basis}}} <: Basis
+    shape::S
     bases::B
-    function PauliBasis(num_qubits::Int)
+    function PauliBasis(num_qubits::T) where {T<:Int}
         shape = [2 for _ in 1:num_qubits]
         bases = Tuple(SpinBasis(1//2) for _ in 1:num_qubits)
-        return new{typeof(bases)}(shape, bases)
+        return new{typeof(shape),typeof(bases)}(shape, bases)
     end
 end
 ==(pb1::PauliBasis, pb2::PauliBasis) = length(pb1.bases) == length(pb2.bases)

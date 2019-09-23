@@ -16,17 +16,17 @@ The basis can be created for arbitrary spinnumbers by using a rational number,
 e.g. `SpinBasis(3//2)`. The Pauli operators are defined for all possible
 spin numbers.
 """
-mutable struct SpinBasis{S} <: Basis
-    shape::Vector{Int}
-    spinnumber::Rational{Int}
-    function SpinBasis{S}(spinnumber::Rational{Int}) where S
+struct SpinBasis{S,T} <: Basis
+    shape::Vector{T}
+    spinnumber::Rational{T}
+    function SpinBasis{S}(spinnumber::Rational{T}) where {S,T<:Int}
         @assert isa(S, Rational{Int})
         n = numerator(spinnumber)
         d = denominator(spinnumber)
         @assert d==2 || d==1
         @assert n > 0
         N = numerator(spinnumber*2 + 1)
-        new{spinnumber}([N], spinnumber)
+        new{spinnumber,T}([N], spinnumber)
     end
 end
 SpinBasis(spinnumber::Rational{Int}) = SpinBasis{spinnumber}(spinnumber)

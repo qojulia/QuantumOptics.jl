@@ -13,27 +13,25 @@ using ..bases, ..states, ..operators, ..operators_dense
 
 A basis describing a subspace embedded a higher dimensional Hilbert space.
 """
-mutable struct SubspaceBasis{B<:Basis,T<:Ket,H} <: Basis
-    shape::Vector{Int}
+struct SubspaceBasis{S,B<:Basis,T<:Ket,H,UT} <: Basis
+    shape::S
     superbasis::B
     basisstates::Vector{T}
-    basisstates_hash::UInt
+    basisstates_hash::UT
 
-    function SubspaceBasis{B,T,H}(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket,H}
-        for state = basisstates
-            if state.basis != superbasis
-                throw(ArgumentError("The basis of the basisstates has to be the superbasis."))
-            end
-        end
-        @assert isa(H, UInt)
-        basisstates_hash = hash(hash.([hash.(x.data) for x=basisstates]))
-        new(Int[length(basisstates)], superbasis, basisstates, basisstates_hash)
+    function SubspaceBasis{S,B,T,H,UT}(shape::S,superbasis::B,basisstates::Vector{T},basisstates_hash::UT) where {S,B,T,H,UT}
+        new{S,B,T,H,UT}(shape,superbasis,basisstates,basisstates_hash)
     end
 end
-
 function SubspaceBasis(superbasis::B, basisstates::Vector{T}) where {B<:Basis,T<:Ket}
-    basisstates_hash = hash(hash.([hash.(x.data) for x=basisstates]))
-    SubspaceBasis{B,T,basisstates_hash}(superbasis, basisstates)
+    for state = basisstates
+        if state.basis != superbasis
+            throw(ArgumentError("The basis of the basisstates has to be the superbasis."))
+        end
+    end
+    H = hash(hash.([hash.(x.data) for x=basisstates]))
+    shape = Int[length(basisstates)]
+    SubspaceBasis{typeof(shape),B,T,H,typeof(H)}(shape, superbasis, basisstates, H)
 end
 SubspaceBasis(basisstates::Vector{T}) where T<:Ket = SubspaceBasis(basisstates[1].basis, basisstates)
 

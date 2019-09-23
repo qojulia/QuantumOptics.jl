@@ -72,7 +72,7 @@ function liouvillianspectrum(L::SparseSuperOperator; nev::Int = min(10, length(L
     d, v, nconv, niter, nmult, resid = try
         eigs(L.data; nev = nev, which = which, kwargs...)
     catch err
-        if isa(err, SingularException) || isa(err, ARPACKException)
+        if isa(err, SingularException) || isa(err, Arpack.ARPACKException)
             error("Arpack's eigs() algorithm failed; try using DenseOperators or change nev.")
         else
             rethrow(err)

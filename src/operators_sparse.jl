@@ -4,7 +4,7 @@ export SparseOperator, diagonaloperator
 
 import Base: ==, *, /, +, -, Broadcast
 import ..operators
-import ..operators_dense: DataOperatorStyle, DenseOperatorStyle
+import ..operators_dense: DataOperatorStyle, DenseOperatorStyle, Broadcasted_restrict_f
 import SparseArrays: sparse
 
 using ..bases, ..states, ..operators, ..operators_dense, ..sparsematrix
@@ -160,9 +160,8 @@ Broadcast.BroadcastStyle(::SparseOperatorStyle{B1,B2}, ::SparseOperatorStyle{B3,
 
 @inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {BL<:Basis,BR<:Basis,Style<:SparseOperatorStyle{BL,BR},Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
     bl,br = states.find_basis(bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     return SparseOperator{BL,BR}(bl, br, copy(bc_))
 end
 

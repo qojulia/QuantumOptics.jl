@@ -210,15 +210,13 @@ Broadcast.BroadcastStyle(::BraStyle{B1}, ::BraStyle{B2}) where {B1<:Basis,B2<:Ba
 # Out-of-place broadcasting
 @inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B<:Basis,Style<:KetStyle{B},Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     b = find_basis(bcf)
     return Ket{B}(b, copy(bc_))
 end
 @inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B<:Basis,Style<:BraStyle{B},Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     b = find_basis(bcf)
     return Bra{B}(b, copy(bc_))
 end
@@ -227,6 +225,16 @@ find_basis(args::Tuple) = find_basis(find_basis(args[1]), Base.tail(args))
 find_basis(x) = x
 find_basis(a::StateVector, rest) = a.basis
 find_basis(::Any, rest) = find_basis(rest)
+
+const BasicMathFunc = Union{typeof(+),typeof(-),typeof(*)}
+function Broadcasted_restrict_f(f::BasicMathFunc, args::Tuple{Vararg{<:T}}, axes) where T<:StateVector
+    args_ = Tuple(a.data for a=args)
+    return Broadcast.Broadcasted(f, args_, axes)
+end
+function Broadcasted_restrict_f(f, args::Tuple{Vararg{<:T}}, axes) where T<:StateVector
+    throw(error("Cannot broadcast function `$f` on type `$T`"))
+end
+
 
 # In-place broadcasting for Kets
 @inline function Base.copyto!(dest::Ket{B}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B<:Basis,Style<:KetStyle{B},Axes,F,Args}
@@ -260,8 +268,7 @@ end
     end
     # Get the underlying data fields of bras and broadcast them as arrays
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     copyto!(dest.data, bc_)
     return dest
 end

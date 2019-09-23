@@ -357,5 +357,6 @@ op1 .= op1_ .+ 3 * op1_
 bf = FockBasis(3)
 op3 = randoperator(bf)
 @test_throws bases.IncompatibleBases op1 .+ op3
+@test_throws ErrorException cos.(op1)
 
 end # testset

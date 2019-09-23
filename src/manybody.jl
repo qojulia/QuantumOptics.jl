@@ -20,18 +20,18 @@ The basis has to know the associated one-body basis `b` and which occupation sta
 should be included. The occupations_hash is used to speed up checking if two
 many-body bases are equal.
 """
-mutable struct ManyBodyBasis{B<:Basis,H} <: Basis
-    shape::Vector{Int}
+struct ManyBodyBasis{S,B<:Basis,H,UT} <: Basis
+    shape::S
     onebodybasis::B
-    occupations::Vector{Vector{Int}}
-    occupations_hash::UInt
+    occupations::Vector{S}
+    occupations_hash::UT
 
-    function ManyBodyBasis{B,H}(onebodybasis::Basis, occupations::Vector{Vector{Int}}) where {B<:Basis,H}
+    function ManyBodyBasis{S,B,H}(onebodybasis::B, occupations::Vector{S}) where {S<:Vector{<:Int},B<:Basis,H}
         @assert isa(H, UInt)
-        new([length(occupations)], onebodybasis, occupations, hash(hash.(occupations)))
+        new{S,B,H,typeof(H)}([length(occupations)], onebodybasis, occupations, hash(hash.(occupations)))
     end
 end
-ManyBodyBasis(onebodybasis::B, occupations::Vector{Vector{Int}}) where B<:Basis = ManyBodyBasis{B,hash(hash.(occupations))}(onebodybasis,occupations)
+ManyBodyBasis(onebodybasis::B, occupations::Vector{S}) where {B<:Basis,S<:Vector{<:Int}} = ManyBodyBasis{S,B,hash(hash.(occupations))}(onebodybasis,occupations)
 
 """
     fermionstates(Nmodes, Nparticles)

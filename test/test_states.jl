@@ -161,5 +161,7 @@ psi_ .+= psi123
 bra_ = copy(bra123)
 bra_ .= 3*bra123
 @test bra_ == 3*dagger(psi123)
+@test_throws ErrorException cos.(psi_)
+@test_throws ErrorException cos.(bra_)
 
 end # testset

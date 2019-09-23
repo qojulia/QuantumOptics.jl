@@ -53,8 +53,11 @@ Should only be used rarely since it defeats the purpose of checking that the
 bases of state vectors and operators are correct for algebraic operations.
 The preferred way is to specify special bases for different systems.
 """
-mutable struct GenericBasis <: Basis
-    shape::Vector{Int}
+struct GenericBasis{S} <: Basis
+    shape::S
+    function GenericBasis(shape::S) where S<:Vector{<:Int}
+        new{S}(shape)
+    end
 end
 
 GenericBasis(N::Int) = GenericBasis(Int[N])
@@ -71,10 +74,14 @@ Stores the subbases in a vector and creates the shape vector directly
 from the shape vectors of these subbases. Instead of creating a CompositeBasis
 directly `tensor(b1, b2...)` or `b1 ⊗ b2 ⊗ …` can be used.
 """
-mutable struct CompositeBasis{B<:Tuple{Vararg{Basis}}} <: Basis
-    shape::Vector{Int}
+struct CompositeBasis{S,B<:Tuple{Vararg{Basis}}} <: Basis
+    shape::S
     bases::B
+    function CompositeBasis{B}(shape::S,bases::B) where {S,B}
+        new{S,B}(shape,bases)
+    end
 end
+CompositeBasis(shape::Vector{<:Int}, bases::B) where B<:Tuple{Vararg{Basis}} = CompositeBasis{B}(shape, bases)
 CompositeBasis(bases::B) where B<:Tuple{Vararg{Basis}} = CompositeBasis{B}(Int[prod(b.shape) for b in bases], bases)
 CompositeBasis(shape::Vector{Int}, bases::Vector{B}) where B<:Basis = (tmp = (bases...,); CompositeBasis{typeof(tmp)}(shape, tmp))
 CompositeBasis(bases::Vector{B}) where B<:Basis = CompositeBasis((bases...,))
@@ -100,7 +107,7 @@ Create a [`CompositeBasis`](@ref) from the given bases.
 Any given CompositeBasis is expanded so that the resulting CompositeBasis never
 contains another CompositeBasis.
 """
-tensor(b1::Basis, b2::Basis) = CompositeBasis(Int[prod(b1.shape); prod(b2.shape)], Basis[b1, b2])
+tensor(b1::Basis, b2::Basis) = CompositeBasis(Int[prod(b1.shape); prod(b2.shape)], (b1, b2))
 tensor(b1::CompositeBasis, b2::CompositeBasis) = CompositeBasis(Int[b1.shape; b2.shape], (b1.bases..., b2.bases...))
 function tensor(b1::CompositeBasis, b2::Basis)
     N = length(b1.bases)

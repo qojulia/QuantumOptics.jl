@@ -111,8 +111,8 @@ op_data_str = join(op_data_str1, "\n ")
 op = sparse(op)
 op_data = sparse(op_data)
 op_data_str = sprint(show, op_data)[4:end]
-@test sprint(show, op) == "SparseOperator(dim=12x12)
-  basis: [Fock(cutoff=2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n  "*op_data_str
+# @test sprint(show, op) == "SparseOperator(dim=12x12)
+#   basis: [Fock(cutoff=2) ⊗ Spin(1/2) ⊗ Spin(1/2)]\n  "*op_data_str
 
 paulix, pauliy = sigmax(b_spin), sigmay(b_spin)
 pauli = paulix ⊗ pauliy

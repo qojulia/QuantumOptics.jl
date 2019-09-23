@@ -218,7 +218,6 @@ function jump_callback(jumpfun::Function, seed, scb, save_before!::Function,
                         save_after!::Function, save_t_index::Function, psi0::State)
     tmp = copy(psi0)
     psi_tmp = copy(psi0)
-
     rng = MersenneTwister(convert(UInt, seed))
     jumpnorm = Ref(rand(rng))
     n = length(psi0.quantum)
@@ -244,5 +243,6 @@ function jump_callback(jumpfun::Function, seed, scb, save_before!::Function,
                      save_positions = (false,false))
 end
 as_vector(psi::State{B,K}) where {B,K<:Ket} = [psi.quantum.data; psi.classical]
+
 
 end # module

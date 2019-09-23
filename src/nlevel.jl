@@ -12,14 +12,14 @@ using ..bases, ..states, ..operators, ..operators_sparse
 
 Basis for a system consisting of N states.
 """
-mutable struct NLevelBasis <: Basis
-    shape::Vector{Int}
-    N::Int
-    function NLevelBasis(N::Int)
+struct NLevelBasis{T} <: Basis
+    shape::Vector{T}
+    N::T
+    function NLevelBasis(N::T) where T<:Int
         if N < 1
             throw(DimensionMismatch())
         end
-        new([N], N)
+        new{T}([N], N)
     end
 end
 

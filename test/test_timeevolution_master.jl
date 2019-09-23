@@ -13,7 +13,7 @@ g = 1.0
 T = Float64[0.,1.]
 
 
-fockbasis = FockBasis(5)
+fockbasis = FockBasis(10)
 spinbasis = SpinBasis(1//2)
 basis = tensor(spinbasis, fockbasis)
 

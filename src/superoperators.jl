@@ -249,20 +249,27 @@ Broadcast.BroadcastStyle(::DenseSuperOperatorStyle{B1,B2}, ::SparseSuperOperator
 # Out-of-place broadcasting
 @inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {BL<:Tuple{Basis,Basis},BR<:Tuple{Basis,Basis},Style<:DenseSuperOperatorStyle{BL,BR},Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
     bl,br = states.find_basis(bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     # TODO: remove convert
     return DenseSuperOperator{BL,BR}(bl, br, convert(Matrix{ComplexF64}, copy(bc_)))
 end
 @inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {BL<:Tuple{Basis,Basis},BR<:Tuple{Basis,Basis},Style<:SparseSuperOperatorStyle{BL,BR},Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
     bl,br = states.find_basis(bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     return SuperOperator{BL,BR}(bl, br, copy(bc_))
 end
 states.find_basis(a::SuperOperator, rest) = (a.basis_l, a.basis_r)
+
+const BasicMathFunc = Union{typeof(+),typeof(-),typeof(*)}
+function Broadcasted_restrict_f(f::BasicMathFunc, args::Tuple{Vararg{<:SuperOperator}}, axes)
+    args_ = Tuple(a.data for a=args)
+    return Broadcast.Broadcasted(f, args_, axes)
+end
+function Broadcasted_restrict_f(f, args::Tuple{Vararg{<:SuperOperator}}, axes)
+    throw(error("Cannot broadcast function `$f` on type `$(eltype(args))`"))
+end
 
 # In-place broadcasting
 @inline function Base.copyto!(dest::SuperOperator{BL,BR}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {BL<:Tuple{Basis,Basis},BR<:Tuple{Basis,Basis},Style<:SuperOperatorStyle{BL,BR},Axes,F,Args}
@@ -276,8 +283,7 @@ states.find_basis(a::SuperOperator, rest) = (a.basis_l, a.basis_r)
     end
     # Get the underlying data fields of operators and broadcast them as arrays
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     copyto!(dest.data, bc_)
     return dest
 end

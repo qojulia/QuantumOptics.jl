@@ -316,13 +316,21 @@ Broadcast.BroadcastStyle(::DenseOperatorStyle{B1,B2}, ::DenseOperatorStyle{B3,B4
 # Out-of-place broadcasting
 @inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {BL<:Basis,BR<:Basis,Style<:DenseOperatorStyle{BL,BR},Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
     bl,br = states.find_basis(bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     # TODO: remove convert
     return DenseOperator{BL,BR}(bl, br, convert(Matrix{ComplexF64}, copy(bc_)))
 end
 states.find_basis(a::DataOperator, rest) = (a.basis_l, a.basis_r)
+
+const BasicMathFunc = Union{typeof(+),typeof(-),typeof(*)}
+function Broadcasted_restrict_f(f::BasicMathFunc, args::Tuple{Vararg{<:DataOperator}}, axes)
+    args_ = Tuple(a.data for a=args)
+    return Broadcast.Broadcasted(f, args_, axes)
+end
+function Broadcasted_restrict_f(f, args::Tuple{Vararg{<:DataOperator}}, axes)
+    throw(error("Cannot broadcast function `$f` on type `$(eltype(args))`"))
+end
 
 # In-place broadcasting
 @inline function Base.copyto!(dest::DataOperator{BL,BR}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {BL<:Basis,BR<:Basis,Style<:DataOperatorStyle{BL,BR},Axes,F,Args}
@@ -336,8 +344,7 @@ states.find_basis(a::DataOperator, rest) = (a.basis_l, a.basis_r)
     end
     # Get the underlying data fields of operators and broadcast them as arrays
     bcf = Broadcast.flatten(bc)
-    args_ = Tuple(a.data for a=bcf.args)
-    bc_ = Broadcast.Broadcasted(bcf.f, args_, axes(bcf))
+    bc_ = Broadcasted_restrict_f(bcf.f, bcf.args, axes(bcf))
     copyto!(dest.data, bc_)
     return dest
 end

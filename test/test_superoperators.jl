@@ -195,5 +195,7 @@ Ldense .+= Ldense
 Ldense .+= L
 @test isa(Ldense, DenseSuperOperator)
 @test isapprox(Ldense.data, 5*Ldense_.data)
+@test_throws ErrorException cos.(Ldense)
+@test_throws ErrorException cos.(L)
 
 end # testset

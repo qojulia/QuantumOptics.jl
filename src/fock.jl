@@ -14,14 +14,14 @@ using SparseArrays
 Basis for a Fock space where `N` specifies a cutoff, i.e. what the highest
 included fock state is. Note that the dimension of this basis then is N+1.
 """
-mutable struct FockBasis <: Basis
-    shape::Vector{Int}
-    N::Int
-    function FockBasis(N::Int)
+struct FockBasis{T} <: Basis
+    shape::Vector{T}
+    N::T
+    function FockBasis(N::T) where T<:Int
         if N < 0
             throw(DimensionMismatch())
         end
-        new([N+1], N)
+        new{T}([N+1], N)
     end
 end
 

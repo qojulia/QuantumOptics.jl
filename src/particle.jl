@@ -27,14 +27,14 @@ of ``x_{min}`` and ``x_{max}`` are due to the periodic boundary conditions
 more or less arbitrary and are chosen to be
 ``-\\pi/dp`` and ``\\pi/dp`` with ``dp=(p_{max}-p_{min})/N``.
 """
-mutable struct PositionBasis{X1,X2} <: Basis
-    shape::Vector{Int}
+struct PositionBasis{T,X1,X2} <: Basis
+    shape::Vector{T}
     xmin::Float64
     xmax::Float64
-    N::Int
-    function PositionBasis{X1,X2}(xmin::Real, xmax::Real, N::Int) where {X1,X2}
+    N::T
+    function PositionBasis{X1,X2}(xmin::Real, xmax::Real, N::T) where {X1,X2,T<:Int}
         @assert isa(X1, Real) && isa(X2, Real)
-        new([N], xmin, xmax, N)
+        new{T,X1,X2}([N], xmin, xmax, N)
     end
 end
 PositionBasis(xmin::Real, xmax::Real, N::Int) = PositionBasis{xmin,xmax}(xmin,xmax,N)
@@ -53,7 +53,7 @@ of ``p_{min}`` and ``p_{max}`` are due to the periodic boundary conditions
 more or less arbitrary and are chosen to be
 ``-\\pi/dx`` and ``\\pi/dx`` with ``dx=(x_{max}-x_{min})/N``.
 """
-mutable struct MomentumBasis{P1,P2} <: Basis
+struct MomentumBasis{P1,P2} <: Basis
     shape::Vector{Int}
     pmin::Float64
     pmax::Float64
