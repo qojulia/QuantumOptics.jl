@@ -145,6 +145,9 @@ Calculate MCWF trajectories coupled to a classical system.
         before a jump occurs. Default is false.
 * `display_afterevent`: Choose whether or not an additional point should be saved
         after a jump occurs. Default is false.
+* `display_jumps=false`: If set to true, an additional list of times and indices
+        is returned. These correspond to the times at which a jump occured and
+        the index of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum, fclassical, fjump_classical;
