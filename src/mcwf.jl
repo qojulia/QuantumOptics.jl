@@ -95,6 +95,9 @@ and therefore must not be changed.
 operators. If they are not given they are calculated automatically.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
+* `display_jumps=false`: If set to true, an additional list of times and indices
+is returned. These correspond to the times at which a jump occured and the index
+of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf(tspan, psi0::T, H::AbstractOperator{B,B}, J::Vector;
@@ -157,6 +160,9 @@ normalized nor permanent! It is still in use by the ode solve
 and therefore must not be changed.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
+* `display_jumps=false`: If set to true, an additional list of times and indices
+is returned. These correspond to the times at which a jump occured and the index
+of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf_dynamic(tspan, psi0::T, f::Function;

@@ -138,10 +138,13 @@ Calculate MCWF trajectories coupled to a classical system.
         in the complex vector `du`.
 * `fjump_classical`: Function `f(t, rho, u, i)` making a classical jump when a
         quantum jump of the i-th jump operator occurs.
-
 * `fout=nothing`: If given, this function `fout(t, state)` is called every time
         an output should be displayed. ATTENTION: The given state is not
         permanent!
+* `display_beforeevent`: Choose whether or not an additional point should be saved
+        before a jump occurs. Default is false.
+* `display_afterevent`: Choose whether or not an additional point should be saved
+        after a jump occurs. Default is false.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum, fclassical, fjump_classical;
