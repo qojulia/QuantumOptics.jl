@@ -265,7 +265,7 @@ tout, Ψt, t_jump2, j_index2 = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed
 @test t_jump == t_jump2
 
 ψ0 = spinup(spinbasis)⊗fockstate(fockbasis,0)
-tout, ψt, t_jump, j_index = timeevolution.mcwf(T, ψ0, 0Hdense, Jdense; display_jumps=true)
+tout, ψt, t_jump, j_index = timeevolution.mcwf(T, ψ0, 0Hdense, Jdense; display_jumps=true, seed=2)
 
 @test length(t_jump) == length(j_index) == 1
 @test j_index[1] == 1
