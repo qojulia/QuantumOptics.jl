@@ -13,7 +13,7 @@ g = 1.0
 T = Float64[0.,1.]
 
 
-fockbasis = FockBasis(5)
+fockbasis = FockBasis(10)
 spinbasis = SpinBasis(1//2)
 basis = tensor(spinbasis, fockbasis)
 
@@ -48,10 +48,18 @@ Jdense = map(dense, J)
 Ψ₀ = spinup(spinbasis) ⊗ fockstate(fockbasis, 5)
 ρ₀ = dm(Ψ₀)
 
+# Test Liouvillian
+L = liouvillian(H, J)
+ρ = -1im*(H*ρ₀ - ρ₀*H)
+for j=J
+    ρ .+= j*ρ₀*dagger(j) - 0.5*dagger(j)*j*ρ₀ - 0.5*ρ₀*dagger(j)*j
+end
+@test tracedistance(L*ρ₀, ρ) < 1e-10
 
 # Test master
 tout, ρt = timeevolution.master(T, ρ₀, Hdense, Jdense; reltol=1e-7)
 ρ = ρt[end]
+@test tracedistance(exp(dense(L)*T[end])*ρ₀, ρt[end]) < 1e-6
 
 tout, ρt = timeevolution.master(T, ρ₀, H, J; reltol=1e-6)
 @test tracedistance(ρt[end], ρ) < 1e-5

@@ -1,16 +1,6 @@
-module stochastic_master
-
-export master, master_dynamic
-
-using ...bases, ...states, ...operators
-using ...operators_dense, ...operators_sparse
-using ...timeevolution
-using LinearAlgebra
-import ...timeevolution: integrate_stoch, recast!, QO_CHECKS
-import ...timeevolution.timeevolution_master: dmaster_h, dmaster_nh, dmaster_h_dynamic, check_master
+import ...timeevolution: dmaster_h, dmaster_nh, dmaster_h_dynamic, check_master
 
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
-const DiffArray = Union{Vector{ComplexF64}, Array{ComplexF64, 2}}
 
 """
     stochastic.master(tspan, rho0, H, J, C; <keyword arguments>)
@@ -139,8 +129,8 @@ master_dynamic(tspan::Vector{Float64}, psi0::Ket, args...; kwargs...) = master_d
 function dmaster_stochastic(dx::Vector{ComplexF64}, rho::T,
             C::Vector, Cdagger::Vector, drho::T, ::Int) where {B<:Basis,T<:DenseOperator{B,B}}
     recast!(dx, drho)
-    operators.gemm!(1, C[1], rho, 0, drho)
-    operators.gemm!(1, rho, Cdagger[1], 1, drho)
+    QuantumOpticsBase.gemm!(1, C[1], rho, 0, drho)
+    QuantumOpticsBase.gemm!(1, rho, Cdagger[1], 1, drho)
     drho.data .-= tr(drho)*rho.data
 end
 function dmaster_stochastic(dx::Array{ComplexF64, 2}, rho::T,
@@ -148,8 +138,8 @@ function dmaster_stochastic(dx::Array{ComplexF64, 2}, rho::T,
     for i=1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, drho)
-        operators.gemm!(1, C[i], rho, 0, drho)
-        operators.gemm!(1, rho, Cdagger[i], 1, drho)
+        QuantumOpticsBase.gemm!(1, C[i], rho, 0, drho)
+        QuantumOpticsBase.gemm!(1, rho, Cdagger[i], 1, drho)
         drho.data .-= tr(drho)*rho.data
         recast!(drho, dx_i)
     end
@@ -201,5 +191,3 @@ function recast!(x::Union{Vector{ComplexF64}, SubArray{ComplexF64, 1}}, rho::Den
 end
 recast!(state::DenseOperator{B,B}, x::SubArray{ComplexF64, 1}) where B<:Basis = (x[:] = state.data)
 recast!(state::DenseOperator{B,B}, x::Vector{ComplexF64}) where B<:Basis = nothing
-
-end # module

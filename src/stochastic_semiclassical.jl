@@ -1,28 +1,9 @@
-module stochastic_semiclassical
-
-export schroedinger_semiclassical, master_semiclassical
-
-using ...bases, ...states, ...operators
-using ...operators_dense, ...operators_sparse
 using ...semiclassical
-import ...semiclassical: recast!, State, dmaster_h_dynamic
-using ...timeevolution
-import ...timeevolution: integrate_stoch, QO_CHECKS
-import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic, check_schroedinger
-import ...stochastic.stochastic_master: check_master_stoch
-using ...stochastic
-using LinearAlgebra
-
-import DiffEqCallbacks
-
-const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
-const DiffArray = Union{Vector{ComplexF64}, Array{ComplexF64, 2}}
+import ...semiclassical: State
 
 """
-    semiclassical.schroedinger_stochastic(tspan, state0, fquantum, fclassical[; fout, ...])
-
+    stochastic.schroedinger_semiclassical(tspan, state0, fquantum, fclassical[; fout, ...])
 Integrate time-dependent Schrödinger equation coupled to a classical system.
-
 # Arguments
 * `tspan`: Vector specifying the points of time for which the output should
         be displayed.
@@ -116,12 +97,9 @@ end
 
 """
     stochastic.master_semiclassical(tspan, rho0, H, Hs, J; <keyword arguments>)
-
 Time-evolution according to a stochastic master equation.
-
 For dense arguments the `master` function calculates the
 non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
-
 # Arguments
 * `tspan`: Vector specifying the points of time for which output should
         be displayed.
@@ -190,7 +168,7 @@ function master_semiclassical(tspan::Vector{Float64}, rho0::S,
     end
 
     dmaster_determ(t::Float64, rho::S, drho::S) =
-            dmaster_h_dynamic(t, rho, fquantum, fclassical, rates, drho, tmp)
+            semiclassical.dmaster_h_dynamic(t, rho, fquantum, fclassical, rates, drho, tmp)
 
     dmaster_stoch(dx::DiffArray, t::Float64, rho::S,
                     drho::S, n::Int) =
@@ -247,8 +225,8 @@ function dmaster_stoch_dynamic(dx::Vector{ComplexF64}, t::Float64,
     C, Cdagger = result
     QO_CHECKS[] && check_master_stoch(state.quantum, C, Cdagger)
     recast!(dx, dstate)
-    operators.gemm!(1, C[1], state.quantum, 0, dstate.quantum)
-    operators.gemm!(1, state.quantum, Cdagger[1], 1, dstate.quantum)
+    QuantumOpticsBase.gemm!(1, C[1], state.quantum, 0, dstate.quantum)
+    QuantumOpticsBase.gemm!(1, state.quantum, Cdagger[1], 1, dstate.quantum)
     dstate.quantum.data .-= tr(dstate.quantum)*state.quantum.data
     recast!(dstate, dx)
 end
@@ -262,8 +240,8 @@ function dmaster_stoch_dynamic(dx::Array{ComplexF64, 2}, t::Float64,
     for i=1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, dstate)
-        operators.gemm!(1, C[i], state.quantum, 0, dstate.quantum)
-        operators.gemm!(1, state.quantum, Cdagger[i], 1, dstate.quantum)
+        QuantumOpticsBase.gemm!(1, C[i], state.quantum, 0, dstate.quantum)
+        QuantumOpticsBase.gemm!(1, state.quantum, Cdagger[i], 1, dstate.quantum)
         dstate.quantum.data .-= tr(dstate.quantum)*state.quantum.data
         recast!(dstate, dx_i)
     end
@@ -306,5 +284,3 @@ function recast!(x::SubArray{ComplexF64, 1}, state::State)
     copyto!(state.quantum.data, 1, x, 1, N)
     copyto!(state.classical, 1, x, N+1, length(state.classical))
 end
-
-end # module

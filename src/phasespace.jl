@@ -1,10 +1,3 @@
-module phasespace
-
-export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2, ylm
-
-using ..bases, ..states, ..operators, ..operators_dense, ..fock, ..spin
-using LinearAlgebra
-
 import WignerSymbols: clebschgordan
 
 """
@@ -77,7 +70,7 @@ end
 
 function _qfunc_operator(rho::AbstractOperator{B,B}, alpha::ComplexF64, tmp1::Ket, tmp2::Ket) where B<:FockBasis
     coherentstate!(tmp1, basis(rho), alpha)
-    operators.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
+    QuantumOpticsBase.gemv!(complex(1.), rho, tmp1, complex(0.), tmp2)
     a = dot(tmp1.data, tmp2.data)
     return a/pi
 end
@@ -470,5 +463,3 @@ function _calc_ylm_norm(l::Int, m_::Int)
     end
     norm
 end
-
-end #module

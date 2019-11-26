@@ -125,4 +125,54 @@ semiclassical.master_dynamic(T, state0, fquantum_master, fclassical; fout=f)
 tout, state_t = semiclassical.master_dynamic(T, state0, fquantum_master, fclassical)
 f(T[end], state_t[end])
 
-end # testset
+# Test mcwf
+# Set up system where only atom can jump once
+ba = SpinBasis(1//2)
+bf = FockBasis(5)
+sm = sigmam(ba)⊗one(bf)
+a = one(ba)⊗destroy(bf)
+H = 0*sm
+J = [0*a,sm]
+Jdagger = dagger.(J)
+function fquantum(t,psi,u)
+    return H, J, Jdagger
+end
+function fclassical(t,psi,u,du)
+    du[1] = u[2] # dx
+    du[2] = 0.0
+end
+njumps = [0]
+function fjump_classical(t,psi,u,i)
+    @test i==2
+    njumps .+= 1
+    u[2] += 1.0
+end
+u0 = rand(2) .+ 0.0im
+ψ0 = semiclassical.State(spinup(ba)⊗fockstate(bf,0),u0)
+
+tout1, ψt1 = semiclassical.mcwf_dynamic(T,ψ0,fquantum,fclassical,fjump_classical,seed=1)
+@test njumps == [1]
+tout2, ψt2 = semiclassical.mcwf_dynamic(T,ψ0,fquantum,fclassical,fjump_classical,seed=1)
+@test ψt2 == ψt1
+tout3, ψt3 = semiclassical.mcwf_dynamic(T,ψ0,fquantum,fclassical,fjump_classical;display_beforeevent=true,seed=1)
+@test length(ψt3) == length(ψt1)+1
+tout4, ψt4 = semiclassical.mcwf_dynamic(T,ψ0,fquantum,fclassical,fjump_classical;display_beforeevent=true,display_afterevent=true,seed=1)
+@test length(ψt4) == length(ψt1)+2
+tout5, ut = semiclassical.mcwf_dynamic(T,ψ0,fquantum,fclassical,fjump_classical;display_beforeevent=true,display_afterevent=true,seed=1,fout=(t,psi)->copy(psi.classical))
+
+@test ψt1[end].classical[2] == u0[2] + 1.0
+
+# Test classical jump behavior
+before_jump = findfirst(t -> !(t∈T), tout3)
+after_jump = findlast(t-> !(t∈T), tout4)
+@test after_jump == before_jump+1
+@test ψt3[before_jump].classical[2] == u0[2]
+@test ψt4[after_jump].classical[2] == u0[2] + 1.0
+@test ut == [ψ.classical for ψ=ψt4]
+
+# Test quantum jumps
+@test ψt1[end].quantum == spindown(ba)⊗fockstate(bf,0)
+@test ψt4[before_jump].quantum == ψ0.quantum
+@test ψt4[after_jump].quantum == spindown(ba)⊗fockstate(bf,0)
+
+end # testsets

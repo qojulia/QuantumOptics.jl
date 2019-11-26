@@ -1,17 +1,4 @@
-module stochastic_schroedinger
-
-export schroedinger, schroedinger_dynamic
-
-using ...bases, ...states, ...operators
-using ...operators_dense, ...operators_sparse
-using ...timeevolution
-using LinearAlgebra
-import ...timeevolution: integrate_stoch, recast!, QO_CHECKS
-import ...timeevolution.timeevolution_schroedinger: dschroedinger, dschroedinger_dynamic, check_schroedinger
-
-import DiffEqCallbacks
-
-const DiffArray = Union{Vector{ComplexF64}, Array{ComplexF64, 2}}
+import ...timeevolution: dschroedinger, dschroedinger_dynamic, check_schroedinger
 
 """
     stochastic.schroedinger(tspan, state0, H, Hs[; fout, ...])
@@ -159,5 +146,3 @@ end
 
 recast!(psi::Ket, x::SubArray{ComplexF64, 1}) = (x .= psi.data)
 recast!(x::SubArray{ComplexF64, 1}, psi::Ket) = (psi.data = x)
-
-end # module

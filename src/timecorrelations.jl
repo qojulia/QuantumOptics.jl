@@ -2,8 +2,8 @@ module timecorrelations
 
 export correlation, spectrum, correlation2spectrum
 
-using ..states, ..operators, ..operators_dense, ..bases
-using ..metrics, ..timeevolution, ..steadystate
+using QuantumOpticsBase
+using ..timeevolution, ..steadystate
 
 using FFTW
 

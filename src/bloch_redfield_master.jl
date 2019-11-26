@@ -1,15 +1,3 @@
-module timeevolution_bloch_redfield_master
-
-export bloch_redfield_tensor, master_bloch_redfield
-
-import ..integrate
-
-using ...bases, ...states, ...operators
-using ...operators_dense, ...operators_sparse, ...superoperators
-
-using LinearAlgebra, SparseArrays
-
-
 """
     bloch_redfield_tensor(H, a_ops; J=[], use_secular=true, secular_cutoff=0.1)
 
@@ -208,7 +196,7 @@ master_bloch_redfield(tspan::Vector{Float64}, psi::Ket, args...; kwargs...) = ma
 
 # Derivative ∂ₜρ = Lρ
 function dmaster_br(drho::T, rho::T, L::DataOperator{B,B}) where {B<:Basis,T<:Ket{B}}
-    operators.gemv!(1.0, L, rho, 0.0, drho)
+    QuantumOpticsBase.gemv!(1.0, L, rho, 0.0, drho)
 end
 
 # Integrate if there is no fout specified
@@ -223,8 +211,8 @@ function integrate_br(tspan::Vector{Float64}, dmaster_br::Function, rho::T,
     # Define fout
     function fout(t::Float64, rho::T)
         tmp.data[:] = rho.data
-        operators.gemm!(1.0, transf_op, tmp, 0.0, tmp2)
-        operators.gemm!(1.0, tmp2, inv_transf_op, 0.0, rho_out)
+        QuantumOpticsBase.gemm!(1.0, transf_op, tmp, 0.0, tmp2)
+        QuantumOpticsBase.gemm!(1.0, tmp2, inv_transf_op, 0.0, rho_out)
         return copy(rho_out)
     end
 
@@ -243,12 +231,10 @@ function integrate_br(tspan::Vector{Float64}, dmaster_br::Function, rho::T,
     # Perform back-transfomration before calling fout
     function fout_(t::Float64, rho::T)
         tmp.data[:] = rho.data
-        operators.gemm!(1.0, transf_op, tmp, 0.0, tmp2)
-        operators.gemm!(1.0, tmp2, inv_transf_op, 0.0, rho_out)
+        QuantumOpticsBase.gemm!(1.0, transf_op, tmp, 0.0, tmp2)
+        QuantumOpticsBase.gemm!(1.0, tmp2, inv_transf_op, 0.0, rho_out)
         return fout(t, rho_out)
     end
 
     return integrate(tspan, dmaster_br, copy(rho.data), rho, copy(rho), fout_; kwargs...)
 end
-
-end #Module

@@ -1,9 +1,3 @@
-module stochastic_definitions
-
-export homodyne_carmichael
-
-using ...operators, ...states
-
 """
     stochastic.homodyne_carmichael(H0, C, theta)
 
@@ -69,5 +63,3 @@ function homodyne_carmichael(H0::AbstractOperator, C::Vector{T}, theta::Vector{R
 end
 homodyne_carmichael(H0::AbstractOperator, C::AbstractOperator, theta::Real; kwargs...) =
     homodyne_carmichael(H0, [C], [theta]; kwargs...)
-
-end # module

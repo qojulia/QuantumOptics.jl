@@ -1,20 +1,7 @@
-module timeevolution_mcwf
-
-export mcwf, mcwf_h, mcwf_nh, mcwf_dynamic, mcwf_nh_dynamic, diagonaljumps
-
-using ...bases, ...states, ...operators
-using ...operators_dense, ...operators_sparse
-using ..timeevolution
-using ...operators_lazysum, ...operators_lazytensor, ...operators_lazyproduct
 using Random, LinearAlgebra
-import OrdinaryDiffEq
 
 # TODO: Remove imports
-import DiffEqCallbacks, RecursiveArrayTools.copyat_or_push!
-import ..recast!, ..QO_CHECKS
-Base.@pure pure_inference(fout,T) = Core.Compiler.return_type(fout, T)
-
-const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
+import RecursiveArrayTools.copyat_or_push!
 
 """
     mcwf_h(tspan, rho0, Hnh, J; <keyword arguments>)
@@ -95,6 +82,9 @@ and therefore must not be changed.
 operators. If they are not given they are calculated automatically.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
+* `display_jumps=false`: If set to true, an additional list of times and indices
+is returned. These correspond to the times at which a jump occured and the index
+of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf(tspan, psi0::T, H::AbstractOperator{B,B}, J::Vector;
@@ -157,6 +147,9 @@ normalized nor permanent! It is still in use by the ode solve
 and therefore must not be changed.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
+* `display_jumps=false`: If set to true, an additional list of times and indices
+is returned. These correspond to the times at which a jump occured and the index
+of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function mcwf_dynamic(tspan, psi0::T, f::Function;
@@ -251,111 +244,115 @@ Integrate a single Monte Carlo wave function trajectory.
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                         psi0::T, seed, fout::Function;
                         display_beforeevent=false, display_afterevent=false,
-                        #TODO: Remove kwargs
+                        display_jumps=false,
                         save_everystep=false, callback=nothing,
                         alg=OrdinaryDiffEq.DP5(),
-                        kwargs...) where {B<:Basis,D<:Vector{ComplexF64},T<:Ket{B,D}}
+                        kwargs...) where T
 
-    tmp = copy(psi0)
-    psi_tmp = copy(psi0)
-    as_vector(psi::T) = psi.data
-    rng = MersenneTwister(convert(UInt, seed))
-    jumpnorm = Ref(rand(rng))
-    djumpnorm(x::D, t::Float64, integrator) = norm(x)^2 - (1-jumpnorm[])
+    # Display before or after events
+    function save_func!(affect!,integrator)
+        affect!.saveiter += 1
+        copyat_or_push!(affect!.saved_values.t, affect!.saveiter, integrator.t)
+        copyat_or_push!(affect!.saved_values.saveval, affect!.saveiter,
+            affect!.save_func(integrator.u, integrator.t, integrator),Val{false})
+        return nothing
+    end
+    save_before! = display_beforeevent ? save_func! : (affect!,integrator)->nothing
+    save_after! = display_afterevent ? save_func! : (affect!,integrator)->nothing
 
-    if !display_beforeevent && !display_afterevent
-        function dojump(integrator)
-            x = integrator.u
-            recast!(x, psi_tmp)
-            t = integrator.t
-            jumpfun(rng, t, psi_tmp, tmp)
-            x .= tmp.data
-            jumpnorm[] = rand(rng)
+    # Display jump operator index and times
+    jump_t = Float64[]
+    jump_index = Int[]
+    save_t_index = if display_jumps
+        function(t,i)
+            push!(jump_t,t)
+            push!(jump_index,i)
+            return nothing
         end
-        cb = OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
-                         save_positions = (display_beforeevent,display_afterevent))
-
-
-        timeevolution.integrate(float(tspan), dmcwf, as_vector(psi0),
-                    copy(psi0), copy(psi0), fout;
-                    callback = cb,
-                    kwargs...)
     else
-        # Temporary workaround until proper tooling for saving
-        # TODO: Replace by proper call to timeevolution.integrate
-        function fout_(x::D, t::Float64, integrator)
-            recast!(x, state)
-            fout(t, state)
-        end
+        (t,i)->nothing
+    end
 
-        state = copy(psi0)
-        dstate = copy(psi0)
-        out_type = pure_inference(fout, Tuple{eltype(tspan),typeof(state)})
-        out = DiffEqCallbacks.SavedValues(Float64,out_type)
-        scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan,
-                                             save_everystep=save_everystep,
-                                             save_start = false)
+    function fout_(x::Vector{ComplexF64}, t::Float64, integrator)
+        recast!(x, state)
+        fout(t, state)
+    end
 
-        function dojump_display(integrator)
-            x = integrator.u
-            t = integrator.t
+    state = copy(psi0)
+    dstate = copy(psi0)
+    out_type = pure_inference(fout, Tuple{eltype(tspan),typeof(state)})
+    out = DiffEqCallbacks.SavedValues(Float64,out_type)
+    scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan,
+                                         save_everystep=save_everystep,
+                                         save_start = false)
 
-            affect! = scb.affect!
-            if display_beforeevent
-                affect!.saveiter += 1
-                copyat_or_push!(affect!.saved_values.t, affect!.saveiter, integrator.t)
-                copyat_or_push!(affect!.saved_values.saveval, affect!.saveiter,
-                    affect!.save_func(integrator.u, integrator.t, integrator),Val{false})
-            end
+    cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0)
+    full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
 
-            recast!(x, psi_tmp)
-            jumpfun(rng, t, psi_tmp, tmp)
-            x .= tmp.data
+    function df_(dx::D, x::D, p, t) where D<:Vector{ComplexF64}
+        recast!(x, state)
+        recast!(dx, dstate)
+        dmcwf(t, state, dstate)
+        recast!(dstate, dx)
+    end
 
-            if display_afterevent
-                affect!.saveiter += 1
-                copyat_or_push!(affect!.saved_values.t, affect!.saveiter, integrator.t)
-                copyat_or_push!(affect!.saved_values.saveval, affect!.saveiter,
-                    affect!.save_func(integrator.u, integrator.t, integrator),Val{false})
-            end
-            jumpnorm[] = rand(rng)
-        end
+    prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0),(tspan[1],tspan[end]))
 
-        cb = OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump_display,
-                         save_positions = (false,false))
-        full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
+    sol = OrdinaryDiffEq.solve(
+                prob,
+                alg;
+                reltol = 1.0e-6,
+                abstol = 1.0e-8,
+                save_everystep = false, save_start = false,
+                save_end = false,
+                callback=full_cb, kwargs...)
 
-        function df_(dx::D, x::D, p, t)
-            recast!(x, state)
-            recast!(dx, dstate)
-            dmcwf(t, state, dstate)
-            recast!(dstate, dx)
-        end
-
-        prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0),(tspan[1],tspan[end]))
-
-        sol = OrdinaryDiffEq.solve(
-                    prob,
-                    alg;
-                    reltol = 1.0e-6,
-                    abstol = 1.0e-8,
-                    save_everystep = false, save_start = false,
-                    save_end = false,
-                    callback=full_cb, kwargs...)
+    if display_jumps
+        return out.t, out.saveval, jump_t, jump_index
+    else
         return out.t, out.saveval
     end
 end
 
 function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                         psi0::T, seed, fout::Nothing;
-                        kwargs...) where {T<:Ket}
+                        kwargs...) where T
     function fout_(t::Float64, x::T)
-        psi = copy(x)
-        psi /= norm(psi)
-        return psi
+        return normalize(x)
     end
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed, fout_; kwargs...)
 end
+
+function jump_callback(jumpfun::Function, seed, scb, save_before!::Function,
+                        save_after!::Function, save_t_index::Function, psi0::Ket)
+
+    tmp = copy(psi0)
+    psi_tmp = copy(psi0)
+
+    rng = MersenneTwister(convert(UInt, seed))
+    jumpnorm = Ref(rand(rng))
+    djumpnorm(x::Vector{ComplexF64}, t::Float64, integrator) = norm(x)^2 - (1-jumpnorm[])
+
+    function dojump(integrator)
+        x = integrator.u
+        t = integrator.t
+
+        affect! = scb.affect!
+        save_before!(affect!,integrator)
+        recast!(x, psi_tmp)
+        i = jumpfun(rng, t, psi_tmp, tmp)
+        x .= tmp.data
+        save_after!(affect!,integrator)
+        save_t_index(t,i)
+
+        jumpnorm[] = rand(rng)
+        return nothing
+    end
+
+    return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
+                     save_positions = (false,false))
+end
+as_vector(psi::StateVector) = psi.data
 
 """
     jump(rng, t, psi, J, psi_new)
@@ -371,38 +368,40 @@ Default jump function.
 """
 function jump(rng, t::Float64, psi::T, J::Vector, psi_new::T, rates::Nothing) where T<:Ket
     if length(J)==1
-        operators.gemv!(complex(1.), J[1], psi, complex(0.), psi_new)
+        QuantumOpticsBase.gemv!(complex(1.), J[1], psi, complex(0.), psi_new)
         psi_new.data ./= norm(psi_new)
+        i=1
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
-            operators.gemv!(complex(1.), J[i], psi, complex(0.), psi_new)
+            QuantumOpticsBase.gemv!(complex(1.), J[i], psi, complex(0.), psi_new)
             probs[i] = dot(psi_new.data, psi_new.data)
         end
         cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
         i = findfirst(cumprobs.>r)
-        operators.gemv!(complex(1.)/sqrt(probs[i]), J[i], psi, complex(0.), psi_new)
+        QuantumOpticsBase.gemv!(complex(1.)/sqrt(probs[i]), J[i], psi, complex(0.), psi_new)
     end
-    return nothing
+    return i
 end
 
 function jump(rng, t::Float64, psi::T, J::Vector, psi_new::T, rates::Vector{Float64}) where T<:Ket
     if length(J)==1
-        operators.gemv!(complex(sqrt(rates[1])), J[1], psi, complex(0.), psi_new)
+        QuantumOpticsBase.gemv!(complex(sqrt(rates[1])), J[1], psi, complex(0.), psi_new)
         psi_new.data ./= norm(psi_new)
+        i=1
     else
         probs = zeros(Float64, length(J))
         for i=1:length(J)
-            operators.gemv!(complex(sqrt(rates[i])), J[i], psi, complex(0.), psi_new)
+            QuantumOpticsBase.gemv!(complex(sqrt(rates[i])), J[i], psi, complex(0.), psi_new)
             probs[i] = dot(psi_new.data, psi_new.data)
         end
         cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
         i = findfirst(cumprobs.>r)
-        operators.gemv!(complex(sqrt(rates[i]/probs[i])), J[i], psi, complex(0.), psi_new)
+        QuantumOpticsBase.gemv!(complex(sqrt(rates[i]/probs[i])), J[i], psi, complex(0.), psi_new)
     end
-    return nothing
+    return i
 end
 
 """
@@ -413,20 +412,20 @@ the jump operators J.
 """
 function dmcwf_h(psi::T, H::AbstractOperator{B,B},
                  J::Vector, Jdagger::Vector, dpsi::T, tmp::T, rates::Nothing) where {B<:Basis,T<:Ket{B}}
-    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    QuantumOpticsBase.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
     for i=1:length(J)
-        operators.gemv!(complex(1.), J[i], psi, complex(0.), tmp)
-        operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
+        QuantumOpticsBase.gemv!(complex(1.), J[i], psi, complex(0.), tmp)
+        QuantumOpticsBase.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
     end
     return dpsi
 end
 
 function dmcwf_h(psi::T, H::AbstractOperator{B,B},
                  J::Vector, Jdagger::Vector, dpsi::T, tmp::T, rates::Vector{Float64}) where {B<:Basis,T<:Ket{B}}
-    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    QuantumOpticsBase.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
     for i=1:length(J)
-        operators.gemv!(complex(rates[i]), J[i], psi, complex(0.), tmp)
-        operators.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
+        QuantumOpticsBase.gemv!(complex(rates[i]), J[i], psi, complex(0.), tmp)
+        QuantumOpticsBase.gemv!(-complex(0.5,0.), Jdagger[i], tmp, complex(1.), dpsi)
     end
     return dpsi
 end
@@ -438,7 +437,7 @@ Evaluate non-hermitian Schroedinger equation.
 The given Hamiltonian is already the non-hermitian version.
 """
 function dmcwf_nh(psi::T, Hnh::AbstractOperator{B,B}, dpsi::T) where {B<:Basis,T<:Ket{B}}
-    operators.gemv!(complex(0,-1.), Hnh, psi, complex(0.), dpsi)
+    QuantumOpticsBase.gemv!(complex(0,-1.), Hnh, psi, complex(0.), dpsi)
     return dpsi
 end
 
@@ -498,5 +497,3 @@ function diagonaljumps(rates::Matrix{Float64}, J::Vector{T}) where {B<:Basis,T<:
     d, v = eigen(rates)
     d, [LazySum([v[j, i]*J[j] for j=1:length(d)]...) for i=1:length(d)]
 end
-
-end #module

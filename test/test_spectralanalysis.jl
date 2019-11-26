@@ -12,9 +12,9 @@ sprandop(b) = sparse(DenseOperator(b, rand(ComplexF64, length(b), length(b))))
 
 # Test diagonalization
 @test_throws ArgumentError eigenstates(SpectralanalysisTestOperator{Basis,Basis}())
-@test_throws bases.IncompatibleBases eigenstates(DenseOperator(GenericBasis(3), GenericBasis(4)))
+@test_throws QuantumOpticsBase.IncompatibleBases eigenstates(DenseOperator(GenericBasis(3), GenericBasis(4)))
 @test_throws ArgumentError eigenenergies(SpectralanalysisTestOperator{Basis,Basis}())
-@test_throws bases.IncompatibleBases eigenenergies(DenseOperator(GenericBasis(3), GenericBasis(4)))
+@test_throws QuantumOpticsBase.IncompatibleBases eigenenergies(DenseOperator(GenericBasis(3), GenericBasis(4)))
 
 
 # Test hermitian diagonalization

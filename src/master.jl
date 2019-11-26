@@ -1,13 +1,3 @@
-module timeevolution_master
-
-export master, master_nh, master_h, master_dynamic, master_nh_dynamic
-
-import ..integrate, ..recast!, ..QO_CHECKS
-
-using ...bases, ...states, ...operators
-using ...operators_dense, ...operators_sparse
-
-
 const DecayRates = Union{Vector{Float64}, Matrix{Float64}, Nothing}
 
 """
@@ -208,16 +198,16 @@ end
 function dmaster_h(rho::T, H::AbstractOperator{B,B},
                     rates::Nothing, J::Vector, Jdagger::Vector,
                     drho::T, tmp::T) where {B<:Basis,T<:DenseOperator{B,B}}
-    operators.gemm!(-1im, H, rho, 0, drho)
-    operators.gemm!(1im, rho, H, 1, drho)
+    QuantumOpticsBase.gemm!(-1im, H, rho, 0, drho)
+    QuantumOpticsBase.gemm!(1im, rho, H, 1, drho)
     for i=1:length(J)
-        operators.gemm!(1, J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+        QuantumOpticsBase.gemm!(1, J[i], rho, 0, tmp)
+        QuantumOpticsBase.gemm!(1, tmp, Jdagger[i], 1, drho)
 
-        operators.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
+        QuantumOpticsBase.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
 
-        operators.gemm!(1., rho, Jdagger[i], 0, tmp)
-        operators.gemm!(-0.5, tmp, J[i], 1, drho)
+        QuantumOpticsBase.gemm!(1., rho, Jdagger[i], 0, tmp)
+        QuantumOpticsBase.gemm!(-0.5, tmp, J[i], 1, drho)
     end
     return drho
 end
@@ -225,16 +215,16 @@ end
 function dmaster_h(rho::T, H::AbstractOperator{B,B},
                     rates::Vector{Float64}, J::Vector, Jdagger::Vector,
                     drho::T, tmp::T) where {B<:Basis,T<:DenseOperator{B,B}}
-    operators.gemm!(-1im, H, rho, 0, drho)
-    operators.gemm!(1im, rho, H, 1, drho)
+    QuantumOpticsBase.gemm!(-1im, H, rho, 0, drho)
+    QuantumOpticsBase.gemm!(1im, rho, H, 1, drho)
     for i=1:length(J)
-        operators.gemm!(rates[i], J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+        QuantumOpticsBase.gemm!(rates[i], J[i], rho, 0, tmp)
+        QuantumOpticsBase.gemm!(1, tmp, Jdagger[i], 1, drho)
 
-        operators.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
+        QuantumOpticsBase.gemm!(-0.5, Jdagger[i], tmp, 1, drho)
 
-        operators.gemm!(rates[i], rho, Jdagger[i], 0, tmp)
-        operators.gemm!(-0.5, tmp, J[i], 1, drho)
+        QuantumOpticsBase.gemm!(rates[i], rho, Jdagger[i], 0, tmp)
+        QuantumOpticsBase.gemm!(-0.5, tmp, J[i], 1, drho)
     end
     return drho
 end
@@ -242,16 +232,16 @@ end
 function dmaster_h(rho::T, H::AbstractOperator{B,B},
                     rates::Matrix{Float64}, J::Vector, Jdagger::Vector,
                     drho::T, tmp::T) where {B<:Basis,T<:DenseOperator{B,B}}
-    operators.gemm!(-1im, H, rho, 0, drho)
-    operators.gemm!(1im, rho, H, 1, drho)
+    QuantumOpticsBase.gemm!(-1im, H, rho, 0, drho)
+    QuantumOpticsBase.gemm!(1im, rho, H, 1, drho)
     for j=1:length(J), i=1:length(J)
-        operators.gemm!(rates[i,j], J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[j], 1, drho)
+        QuantumOpticsBase.gemm!(rates[i,j], J[i], rho, 0, tmp)
+        QuantumOpticsBase.gemm!(1, tmp, Jdagger[j], 1, drho)
 
-        operators.gemm!(-0.5, Jdagger[j], tmp, 1, drho)
+        QuantumOpticsBase.gemm!(-0.5, Jdagger[j], tmp, 1, drho)
 
-        operators.gemm!(rates[i,j], rho, Jdagger[j], 0, tmp)
-        operators.gemm!(-0.5, tmp, J[i], 1, drho)
+        QuantumOpticsBase.gemm!(rates[i,j], rho, Jdagger[j], 0, tmp)
+        QuantumOpticsBase.gemm!(-0.5, tmp, J[i], 1, drho)
     end
     return drho
 end
@@ -259,11 +249,11 @@ end
 function dmaster_nh(rho::T1, Hnh::T2, Hnh_dagger::T2,
                     rates::Nothing, J::Vector, Jdagger::Vector,
                     drho::T1, tmp::T1) where {B<:Basis,T1<:DenseOperator{B,B},T2<:AbstractOperator{B,B}}
-    operators.gemm!(-1im, Hnh, rho, 0, drho)
-    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
+    QuantumOpticsBase.gemm!(-1im, Hnh, rho, 0, drho)
+    QuantumOpticsBase.gemm!(1im, rho, Hnh_dagger, 1, drho)
     for i=1:length(J)
-        operators.gemm!(1, J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+        QuantumOpticsBase.gemm!(1, J[i], rho, 0, tmp)
+        QuantumOpticsBase.gemm!(1, tmp, Jdagger[i], 1, drho)
     end
     return drho
 end
@@ -271,11 +261,11 @@ end
 function dmaster_nh(rho::T1, Hnh::T2, Hnh_dagger::T2,
                     rates::Vector{Float64}, J::Vector, Jdagger::Vector,
                     drho::T1, tmp::T1) where {B<:Basis,T1<:DenseOperator{B,B},T2<:AbstractOperator{B,B}}
-    operators.gemm!(-1im, Hnh, rho, 0, drho)
-    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
+    QuantumOpticsBase.gemm!(-1im, Hnh, rho, 0, drho)
+    QuantumOpticsBase.gemm!(1im, rho, Hnh_dagger, 1, drho)
     for i=1:length(J)
-        operators.gemm!(rates[i], J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[i], 1, drho)
+        QuantumOpticsBase.gemm!(rates[i], J[i], rho, 0, tmp)
+        QuantumOpticsBase.gemm!(1, tmp, Jdagger[i], 1, drho)
     end
     return drho
 end
@@ -283,11 +273,11 @@ end
 function dmaster_nh(rho::T1, Hnh::T2, Hnh_dagger::T2,
                     rates::Matrix{Float64}, J::Vector, Jdagger::Vector,
                     drho::T1, tmp::T1) where {B<:Basis,T1<:DenseOperator{B,B},T2<:AbstractOperator{B,B}}
-    operators.gemm!(-1im, Hnh, rho, 0, drho)
-    operators.gemm!(1im, rho, Hnh_dagger, 1, drho)
+    QuantumOpticsBase.gemm!(-1im, Hnh, rho, 0, drho)
+    QuantumOpticsBase.gemm!(1im, rho, Hnh_dagger, 1, drho)
     for j=1:length(J), i=1:length(J)
-        operators.gemm!(rates[i,j], J[i], rho, 0, tmp)
-        operators.gemm!(1, tmp, Jdagger[j], 1, drho)
+        QuantumOpticsBase.gemm!(rates[i,j], J[i], rho, 0, tmp)
+        QuantumOpticsBase.gemm!(1, tmp, Jdagger[j], 1, drho)
     end
     return drho
 end
@@ -351,5 +341,3 @@ function check_master(rho0::DenseOperator{B,B}, H::AbstractOperator{B,B}, J::Vec
     end
     isreducible
 end
-
-end #module

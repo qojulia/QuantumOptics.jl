@@ -1,12 +1,3 @@
-module timeevolution_schroedinger
-
-export schroedinger, schroedinger_dynamic
-
-import ..integrate, ..recast!, ..QO_CHECKS
-
-using ...bases, ...states, ...operators
-
-
 """
     timeevolution.schroedinger(tspan, psi0, H; fout)
 
@@ -64,12 +55,12 @@ recast!(psi::StateVector{B,D}, x::D) where {B<:Basis, D<:Vector{ComplexF64}} = n
 
 
 function dschroedinger(psi::Ket{B}, H::AbstractOperator{B,B}, dpsi::Ket{B}) where B<:Basis
-    operators.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
+    QuantumOpticsBase.gemv!(complex(0,-1.), H, psi, complex(0.), dpsi)
     return dpsi
 end
 
 function dschroedinger(psi::Bra{B}, H::AbstractOperator{B,B}, dpsi::Bra{B}) where B<:Basis
-    operators.gemv!(complex(0,1.), psi, H, complex(0.), dpsi)
+    QuantumOpticsBase.gemv!(complex(0,1.), psi, H, complex(0.), dpsi)
     return dpsi
 end
 
@@ -88,6 +79,4 @@ end
 function check_schroedinger(psi::Bra, H::AbstractOperator)
     check_multiplicable(psi, H)
     check_samebases(H)
-end
-
 end
