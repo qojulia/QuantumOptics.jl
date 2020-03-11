@@ -23,11 +23,11 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
 
 
     #Define function for transforming to Hamiltonian eigenbasis
-    function to_Heb(op)
+    function to_Heb(op, U)
         #Copy oper
         oper = copy(op)
         #Transform underlying array
-        oper.data = inv(transf_mat) * oper.data * transf_mat
+        oper.data = inv(U) * oper.data * U
         return oper
     end
 
@@ -37,7 +37,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     #If only Lindblad collapse terms
     if K==0
         Heb = to_Heb(H)
-        L = liouvillian(Heb, to_Heb.(J))
+        L = liouvillian(Heb, to_Heb.(J, transf_mat))
         L = sparse(L)
         return L, H_ekets
     end
@@ -45,14 +45,15 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     #Transform interaction operators to Hamiltonian eigenbasis
     A = Array{Complex{Float64}}(undef, N, N, K)
     for k in 1:K
-        A[:, :, k] = to_Heb(a_ops[k][1]).data
+        A[:, :, k] = to_Heb(a_ops[k][1], transf_mat).data
     end
 
     # Trasition frequencies between eigenstates
     W = transpose(H_evals) .- H_evals
 
     #Array for spectral functions evaluated at transition frequencies
-    Jw = Array{Complex}(undef, N, N, K)
+    Jw = Array{Complex{Float64}}(undef, N, N, K)
+    # Jw = zeros(Complex{Float64}, N, N, K)
     for k in 1:K
        # do explicit loops here
        for n in 1:N
@@ -75,14 +76,14 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     end
 
     # Calculate Liouvillian for Lindblad temrs (unitary part + dissipation from J (if given)):
-    Heb = to_Heb(H)
-    L = liouvillian(Heb, to_Heb.(J))
+    Heb = to_Heb(H, transf_mat)
+    #Use annon function
+    f = (x->to_Heb(x, transf_mat))
+    L = liouvillian(Heb, f.(J))
     L = sparse(L)
 
-    # Main Bloch-Redfield operators part
-    rows = Int[]
-    cols = Int[]
-    data = Complex[]
+    # ALTERNATIVE DENSE METHOD - Main Bloch-Redfield operators part
+    data = zeros(ComplexF64, N^2, N^2)
     Is = view(Iabs, :, 1)
     As = view(Iabs, :, 2)
     Bs = view(Iabs, :, 3)
@@ -90,7 +91,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     for (I, a, b) in zip(Is, As, Bs)
 
         if use_secular
-            Jcds = Int.(zeros(size(Iabs)))
+            Jcds = zeros(Int, size(Iabs))
             for (row, (I2, a2, b2)) in enumerate(zip(Is, As, Bs))
                 if abs.(W[a, b] - W[a2, b2]) < dw_min * secular_cutoff
                     Jcds[row, :] = [I2 a2 b2]
@@ -114,36 +115,24 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
 
         for (J, c, d) in zip(Js, Cs, Ds)
 
-            elem = 0.5 * sum(view(A, c, a, :) .* view(A, b, d, :) .* (view(Jw, c, a, :) + view(Jw, d, b, :) ))
+            sum!(   view(data, I, J),   view(A, c, a, :) .* view(A, b, d, :) .* (view(Jw, c, a, :) + view(Jw, d, b, :) )  )
+            # data[I, J] = 0.5 * sum(view(A, c, a, :) .* view(A, b, d, :) .* (view(Jw, c, a, :) + view(Jw, d, b, :) ))
 
             if b == d
-                elem -= 0.5 * sum(transpose(view(A, a, :, :)) .* transpose(view(A, c, :, :)) .* transpose(view(Jw, c, :, :) ))
+                data[I, J] -= sum( view(A, a, :, :) .* view(A, c, :, :) .* view(Jw, c, :, :) )
             end
 
             if a == c
-            elem -= 0.5 * sum(transpose(view(A, d, :, :)) .* transpose(view(A, b, :, :)) .* transpose(view(Jw, d, :, :) ))
+                data[I, J] -= sum( view(A, d, :, :) .* view(A, b, :, :) .* view(Jw, d, :, :) )
             end
 
-            #Add element
-            if abs(elem) != 0.0
-                push!(rows, I)
-                push!(cols, J)
-                push!(data, elem)
-            end
+            # data[I, J] *= 0.5
+
         end
     end
 
-
-    """
-    Need to be careful here since sparse function is happy to create rectangular arrays but we dont want this behaviour so need to make square explicitly.
-    """
-    if !any(rows .== N*N) || !any(cols .== N*N) #Check if row or column list has (N*N)th element, if not then add one
-        push!(rows, N*N)
-        push!(cols, N*N)
-        push!(data, 0.0)
-    end
-
-    R = sparse(rows, cols, data) #Careful with rows/cols ordering...
+    data *= 0.5
+    R = sparse(data) # Removes any zero values and converts to sparse array
 
     #Add Bloch-Redfield part to Linblad Liouvillian calculated earlier
     L.data = L.data + R
@@ -151,6 +140,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     return L, H_ekets
 
 end #Function
+
 
 
 """
