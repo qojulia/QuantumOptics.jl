@@ -1,5 +1,3 @@
-using Distributed
-
 """
     bloch_redfield_tensor(H, a_ops; J=[], use_secular=true, secular_cutoff=0.1)
 
@@ -90,7 +88,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     As = view(Iabs, :, 2)
     Bs = view(Iabs, :, 3)
 
-    @sync @distributed for (I, a, b) in collect(zip(Is, As, Bs))
+    for (I, a, b) in zip(Is, As, Bs)
 
         if use_secular
             Jcds = zeros(Int, size(Iabs))
