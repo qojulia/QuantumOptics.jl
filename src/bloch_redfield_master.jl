@@ -1,3 +1,5 @@
+using Distributed
+
 """
     bloch_redfield_tensor(H, a_ops; J=[], use_secular=true, secular_cutoff=0.1)
 
@@ -15,7 +17,6 @@ See QuTiP's documentation (http://qutip.org/docs/latest/guide/dynamics/dynamics-
 * `secular_cutoff=0.1`: Cutoff to allow a degree of partial secularization. Terms are discarded if they are greater than (dw\\_min * secular cutoff) where dw\\_min is the smallest (non-zero) difference between any two eigenenergies of H.
                         This argument is only taken into account if use_secular=true.
 """
-using Distributed
 function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secular=true, secular_cutoff=0.1)
 
     # use the eigenbasis
