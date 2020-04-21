@@ -12,7 +12,7 @@ Integrate using StochasticDiffEq
 """
 function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0::Vector{ComplexF64},
             state::T, dstate::T, fout::Function, n::Int;
-            save_everystep = false, callback=nothing,
+            save_everystep = false, callback=nothing, saveat=tspan,
             alg::StochasticDiffEq.StochasticDiffEqAlgorithm=StochasticDiffEq.EM(),
             noise_rate_prototype = nothing,
             noise_prototype_classical = nothing,
@@ -58,7 +58,7 @@ function integrate_stoch(tspan::Vector{Float64}, df::Function, dg::Function, x0:
 
     out = DiffEqCallbacks.SavedValues(Float64,out_type)
 
-    scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan,
+    scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=saveat,
                                          save_everystep=save_everystep,
                                          save_start = false)
 

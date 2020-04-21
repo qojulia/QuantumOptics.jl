@@ -246,6 +246,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
                         display_beforeevent=false, display_afterevent=false,
                         display_jumps=false,
                         save_everystep=false, callback=nothing,
+                        saveat=tspan,
                         alg=OrdinaryDiffEq.DP5(),
                         kwargs...) where T
 
@@ -282,7 +283,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     dstate = copy(psi0)
     out_type = pure_inference(fout, Tuple{eltype(tspan),typeof(state)})
     out = DiffEqCallbacks.SavedValues(Float64,out_type)
-    scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan,
+    scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=saveat,
                                          save_everystep=save_everystep,
                                          save_start = false)
 
