@@ -34,11 +34,15 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     N = length(H_evals)
     K = length(a_ops)
 
-    #If only Lindblad collapse terms
+    # Calculate Liouvillian for Lindblad terms (unitary part + dissipation from J (if given)):
+    Heb = to_Heb(H, transf_mat)
+    #Use annon function
+    f = (x->to_Heb(x, transf_mat))
+    L = liouvillian(Heb, f.(J))
+    L = sparse(L)
+    
+    #If only Lindblad collapse terms (no a_ops given)
     if K==0
-        Heb = to_Heb(H)
-        L = liouvillian(Heb, to_Heb.(J, transf_mat))
-        L = sparse(L)
         return L, H_ekets
     end
 
@@ -75,12 +79,6 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
         Iabs[I, 2:3] = [indices[I].I...]
     end
 
-    # Calculate Liouvillian for Lindblad temrs (unitary part + dissipation from J (if given)):
-    Heb = to_Heb(H, transf_mat)
-    #Use annon function
-    f = (x->to_Heb(x, transf_mat))
-    L = liouvillian(Heb, f.(J))
-    L = sparse(L)
 
     # ALTERNATIVE DENSE METHOD - Main Bloch-Redfield operators part
     data = zeros(ComplexF64, N^2, N^2)
