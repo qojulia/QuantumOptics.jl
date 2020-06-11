@@ -15,7 +15,7 @@ function qfunc(rho::AbstractOperator{B,B}, alpha::Number) where B<:FockBasis
     _qfunc_operator(rho, convert(ComplexF64, alpha), Ket(b), Ket(b))
 end
 
-function qfunc(rho::AbstractOperator{B,B}, xvec::Vector{Float64}, yvec::Vector{Float64}) where B<:FockBasis
+function qfunc(rho::AbstractOperator{B,B}, xvec::AbstractVector, yvec::AbstractVector) where B<:FockBasis
     b = basis(rho)
     Nx = length(xvec)
     Ny = length(yvec)
@@ -41,7 +41,7 @@ function qfunc(psi::Ket{B}, alpha::Number) where B<:FockBasis
     return abs2(s)*exp(-abs2(_alpha))/pi
 end
 
-function qfunc(psi::Ket{B}, xvec::Vector{Float64}, yvec::Vector{Float64}) where B<:FockBasis
+function qfunc(psi::Ket{B}, xvec::AbstractVector, yvec::AbstractVector) where B<:FockBasis
     b = basis(psi)
     Nx = length(xvec)
     Ny = length(yvec)
@@ -68,7 +68,7 @@ function qfunc(state::Union{Ket{B}, AbstractOperator{B,B}}, x::Number, y::Number
     qfunc(state, ComplexF64(x, y)/sqrt(2))
 end
 
-function _qfunc_operator(rho::AbstractOperator{B,B}, alpha::ComplexF64, tmp1::Ket, tmp2::Ket) where B<:FockBasis
+function _qfunc_operator(rho::AbstractOperator{B,B}, alpha::Complex, tmp1::Ket, tmp2::Ket) where B<:FockBasis
     coherentstate!(tmp1, basis(rho), alpha)
     QuantumOpticsBase.mul!(tmp2,rho,tmp1,complex(1.),complex(0.))
     a = dot(tmp1.data, tmp2.data)
@@ -102,7 +102,7 @@ function wigner(rho::Operator{B,B}, x::Number, y::Number) where B<:FockBasis
     exp(-abs2_2α/2)/pi*real(w)
 end
 
-function wigner(rho::Operator{B,B}, xvec::Vector{Float64}, yvec::Vector{Float64}) where B<:FockBasis
+function wigner(rho::Operator{B,B}, xvec::AbstractVector, yvec::AbstractVector) where B<:FockBasis
     b = basis(rho)
     N = b.N::Int
     _2α = [complex(x, y)*sqrt(2) for x=xvec, y=yvec]
