@@ -14,12 +14,12 @@ Integrate Schroedinger equation.
 """
 function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...) where {B<:Basis,T<:StateVector{B}}
+                kwargs...) where {B<:Basis,T<:Union{AbstractOperator{B,B},StateVector{B}}}
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     dschroedinger_(t, psi::T, dpsi::T) = dschroedinger(psi, H, dpsi)
     x0 = psi0.data
-    state = T(psi0.basis, psi0.data)
-    dstate = T(psi0.basis, psi0.data)
+    state = copy(psi0)
+    dstate = copy(psi0)
     integrate(tspan_, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
@@ -40,12 +40,12 @@ Integrate time-dependent Schroedinger equation.
 """
 function schroedinger_dynamic(tspan, psi0::T, f::Function;
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...) where T<:StateVector
+                kwargs...) where T<:Union{StateVector,AbstractOperator}
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     dschroedinger_(t, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, f, dpsi)
     x0 = psi0.data
-    state = Ket(psi0.basis, psi0.data)
-    dstate = Ket(psi0.basis, psi0.data)
+    state = copy(psi0)
+    dstate = copy(psi0)
     integrate(tspan_, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
@@ -54,7 +54,7 @@ recast!(x::D, psi::StateVector{B,D}) where {B<:Basis, D} = (psi.data = x);
 recast!(psi::StateVector{B,D}, x::D) where {B<:Basis, D} = nothing
 
 
-function dschroedinger(psi::Ket{B}, H::AbstractOperator{B,B}, dpsi::Ket{B}) where B<:Basis
+function dschroedinger(psi::Union{Ket{B},AbstractOperator{B,B}}, H::AbstractOperator{B,B}, dpsi::Union{Ket{B},AbstractOperator{B,B}}) where B<:Basis
     QuantumOpticsBase.mul!(dpsi,H,psi,eltype(psi)(-im),zero(eltype(psi)))
     return dpsi
 end
@@ -65,7 +65,7 @@ function dschroedinger(psi::Bra{B}, H::AbstractOperator{B,B}, dpsi::Bra{B}) wher
 end
 
 
-function dschroedinger_dynamic(t, psi0::T, f::Function, dpsi::T) where T<:StateVector
+function dschroedinger_dynamic(t, psi0::T, f::Function, dpsi::T) where T<:Union{StateVector,AbstractOperator}
     H = f(t, psi0)
     dschroedinger(psi0, H, dpsi)
 end
