@@ -74,7 +74,7 @@ end
 psi0_ = Ket(basis, TestData(psi0.data))
 tout, psi_rot_t_ = timeevolution.schroedinger(T, psi0_, Hrot_)
 for (psi1,psi2)=zip(psi_rot_t,psi_rot_t_)
-    @test psi1.data==psi2.data
+    @test psi1.data≈psi2.data
 end
 
 
