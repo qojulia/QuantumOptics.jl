@@ -1,11 +1,11 @@
 """
     timeevolution.schroedinger(tspan, psi0, H; fout)
 
-Integrate Schroedinger equation.
+Integrate Schroedinger equation to evolve states or compute propagators.
 
 # Arguments
 * `tspan`: Vector specifying the points of time for which output should be displayed.
-* `psi0`: Initial state vector (can be a bra or a ket).
+* `psi0`: Initial state vector (can be a bra or a ket) or initial propagator.
 * `H`: Arbitrary operator specifying the Hamiltonian.
 * `fout=nothing`: If given, this function `fout(t, psi)` is called every time
         an output should be displayed. ATTENTION: The state `psi` is neither
@@ -27,11 +27,11 @@ end
 """
     timeevolution.schroedinger_dynamic(tspan, psi0, f; fout)
 
-Integrate time-dependent Schroedinger equation.
+Integrate time-dependent Schroedinger equation to evolve states or compute propagators.
 
 # Arguments
 * `tspan`: Vector specifying the points of time for which output should be displayed.
-* `psi0`: Initial state vector (can be a bra or a ket).
+* `psi0`: Initial state vector (can be a bra or a ket) or initial propagator.
 * `f`: Function `f(t, psi) -> H` returning the time and or state dependent Hamiltonian.
 * `fout=nothing`: If given, this function `fout(t, psi)` is called every time
         an output should be displayed. ATTENTION: The state `psi` is neither
