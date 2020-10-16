@@ -58,7 +58,7 @@ If you like **QuantumOptics.jl**, we would appreciate it if you starred the repo
 [gitter-url]: https://gitter.im/QuantumOptics-jl/Lobby
 [gitter-img]: https://img.shields.io/gitter/room/nwjs/nw.js.svg
 
-[docs-url]: https://qojulia.org/documentation/
+[docs-url]: https://docs.qojulia.org/
 [docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
 
 [version-url]: https://github.com/qojulia/QuantumOptics.jl/releases
