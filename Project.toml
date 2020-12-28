@@ -18,7 +18,7 @@ WignerSymbols = "9f57e263-0b3d-5e2e-b1be-24f2bb48858b"
 
 [compat]
 QuantumOpticsBase = "0.2"
-Arpack = "0.4"
+Arpack = "0.5"
 DiffEqCallbacks = "2"
 FFTW = "1"
 OrdinaryDiffEq = "5"

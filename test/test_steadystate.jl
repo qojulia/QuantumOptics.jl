@@ -52,7 +52,7 @@ tss, ρss = steadystate.master(Hdense, Jdense; tol=1e-4)
 ρss = steadystate.eigenvector(Hdense, Jdense, nev = 1)
 @test tracedistance(ρss, ρt[end]) < 1e-6
 
-ρss = steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)))
+ρss = steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), tol=1e-8)
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
 ρss = steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), nev = 1)
