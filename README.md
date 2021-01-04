@@ -2,7 +2,7 @@
 
 #
 
-[![Chat on Gitter][gitter-img]][gitter-url] [![Travis build status][travis-img]][travis-url] [![Windows build status][appveyor-img]][appveyor-url] [![Stable documentation][docs-img]][docs-url]
+[![Chat on Gitter][gitter-img]][gitter-url] ![Build_state](https://github.com/qojulia/QuantumOptics.jl/workflows/CI/badge.svg) [![Stable documentation][docs-img]][docs-url]
 
 **QuantumOptics.jl** is a numerical framework written in [Julia] that makes it easy to simulate various kinds of quantum systems. It is inspired by the [Quantum Optics Toolbox] for MATLAB and the Python framework [QuTiP].
 
@@ -12,7 +12,6 @@ More information, documentation and examples can be found on our website http://
 **Latest release:**
   * Version: [![Latest version tag][version-img]][version-url]
   * Test coverage:
-        [![Test coverage status on coveralls][coveralls-img]][coveralls-url]
         [![Test coverage status on codecov][codecov-img]][codecov-url]
 
 
@@ -40,20 +39,8 @@ If you like **QuantumOptics.jl**, we would appreciate it if you starred the repo
 [Quantum Optics Toolbox]: http://qo.phy.auckland.ac.nz/toolbox
 [QuTiP]: http://qutip.org
 
-[travis-url]: https://travis-ci.org/qojulia/QuantumOptics.jl
-[travis-img]: https://api.travis-ci.org/qojulia/QuantumOptics.jl.png?branch=master
-
-[appveyor-url]: https://ci.appveyor.com/project/qojulia/quantumoptics-jl/branch/master
-[appveyor-img]: https://ci.appveyor.com/api/projects/status/t83f2bqfpumn6d96/branch/master?svg=true
-
-[coveralls-url]: https://coveralls.io/github/qojulia/QuantumOptics.jl?branch=master
-[coveralls-img]: https://coveralls.io/repos/github/qojulia/QuantumOptics.jl/badge.svg?branch=master
-
 [codecov-url]: https://codecov.io/gh/qojulia/QuantumOptics.jl
 [codecov-img]: https://codecov.io/gh/qojulia/QuantumOptics.jl/branch/master/graph/badge.svg
-
-[pkg-0.6-url]: http://pkg.julialang.org/?pkg=QuantumOptics&ver=0.6
-[pkg-0.6-img]: http://pkg.julialang.org/badges/QuantumOptics_0.6.svg
 
 [gitter-url]: https://gitter.im/QuantumOptics-jl/Lobby
 [gitter-img]: https://img.shields.io/gitter/room/nwjs/nw.js.svg
