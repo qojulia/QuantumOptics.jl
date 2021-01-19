@@ -30,38 +30,52 @@ end
 
 function qfunc(psi::Ket{B}, alpha::Number) where B<:FockBasis
     b = basis(psi)
-    _alpha = convert(ComplexF64, alpha)
-    _conj_alpha = conj(_alpha)
-    N = length(psi.basis)
-    s = psi.data[N]/sqrt(N-1)
-    @inbounds for i=1:N-2
-        s = (psi.data[N-i] + s*_conj_alpha)/sqrt(N-i-1)
+    _conj_alpha = conj(alpha)
+    c = one(alpha)
+    @inbounds for n=1:b.offset
+        c *= _conj_alpha/sqrt(n)
     end
-    s = psi.data[1] + s*_conj_alpha
-    return abs2(s)*exp(-abs2(_alpha))/pi
+    s = c*psi.data[1]
+    @inbounds for n=b.offset+1:b.N
+        c *= _conj_alpha/sqrt(n)
+        s += c*psi.data[n+1-b.offset]
+    end
+    return abs2(s)*exp(-abs2(_conj_alpha))/pi
 end
 
 function qfunc(psi::Ket{B}, xvec::AbstractVector, yvec::AbstractVector) where B<:FockBasis
     b = basis(psi)
-    Nx = length(xvec)
-    Ny = length(yvec)
-    points = Nx*Ny
+    points = length(xvec)*length(yvec)
     N = length(b)::Int
+    N0 = b.offset
     _conj_alpha = [complex(x, -y)/sqrt(2) for x=xvec, y=yvec]
-    q = fill(psi.data[N]/sqrt(N-1), size(_conj_alpha))
-    @inbounds for n=1:N-2
-        f0_ = 1/sqrt(N-n-1)
-        x = psi.data[N-n]
+
+    # Compute overlap <α|ψ> as reversed sum
+    q = psi.data[N]/sqrt(b.N) .* _conj_alpha
+    @inbounds for n=b.N:-1:N0+2
+        x = psi.data[n-N0]
+        f0_ = 1/sqrt(n-1)
         for i=1:points
-            q[i] = (x + q[i]*_conj_alpha[i])*f0_
+            q[i] = (x + q[i])*_conj_alpha[i]*f0_
         end
     end
-    result = similar(q, Float64)
+
+    # 1/sqrt(n!) up to offset for first term in sum
+    nfac = 1.0
+    @inbounds for n=1:N0
+        nfac /= sqrt(n)
+    end
     x = psi.data[1]
     @inbounds for i=1:points
-        result[i] = abs2(x + q[i]*_conj_alpha[i])*exp(-abs2(_conj_alpha[i]))/pi
+        q[i] = (x + q[i])*nfac*_conj_alpha[i]^N0
     end
-    result
+
+    # Return e^(-|α|^2)*|q|^2
+    result = similar(q, float(real(eltype(psi))))
+    @inbounds for i=1:points
+        result[i] = abs2(q[i])*exp(-abs2(_conj_alpha[i]))/pi
+    end
+    return result
 end
 
 function qfunc(state::Union{Ket{B}, AbstractOperator{B,B}}, x::Number, y::Number) where B<:FockBasis
@@ -70,7 +84,7 @@ end
 
 function _qfunc_operator(rho::AbstractOperator{B,B}, alpha::Complex, tmp1::Ket, tmp2::Ket) where B<:FockBasis
     coherentstate!(tmp1, basis(rho), alpha)
-    QuantumOpticsBase.mul!(tmp2,rho,tmp1,complex(1.),complex(0.))
+    QuantumOpticsBase.mul!(tmp2,rho,tmp1,true,false)
     a = dot(tmp1.data, tmp2.data)
     return a/pi
 end

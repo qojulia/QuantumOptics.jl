@@ -66,6 +66,39 @@ for (i,x)=enumerate(X), (j,y)=enumerate(Y)
     @test wigner(rho_fock, beta) ≈ w_fock
 end
 
+# Test with offset
+alpha = complex(4.3, 2.7)
+nfock = 3
+
+X = [0.1:0.1:4;] .+ real(alpha)
+Y = [0.13:0.1:3;] .+ imag(alpha)
+psi_coherent = coherentstate(b, alpha)
+rho_coherent = dm(psi_coherent)
+psi_fock = fockstate(b, nfock)
+rho_fock = dm(psi_fock)
+
+
+Qpsi_coherent = qfunc(psi_coherent, X, Y)
+Qrho_coherent = qfunc(rho_coherent, X, Y)
+Qpsi_fock = qfunc(psi_fock, X, Y)
+Qrho_fock = qfunc(rho_fock, X, Y)
+
+Wpsi_coherent = wigner(psi_coherent, X, Y)
+Wrho_coherent = wigner(rho_coherent, X, Y)
+Wpsi_fock = wigner(psi_fock, X, Y)
+Wrho_fock = wigner(rho_fock, X, Y)
+
+b_off = FockBasis(100,3)
+psi_coherent_off = coherentstate(b_off, alpha)
+rho_coherent_off = dm(psi_coherent_off)
+psi_fock_off = fockstate(b_off, nfock)
+rho_fock_off = dm(psi_fock)
+
+@test isapprox(qfunc(psi_coherent, alpha), qfunc(psi_coherent_off, alpha))
+
+@test isapprox(Qpsi_coherent, qfunc(psi_coherent_off, X, Y), atol=1e-6)
+@test isapprox(Qrho_coherent, qfunc(rho_coherent_off, X, Y), atol=1e-6)
+
 # Test qfunc with rand operators
 b = FockBasis(50)
 psi = randstate(b)
