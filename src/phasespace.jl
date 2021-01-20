@@ -103,15 +103,16 @@ done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + i y)``.
 function wigner(rho::Operator{B,B}, x::Number, y::Number) where B<:FockBasis
     b = basis(rho)
     N = b.N::Int
+    N0 = b.offset
     _2α = complex(convert(Float64, x), convert(Float64, y))*sqrt(2)
     abs2_2α = abs2(_2α)
     w = complex(0.)
     coefficient = complex(0.)
     @inbounds for L=N:-1:1
-        coefficient = 2*_clenshaw(L, abs2_2α, rho.data)
+        coefficient = 2*_clenshaw(L, abs2_2α, rho.data, N, N0)
         w = coefficient + w*_2α/sqrt(L+1)
     end
-    coefficient = _clenshaw(0, abs2_2α, rho.data)
+    coefficient = _clenshaw(0, abs2_2α, rho.data, N, N0)
     w = coefficient + w*_2α
     exp(-abs2_2α/2)/pi*real(w)
 end
@@ -119,6 +120,7 @@ end
 function wigner(rho::Operator{B,B}, xvec::AbstractVector, yvec::AbstractVector) where B<:FockBasis
     b = basis(rho)
     N = b.N::Int
+    N0 = b.offset
     _2α = [complex(x, y)*sqrt(2) for x=xvec, y=yvec]
     abs2_2α = abs2.(_2α)
     w = zero(_2α)
@@ -126,9 +128,9 @@ function wigner(rho::Operator{B,B}, xvec::AbstractVector, yvec::AbstractVector) 
     b1 = similar(_2α)
     b2 = similar(_2α)
     @inbounds for L=N:-1:1
-        _clenshaw_grid(L, rho.data, abs2_2α, _2α, w, b0, b1, b2, 2)
+        _clenshaw_grid!(w, L, rho.data, abs2_2α, _2α, b0, b1, b2, 2, N, N0)
     end
-    _clenshaw_grid(0, rho.data, abs2_2α, _2α, w, b0, b1, b2, 1)
+    _clenshaw_grid!(w, 0, rho.data, abs2_2α, _2α, b0, b1, b2, 1, N, N0)
     @inbounds for i=eachindex(w)
         abs2_2α[i] = exp(-abs2_2α[i]/2)/pi.*real(w[i])
     end
@@ -139,33 +141,56 @@ wigner(psi::Ket, x, y) = wigner(dm(psi), x, y)
 wigner(state, alpha::Number) = wigner(state, real(alpha)*sqrt(2), imag(alpha)*sqrt(2))
 
 
-function _clenshaw_grid(L::Int, ρ::Matrix{ComplexF64},
-                abs2_2α::Matrix{Float64}, _2α::Matrix{ComplexF64}, w::Matrix{ComplexF64},
-                b0::Matrix{ComplexF64}, b1::Matrix{ComplexF64}, b2::Matrix{ComplexF64}, scale::Int)
-    n = size(ρ, 1)-L-1
+function _clenshaw_grid!(w, L::Integer, ρ, abs2_2α, _2α, b0, b1, b2,
+                            scale::Integer, N::Integer, offset::Integer)
+    n = N-L
     points = length(w)
     if n==0
-        f = scale*ρ[1, L+1]
+        if iszero(offset)
+            f = scale*ρ[1, L+1]
+        else
+            f = zero(eltype(ρ))
+        end
         @inbounds for i=1:points
             w[i] = f + w[i]*_2α[i]/sqrt(L+1)
         end
     elseif n==1
         f1 = 1/sqrt(L+1)
-        @inbounds for i=1:points
-            w[i] = scale*(ρ[1, L+1] - ρ[2, L+2]*(L+1-abs2_2α[i])*f1) + w[i]*_2α[i]*f1
+        if iszero(offset)
+            @inbounds for i=1:points
+                w[i] = scale*(ρ[1, L+1] - ρ[2, L+2]*(L+1-abs2_2α[i])*f1) + w[i]*_2α[i]*f1
+            end
+        elseif isone(offset)
+            @inbounds for i=1:points
+                w[i] = -scale*ρ[1, L+1]*(L+1-abs2_2α[i])*f1 + w[i]*_2α[i]*f1
+            end
+        else # offset > 1
+            @inbounds for i=1:points
+                w[i] *= _2α[i]*f1
+            end
         end
     else
         f0 = sqrt(float((n+L-1)*(n-1)))
         f1 = sqrt(float((n+L)*n))
         f0_ = 1/f0
         f1_ = 1/f1
-        fill!(b1, ρ[n+1, L+n+1])
-        @inbounds for i=1:points
-            b0[i] = ρ[n, L+n] - (2*n-1+L-abs2_2α[i])*f1_*b1[i]
+        if n < offset
+            fill!(b1, zero(eltype(ρ)))
+            fill!(b0, zero(eltype(ρ)))
+        else
+            fill!(b1, ρ[n+1-offset, L+n+1-offset])
+            @inbounds for i=1:points
+                b0[i] = ρ[n-offset, L+n-offset] - (2*n-1+L-abs2_2α[i])*f1_*b1[i]
+            end
         end
+
         @inbounds for k=n-2:-1:1
             b1, b2, b0 = b0, b1, b2
-            x = ρ[k+1, L+k+1]
+            if k < offset
+                x = zero(eltype(ρ))
+            else
+                x = ρ[k+1-offset, L+k+1-offset]
+            end
             a1 = -(2*k+1+L)
             a2 = -f0*f1_
             @inbounds for i=1:points
@@ -175,35 +200,69 @@ function _clenshaw_grid(L::Int, ρ::Matrix{ComplexF64},
             f0 = sqrt((k+L)*k)
             f0_ = 1/f0
         end
-        @inbounds for i=1:points
-            w[i] = scale*(ρ[1, L+1] - (L+1-abs2_2α[i])*f0_*b0[i] - f0*f1_*b1[i]) + w[i]*_2α[i]*f0_
+        if iszero(offset)
+            @inbounds for i=1:points
+                w[i] = scale*(ρ[1, L+1] - (L+1-abs2_2α[i])*f0_*b0[i] - f0*f1_*b1[i]) + w[i]*_2α[i]*f0_
+            end
+        else
+            @inbounds for i=1:points
+                w[i] = scale*(-(L+1-abs2_2α[i])*f0_*b0[i] - f0*f1_*b1[i]) + w[i]*_2α[i]*f0_
+            end
         end
     end
+    return w
 end
 
-function _clenshaw(L::Int, abs2_2α::Float64, ρ::Matrix{ComplexF64})
-    n = size(ρ, 1)-L-1
+function _clenshaw(L::Integer, abs2_2α::Real, ρ, N::Integer, offset::Integer)
+    n = N-L
     if n==0
-        return ρ[1, L+1]
+        if iszero(offset)
+            return ρ[1, L+1]
+        else
+            return zero(eltype(ρ))
+        end
     elseif n==1
-        ϕ1 = -(L+1-abs2_2α)/sqrt(L+1)
-        return ρ[1, L+1] + ρ[2, L+2]*ϕ1
+        if iszero(offset)
+            ϕ1 = -(L+1-abs2_2α)/sqrt(L+1)
+            return ρ[1, L+1] + ρ[2, L+2]*ϕ1
+        elseif isone(offset)
+            ϕ1 = -(L+1-abs2_2α)/sqrt(L+1)
+            return ρ[1,L+1]*ϕ1
+        else
+            return zero(eltype(ρ))
+        end
     else
         f0 = sqrt(float((n+L-1)*(n-1)))
         f1 = sqrt(float((n+L)*n))
         f0_ = 1/f0
         f1_ = 1/f1
         b2 = complex(0.)
-        b1 = ρ[n+1, L+n+1]
-        b0 = ρ[n, L+n] - (2*n-1+L-abs2_2α)*f1_*b1
+        if n < offset
+            b1 = zero(eltype(ρ))
+        else
+            b1 = ρ[n+1-offset, L+n+1-offset]
+        end
+        if n <= offset
+            b0 = - (2*n-1+L-abs2_2α)*f1_*b1
+        else
+            b0 = ρ[n-offset, L+n-offset] - (2*n-1+L-abs2_2α)*f1_*b1
+        end
         @inbounds for k=n-2:-1:1
             b1, b2 = b0, b1
-            b0 = ρ[k+1, L+k+1] - (2*k+1+L-abs2_2α)*f0_*b1 - f0*f1_*b2
+            if k < offset
+                b0 = - (2*k+1+L-abs2_2α)*f0_*b1 - f0*f1_*b2
+            else
+                b0 = ρ[k+1-offset, L+k+1-offset] - (2*k+1+L-abs2_2α)*f0_*b1 - f0*f1_*b2
+            end
             f1, f1_ = f0, f0_
             f0 = sqrt((k+L)*k)
             f0_ = 1/f0
         end
-        return ρ[1, L+1] - (L+1-abs2_2α)*f0_*b0 - f0*f1_*b1
+        if iszero(offset)
+            return ρ[1, L+1] - (L+1-abs2_2α)*f0_*b0 - f0*f1_*b1
+        else
+            return - (L+1-abs2_2α)*f0_*b0 - f0*f1_*b1
+        end
     end
 end
 

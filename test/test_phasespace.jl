@@ -95,9 +95,19 @@ psi_fock_off = fockstate(b_off, nfock)
 rho_fock_off = dm(psi_fock)
 
 @test isapprox(qfunc(psi_coherent, alpha), qfunc(psi_coherent_off, alpha))
-
 @test isapprox(Qpsi_coherent, qfunc(psi_coherent_off, X, Y), atol=1e-6)
 @test isapprox(Qrho_coherent, qfunc(rho_coherent_off, X, Y), atol=1e-6)
+@test isapprox(qfunc(psi_fock, alpha), qfunc(psi_fock_off, alpha))
+@test isapprox(Qpsi_fock, qfunc(psi_fock_off, X, Y), atol=1e-6)
+@test isapprox(Qrho_fock, qfunc(rho_fock_off, X, Y), atol=1e-6)
+
+@test isapprox(wigner(psi_coherent, alpha), wigner(psi_coherent_off, alpha), atol=1e-6)
+@test isapprox(Wpsi_coherent, wigner(psi_coherent_off, X, Y), atol=1e-5, rtol=1e-5)
+@test isapprox(Wrho_coherent, wigner(rho_coherent_off, X, Y), atol=1e-5, rtol=1e-5)
+@test isapprox(wigner(psi_fock, alpha), wigner(psi_fock_off, alpha), atol=1e-5, rtol=1e-5)
+@test isapprox(Wpsi_fock, wigner(psi_fock_off, X, Y), atol=1e-5, rtol=1e-5)
+@test isapprox(Wrho_fock, wigner(rho_fock_off, X, Y), atol=1e-5, rtol=1e-5)
+
 
 # Test qfunc with rand operators
 b = FockBasis(50)
