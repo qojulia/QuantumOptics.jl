@@ -1,6 +1,6 @@
 name = "QuantumOptics"
 uuid = "6e0679c1-51ea-5a7c-ac74-d61b76210b0c"
-version = "v0.8.3"
+version = "v0.8.4"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
@@ -21,7 +21,7 @@ Arpack = "0.5.1"
 DiffEqCallbacks = "2"
 FFTW = "1"
 OrdinaryDiffEq = "5"
-QuantumOpticsBase = "0.2"
+QuantumOpticsBase = "0.2.5"
 RecursiveArrayTools = "2"
 Reexport = "0.2, 1.0"
 StochasticDiffEq = "6"
