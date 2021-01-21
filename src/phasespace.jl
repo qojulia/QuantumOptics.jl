@@ -179,8 +179,14 @@ function _clenshaw_grid!(w, L::Integer, ρ, abs2_2α, _2α, b0, b1, b2,
             fill!(b0, zero(eltype(ρ)))
         else
             fill!(b1, ρ[n+1-offset, L+n+1-offset])
-            @inbounds for i=1:points
-                b0[i] = ρ[n-offset, L+n-offset] - (2*n-1+L-abs2_2α[i])*f1_*b1[i]
+            if n <= offset
+                @inbounds for i=1:points
+                    b0[i] = -(2*n-1+L-abs2_2α[i])*f1_*b1[i]
+                end
+            else
+                @inbounds for i=1:points
+                    b0[i] = ρ[n-offset, L+n-offset] - (2*n-1+L-abs2_2α[i])*f1_*b1[i]
+                end
             end
         end
 
