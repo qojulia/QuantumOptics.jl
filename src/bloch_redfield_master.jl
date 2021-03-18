@@ -17,122 +17,86 @@ See QuTiP's documentation (http://qutip.org/docs/latest/guide/dynamics/dynamics-
 """
 function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secular=true, secular_cutoff=0.1)
 
-    # use the eigenbasis
-    H_evals, transf_mat = eigen(DenseOperator(H).data)
-    H_ekets = [Ket(H.basis_l, transf_mat[:, i]) for i in 1:length(H_evals)]::Array{Ket{typeof(H.basis_l), Array{Complex{Float64}, 1}}, 1}
-
+    # Use the energy eigenbasis
+    H_evals, transf_mat = eigen(Array(H.data)) #Array call makes sure H is a dense array
+    H_ekets = [Ket(H.basis_l, transf_mat[:, i]) for i in 1:length(H_evals)]
 
     #Define function for transforming to Hamiltonian eigenbasis
     function to_Heb(op, U)
-        #Copy oper
-        oper = copy(op)
-        #Transform underlying array
-        oper.data = inv(U) * oper.data * U
+        oper = copy(op) #Aviod mutating input op
+        oper.data = inv(U) * oper.data * U #Transform underlying array
         return oper
     end
 
-    N = length(H_evals)
-    K = length(a_ops)
+    N = length(H_evals) #Hilbert space dimension
+    K = length(a_ops) #Number of system-env interation operators
 
     # Calculate Liouvillian for Lindblad terms (unitary part + dissipation from J (if given)):
     Heb = to_Heb(H, transf_mat)
-    #Use annon function
+    #Use anon function
     f = (x->to_Heb(x, transf_mat))
-    L = liouvillian(Heb, f.(J))
+    L = liouvillian(Heb, f.(J)) #This also includes unitary dynamics part dρ/dt = -i[H, ρ]
     L = sparse(L)
-    
-    #If only Lindblad collapse terms (no a_ops given)
+
+    #If only Lindblad collapse terms (no a_ops given) then we're done
     if K==0
-        return L, H_ekets
+        return L, H_ekets #L is in the energy eigenbasis here
     end
 
     #Transform interaction operators to Hamiltonian eigenbasis
-    A = Array{Complex{Float64}}(undef, N, N, K)
+    A = Array{ComplexF64}(undef, N, N, K)
     for k in 1:K
         A[:, :, k] = to_Heb(a_ops[k][1], transf_mat).data
     end
 
-    # Trasition frequencies between eigenstates
-    W = transpose(H_evals) .- H_evals
+    # Array of transition frequencies between eigenstates
+    W = H_evals .- transpose(H_evals)
 
     #Array for spectral functions evaluated at transition frequencies
-    Jw = Array{Complex{Float64}}(undef, N, N, K)
-    # Jw = zeros(Complex{Float64}, N, N, K)
+    Jw = Array{Float64}(undef, N, N, K)
+    #Loop over all a_ops and calculate each spectral density at all transition frequencies
     for k in 1:K
-       # do explicit loops here
-       for n in 1:N
-           for m in 1:N
-               Jw[m, n, k] = a_ops[k][2](W[n, m])
-           end
-       end
+        Jw[:, :, k] .= a_ops[k][2].(W)
     end
 
-    #Calculate secular cutoff scale
-    W_flat = reshape(W, N*N)
-    dw_min = minimum(abs.(W_flat[W_flat .!= 0.0]))
-
-    #Pre-calculate mapping between global index I and system indices a,b
-    Iabs = Array{Int}(undef, N*N, 3)
-    indices = CartesianIndices((N,N))
-    for I in 1:N*N
-        Iabs[I, 1] = I
-        Iabs[I, 2:3] = [indices[I].I...]
+    #Calculate secular cutoff scale if needed
+    if use_secular
+        dw_min = minimum(abs.(W[W .!= 0.0]))
+        w_cutoff = dw_min * secular_cutoff
     end
 
+    #Initialize R_abcd array
+    data = zeros(ComplexF64, N, N, N, N)
+    #Loop through all indices and calculate elements - seems to be as efficient as any fancy broadcasting implementation (and much simpler to read)
+    for idx in CartesianIndices(data)
 
-    # ALTERNATIVE DENSE METHOD - Main Bloch-Redfield operators part
-    data = zeros(ComplexF64, N^2, N^2)
-    Is = view(Iabs, :, 1)
-    As = view(Iabs, :, 2)
-    Bs = view(Iabs, :, 3)
+        a, b, c, d = Tuple(idx) #Unpack indices
 
-    for (I, a, b) in zip(Is, As, Bs)
-
-        if use_secular
-            Jcds = zeros(Int, size(Iabs))
-            for (row, (I2, a2, b2)) in enumerate(zip(Is, As, Bs))
-                if abs.(W[a, b] - W[a2, b2]) < dw_min * secular_cutoff
-                    Jcds[row, :] = [I2 a2 b2]
-                end
-            end
-            Jcds = transpose(Jcds)
-            Jcds = Jcds[Jcds .!= 0]
-            Jcds = reshape(Jcds, 3, Int(length(Jcds)/3))
-            Jcds = transpose(Jcds)
-
-            Js = view(Jcds, :, 1)
-            Cs = view(Jcds, :, 2)
-            Ds = view(Jcds, :, 3)
-
-        else
-            Js = Is
-            Cs = As
-            Ds = Bs
+        #Skip any values that are larger than the secular cutoff
+        if use_secular && abs(W[a, b] - W[c, d]) > w_cutoff
+            continue
         end
 
+        """ Term 1 """
+        sum!(view(data, idx), @views A[a, c, :] .* A[d, b, :] .* (Jw[c, a, :] .+ Jw[d, b, :]) ) #Broadcasting over interaction operators
 
-        for (J, c, d) in zip(Js, Cs, Ds)
-
-            sum!(   view(data, I, J),   view(A, c, a, :) .* view(A, b, d, :) .* (view(Jw, c, a, :) + view(Jw, d, b, :) )  )
-            # data[I, J] = 0.5 * sum(view(A, c, a, :) .* view(A, b, d, :) .* (view(Jw, c, a, :) + view(Jw, d, b, :) ))
-
-            if b == d
-                data[I, J] -= sum( view(A, a, :, :) .* view(A, c, :, :) .* view(Jw, c, :, :) )
-            end
-
-            if a == c
-                data[I, J] -= sum( view(A, d, :, :) .* view(A, b, :, :) .* view(Jw, d, :, :) )
-            end
-
-            # data[I, J] *= 0.5
-
+        """ Term 2 (b == d) """
+        if b == d
+            data[idx] -= @views sum( A[a, :, :] .* A[:, c, :] .* Jw[c, :, :] ) #Broadcasting over interaction operators and extra sum over n
         end
+
+        """ Term 3 (a == c) """
+        if a == c
+            data[idx] -= @views sum( A[d, :, :] .* A[:, b, :] .* Jw[d, :, :] ) #Broadcasting over interaction operators and extra sum over n
+        end
+
     end
 
-    data *= 0.5
-    R = sparse(data) # Removes any zero values and converts to sparse array
+    data *= 0.5 #Don't forget the factor of 1/2
+    data = reshape(data, N^2, N^2) #Convert to Liouville space
+    R = sparse(data) #Remove any zero values and converts to sparse array
 
-    #Add Bloch-Redfield part to Linblad Liouvillian calculated earlier
+    #Add Bloch-Redfield part to unitary dyanmics and Lindblad Liouvillian calculated above
     L.data = L.data + R
 
     return L, H_ekets
