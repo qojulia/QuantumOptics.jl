@@ -1,4 +1,10 @@
 import WignerSymbols: clebschgordan
+import QuantumOpticsBase:
+    qfunc,
+    wigner,
+    coherentspinstate,
+    qfuncsu2,
+    wignersu2
 
 """
     qfunc(a, α)
