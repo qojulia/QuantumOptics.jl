@@ -106,11 +106,11 @@ function mcwf(tspan, psi0::T, H::AbstractOperator{B,B}, J::Vector;
         Hnh = copy(H)
         if isa(rates, Nothing)
             for i=1:length(J)
-                Hnh -= eltype(H)(0.5im)*Jdagger[i]*J[i]
+                Hnh -= complex(eltype(H))(0.5im)*Jdagger[i]*J[i]
             end
         else
             for i=1:length(J)
-                Hnh -= eltype(H)(0.5im*rates[i])*Jdagger[i]*J[i]
+                Hnh -= complex(eltype(H))(0.5im*rates[i])*Jdagger[i]*J[i]
             end
         end
         dmcwf_nh_(t, psi::T, dpsi::T) = dmcwf_nh(psi, Hnh, dpsi)
