@@ -87,15 +87,15 @@ function master(tspan, rho0::T, H::AbstractOperator{B,B}, J::Vector;
         Hnh = copy(H)
         if isa(rates, Matrix)
             for i=1:length(J), j=1:length(J)
-                Hnh -= eltype(H)(0.5im*rates[i,j])*Jdagger[i]*J[j]
+                Hnh -= complex(eltype(H))(0.5im*rates[i,j])*Jdagger[i]*J[j]
             end
         elseif isa(rates, Vector)
             for i=1:length(J)
-                Hnh -= eltype(H)(0.5im*rates[i])*Jdagger[i]*J[i]
+                Hnh -= complex(eltype(H))(0.5im*rates[i])*Jdagger[i]*J[i]
             end
         else
             for i=1:length(J)
-                Hnh -= eltype(H)(0.5im)*Jdagger[i]*J[i]
+                Hnh -= complex(eltype(H))(0.5im)*Jdagger[i]*J[i]
             end
         end
         Hnhdagger = dagger(Hnh)

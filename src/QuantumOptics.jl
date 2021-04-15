@@ -4,13 +4,14 @@ using Reexport
 @reexport using QuantumOpticsBase
 using SparseArrays, LinearAlgebra
 
-export qfunc, wigner, coherentspinstate, qfuncsu2, wignersu2, ylm,
-        eigenstates, eigenenergies, simdiag,
-        timeevolution, diagonaljumps, @skiptimechecks,
-        steadystate,
-        timecorrelations,
-        semiclassical,
-        stochastic
+export
+    ylm,
+    eigenstates, eigenenergies, simdiag,
+    timeevolution, diagonaljumps, @skiptimechecks,
+    steadystate,
+    timecorrelations,
+    semiclassical,
+    stochastic
 
 
 include("phasespace.jl")
