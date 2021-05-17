@@ -105,6 +105,33 @@ function master(tspan, rho0::T, H::AbstractOperator{B,B}, J::Vector;
     end
 end
 
+function master(tspan, rho0::Operator, L::SuperOperator; fout=nothing, kwargs...)
+    # Rewrite rho as Ket and L as Operator
+    dim = length(rho0.basis_l)*length(rho0.basis_r)
+    b = GenericBasis(dim)
+    rho_ = Ket(b,reshape(rho0.data, dim))
+    L_ = Operator(b,b,L.data)
+    dmaster_(t,rho,drho) = dmaster_liouville(rho,drho,L_)
+
+    # Rewrite into density matrix when saving
+    tmp = copy(rho0)
+    if fout===nothing
+        fout_ = function(t,rho)
+            tmp.data[:] = rho.data
+            return copy(tmp)
+        end
+    else
+        fout_ = function(t,rho)
+            tmp.data[:] = rho.data
+            return fout(t,tmp)
+        end
+    end
+
+    # Solve
+    return integrate_master(tspan, dmaster_, rho_, fout_; kwargs...)
+end
+
+
 """
     timeevolution.master_dynamic(tspan, rho0, f; <keyword arguments>)
 
@@ -163,7 +190,7 @@ end
 
 
 # Automatically convert Ket states to density operators
-master(tspan, psi0::Ket{B}, H::AbstractOperator{B,B}, J::Vector; kwargs...) where B<:Basis = master(tspan, dm(psi0), H, J; kwargs...)
+master(tspan, psi0::Ket{B}, args...; kwargs...) where B<:Basis = master(tspan, dm(psi0), args...; kwargs...)
 master_h(tspan, psi0::Ket{B}, H::AbstractOperator{B,B}, J::Vector; kwargs...) where B<:Basis = master_h(tspan, dm(psi0), H, J; kwargs...)
 master_nh(tspan, psi0::Ket{B}, Hnh::AbstractOperator{B,B}, J::Vector; kwargs...) where B<:Basis = master_nh(tspan, dm(psi0), Hnh, J; kwargs...)
 master_dynamic(tspan, psi0::Ket{B}, f::Function; kwargs...) where B<:Basis = master_dynamic(tspan, dm(psi0), f; kwargs...)
@@ -176,12 +203,12 @@ function recast!(x::T, rho::Operator{B,B,T}) where {B<:Basis,T}
 end
 recast!(rho::Operator{B,B,T}, x::T) where {B<:Basis,T} = nothing
 
-function integrate_master(tspan, df::Function, rho0::T,
-                        fout::Union{Nothing, Function}; kwargs...) where {B<:Basis,T<:Operator{B,B}}
+function integrate_master(tspan, df::Function, rho0,
+                        fout::Union{Nothing, Function}; kwargs...)
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     x0 = rho0.data
-    state = T(rho0.basis_l, rho0.basis_r, rho0.data)
-    dstate = T(rho0.basis_l, rho0.basis_r, rho0.data)
+    state = deepcopy(rho0)
+    dstate = deepcopy(rho0)
     integrate(tspan_, df, x0, state, dstate, fout; kwargs...)
 end
 
@@ -279,6 +306,11 @@ function dmaster_nh(rho::T, Hnh::AbstractOperator{B,B}, Hnh_dagger::AbstractOper
         QuantumOpticsBase.mul!(tmp,J[i],rho,eltype(rho)(rates[i,j]),zero(eltype(rho)))
         QuantumOpticsBase.mul!(drho,tmp,Jdagger[j],true,true)
     end
+    return drho
+end
+
+function dmaster_liouville(rho,drho,L)
+    mul!(drho,L,rho)
     return drho
 end
 
