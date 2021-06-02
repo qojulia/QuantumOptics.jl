@@ -15,48 +15,37 @@ See QuTiP's documentation (http://qutip.org/docs/latest/guide/dynamics/dynamics-
 * `secular_cutoff=0.1`: Cutoff to allow a degree of partial secularization. Terms are discarded if they are greater than (dw\\_min * secular cutoff) where dw\\_min is the smallest (non-zero) difference between any two eigenenergies of H.
                         This argument is only taken into account if use_secular=true.
 """
-function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secular=true, secular_cutoff=0.1)
+function bloch_redfield_tensor(H::AbstractOperator, a_ops; J=SparseOpType[], use_secular=true, secular_cutoff=0.1)
 
     # use the eigenbasis
     H_evals, transf_mat = eigen(DenseOperator(H).data)
-    H_ekets = [Ket(H.basis_l, transf_mat[:, i]) for i in 1:length(H_evals)]::Array{Ket{typeof(H.basis_l), Array{Complex{Float64}, 1}}, 1}
-
-
-    #Define function for transforming to Hamiltonian eigenbasis
-    function to_Heb(op, U)
-        #Copy oper
-        oper = copy(op)
-        #Transform underlying array
-        oper.data = inv(U) * oper.data * U
-        return oper
-    end
+    H_ekets = Ket{typeof(H.basis_l),Vector{eltype(transf_mat)}}[Ket(H.basis_l, transf_mat[:, i]) for i in 1:length(H_evals)]
 
     N = length(H_evals)
     K = length(a_ops)
 
     # Calculate Liouvillian for Lindblad terms (unitary part + dissipation from J (if given)):
-    Heb = to_Heb(H, transf_mat)
-    #Use annon function
-    f = (x->to_Heb(x, transf_mat))
-    L = liouvillian(Heb, f.(J))
-    L = sparse(L)
-    
+    Uinv = inv(transf_mat)
+    tmp = copy(Uinv)
+    Heb = sparse(to_Heb(tmp, H, transf_mat, Uinv))
+    L = liouvillian(Heb, [to_Heb(tmp, j, transf_mat, Uinv) for j ∈ J])
+
     #If only Lindblad collapse terms (no a_ops given)
     if K==0
         return L, H_ekets
     end
 
     #Transform interaction operators to Hamiltonian eigenbasis
-    A = Array{Complex{Float64}}(undef, N, N, K)
+    A = Array{eltype(transf_mat)}(undef, N, N, K)
     for k in 1:K
-        A[:, :, k] = to_Heb(a_ops[k][1], transf_mat).data
+        A[:, :, k] = to_Heb(tmp, a_ops[k][1], transf_mat, Uinv).data
     end
 
     # Trasition frequencies between eigenstates
     W = transpose(H_evals) .- H_evals
 
     #Array for spectral functions evaluated at transition frequencies
-    Jw = Array{Complex{Float64}}(undef, N, N, K)
+    Jw = Array{eltype(transf_mat)}(undef, N, N, K)
     # Jw = zeros(Complex{Float64}, N, N, K)
     for k in 1:K
        # do explicit loops here
@@ -81,7 +70,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
 
 
     # ALTERNATIVE DENSE METHOD - Main Bloch-Redfield operators part
-    data = zeros(ComplexF64, N^2, N^2)
+    data = zeros(eltype(Jw), N^2, N^2)
     Is = view(Iabs, :, 1)
     As = view(Iabs, :, 2)
     Bs = view(Iabs, :, 3)
@@ -139,6 +128,13 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
 
 end #Function
 
+#Define function for transforming to Hamiltonian eigenbasis
+function to_Heb(tmp, op, U, Uinv)
+    oper = sparse(op)
+    mul!(tmp,op.data,U)
+    mul!(oper.data,Uinv,tmp)
+    return oper
+end
 
 
 """
@@ -161,9 +157,9 @@ Time-evolution according to a Bloch-Redfield master equation.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master_bloch_redfield(tspan,
-        rho0::T, L::SuperOperator{Tuple{B,B},Tuple{B,B}},
+        rho0::Operator{B,B}, L::SuperOperator{Tuple{B,B},Tuple{B,B}},
         H::AbstractOperator{B,B}; fout::Union{Function,Nothing}=nothing,
-        kwargs...) where {B<:Basis,T<:Operator{B,B}}
+        kwargs...) where {B}
 
     #Prep basis transf
     evals, transf_mat = eigen(dense(H).data)
@@ -176,28 +172,28 @@ function master_bloch_redfield(tspan,
     L_ = isa(L, SparseSuperOpType) ? SparseOperator(basis_comp, L.data) : DenseOperator(basis_comp, L.data)
 
     # Derivative function
-    dmaster_br_(t, rho::T2, drho::T2) where T2<:Ket = dmaster_br(drho, rho, L_)
+    dmaster_br_(t, rho, drho) = dmaster_br(drho, rho, L_)
 
     return integrate_br(tspan, dmaster_br_, rho0_eb, transf_op, inv_transf_op, fout; kwargs...)
 end
 master_bloch_redfield(tspan, psi::Ket, args...; kwargs...) = master_bloch_redfield(tspan, dm(psi), args...; kwargs...)
 
 # Derivative ∂ₜρ = Lρ
-function dmaster_br(drho::T, rho::T, L::DataOperator{B,B}) where {B<:Basis,T<:Ket{B}}
+function dmaster_br(drho, rho, L)
     QuantumOpticsBase.mul!(drho,L,rho)
 end
 
 # Integrate if there is no fout specified
-function integrate_br(tspan, dmaster_br::Function, rho::T,
-                transf_op::T2, inv_transf_op::T2, ::Nothing;
-                kwargs...) where {T<:Ket,T2<:Operator}
+function integrate_br(tspan, dmaster_br, rho,
+                transf_op, inv_transf_op, ::Nothing;
+                kwargs...)
     # Pre-allocate for in-place back-transformation from eigenbasis
     rho_out = copy(transf_op)
     tmp = copy(transf_op)
     tmp2 = copy(transf_op)
 
     # Define fout
-    function fout(t, rho::T)
+    function fout(t, rho)
         tmp.data[:] = rho.data
         QuantumOpticsBase.mul!(tmp2,transf_op,tmp)
         QuantumOpticsBase.mul!(rho_out,tmp2,inv_transf_op)
@@ -208,9 +204,9 @@ function integrate_br(tspan, dmaster_br::Function, rho::T,
 end
 
 # Integrate with given fout
-function integrate_br(tspan, dmaster_br::Function, rho::T,
-                transf_op::T2, inv_transf_op::T2, fout::Function;
-                kwargs...) where {T<:Ket,T2<:Operator}
+function integrate_br(tspan, dmaster_br, rho,
+                transf_op, inv_transf_op, fout::Function;
+                kwargs...)
     # Pre-allocate for in-place back-transformation from eigenbasis
     rho_out = copy(transf_op)
     tmp = copy(transf_op)
@@ -219,7 +215,7 @@ function integrate_br(tspan, dmaster_br::Function, rho::T,
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
 
     # Perform back-transfomration before calling fout
-    function fout_(t, rho::T)
+    function fout_(t, rho)
         tmp.data[:] = rho.data
         QuantumOpticsBase.mul!(tmp2,transf_op,tmp)
         QuantumOpticsBase.mul!(rho_out,tmp2,inv_transf_op)
