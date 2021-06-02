@@ -1,5 +1,3 @@
-const DecayRates = Union{Vector, Matrix, Nothing}
-
 """
     timeevolution.master_h(tspan, rho0, H, J; <keyword arguments>)
 
@@ -85,11 +83,11 @@ function master(tspan, rho0::Operator, H::AbstractOperator, J;
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
         Hnh = copy(H)
-        if isa(rates, Matrix)
+        if isa(rates, AbstractMatrix)
             for i=1:length(J), j=1:length(J)
                 Hnh -= complex(float(eltype(H)))(0.5im*rates[i,j])*Jdagger[i]*J[j]
             end
-        elseif isa(rates, Vector)
+        elseif isa(rates, AbstractVector)
             for i=1:length(J)
                 Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
             end
@@ -344,9 +342,9 @@ function check_master(rho0, H, J, Jdagger, rates)
         check_samebases(rho0, j)
     end
     @assert length(J)==length(Jdagger)
-    if isa(rates,Matrix)
+    if isa(rates,AbstractMatrix)
         @assert size(rates, 1) == size(rates, 2) == length(J)
-    elseif isa(rates,Vector)
+    elseif isa(rates,AbstractVector)
         @assert length(rates) == length(J)
     end
     isreducible

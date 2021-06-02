@@ -11,13 +11,13 @@ function recast! end
 
 Integrate using OrdinaryDiffEq
 """
-function integrate(tspan, df, x0::X,
-            state::T, dstate::T, fout::Function;
+function integrate(tspan, df, x0,
+            state, dstate, fout;
             alg = OrdinaryDiffEq.DP5(),
             steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
             callback = nothing, kwargs...) where {T,X}
 
-    function df_(dx, x, p, t) where T
+    function df_(dx, x, p, t)
         recast!(x, state)
         recast!(dx, dstate)
         df(t, state, dstate)
@@ -66,8 +66,8 @@ function integrate(tspan, df, x0::X,
     out.t,out.saveval
 end
 
-function integrate(tspan, df, x0::X,
-            state::T, dstate::T, ::Nothing; kwargs...) where {T,X}
+function integrate(tspan, df, x0,
+            state, dstate, ::Nothing; kwargs...)
     function fout(t, state)
         copy(state)
     end

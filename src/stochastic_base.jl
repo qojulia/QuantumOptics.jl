@@ -1,41 +1,38 @@
 using QuantumOpticsBase
 using QuantumOpticsBase: check_samebases, check_multiplicable
-import ..timeevolution: recast!, QO_CHECKS, pure_inference
+import ..timeevolution: recast!, QO_CHECKS, pure_inference, as_vector
 
 import DiffEqCallbacks, StochasticDiffEq, OrdinaryDiffEq
 
-const DiffArray{T} = Union{AbstractArray{T,1}, AbstractArray{T, 2}}
-
-
 """
-    integrate_stoch(tspan::Vector, df::Function, dg::Vector{Function}, x0::Vector{ComplexF64},
-            state::T, dstate::T, fout::Function; kwargs...)
+    integrate_stoch(tspan, df::Function, dg{Function}, x0{ComplexF64},
+            state, dstate, fout::Function; kwargs...)
 
 Integrate using StochasticDiffEq
 """
-function integrate_stoch(tspan::Vector, df::Function, dg::Function, x0::Vector,
-            state::T, dstate::T, fout::Function, n::Int;
+function integrate_stoch(tspan, df, dg, x0,
+            state, dstate, fout, n;
             save_everystep = false, callback=nothing, saveat=tspan,
-            alg::StochasticDiffEq.StochasticDiffEqAlgorithm=StochasticDiffEq.EM(),
+            alg=StochasticDiffEq.EM(),
             noise_rate_prototype = nothing,
             noise_prototype_classical = nothing,
             noise=nothing,
             ncb=nothing,
-            kwargs...) where T
+            kwargs...)
 
-    function df_(dx::T, x::T, p, t) where T
+    function df_(dx, x, p, t)
         recast!(x, state)
         recast!(dx, dstate)
         df(t, state, dstate)
         recast!(dstate, dx)
     end
 
-    function dg_(dx, x, p, t) where T
+    function dg_(dx, x, p, t)
         recast!(x, state)
         dg(dx, t, state, dstate, n)
     end
 
-    function fout_(x::Vector, t, integrator)
+    function fout_(x, t, integrator)
         recast!(x, state)
         fout(t, state)
     end
@@ -87,9 +84,9 @@ end
 
 Define fout if it was omitted.
 """
-function integrate_stoch(tspan::Vector, df::Function, dg::Function, x0::Vector,
-    state::T, dstate::T, ::Nothing, n::Int; kwargs...) where T
-    function fout(t, state::T)
+function integrate_stoch(tspan, df, dg, x0,
+    state, dstate, ::Nothing, n; kwargs...)
+    function fout(t, state)
         copy(state)
     end
     integrate_stoch(tspan, df, dg, x0, state, dstate, fout, n; kwargs...)

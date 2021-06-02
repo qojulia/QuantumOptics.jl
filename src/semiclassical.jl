@@ -237,7 +237,7 @@ function jump_callback(jumpfun, seed, scb, save_before!,
     return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
                      save_positions = (false,false))
 end
-as_vector(psi::State) = [psi.quantum.data; psi.classical]
+as_vector(psi::State) = vcat(psi.quantum.data[:], psi.classical)
 
 
 end # module

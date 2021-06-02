@@ -20,10 +20,10 @@ Integrate stochastic Schrödinger equation.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B}, Hs::Vector;
-                fout::Union{Function,Nothing}=nothing,
-                normalize_state::Bool=false,
+                fout=nothing,
+                normalize_state=false,
                 calback=nothing,
-                kwargs...) where {B<:Basis,T<:Ket{B}}
+                kwargs...) where {B,T<:Ket{B}}
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
 
     n = length(Hs)
@@ -36,12 +36,11 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B}, Hs::Vector;
         @assert isa(h, AbstractOperator{B,B})
     end
 
-    dschroedinger_determ(t, psi::T, dpsi::T) = dschroedinger(psi, H, dpsi)
-    dschroedinger_stoch(dx::DiffArray,
-            t, psi::T, dpsi::T, n::Int) = dschroedinger_stochastic(dx, psi, Hs, dpsi, n)
+    dschroedinger_determ(t, psi, dpsi) = dschroedinger(psi, H, dpsi)
+    dschroedinger_stoch(dx, t, psi, dpsi, n) = dschroedinger_stochastic(dx, psi, Hs, dpsi, n)
 
     if normalize_state
-        norm_func(u::Vector, t, integrator) = normalize!(u)
+        norm_func(u, t, integrator) = normalize!(u)
         ncb = DiffEqCallbacks.FunctionCallingCallback(norm_func;
                  func_everystep=true,
                  func_start=false)
@@ -53,7 +52,7 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B}, Hs::Vector;
                     ncb=ncb,
                     kwargs...)
 end
-schroedinger(tspan, psi0::Ket{B}, H::AbstractOperator{B,B}, Hs::AbstractOperator{B,B}; kwargs...) where B<:Basis = schroedinger(tspan, psi0, H, [Hs]; kwargs...)
+schroedinger(tspan, psi0::Ket{B}, H::AbstractOperator{B,B}, Hs::AbstractOperator{B,B}; kwargs...) where B = schroedinger(tspan, psi0, H, [Hs]; kwargs...)
 
 """
     stochastic.schroedinger_dynamic(tspan, state0, fdeterm, fstoch[; fout, ...])
@@ -81,10 +80,10 @@ Integrate stochastic Schrödinger equation with dynamic Hamiltonian.
         each time step taken by the solver.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function schroedinger_dynamic(tspan, psi0::T, fdeterm::Function, fstoch::Function;
-                fout::Union{Function,Nothing}=nothing, noise_processes::Int=0,
-                normalize_state::Bool=false,
-                kwargs...) where T<:Ket
+function schroedinger_dynamic(tspan, psi0::Ket, fdeterm, fstoch;
+                fout=nothing, noise_processes::Int=0,
+                normalize_state=false,
+                kwargs...)
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
 
     if noise_processes == 0
@@ -98,13 +97,11 @@ function schroedinger_dynamic(tspan, psi0::T, fdeterm::Function, fstoch::Functio
     x0 = psi0.data
     state = copy(psi0)
 
-    dschroedinger_determ(t, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, fdeterm, dpsi)
-    dschroedinger_stoch(dx::DiffArray,
-            t, psi::T, dpsi::T, n::Int) =
-        dschroedinger_stochastic(dx, t, psi, fstoch, dpsi, n)
+    dschroedinger_determ(t, psi, dpsi) = dschroedinger_dynamic(t, psi, fdeterm, dpsi)
+    dschroedinger_stoch(dx, t, psi, dpsi, n) = dschroedinger_stochastic(dx, t, psi, fstoch, dpsi, n)
 
     if normalize_state
-        norm_func(u::Vector, t, integrator) = normalize!(u)
+        norm_func(u, t, integrator) = normalize!(u)
         ncb = DiffEqCallbacks.FunctionCallingCallback(norm_func;
                  func_everystep=true,
                  func_start=false)
@@ -119,13 +116,11 @@ function schroedinger_dynamic(tspan, psi0::T, fdeterm::Function, fstoch::Functio
 end
 
 
-function dschroedinger_stochastic(dx::D, psi::T1, Hs::Vector{T2},
-            dpsi::T1, index::Int) where {D<:Vector,B<:Basis,T1<:Ket{B},T2<:AbstractOperator{B,B}}
+function dschroedinger_stochastic(dx::AbstractVector, psi, Hs, dpsi, index)
     recast!(dx, dpsi)
     dschroedinger(psi, Hs[index], dpsi)
 end
-function dschroedinger_stochastic(dx::Matrix, psi::T1, Hs::Vector{T2},
-            dpsi::T1, n::Int) where {B<:Basis,T1<:Ket{B},T2<:AbstractOperator{B,B}}
+function dschroedinger_stochastic(dx::AbstractMatrix, psi, Hs, dpsi, n)
     for i=1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, dpsi)
@@ -133,8 +128,7 @@ function dschroedinger_stochastic(dx::Matrix, psi::T1, Hs::Vector{T2},
         recast!(dpsi, dx_i)
     end
 end
-function dschroedinger_stochastic(dx::DiffArray,
-            t, psi::T, f::Function, dpsi::T, n::Int) where T<:Ket
+function dschroedinger_stochastic(dx, t, psi, f, dpsi, n)
     ops = f(t, psi)
     if QO_CHECKS[]
         @inbounds for h=ops
