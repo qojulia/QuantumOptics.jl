@@ -177,4 +177,9 @@ tout, Ψket_t = timeevolution.schroedinger(T, Ψ₀, Hdense; reltol=1.e-7)
 tout, Ψbra_t = timeevolution.schroedinger(T, dagger(Ψ₀), Hdense; reltol=1.e-7)
 @test tracedistance(Ψket_t[end]⊗Ψbra_t[end], ρ) < 1e-5
 
+L = liouvillian(Hdense, J)
+tout, rho_t = timeevolution.master(T, Ψ₀, L)
+tout, h_exp = timeevolution.master(T, dm(Ψ₀), L; fout=(t,rho)->expect(Hdense, rho)::ComplexF64)
+@test isequal(expect(Hdense, rho_t), h_exp)
+
 end # testset
