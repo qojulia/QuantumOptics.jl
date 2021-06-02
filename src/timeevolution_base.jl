@@ -28,15 +28,16 @@ function integrate(tspan, df, x0::X,
         fout(t, state)
     end
 
-    out_type = pure_inference(fout, Tuple{eltype(tspan),typeof(state)})
+    tType = float(eltype(tspan))
+    out_type = pure_inference(fout, Tuple{tType,typeof(state)})
 
-    out = DiffEqCallbacks.SavedValues(eltype(tspan),out_type)
+    out = DiffEqCallbacks.SavedValues(tType,out_type)
 
     scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=saveat,
                                          save_everystep=save_everystep,
                                          save_start = false)
 
-    prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(tspan[1],tspan[end]))
+    prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(convert(tType, tspan[1]),convert(tType, tspan[end])))
 
     if steady_state
         affect! = function (integrator)
