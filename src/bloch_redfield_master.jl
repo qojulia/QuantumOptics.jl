@@ -35,11 +35,12 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     Heb = to_Heb(H, transf_mat)
     #Use anon function
     f = (x->to_Heb(x, transf_mat))
-    L = liouvillian(Heb, f.(J)) #This also includes unitary dynamics part dρ/dt = -i[H, ρ]
-    L = sparse(L)
+    L_task = Threads.@spawn liouvillian(Heb, f.(J)) #This also includes unitary dynamics part dρ/dt = -i[H, ρ]
+    # L = sparse(liouvillian(Heb, f.(J)))
 
     #If only Lindblad collapse terms (no a_ops given) then we're done
     if K==0
+        L = sparse(fetch(L_task))
         return L, H_ekets #L is in the energy eigenbasis here
     end
 
@@ -68,7 +69,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     #Initialize R_abcd array
     data = zeros(ComplexF64, N, N, N, N)
     #Loop through all indices and calculate elements - seems to be as efficient as any fancy broadcasting implementation (and much simpler to read)
-    for idx in CartesianIndices(data)
+    Threads.@threads for idx in CartesianIndices(data)
 
         a, b, c, d = Tuple(idx) #Unpack indices
 
@@ -97,6 +98,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops::Array; J=[], use_secu
     R = sparse(data) #Remove any zero values and converts to sparse array
 
     #Add Bloch-Redfield part to unitary dyanmics and Lindblad Liouvillian calculated above
+    L = sparse(fetch(L_task))
     L.data = L.data + R
 
     return L, H_ekets
