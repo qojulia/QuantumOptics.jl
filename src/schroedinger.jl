@@ -14,13 +14,12 @@ Integrate Schroedinger equation to evolve states or compute propagators.
 """
 function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...) where {B<:Basis,T<:Union{AbstractOperator{B,B},StateVector{B}}}
-    tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
-    dschroedinger_(t, psi::T, dpsi::T) = dschroedinger(psi, H, dpsi)
+                kwargs...) where {B,T<:Union{AbstractOperator{B,B},StateVector{B}}}
+    dschroedinger_(t, psi, dpsi) = dschroedinger(psi, H, dpsi)
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
-    integrate(tspan_, dschroedinger_, x0, state, dstate, fout; kwargs...)
+    integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
 
@@ -38,45 +37,44 @@ Integrate time-dependent Schroedinger equation to evolve states or compute propa
         normalized nor permanent! It is still in use by the ode solver and
         therefore must not be changed.
 """
-function schroedinger_dynamic(tspan, psi0::T, f::Function;
+function schroedinger_dynamic(tspan, psi0, f::Function;
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...) where T<:Union{StateVector,AbstractOperator}
-    tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
-    dschroedinger_(t, psi::T, dpsi::T) = dschroedinger_dynamic(t, psi, f, dpsi)
+                kwargs...)
+    dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic(t, psi, f, dpsi)
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
-    integrate(tspan_, dschroedinger_, x0, state, dstate, fout; kwargs...)
+    integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
 
-recast!(x::D, psi::StateVector{B,D}) where {B<:Basis, D} = (psi.data = x);
-recast!(psi::StateVector{B,D}, x::D) where {B<:Basis, D} = nothing
+recast!(x::D, psi::StateVector{B,D}) where {B, D} = (psi.data = x);
+recast!(psi::StateVector{B,D}, x::D) where {B, D} = nothing
 
 
-function dschroedinger(psi::Union{Ket{B},AbstractOperator{B,B}}, H::AbstractOperator{B,B}, dpsi::Union{Ket{B},AbstractOperator{B,B}}) where B<:Basis
+function dschroedinger(psi, H, dpsi)
     QuantumOpticsBase.mul!(dpsi,H,psi,eltype(psi)(-im),zero(eltype(psi)))
     return dpsi
 end
 
-function dschroedinger(psi::Bra{B}, H::AbstractOperator{B,B}, dpsi::Bra{B}) where B<:Basis
+function dschroedinger(psi::Bra, H, dpsi)
     QuantumOpticsBase.mul!(dpsi,psi,H,eltype(psi)(im),zero(eltype(psi)))
     return dpsi
 end
 
 
-function dschroedinger_dynamic(t, psi0::T, f::Function, dpsi::T) where T<:Union{StateVector,AbstractOperator}
+function dschroedinger_dynamic(t, psi0, f::Function, dpsi)
     H = f(t, psi0)
     dschroedinger(psi0, H, dpsi)
 end
 
 
-function check_schroedinger(psi::Ket, H::AbstractOperator)
+function check_schroedinger(psi::Ket, H)
     check_multiplicable(H, psi)
     check_samebases(H)
 end
 
-function check_schroedinger(psi::Bra, H::AbstractOperator)
+function check_schroedinger(psi::Bra, H)
     check_multiplicable(psi, H)
     check_samebases(H)
 end
