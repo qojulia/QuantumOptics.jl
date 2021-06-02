@@ -33,26 +33,25 @@ criterion specified in [`steadystate.master`](@ref).
 * `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function correlation(tspan::Vector, rho0::Operator{B,B}, H::AbstractOperator{B,B}, J::Vector,
-                     op1::AbstractOperator{B,B}, op2::AbstractOperator{B,B};
-                     rates::Union{Vector, Matrix, Nothing}=nothing,
-                     Jdagger::Vector=dagger.(J),
-                     kwargs...) where B<:Basis
-    tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
+function correlation(tspan, rho0::Operator, H::AbstractOperator, J,
+                     op1, op2;
+                     rates=nothing,
+                     Jdagger=dagger.(J),
+                     kwargs...)
     function fout(t, rho)
         expect(op1, rho)
     end
-    t,u = timeevolution.master(tspan_, op2*rho0, H, J; rates=rates, Jdagger=Jdagger,
+    t,u = timeevolution.master(tspan, op2*rho0, H, J; rates=rates, Jdagger=Jdagger,
                         fout=fout, kwargs...)
     u
 end
 
-function correlation(rho0::Operator{B,B}, H::AbstractOperator{B,B}, J::Vector,
-                     op1::AbstractOperator{B,B}, op2::AbstractOperator{B,B};
+function correlation(rho0::Operator, H::AbstractOperator, J,
+                     op1, op2;
                      tol=1e-4,
-                     rates::Union{Vector, Matrix, Nothing}=nothing,
-                     Jdagger::Vector=dagger.(J),
-                     kwargs...) where B<:Basis
+                     rates=nothing,
+                     Jdagger=dagger.(J),
+                     kwargs...)
     op2rho0 = op2*rho0
     exp1 = expect(op1, op2rho0)
     function fout(t, rho)
@@ -97,11 +96,11 @@ automatically.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function spectrum(omega_samplepoints,
-                H::AbstractOperator{B,B}, J::Vector, op::AbstractOperator{B,B};
-                rho0::Operator{B,B}=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
+                H::AbstractOperator, J, op;
+                rho0=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol=1e-4,
-                rho_ss::Operator{B,B}=steadystate.master(H, J; tol=tol, rho0=rho0)[end][end],
-                kwargs...) where B<:Basis
+                rho_ss=steadystate.master(H, J; tol=tol, rho0=rho0)[end][end],
+                kwargs...)
     domega = minimum(diff(omega_samplepoints))
     dt = 2*pi/abs(omega_samplepoints[end] - omega_samplepoints[1])
     T = 2*pi/domega
@@ -111,11 +110,11 @@ function spectrum(omega_samplepoints,
     return omega_samplepoints, S
 end
 
-function spectrum(H::AbstractOperator{B,B}, J::Vector, op::AbstractOperator{B,B};
-                rho0::Operator{B,B}=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
+function spectrum(H::AbstractOperator, J, op;
+                rho0=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol=1e-4,
-                rho_ss::Operator{B,B}=steadystate.master(H, J; tol=tol)[end][end],
-                kwargs...) where B<:Basis
+                rho_ss=steadystate.master(H, J; tol=tol)[end][end],
+                kwargs...)
     tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, tol=tol, kwargs...)
     dtmin = minimum(diff(tspan))
     T = tspan[end] - tspan[1]
@@ -137,7 +136,7 @@ Calculate spectrum as Fourier transform of a correlation function with a given c
 * `corr`: Correlation function of which the Fourier transform is to be calculated.
 * `normalize_spec`: Specify if spectrum should be normalized to its maximum.
 """
-function correlation2spectrum(tspan, corr::Vector{T}; normalize_spec::Bool=false) where T <: Number
+function correlation2spectrum(tspan, corr; normalize_spec=false)
   n = length(tspan)
   if length(corr) != n
     ArgumentError("tspan and corr must be of same length!")

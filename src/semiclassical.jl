@@ -16,7 +16,6 @@ using ..timeevolution
 
 
 const QuantumState{B} = Union{Ket{B}, Operator{B,B}}
-const DecayRates = Union{Nothing, Vector, Matrix}
 
 """
 Semi-classical state.
@@ -24,10 +23,10 @@ Semi-classical state.
 It consists of a quantum part, which is either a `Ket` or a `DenseOperator` and
 a classical part that is specified as a complex vector of arbitrary length.
 """
-mutable struct State{B<:Basis,T<:QuantumState{B},C<:Vector}
+mutable struct State{B,T,C}
     quantum::T
     classical::C
-    function State(quantum::T, classical::C) where {B<:Basis,T<:QuantumState{B},C<:Vector}
+    function State(quantum::T, classical::C) where {B,T<:QuantumState{B},C}
         new{B,T,C}(quantum, classical)
     end
 end
@@ -35,8 +34,8 @@ end
 Base.length(state::State) = length(state.quantum) + length(state.classical)
 Base.copy(state::State) = State(copy(state.quantum), copy(state.classical))
 Base.eltype(state::State) = promote_type(eltype(state.quantum),eltype(state.classical))
-normalize!(state::State{B,T}) where {B,T<:Ket} = normalize!(state.quantum)
-normalize(state::T) where {B,K<:Ket,T<:State{B,K}} = State(normalize(state.quantum),copy(state.classical))
+normalize!(state::State) where {B,T} = (normalize!(state.quantum); state)
+normalize(state::State) = State(normalize(state.quantum),copy(state.classical))
 
 function ==(a::State, b::State)
     QuantumOpticsBase.samebases(a.quantum, b.quantum) &&
@@ -49,7 +48,7 @@ QuantumOpticsBase.expect(op, state::State) = expect(op, state.quantum)
 QuantumOpticsBase.variance(op, state::State) = variance(op, state.quantum)
 QuantumOpticsBase.ptrace(state::State, indices) = State(ptrace(state.quantum, indices), state.classical)
 
-QuantumOpticsBase.dm(x::State{B,T}) where {B<:Basis,T<:Ket{B}} = State(dm(x.quantum), x.classical)
+QuantumOpticsBase.dm(x::State) = State(dm(x.quantum), x.classical)
 
 
 """
@@ -71,16 +70,15 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
         normalized nor permanent!
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function schroedinger_dynamic(tspan, state0::S, fquantum::Function, fclassical::Function;
-                fout::Union{Function,Nothing}=nothing,
-                kwargs...) where {B<:Basis,T<:Ket{B},S<:State{B,T}}
-    tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
-    dschroedinger_(t, state::S, dstate::S) = dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
+function schroedinger_dynamic(tspan, state0::State, fquantum, fclassical;
+                fout=nothing,
+                kwargs...)
+    dschroedinger_(t, state, dstate) = dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
     x0 = Vector{eltype(state0)}(undef, length(state0))
     recast!(state0, x0)
     state = copy(state0)
     dstate = copy(state0)
-    integrate(tspan_, dschroedinger_, x0, state, dstate, fout; kwargs...)
+    integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
 """
@@ -103,22 +101,19 @@ Integrate time-dependent master equation coupled to a classical system.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical;
-                rates::DecayRates=nothing,
-                fout::Union{Function,Nothing}=nothing,
-                tmp::T=copy(state0.quantum),
-                kwargs...) where {B<:Basis,T<:Operator{B,B}}
-    tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
-    function dmaster_(t, state::S, dstate::S) where {B<:Basis,T<:Operator{B,B},S<:State{B,T}}
-        dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
-    end
+                rates=nothing,
+                fout=nothing,
+                tmp=copy(state0.quantum),
+                kwargs...) where {B,T<:Operator}
+    dmaster_(t, state, dstate) = dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
     x0 = Vector{eltype(state0)}(undef, length(state0))
     recast!(state0, x0)
     state = copy(state0)
     dstate = copy(state0)
-    integrate(tspan_, dmaster_, x0, state, dstate, fout; kwargs...)
+    integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
 end
 
-function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical; kwargs...) where {B<:Basis,T<:Ket{B}}
+function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical; kwargs...) where {B,T<:Ket{B}}
     master_dynamic(tspan, dm(state0), fquantum, fclassical; kwargs...)
 end
 
@@ -155,57 +150,51 @@ sure to take this into account when computing expectation values!
 """
 function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum, fclassical, fjump_classical;
                 seed=rand(UInt),
-                rates::DecayRates=nothing,
-                fout::Union{Function,Nothing}=nothing,
-                kwargs...) where {B<:Basis,T<:Ket{B}}
-    tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
+                rates=nothing,
+                fout=nothing,
+                kwargs...) where {B,T<:Ket}
     tmp=copy(psi0.quantum)
-    function dmcwf_(t, psi::S, dpsi::S) where {B<:Basis,T<:Ket{B},S<:State{B,T}}
-        dmcwf_h_dynamic(t, psi, fquantum, fclassical, rates, dpsi, tmp)
-    end
+    dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic(t, psi, fquantum, fclassical, rates, dpsi, tmp)
     j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, fquantum, fclassical, fjump_classical, psi_new, rates)
     x0 = Vector{eltype(psi0)}(undef, length(psi0))
     recast!(psi0, x0)
     psi = copy(psi0)
     dpsi = copy(psi0)
-    integrate_mcwf(dmcwf_, j_, tspan_, psi, seed, fout; kwargs...)
+    integrate_mcwf(dmcwf_, j_, tspan, psi, seed, fout; kwargs...)
 end
 
-function recast!(state::State{B,T,C}, x::C) where {B<:Basis,T<:QuantumState{B},C<:Vector}
+function recast!(state::State{B,T,C}, x::C) where {B,T,C}
     N = length(state.quantum)
     copyto!(x, 1, state.quantum.data, 1, N)
     copyto!(x, N+1, state.classical, 1, length(state.classical))
     x
 end
 
-function recast!(x::C, state::State{B,T,C}) where {B<:Basis,T<:QuantumState{B},C<:Vector}
+function recast!(x::C, state::State{B,T,C}) where {B,T,C}
     N = length(state.quantum)
     copyto!(state.quantum.data, 1, x, 1, N)
     copyto!(state.classical, 1, x, N+1, length(state.classical))
 end
 
-function dschroedinger_dynamic(t, state::State{B,T}, fquantum::Function,
-            fclassical::Function, dstate::State{B,T}) where {B<:Basis,T<:Ket{B}}
+function dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
     fquantum_(t, psi) = fquantum(t, state.quantum, state.classical)
     timeevolution.dschroedinger_dynamic(t, state.quantum, fquantum_, dstate.quantum)
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 
-function dmaster_h_dynamic(t, state::State{B,T}, fquantum::Function,
-            fclassical::Function, rates::DecayRates, dstate::State{B,T}, tmp::T) where {B<:Basis,T<:Operator{B,B}}
+function dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
     fquantum_(t, rho) = fquantum(t, state.quantum, state.classical)
     timeevolution.dmaster_h_dynamic(t, state.quantum, fquantum_, rates, dstate.quantum, tmp)
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 
-function dmcwf_h_dynamic(t, psi::T, fquantum::Function, fclassical::Function, rates::DecayRates,
-                    dpsi::T, tmp::K) where {T,K}
+function dmcwf_h_dynamic(t, psi, fquantum, fclassical, rates, dpsi, tmp)
     fquantum_(t, rho) = fquantum(t, psi.quantum, psi.classical)
     timeevolution.dmcwf_h_dynamic(t, psi.quantum, fquantum_, rates, dpsi.quantum, tmp)
     fclassical(t, psi.quantum, psi.classical, dpsi.classical)
 end
 
-function jump_dynamic(rng, t, psi::T, fquantum::Function, fclassical::Function, fjump_classical::Function, psi_new::T, rates::DecayRates) where T<:State
+function jump_dynamic(rng, t, psi, fquantum, fclassical, fjump_classical, psi_new, rates)
     result = fquantum(t, psi.quantum, psi.classical)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     J = result[2]
@@ -220,8 +209,8 @@ function jump_dynamic(rng, t, psi::T, fquantum::Function, fclassical::Function, 
     return i
 end
 
-function jump_callback(jumpfun::Function, seed, scb, save_before!::Function,
-                        save_after!::Function, save_t_index::Function, psi0::State)
+function jump_callback(jumpfun, seed, scb, save_before!,
+                        save_after!, save_t_index, psi0::State)
     tmp = copy(psi0)
     psi_tmp = copy(psi0)
     rng = MersenneTwister(convert(UInt, seed))
@@ -248,7 +237,7 @@ function jump_callback(jumpfun::Function, seed, scb, save_before!::Function,
     return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
                      save_positions = (false,false))
 end
-as_vector(psi::State{B,K}) where {B,K<:Ket} = [psi.quantum.data; psi.classical]
+as_vector(psi::State) = [psi.quantum.data; psi.classical]
 
 
 end # module
