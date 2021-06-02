@@ -10,15 +10,15 @@ Calculate MCWF trajectory where the Hamiltonian is given in hermitian form.
 
 For more information see: [`mcwf`](@ref)
 """
-function mcwf_h(tspan, psi0::T, H::AbstractOperator{B,B}, J::Vector;
-        seed=rand(UInt), rates::DecayRates=nothing,
-        fout=nothing, Jdagger::Vector=dagger.(J),
-        tmp::T=copy(psi0),
+function mcwf_h(tspan, psi0::Ket, H::AbstractOperator, J;
+        seed=rand(UInt), rates=nothing,
+        fout=nothing, Jdagger=dagger.(J),
+        tmp=copy(psi0),
         display_beforeevent=false, display_afterevent=false,
-        kwargs...) where {B<:Basis,T<:Ket{B}}
+        kwargs...)
     check_mcwf(psi0, H, J, Jdagger, rates)
-    f(t, psi::T, dpsi::T) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
-    j(rng, t, psi::T, psi_new::T) = jump(rng, t, psi, J, psi_new, rates)
+    f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
         display_beforeevent=display_beforeevent,
         display_afterevent=display_afterevent,
@@ -36,13 +36,13 @@ H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 
 For more information see: [`mcwf`](@ref)
 """
-function mcwf_nh(tspan, psi0::T, Hnh::AbstractOperator{B,B}, J::Vector;
+function mcwf_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J;
         seed=rand(UInt), fout=nothing,
         display_beforeevent=false, display_afterevent=false,
-        kwargs...) where {B<:Basis,T<:Ket{B}}
+        kwargs...)
     check_mcwf(psi0, Hnh, J, J, nothing)
-    f(t, psi::T, dpsi::T) = dmcwf_nh(psi, Hnh, dpsi)
-    j(rng, t, psi::T, psi_new::T) = jump(rng, t, psi, J, psi_new, nothing)
+    f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
         display_beforeevent=display_beforeevent,
         display_afterevent=display_afterevent,
@@ -87,16 +87,16 @@ is returned. These correspond to the times at which a jump occured and the index
 of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function mcwf(tspan, psi0::T, H::AbstractOperator{B,B}, J::Vector;
-        seed=rand(UInt), rates::DecayRates=nothing,
-        fout=nothing, Jdagger::Vector=dagger.(J),
+function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
+        seed=rand(UInt), rates=nothing,
+        fout=nothing, Jdagger=dagger.(J),
         display_beforeevent=false, display_afterevent=false,
-        kwargs...) where {B<:Basis,T<:Ket{B}}
+        kwargs...)
     isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(psi0)
-        dmcwf_h_(t, psi::T, dpsi::T) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
-        j_h(rng, t, psi::T, psi_new::T) = jump(rng, t, psi, J, psi_new, rates)
+        dmcwf_h_(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+        j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
         integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed,
             fout;
             display_beforeevent=display_beforeevent,
@@ -113,8 +113,8 @@ function mcwf(tspan, psi0::T, H::AbstractOperator{B,B}, J::Vector;
                 Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
             end
         end
-        dmcwf_nh_(t, psi::T, dpsi::T) = dmcwf_nh(psi, Hnh, dpsi)
-        j_nh(rng, t, psi::T, psi_new::T) = jump(rng, t, psi, J, psi_new, rates)
+        dmcwf_nh_(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+        j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
         integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed,
             fout;
             display_beforeevent=display_beforeevent,
@@ -152,13 +152,13 @@ is returned. These correspond to the times at which a jump occured and the index
 of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function mcwf_dynamic(tspan, psi0::T, f::Function;
-    seed=rand(UInt), rates::DecayRates=nothing,
+function mcwf_dynamic(tspan, psi0::Ket, f;
+    seed=rand(UInt), rates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
-    kwargs...) where {T<:Ket}
+    kwargs...)
     tmp = copy(psi0)
-    dmcwf_(t, psi::T, dpsi::T) = dmcwf_h_dynamic(t, psi, f, rates, dpsi, tmp)
-    j_(rng, t, psi::T, psi_new::T) = jump_dynamic(rng, t, psi, f, psi_new, rates)
+    dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic(t, psi, f, rates, dpsi, tmp)
+    j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
         fout;
         display_beforeevent=display_beforeevent,
@@ -173,12 +173,12 @@ Calculate MCWF trajectory where the dynamic Hamiltonian is given in non-hermitia
 
 For more information see: [`mcwf_dynamic`](@ref)
 """
-function mcwf_nh_dynamic(tspan, psi0::T, f::Function;
-    seed=rand(UInt), rates::DecayRates=nothing,
+function mcwf_nh_dynamic(tspan, psi0::Ket, f;
+    seed=rand(UInt), rates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
-    kwargs...) where T<:Ket
-    dmcwf_(t, psi::T, dpsi::T) = dmcwf_nh_dynamic(t, psi, f, dpsi)
-    j_(rng, t, psi::T, psi_new::T) = jump_dynamic(rng, t, psi, f, psi_new, rates)
+    kwargs...)
+    dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic(t, psi, f, dpsi)
+    j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
         fout;
         display_beforeevent=display_beforeevent,
@@ -186,8 +186,8 @@ function mcwf_nh_dynamic(tspan, psi0::T, f::Function;
         kwargs...)
 end
 
-function dmcwf_h_dynamic(t, psi::T, f::Function, rates::DecayRates,
-                    dpsi::T, tmp::T) where T<:Ket
+function dmcwf_h_dynamic(t, psi, f, rates,
+                    dpsi, tmp)
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     if length(result) == 3
@@ -200,7 +200,7 @@ function dmcwf_h_dynamic(t, psi::T, f::Function, rates::DecayRates,
     dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates_)
 end
 
-function dmcwf_nh_dynamic(t, psi::T, f::Function, dpsi::T) where T<:Ket
+function dmcwf_nh_dynamic(t, psi, f, dpsi)
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     H, J, Jdagger = result[1:3]
@@ -208,7 +208,7 @@ function dmcwf_nh_dynamic(t, psi::T, f::Function, dpsi::T) where T<:Ket
     dmcwf_nh(psi, H, dpsi)
 end
 
-function jump_dynamic(rng, t, psi::T, f::Function, psi_new::T, rates::DecayRates) where T<:Ket
+function jump_dynamic(rng, t, psi, f, psi_new, rates)
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     J = result[2]
@@ -241,14 +241,14 @@ Integrate a single Monte Carlo wave function trajectory.
         and therefore must not be changed.
 * `kwargs`: Further arguments are passed on to the ode solver.
 """
-function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
-                        psi0::T, seed, fout::Function;
+function integrate_mcwf(dmcwf, jumpfun, tspan,
+                        psi0, seed, fout::Function;
                         display_beforeevent=false, display_afterevent=false,
                         display_jumps=false,
                         save_everystep=false, callback=nothing,
                         saveat=tspan,
                         alg=OrdinaryDiffEq.DP5(),
-                        kwargs...) where T
+                        kwargs...)
 
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     # Display before or after events
@@ -275,7 +275,7 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
         (t,i)->nothing
     end
 
-    function fout_(x::Vector, t, integrator)
+    function fout_(x, t, integrator)
         recast!(x, state)
         fout(t, state)
     end
@@ -291,14 +291,14 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0)
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
 
-    function df_(dx::D, x::D, p, t) where D
+    function df_(dx, x, p, t)
         recast!(x, state)
         recast!(dx, dstate)
         dmcwf(t, state, dstate)
         recast!(dstate, dx)
     end
 
-    prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0),(tspan_[1],tspan_[end]))
+    prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0), (tspan_[1],tspan_[end]))
 
     sol = OrdinaryDiffEq.solve(
                 prob,
@@ -316,17 +316,17 @@ function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
     end
 end
 
-function integrate_mcwf(dmcwf::Function, jumpfun::Function, tspan,
-                        psi0::T, seed, fout::Nothing;
-                        kwargs...) where T
-    function fout_(t, x::T)
+function integrate_mcwf(dmcwf, jumpfun, tspan,
+                        psi0, seed, fout::Nothing;
+                        kwargs...)
+    function fout_(t, x)
         return normalize(x)
     end
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed, fout_; kwargs...)
 end
 
-function jump_callback(jumpfun::Function, seed, scb, save_before!::Function,
-                        save_after!::Function, save_t_index::Function, psi0::Ket)
+function jump_callback(jumpfun, seed, scb, save_before!,
+                        save_after!, save_t_index, psi0)
 
     tmp = copy(psi0)
     psi_tmp = copy(psi0)
@@ -368,7 +368,7 @@ Default jump function.
 * `J`: List of jump operators.
 * `psi_new`: Result of jump.
 """
-function jump(rng, t, psi::T, J::Vector, psi_new::T, rates::Nothing) where T<:Ket
+function jump(rng, t, psi, J, psi_new, rates::Nothing)
     if length(J)==1
         QuantumOpticsBase.mul!(psi_new,J[1],psi,true,false)
         psi_new.data ./= norm(psi_new)
@@ -387,7 +387,7 @@ function jump(rng, t, psi::T, J::Vector, psi_new::T, rates::Nothing) where T<:Ke
     return i
 end
 
-function jump(rng, t, psi::T, J::Vector, psi_new::T, rates::Vector) where T<:Ket
+function jump(rng, t, psi, J, psi_new, rates::AbstractVector)
     if length(J)==1
         QuantumOpticsBase.mul!(psi_new,J[1],psi,eltype(psi)(sqrt(rates[1])),zero(eltype(psi)))
         psi_new.data ./= norm(psi_new)
@@ -412,8 +412,8 @@ Evaluate non-hermitian Schroedinger equation.
 The non-hermitian Hamiltonian is given in two parts - the hermitian part H and
 the jump operators J.
 """
-function dmcwf_h(psi::T, H::AbstractOperator{B,B},
-                 J::Vector, Jdagger::Vector, dpsi::T, tmp::T, rates::Nothing) where {B<:Basis,T<:Ket{B}}
+function dmcwf_h(psi, H,
+                 J, Jdagger, dpsi, tmp, rates::Nothing)
     QuantumOpticsBase.mul!(dpsi,H,psi,eltype(psi)(-im),zero(eltype(psi)))
     for i=1:length(J)
         QuantumOpticsBase.mul!(tmp,J[i],psi,true,false)
@@ -422,8 +422,8 @@ function dmcwf_h(psi::T, H::AbstractOperator{B,B},
     return dpsi
 end
 
-function dmcwf_h(psi::T, H::AbstractOperator{B,B},
-                 J::Vector, Jdagger::Vector, dpsi::T, tmp::T, rates::Vector) where {B<:Basis,T<:Ket{B}}
+function dmcwf_h(psi, H,
+                 J, Jdagger, dpsi, tmp, rates::AbstractVector)
     QuantumOpticsBase.mul!(dpsi,H,psi,eltype(psi)(-im),zero(eltype(psi)))
     for i=1:length(J)
         QuantumOpticsBase.mul!(tmp,J[i],psi,eltype(psi)(rates[i]),zero(eltype(psi)))
@@ -438,7 +438,7 @@ Evaluate non-hermitian Schroedinger equation.
 
 The given Hamiltonian is already the non-hermitian version.
 """
-function dmcwf_nh(psi::T, Hnh::AbstractOperator{B,B}, dpsi::T) where {B<:Basis,T<:Ket{B}}
+function dmcwf_nh(psi, Hnh, dpsi)
     QuantumOpticsBase.mul!(dpsi,Hnh,psi,eltype(psi)(-im),zero(eltype(psi)))
     return dpsi
 end
@@ -448,20 +448,20 @@ end
 
 Check input of mcwf.
 """
-function check_mcwf(psi0::Ket{B}, H::AbstractOperator{B,B}, J::Vector, Jdagger::Vector, rates::DecayRates) where B<:Basis
+function check_mcwf(psi0, H, J, Jdagger, rates)
     # TODO: replace type checks by dispatch; make types of J known
     isreducible = true
     if !(isa(H, DenseOpType) || isa(H, SparseOpType))
         isreducible = false
     end
     for j=J
-        @assert isa(j, AbstractOperator{B,B})
+        @assert isa(j, AbstractOperator)
         if !(isa(j, DenseOpType) || isa(j, SparseOpType))
             isreducible = false
         end
     end
     for j=Jdagger
-        @assert isa(j, AbstractOperator{B,B})
+        @assert isa(j, AbstractOperator)
         if !(isa(j, DenseOpType) || isa(j, SparseOpType))
             isreducible = false
         end
@@ -488,13 +488,13 @@ corresponding set of jump operators is calculated.
 * `rates`: Matrix of decay rates.
 * `J`: Vector of jump operators.
 """
-function diagonaljumps(rates::Matrix, J::Vector{T}) where {B<:Basis,T<:AbstractOperator{B,B}}
+function diagonaljumps(rates::AbstractMatrix, J)
     @assert length(J) == size(rates)[1] == size(rates)[2]
     d, v = eigen(rates)
     d, [sum([v[j, i]*J[j] for j=1:length(d)]) for i=1:length(d)]
 end
 
-function diagonaljumps(rates::Matrix, J::Vector{T}) where {B<:Basis,T<:Union{LazySum{B,B},LazyTensor{B,B},LazyProduct{B,B}}}
+function diagonaljumps(rates::AbstractMatrix, J::Vector{T}) where T<:Union{LazySum,LazyTensor,LazyProduct}
     @assert length(J) == size(rates)[1] == size(rates)[2]
     d, v = eigen(rates)
     d, [LazySum([v[j, i]*J[j] for j=1:length(d)]...) for i=1:length(d)]
