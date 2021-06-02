@@ -16,9 +16,9 @@ function can either be evaluated on one point α or on a grid specified by
 the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
 done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + i y)``.
 """
-function qfunc(rho::AbstractOperator{B,B}, alpha::Number) where B<:FockBasis
+function qfunc(rho::AbstractOperator{B,B}, alpha) where B<:FockBasis
     b = basis(rho)
-    _qfunc_operator(rho, convert(ComplexF64, alpha), Ket(b), Ket(b))
+    _qfunc_operator(rho, alpha, Ket(b), Ket(b))
 end
 
 function qfunc(rho::AbstractOperator{B,B}, xvec::AbstractVector, yvec::AbstractVector) where B<:FockBasis
@@ -27,14 +27,14 @@ function qfunc(rho::AbstractOperator{B,B}, xvec::AbstractVector, yvec::AbstractV
     Ny = length(yvec)
     tmp1 = Ket(b)
     tmp2 = Ket(b)
-    result = Matrix{ComplexF64}(undef, Nx, Ny)
+    result = Matrix{eltype(rho)}(undef, Nx, Ny)
     @inbounds for j=1:Ny, i=1:Nx
         result[i, j] = _qfunc_operator(rho, complex(xvec[i], yvec[j])/sqrt(2), tmp1, tmp2)
     end
     result
 end
 
-function qfunc(psi::Ket{B}, alpha::Number) where B<:FockBasis
+function qfunc(psi::Ket{B}, alpha) where B<:FockBasis
     b = basis(psi)
     _conj_alpha = conj(alpha)
     c = one(alpha)
@@ -84,11 +84,11 @@ function qfunc(psi::Ket{B}, xvec::AbstractVector, yvec::AbstractVector) where B<
     return result
 end
 
-function qfunc(state::Union{Ket{B}, AbstractOperator{B,B}}, x::Number, y::Number) where B<:FockBasis
-    qfunc(state, ComplexF64(x, y)/sqrt(2))
+function qfunc(state::Union{Ket{B}, AbstractOperator{B,B}}, x, y) where B<:FockBasis
+    qfunc(state, complex(x, y)/sqrt(2))
 end
 
-function _qfunc_operator(rho::AbstractOperator{B,B}, alpha::Complex, tmp1::Ket, tmp2::Ket) where B<:FockBasis
+function _qfunc_operator(rho, alpha, tmp1, tmp2)
     coherentstate!(tmp1, basis(rho), alpha)
     QuantumOpticsBase.mul!(tmp2,rho,tmp1,true,false)
     a = dot(tmp1.data, tmp2.data)
@@ -106,11 +106,11 @@ function can either be evaluated on one point α or on a grid specified by
 the vectors `xvec` and `yvec`. Note that conversion from `x` and `y` to `α` is
 done via the relation ``α = \\frac{1}{\\sqrt{2}}(x + i y)``.
 """
-function wigner(rho::Operator{B,B}, x::Number, y::Number) where B<:FockBasis
+function wigner(rho::Operator{B,B}, x, y) where B<:FockBasis
     b = basis(rho)
-    N = b.N::Int
+    N = b.N
     N0 = b.offset
-    _2α = complex(convert(Float64, x), convert(Float64, y))*sqrt(2)
+    _2α = complex(x, y)*sqrt(2)
     abs2_2α = abs2(_2α)
     w = complex(0.)
     coefficient = complex(0.)
@@ -125,7 +125,7 @@ end
 
 function wigner(rho::Operator{B,B}, xvec::AbstractVector, yvec::AbstractVector) where B<:FockBasis
     b = basis(rho)
-    N = b.N::Int
+    N = b.N
     N0 = b.offset
     _2α = [complex(x, y)*sqrt(2) for x=xvec, y=yvec]
     abs2_2α = abs2.(_2α)
@@ -287,10 +287,10 @@ systems and can be described by two angles θ and ϕ (although this
 parametrization is not unique), similarly to a qubit on the
 Bloch sphere.
 """
-function coherentspinstate(b::SpinBasis, theta::Real, phi::Real,
-    result = Ket(b, Vector{ComplexF64}(undef, length(b))))
+function coherentspinstate(b::SpinBasis, theta::Real, phi::Real)
+    result = Ket(b)
     data = result.data
-    N = BigInt(length(b)-1)
+    N = length(b)-1
     sinth = sin(0.5theta)
     costh = cos(0.5theta)
     expphi = exp(0.5im*phi)
@@ -316,21 +316,21 @@ resolution `(Ntheta, Nphi)`.
 
 This version calculates the Husimi Q SU(2) function at a position given by θ and ϕ.
 """
-function qfuncsu2(psi::Ket{B}, Ntheta::Int; Nphi::Int=2Ntheta) where B<:SpinBasis
+function qfuncsu2(psi::Ket{B}, Ntheta::Integer; Nphi::Integer=2Ntheta) where B<:SpinBasis
     b = psi.basis
     psi_bra_data = psi.data'
     lb = float(b.spinnumber)
-    result = Array{Float64}(undef, Ntheta,Nphi)
+    result = Array{real(eltype(psi))}(undef, Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
         result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,pi-i*pi/(Ntheta-1),j*2pi/(Nphi-1)-pi).data)
     end
     return result
 end
 
-function qfuncsu2(rho::Operator{B,B}, Ntheta::Int; Nphi::Int=2Ntheta) where B<:SpinBasis
+function qfuncsu2(rho::Operator{B,B}, Ntheta::Integer; Nphi::Integer=2Ntheta) where B<:SpinBasis
     b = basis(rho)
     lb = float(b.spinnumber)
-    result = Array{Float64}(undef, Ntheta,Nphi)
+    result = Array{real(eltype(rho))}(undef, Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
         c = coherentspinstate(b,pi-i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi)
         result[i+1,j+1] = abs((2*lb+1)/(4pi)*c.data'*rho.data*c.data)
@@ -374,7 +374,7 @@ function wignersu2(rho::Operator{B,B}, theta::Real, phi::Real) where B<:SpinBasi
     N = length(basis(rho))-1
 
     ### Tensor generation ###
-    BandT = Array{Vector{Float64}}(undef, N,N+1)
+    BandT = Array{Vector{real(eltype(rho))}}(undef, N,N+1)
     BandT[1,1] = collect(range(-N/2, stop=N/2, length=N+1))
     BandT[1,2] = -collect(sqrt.(range(1, stop=N, length=N)).*sqrt.(range((N)/2, stop=1/2, length=N)))
     BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
@@ -419,12 +419,12 @@ function wignersu2(rho::Operator{B,B}, theta::Real, phi::Real) where B<:SpinBasi
     return wignermap*sqrt((N+1)/(4pi))
 end
 
-function wignersu2(rho::Operator{B,B}, Ntheta::Int; Nphi::Int=2Ntheta) where B<:SpinBasis
+function wignersu2(rho::Operator{B,B}, Ntheta::Integer; Nphi::Integer=2Ntheta) where B<:SpinBasis
 
     N = length(basis(rho))-1
 
     ### Tensor generation ###
-    BandT = Array{Vector{Float64}}(undef, N,N+1)
+    BandT = Array{Vector{real(eltype(rho))}}(undef, N,N+1)
     BandT[1,1] = collect(range(-N/2, stop=N/2, length=N+1))
     BandT[1,2] = -collect(sqrt.(range(1, stop=N, length=N)).*sqrt.(range((N)/2, stop=1/2, length=N)))
     BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
@@ -537,14 +537,10 @@ function ylm(l::Integer,m::Integer,theta::Real,phi::Real)
     end
 end
 
-function _calc_ylm_norm(l::Int, m_::Int)
-    # TODO: Clean up Int types
-    if 0 < l+m_ <= 33
-        norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(Int128(l+m_))))
-    elseif 0 < l-m_ <= 33 && l+m_ > 33
-        norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(Int128(l-m_)))/sqrt(factorial(BigInt(l+m_))))
-    else
-        norm = @. Float64(sqrt(4pi)/sqrt(2*l+1)*sqrt(factorial(BigInt(l-m_)))/sqrt(factorial(BigInt(l+m_))))
+function _calc_ylm_norm(l, m)
+    n = sqrt(4pi/(2l+1))
+    for k=(-m+1):m
+        n /= sqrt(l + k)
     end
-    norm
+    return n
 end
