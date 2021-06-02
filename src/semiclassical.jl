@@ -47,7 +47,7 @@ end
 
 QuantumOpticsBase.expect(op, state::State) = expect(op, state.quantum)
 QuantumOpticsBase.variance(op, state::State) = variance(op, state.quantum)
-QuantumOpticsBase.ptrace(state::State, indices::Vector{Int}) = State(ptrace(state.quantum, indices), state.classical)
+QuantumOpticsBase.ptrace(state::State, indices) = State(ptrace(state.quantum, indices), state.classical)
 
 QuantumOpticsBase.dm(x::State{B,T}) where {B<:Basis,T<:Ket{B}} = State(dm(x.quantum), x.classical)
 
