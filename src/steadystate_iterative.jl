@@ -1,47 +1,5 @@
 using ..timeevolution: nh_hamiltonian, dmaster_h, dmaster_nh, check_master
 
-function _linmap_liouvillian(rho,H,J,Jdagger,rates)
-    bl = rho.basis_l
-    br = rho.basis_r
-    M = length(bl)
-
-    # Cache stuff
-    drho = copy(rho)
-    # rho = copy(rho)
-    Jrho_cache = copy(rho)
-
-    # Check reducibility
-    isreducible = check_master(rho,H,J,Jdagger,rates)
-    if isreducible
-        Hnh = nh_hamiltonian(H,J,Jdagger,rates)
-        Hnhdagger = dagger(Hnh)
-        f! = function(y,x)
-            # Reshape
-            drho.data .= @views reshape(y[2:end], M, M)
-            rho.data .= @views reshape(x[2:end], M, M)
-            # Apply function
-            dmaster_nh(rho,Hnh,Hnhdagger,rates,J,Jdagger,drho,Jrho_cache)
-            # Recast data
-            @views y[2:end] .= reshape(drho.data, M^2)
-            y[1] = tr(rho)
-            return y
-        end
-    else
-        f! = function(y,x)
-            # Reshape
-            drho.data .= @views reshape(y[2:end], M, M)
-            rho.data .= @views reshape(x[2:end], M, M)
-            # Apply function
-            dmaster_h(rho,H,rates,J,Jdagger,drho,Jrho_cache)
-            # Recast data
-            @views y[2:end] .= reshape(drho.data, M^2)
-            y[1] = tr(rho)
-            return y
-        end
-    end
-    return LinearMaps.LinearMap{eltype(rho)}(f!,M^2+1;ismutating=true,issymmetric=false,ishermitian=false,isposdef=false)
-end
-
 """
     iterative!(rho0, H, J, [method!], args...; [log=false], kwargs...) -> rho[, log]
 
@@ -151,3 +109,39 @@ isblascompatible(::AbstractOperator) = false
 isblascompatible(op::Operator) = isblascompatible(op.data)
 isblascompatible(::Matrix{T}) where T<:T_blas = true
 isblascompatible(::AbstractMatrix) = false
+
+function _linmap_liouvillian(rho,H,J,Jdagger,rates)
+    bl = rho.basis_l
+    br = rho.basis_r
+    M = length(bl)
+
+    # Cache stuff
+    drho = copy(rho)
+    # rho = copy(rho)
+    Jrho_cache = copy(rho)
+
+    # Check reducibility
+    isreducible = check_master(rho,H,J,Jdagger,rates)
+    if isreducible
+        Hnh = nh_hamiltonian(H,J,Jdagger,rates)
+        Hnhdagger = dagger(Hnh)
+        dmaster_ = (drho,rho) -> dmaster_nh(rho,Hnh,Hnhdagger,rates,J,Jdagger,drho,Jrho_cache)
+    else
+        dmaster_ = (drho,rho) -> dmaster_h(rho,H,rates,J,Jdagger,drho,Jrho_cache)
+    end
+
+    # Linear mapping
+    function f!(y,x)
+        # Reshape
+        drho.data .= @views reshape(y[2:end], M, M)
+        rho.data .= @views reshape(x[2:end], M, M)
+        # Apply function
+        dmaster_(drho,rho)
+        # Recast data
+        @views y[2:end] .= reshape(drho.data, M^2)
+        y[1] = tr(rho)
+        return y
+    end
+
+    return LinearMaps.LinearMap{eltype(rho)}(f!,M^2+1;ismutating=true,issymmetric=false,ishermitian=false,isposdef=false)
+end
