@@ -84,20 +84,7 @@ function master(tspan, rho0::T, H::AbstractOperator{B,B}, J::Vector;
         dmaster_h_(t, rho::T, drho::T) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
-        Hnh = copy(H)
-        if isa(rates, Matrix)
-            for i=1:length(J), j=1:length(J)
-                Hnh -= complex(float(eltype(H)))(0.5im*rates[i,j])*Jdagger[i]*J[j]
-            end
-        elseif isa(rates, Vector)
-            for i=1:length(J)
-                Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
-            end
-        else
-            for i=1:length(J)
-                Hnh -= complex(float(eltype(H)))(0.5im)*Jdagger[i]*J[i]
-            end
-        end
+        Hnh = nh_hamiltonian(H,J,Jdagger,rates)
         Hnhdagger = dagger(Hnh)
         tmp = copy(rho0)
         dmaster_nh_(t, rho::T, drho::T) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
@@ -196,6 +183,28 @@ master_nh(tspan, psi0::Ket{B}, Hnh::AbstractOperator{B,B}, J::Vector; kwargs...)
 master_dynamic(tspan, psi0::Ket{B}, f::Function; kwargs...) where B<:Basis = master_dynamic(tspan, dm(psi0), f; kwargs...)
 master_nh_dynamic(tspan, psi0::Ket{B}, f::Function; kwargs...) where B<:Basis = master_nh_dynamic(tspan, dm(psi0), f; kwargs...)
 
+# Non-hermitian Hamiltonian
+function nh_hamiltonian(H,J,Jdagger,::Nothing)
+    Hnh = copy(H)
+    for i=1:length(J)
+        Hnh -= complex(float(eltype(H)))(0.5im)*Jdagger[i]*J[i]
+    end
+    return Hnh
+end
+function nh_hamiltonian(H,J,Jdagger,rates::AbstractVector)
+    Hnh = copy(H)
+    for i=1:length(J)
+        Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
+    end
+    return Hnh
+end
+function nh_hamiltonian(H,J,Jdagger,rates::AbstractMatrix)
+    Hnh = copy(H)
+    for i=1:length(J), j=1:length(J)
+        Hnh -= complex(float(eltype(H)))(0.5im*rates[i,j])*Jdagger[i]*J[j]
+    end
+    return Hnh
+end
 
 # Recasting needed for the ODE solver is just providing the underlying data
 function recast!(x::T, rho::Operator{B,B,T}) where {B<:Basis,T}

@@ -1,9 +1,3 @@
-module steadystate
-
-using QuantumOpticsBase
-using ..timeevolution
-using Arpack, LinearAlgebra
-
 """
     steadystate.master(H, J; <keyword arguments>)
 
@@ -115,6 +109,3 @@ function eigenvector(L::SuperOperator; tol::Real = 1e-9, nev::Int = 2, which::Sy
 end
 
 eigenvector(H::AbstractOperator, J::Vector; rates::Union{Vector, Matrix}=ones(Float64, length(J)), kwargs...) = eigenvector(liouvillian(H, J; rates=rates); kwargs...)
-
-
-end # module

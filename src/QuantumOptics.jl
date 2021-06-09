@@ -24,7 +24,15 @@ module timeevolution
     include("mcwf.jl")
     include("bloch_redfield_master.jl")
 end
-include("steadystate.jl")
+module steadystate
+    using QuantumOpticsBase
+    using ..timeevolution
+    using Arpack, LinearAlgebra
+    import LinearMaps
+    import IterativeSolvers
+    include("steadystate.jl")
+    include("steadystate_iterative.jl")
+end
 include("timecorrelations.jl")
 include("spectralanalysis.jl")
 include("semiclassical.jl")
