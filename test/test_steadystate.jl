@@ -72,7 +72,7 @@ ev, ops = steadystate.liouvillianspectrum(H, sqrt(2).*J; rates=0.5.*ones(length(
 @test ev[sortperm(abs.(ev))] == ev
 
 # Test iterative solvers
-ρss = steadystate.iterative(Hdense, Jdense)
+ρss, h = steadystate.iterative(Hdense, Jdense; log=true)
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
 ρss = copy(ρ₀)
@@ -90,7 +90,8 @@ steadystate.iterative!(ρss, H, J)
 Hdense32 = Operator(basis, basis, Matrix{ComplexF32}(H.data))
 Jdense32 = [Operator(basis, basis, Matrix{ComplexF32}(j.data)) for j ∈ J]
 steadystate.iterative!(ρss32, Hdense32, Jdense32)
-@test tracedistance(ρss32, ρt[end]) < 1e-3
+ρt32 = DenseOperator(ρt[end].basis_l, ρt[end].basis_r, Matrix{ComplexF32}(ρt[end].data))
+@test tracedistance(ρss32, ρt[end]) < 2*1e-3
 
 # Iterative methods with lazy operators
 Hlazy = LazySum(Ha, Hc, Hint)
