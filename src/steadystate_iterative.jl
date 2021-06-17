@@ -11,8 +11,7 @@ method provided as argument.
 * `rho0`: Initial density matrix. Note that this gets mutated in-place.
 * `H`: Operator specifying the Hamiltonian.
 * `J`: Vector containing all jump operators.
-* `method!`: The iterative method to be used. Defaults to `IterativeSolvers.bicgstabl!`
-    or `IterativeSolvers.idrs!` depending on arguments' types.
+* `method!`: The iterative method to be used. Defaults to `IterativeSolvers.bicgstabl!`.
 * `rates=nothing`: Vector or matrix specifying the coefficients (decay rates) for
     the jump operators. If nothing is specified all rates are assumed to be 1.
 * `Jdagger=dagger.(J)`: Vector containing the hermitian conjugates of the jump
@@ -24,18 +23,9 @@ See also: [`iterative`](@ref)
 Credit for this implementation goes to Z. Denis and F. Vicentini.
 See also https://github.com/Z-Denis/SteadyState.jl
 """
-function iterative!(rho0::Operator, H::AbstractOperator, J, method! = nothing, args...;
+function iterative!(rho0::Operator, H::AbstractOperator, J,
+                    method! = IterativeSolvers.bicgstabl!, args...;
                     rates=nothing, Jdagger=dagger.(J), kwargs...)
-
-    if method! === nothing
-        if isblascompatible(rho0) && isblascompatible(H) && all(isblascompatible.(J))
-            _method! = IterativeSolvers.bicgstabl!
-        else
-            _method! = IterativeSolvers.idrs!
-        end
-    else
-        _method! = method!
-    end
 
     # Solution x must satisfy L*x = y with y[1] = tr(x) = 1 and y[j≠1] = 0.
     M = length(rho0.basis_l)
@@ -52,10 +42,10 @@ function iterative!(rho0::Operator, H::AbstractOperator, J, method! = nothing, a
 
     # Solve the linear system with the iterative solver, then devectorize rho
     if !log
-        rho0.data .= @views reshape(_method!(x0,lm,y,args...;kwargs...)[2:end],(M,M))
+        rho0.data .= @views reshape(method!(x0,lm,y,args...;kwargs...)[2:end],(M,M))
         return rho0
     else
-        R, history = _method!(x0,lm,y,args...;kwargs...)
+        R, history = method!(x0,lm,y,args...;kwargs...)
         rho0.data .= @views reshape(R[2:end],(M,M))
         return rho0, history
     end
