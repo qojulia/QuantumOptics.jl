@@ -37,7 +37,7 @@ function iterative!(rho0::Operator, H::AbstractOperator, J, method! = nothing, a
         _method! = method!
     end
 
-    # Solution x must satisfy L.x = y with y[1] = tr(x) = 1 and y[j≠1] = 0.
+    # Solution x must satisfy L*x = y with y[1] = tr(x) = 1 and y[j≠1] = 0.
     M = length(rho0.basis_l)
     x0 = zeros(eltype(rho0), M^2+1)
     x0[2:end] .= reshape(rho0.data, M^2)
@@ -50,7 +50,7 @@ function iterative!(rho0::Operator, H::AbstractOperator, J, method! = nothing, a
 
     log = get(kwargs,:log,false)
 
-    # Perform the stabilized biconjugate gradient procedure and devectorize rho
+    # Solve the linear system with the iterative solver, then devectorize rho
     if !log
         rho0.data .= @views reshape(_method!(x0,lm,y,args...;kwargs...)[2:end],(M,M))
         return rho0
@@ -94,21 +94,9 @@ function iterative(H::AbstractOperator, args...;
     else
         rho = deepcopy(rho0)
     end
-    log = get(kwargs,:log,false)
-    if !log
-        iterative!(rho, H, args...; kwargs...)
-        return rho
-    else
-        R, history = iterative!(rho, H, args...; kwargs...)
-        return rho, history
-    end
+    return iterative!(rho, H, args...; kwargs...)
 end
 
-const T_blas = Union{Float64,Float32,Float16,ComplexF64,ComplexF32,ComplexF16}
-isblascompatible(::AbstractOperator) = false
-isblascompatible(op::Operator) = isblascompatible(op.data)
-isblascompatible(::Matrix{T}) where T<:T_blas = true
-isblascompatible(::AbstractMatrix) = false
 
 function _linmap_liouvillian(rho,H,J,Jdagger,rates)
     bl = rho.basis_l
