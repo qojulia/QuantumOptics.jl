@@ -27,13 +27,13 @@ function iterative!(rho0::Operator, H::AbstractOperator, J,
                     method! = IterativeSolvers.bicgstabl!, args...;
                     rates=nothing, Jdagger=dagger.(J), kwargs...)
 
-    # Solution x must satisfy L*x = y with y[1] = tr(x) = 1 and y[j≠1] = 0.
+    # Solution x must satisfy L*x = y with y[end] = tr(x) = 1 and y[j≠end] = 0.
     M = length(rho0.basis_l)
     x0 = zeros(eltype(rho0), M^2+1)
-    x0[2:end] .= reshape(rho0.data, M^2)
+    x0[1:end-1] .= reshape(rho0.data, M^2)
 
     y = zeros(eltype(rho0), M^2+1)
-    y[1] = one(y[1])
+    y[end] = one(eltype(rho0))
 
     # Define the linear map lm: rho ↦ L(rho)
     lm = _linmap_liouvillian(rho0,H,J,Jdagger,rates)
@@ -42,11 +42,11 @@ function iterative!(rho0::Operator, H::AbstractOperator, J,
 
     # Solve the linear system with the iterative solver, then devectorize rho
     if !log
-        rho0.data .= @views reshape(method!(x0,lm,y,args...;kwargs...)[2:end],(M,M))
+        rho0.data .= @views reshape(method!(x0,lm,y,args...;kwargs...)[1:end-1],(M,M))
         return rho0
     else
         R, history = method!(x0,lm,y,args...;kwargs...)
-        rho0.data .= @views reshape(R[2:end],(M,M))
+        rho0.data .= @views reshape(R[1:end-1],(M,M))
         return rho0, history
     end
 end
@@ -111,13 +111,13 @@ function _linmap_liouvillian(rho,H,J,Jdagger,rates)
     # Linear mapping
     function f!(y,x)
         # Reshape
-        drho.data .= @views reshape(y[2:end], M, M)
-        rho.data .= @views reshape(x[2:end], M, M)
+        drho.data .= @views reshape(y[1:end-1], M, M)
+        rho.data .= @views reshape(x[1:end-1], M, M)
         # Apply function
         dmaster_(drho,rho)
         # Recast data
-        @views y[2:end] .= reshape(drho.data, M^2)
-        y[1] = tr(rho)
+        @views y[1:end-1] .= reshape(drho.data, M^2)
+        y[end] = tr(rho)
         return y
     end
 
