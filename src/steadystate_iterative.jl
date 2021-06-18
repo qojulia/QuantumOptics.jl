@@ -29,10 +29,12 @@ function iterative!(rho0::Operator, H::AbstractOperator, J,
 
     # Solution x must satisfy L*x = y with y[end] = tr(x) = 1 and y[j≠end] = 0.
     M = length(rho0.basis_l)
-    x0 = zeros(eltype(rho0), M^2+1)
+    x0 = similar(rho0.data, M^2+1)
     x0[1:end-1] .= reshape(rho0.data, M^2)
+    x0[end] = zero(eltype(rho0))
 
-    y = zeros(eltype(rho0), M^2+1)
+    y = similar(rho0.data, M^2+1)
+    y[1:end-1] .= zero(eltype(rho0))
     y[end] = one(eltype(rho0))
 
     # Define the linear map lm: rho ↦ L(rho)
