@@ -32,7 +32,19 @@ If you have any questions or need help, hop on our [gitter channel](https://gitt
 
 ### Citing
 
-If you like **QuantumOptics.jl**, we would appreciate it if you starred the repository in order to help us increase its visibility. Furthermore, if you find the framework useful in your research, we would be grateful if you could cite our [publication](https://www.sciencedirect.com/science/article/pii/S0010465518300328).
+If you like **QuantumOptics.jl**, we would appreciate it if you starred the repository in order to help us increase its visibility. Furthermore, if you find the framework useful in your research, we would be grateful if you could cite our [publication](https://www.sciencedirect.com/science/article/pii/S0010465518300328) using the following bibtex entry:
+
+```bib
+@article{kramer2018quantumoptics,
+  title={QuantumOptics. jl: A Julia framework for simulating open quantum systems},
+  author={Kr{\"a}mer, Sebastian and Plankensteiner, David and Ostermann, Laurin and Ritsch, Helmut},
+  journal={Computer Physics Communications},
+  volume={227},
+  pages={109--116},
+  year={2018},
+  publisher={Elsevier}
+}
+```
 
 [Julia]: http://julialang.org
 [qojulia]: https://github.com/qojulia
