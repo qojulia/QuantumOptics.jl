@@ -47,7 +47,7 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops; J=SparseOpType[], use
     #Transform interaction operators to Hamiltonian eigenbasis
     A = Array{eltype(transf_mat)}(undef, N, N, K)
     for k in 1:K
-        A[:, :, k] = to_Heb(tmp, a_ops[k][1], transf_mat, Uinv).data
+        A[:, :, k] = to_Heb(a_ops[k][1], transf_mat).data
     end
 
     # Array of transition frequencies between eigenstates
