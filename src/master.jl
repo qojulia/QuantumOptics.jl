@@ -82,20 +82,7 @@ function master(tspan, rho0::Operator, H::AbstractOperator, J;
         dmaster_h_(t, rho, drho) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
-        Hnh = copy(H)
-        if isa(rates, AbstractMatrix)
-            for i=1:length(J), j=1:length(J)
-                Hnh -= complex(float(eltype(H)))(0.5im*rates[i,j])*Jdagger[i]*J[j]
-            end
-        elseif isa(rates, AbstractVector)
-            for i=1:length(J)
-                Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
-            end
-        else
-            for i=1:length(J)
-                Hnh -= complex(float(eltype(H)))(0.5im)*Jdagger[i]*J[i]
-            end
-        end
+        Hnh = nh_hamiltonian(H,J,Jdagger,rates)
         Hnhdagger = dagger(Hnh)
         tmp = copy(rho0)
         dmaster_nh_(t, rho, drho) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
@@ -190,6 +177,29 @@ end
 # Automatically convert Ket states to density operators
 for f ∈ [:master,:master_h,:master_nh,:master_dynamic,:master_nh_dynamic]
     @eval $f(tspan,psi0::Ket,args...;kwargs...) = $f(tspan,dm(psi0),args...;kwargs...)
+end
+
+# Non-hermitian Hamiltonian
+function nh_hamiltonian(H,J,Jdagger,::Nothing)
+    Hnh = copy(H)
+    for i=1:length(J)
+        Hnh -= complex(float(eltype(H)))(0.5im)*Jdagger[i]*J[i]
+    end
+    return Hnh
+end
+function nh_hamiltonian(H,J,Jdagger,rates::AbstractVector)
+    Hnh = copy(H)
+    for i=1:length(J)
+        Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
+    end
+    return Hnh
+end
+function nh_hamiltonian(H,J,Jdagger,rates::AbstractMatrix)
+    Hnh = copy(H)
+    for i=1:length(J), j=1:length(J)
+        Hnh -= complex(float(eltype(H)))(0.5im*rates[i,j])*Jdagger[i]*J[j]
+    end
+    return Hnh
 end
 
 # Recasting needed for the ODE solver is just providing the underlying data

@@ -71,6 +71,40 @@ ev, ops = steadystate.liouvillianspectrum(H, sqrt(2).*J; rates=0.5.*ones(length(
 @test tracedistance(ρss, ops[1]/tr(ops[1])) < 1e-12
 @test ev[sortperm(abs.(ev))] == ev
 
+# Test iterative solvers
+ρss, h = steadystate.iterative(Hdense, Jdense; log=true)
+@test tracedistance(ρss, ρt[end]) < 1e-3
+
+ρss = copy(ρ₀)
+steadystate.iterative!(ρss, H, J)
+@test tracedistance(ρss, ρt[end]) < 1e-3
+
+ρss = steadystate.iterative(H, sqrt(2) .* J; rates=0.5.*ones(length(J)))
+@test tracedistance(ρss, ρt[end]) < 1e-3
+
+ρss = steadystate.iterative(H, sqrt(2) .* J; rates=diagm(0=>[0.5,0.5]))
+@test tracedistance(ρss, ρt[end]) < 1e-3
+
+# Test different float types
+ρss32 = Operator(basis, basis, Matrix{ComplexF32}(ρ₀.data))
+Hdense32 = Operator(basis, basis, Matrix{ComplexF32}(H.data))
+Jdense32 = [Operator(basis, basis, Matrix{ComplexF32}(j.data)) for j ∈ J]
+steadystate.iterative!(ρss32, Hdense32, Jdense32)
+ρt32 = DenseOperator(ρt[end].basis_l, ρt[end].basis_r, Matrix{ComplexF32}(ρt[end].data))
+@test tracedistance(ρss32, ρt[end]) < 2*1e-3
+
+# Iterative methods with lazy operators
+Hlazy = LazySum(Ha, Hc, Hint)
+Ja_lazy = LazyTensor(basis, 1, sqrt(γ)*sm)
+Jc_lazy = LazyTensor(basis, 2, sqrt(κ)*destroy(fockbasis))
+Jlazy = [Ja_lazy, Jc_lazy]
+
+ρss = steadystate.iterative(Hlazy, Jlazy)
+@test tracedistance(ρss, ρt[end]) < 1e-3
+
+# Make sure initial state never got mutated
+@test ρ₀ == dm(Ψ₀)
+
 # Compute steady-state photon number of a driven cavity (analytically: η^2/κ^2)
 Hp = η*(destroy(fockbasis) + create(fockbasis))
 Jp = [sqrt(2κ)*destroy(fockbasis)]
@@ -85,6 +119,16 @@ nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 @test n_an - real(nss) < 1e-3
 
 ρss = steadystate.eigenvector(dense(Hp), map(dense, Jp))
+nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
+@test n_an - real(nss) < 1e-3
+
+# Test iterative solvers
+ρss = steadystate.iterative(dense(Hp), dense.(Jp))
+nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
+@test n_an - real(nss) < 1e-3
+
+ρss = copy(ρ0_p)
+steadystate.iterative!(ρss, Hp, Jp)
 nss = expect(create(fockbasis)*destroy(fockbasis), ρss)
 @test n_an - real(nss) < 1e-3
 
