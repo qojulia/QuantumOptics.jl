@@ -12,7 +12,7 @@ function master_h(tspan, rho0::Operator, H::AbstractOperator, J;
                 kwargs...)
     check_master(rho0, H, J, Jdagger, rates)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
+    dmaster_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -35,7 +35,7 @@ function master_nh(tspan, rho0::Operator, Hnh::AbstractOperator, J;
                 kwargs...)
     check_master(rho0, Hnh, J, Jdagger, rates)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
+    dmaster_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -79,13 +79,13 @@ function master(tspan, rho0::Operator, H::AbstractOperator, J;
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
-        dmaster_h_(t, rho, drho) = dmaster_h(rho, H, rates, J, Jdagger, drho, tmp)
+        dmaster_h_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
         Hnh = nh_hamiltonian(H,J,Jdagger,rates)
         Hnhdagger = dagger(Hnh)
         tmp = copy(rho0)
-        dmaster_nh_(t, rho, drho) = dmaster_nh(rho, Hnh, Hnhdagger, rates, J, Jdagger, drho, tmp)
+        dmaster_nh_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
         return integrate_master(tspan, dmaster_nh_, rho0, fout; kwargs...)
     end
 end
@@ -112,7 +112,7 @@ function master(tspan, rho0::Operator, L::SuperOperator; fout=nothing, kwargs...
     b = GenericBasis(dim)
     rho_ = Ket(b,reshape(rho0.data, dim))
     L_ = Operator(b,b,L.data)
-    dmaster_(t,rho,drho) = dmaster_liouville(rho,drho,L_)
+    dmaster_(t,rho,drho) = dmaster_liouville!(drho,L_,rho)
 
     # Rewrite into density matrix when saving
     tmp = copy(rho0)
@@ -151,7 +151,7 @@ function master_nh_dynamic(tspan, rho0::Operator, f;
                 fout=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
+    dmaster_(t, rho, drho) = dmaster_nh_dynamic!(drho, f, rates, rho, tmp, t)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -185,7 +185,7 @@ function master_dynamic(tspan, rho0::Operator, f;
                 fout=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
+    dmaster_(t, rho, drho) = dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -241,87 +241,126 @@ end
 # the type of the given decay rate object which can either be nothing, a vector
 # or a matrix.
 
-function dmaster_h(rho, H, rates::Nothing, J, Jdagger, drho, tmp)
+"""
+    dmaster_h!(drho, H, J, Jdagger, rates, rho, drho_cache)
+
+Update `drho` according to a master equation given in standard Lindblad form.
+A cached copy `drho_cache` of `drho` is used as a temporary saving step.
+
+See also: [`master`](@ref), [`dmaster_nh!`](@ref), [`dmaster_h_dynamic!`](@ref),
+    [`dmaster_nh_dynamic!`](@ref), [`dmaster_liouville!`](@ref)
+"""
+function dmaster_h!(drho, H, J, Jdagger, rates::Nothing, rho, drho_cache)
     QuantumOpticsBase.mul!(drho,H,rho,-eltype(rho)(im),zero(eltype(rho)))
     QuantumOpticsBase.mul!(drho,rho,H,eltype(rho)(im),one(eltype(rho)))
     for i=1:length(J)
-        QuantumOpticsBase.mul!(tmp,J[i],rho)
-        QuantumOpticsBase.mul!(drho,tmp,Jdagger[i],true,true)
+        QuantumOpticsBase.mul!(drho_cache,J[i],rho)
+        QuantumOpticsBase.mul!(drho,drho_cache,Jdagger[i],true,true)
 
-        QuantumOpticsBase.mul!(drho,Jdagger[i],tmp,eltype(rho)(-0.5),one(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,Jdagger[i],drho_cache,eltype(rho)(-0.5),one(eltype(rho)))
 
-        QuantumOpticsBase.mul!(tmp,rho,Jdagger[i],true,false)
-        QuantumOpticsBase.mul!(drho,tmp,J[i],eltype(rho)(-0.5),one(eltype(rho)))
+        QuantumOpticsBase.mul!(drho_cache,rho,Jdagger[i],true,false)
+        QuantumOpticsBase.mul!(drho,drho_cache,J[i],eltype(rho)(-0.5),one(eltype(rho)))
     end
     return drho
 end
 
-function dmaster_h(rho, H, rates::AbstractVector, J, Jdagger, drho, tmp)
+function dmaster_h!(drho, H, J, Jdagger, rates::AbstractVector, rho, drho_cache)
     QuantumOpticsBase.mul!(drho,H,rho,-eltype(rho)(im),zero(eltype(rho)))
     QuantumOpticsBase.mul!(drho,rho,H,eltype(rho)(im),one(eltype(rho)))
     for i=1:length(J)
-        QuantumOpticsBase.mul!(tmp,J[i],rho,eltype(rho)(rates[i]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,tmp,Jdagger[i],true,true)
+        QuantumOpticsBase.mul!(drho_cache,J[i],rho,eltype(rho)(rates[i]),zero(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,drho_cache,Jdagger[i],true,true)
 
-        QuantumOpticsBase.mul!(drho,Jdagger[i],tmp,eltype(rho)(-0.5),one(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,Jdagger[i],drho_cache,eltype(rho)(-0.5),one(eltype(rho)))
 
-        QuantumOpticsBase.mul!(tmp,rho,Jdagger[i],eltype(rho)(rates[i]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,tmp,J[i],eltype(rho)(-0.5),one(eltype(rho)))
+        QuantumOpticsBase.mul!(drho_cache,rho,Jdagger[i],eltype(rho)(rates[i]),zero(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,drho_cache,J[i],eltype(rho)(-0.5),one(eltype(rho)))
     end
     return drho
 end
 
-function dmaster_h(rho, H, rates::AbstractMatrix, J, Jdagger, drho, tmp)
+function dmaster_h!(drho, H, J, Jdagger, rates::AbstractMatrix, rho, drho_cache)
     QuantumOpticsBase.mul!(drho,H,rho,-eltype(rho)(im),zero(eltype(rho)))
     QuantumOpticsBase.mul!(drho,rho,H,eltype(rho)(im),one(eltype(rho)))
     for j=1:length(J), i=1:length(J)
-        QuantumOpticsBase.mul!(tmp,J[i],rho,eltype(rho)(rates[i,j]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,tmp,Jdagger[j],true,true)
+        QuantumOpticsBase.mul!(drho_cache,J[i],rho,eltype(rho)(rates[i,j]),zero(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,drho_cache,Jdagger[j],true,true)
 
-        QuantumOpticsBase.mul!(drho,Jdagger[j],tmp,eltype(rho)(-0.5),one(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,Jdagger[j],drho_cache,eltype(rho)(-0.5),one(eltype(rho)))
 
-        QuantumOpticsBase.mul!(tmp,rho,Jdagger[j],eltype(rho)(rates[i,j]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,tmp,J[i],eltype(rho)(-0.5),one(eltype(rho)))
+        QuantumOpticsBase.mul!(drho_cache,rho,Jdagger[j],eltype(rho)(rates[i,j]),zero(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,drho_cache,J[i],eltype(rho)(-0.5),one(eltype(rho)))
     end
     return drho
 end
 
-function dmaster_nh(rho, Hnh, Hnh_dagger, rates::Nothing, J, Jdagger, drho, tmp)
+"""
+    dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates, rho, drho_cache)
+
+Updates `drho` according to a master equation given in standard Lindblad form.
+The part of the Liuovillian which can be written as a commutator should be
+contained in `Hnh` and `Hnh_dagger`. This allows to skip a number of matrix
+multiplications making it slightly faster than [`dmaster_h!`](@ref).
+
+See also: [`master`](@ref), [`dmaster_h!`](@ref), [`dmaster_h_dynamic!`](@ref),
+    [`dmaster_nh_dynamic!`](@ref), [`dmaster_liouville!`](@ref)
+"""
+function dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates::Nothing, rho, drho_cache)
     QuantumOpticsBase.mul!(drho,Hnh,rho,-eltype(rho)(im),zero(eltype(rho)))
     QuantumOpticsBase.mul!(drho,rho,Hnh_dagger,eltype(rho)(im),one(eltype(rho)))
     for i=1:length(J)
-        QuantumOpticsBase.mul!(tmp,J[i],rho)
-        QuantumOpticsBase.mul!(drho,tmp,Jdagger[i],true,true)
+        QuantumOpticsBase.mul!(drho_cache,J[i],rho)
+        QuantumOpticsBase.mul!(drho,drho_cache,Jdagger[i],true,true)
     end
     return drho
 end
 
-function dmaster_nh(rho, Hnh, Hnh_dagger, rates::AbstractVector, J, Jdagger, drho, tmp)
+function dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates::AbstractVector, rho, drho_cache)
     QuantumOpticsBase.mul!(drho,Hnh,rho,-eltype(rho)(im),zero(eltype(rho)))
     QuantumOpticsBase.mul!(drho,rho,Hnh_dagger,eltype(rho)(im),one(eltype(rho)))
     for i=1:length(J)
-        QuantumOpticsBase.mul!(tmp,J[i],rho,eltype(rho)(rates[i]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,tmp,Jdagger[i],true,true)
+        QuantumOpticsBase.mul!(drho_cache,J[i],rho,eltype(rho)(rates[i]),zero(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,drho_cache,Jdagger[i],true,true)
     end
     return drho
 end
 
-function dmaster_nh(rho, Hnh, Hnh_dagger, rates::AbstractMatrix, J, Jdagger, drho, tmp)
+function dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates::AbstractMatrix, rho, drho_cache)
     QuantumOpticsBase.mul!(drho,Hnh,rho,-eltype(rho)(im),zero(eltype(rho)))
     QuantumOpticsBase.mul!(drho,rho,Hnh_dagger,eltype(rho)(im),one(eltype(rho)))
     for j=1:length(J), i=1:length(J)
-        QuantumOpticsBase.mul!(tmp,J[i],rho,eltype(rho)(rates[i,j]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,tmp,Jdagger[j],true,true)
+        QuantumOpticsBase.mul!(drho_cache,J[i],rho,eltype(rho)(rates[i,j]),zero(eltype(rho)))
+        QuantumOpticsBase.mul!(drho,drho_cache,Jdagger[j],true,true)
     end
     return drho
 end
 
-function dmaster_liouville(rho,drho,L)
+"""
+    dmaster_liouville!(drho,L,rho)
+
+Update `drho` according to a master equation as `L*rho`, where `L` is an arbitrary
+(super-)operator.
+
+See also: [`master`](@ref), [`dmaster_h!`](@ref), [`dmaster_nh!`](@ref),
+    [`dmaster_h_dynamic!`](@ref), [`dmaster_nh_dynamic!`](@ref)
+"""
+function dmaster_liouville!(drho,L,rho)
     mul!(drho,L,rho)
     return drho
 end
 
-function dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
+"""
+    dmaster_h_dynamic!(drho, f, rates, rho, drho_cache, t)
+
+Computes the Hamiltonian and jump operators as `H,J,Jdagger=f(t,rho)` and
+update `drho` according to a master equation. Optionally, rates can also be
+returned from `f`.
+
+See also: [`master_dynamic`](@ref), [`dmaster_h!`](@ref), [`dmaster_nh!`](@ref),
+    [`dmaster_nh_dynamic!`](@ref)
+"""
+function dmaster_h_dynamic!(drho, f, rates, rho, drho_cache, t)
     result = f(t, rho)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     if length(result) == 3
@@ -331,10 +370,20 @@ function dmaster_h_dynamic(t, rho, f, rates, drho, tmp)
         H, J, Jdagger, rates_ = result
     end
     QO_CHECKS[] && check_master(rho, H, J, Jdagger, rates_)
-    dmaster_h(rho, H, rates_, J, Jdagger, drho, tmp)
+    dmaster_h(rho, H, rates_, J, Jdagger, drho, drho_cache)
 end
 
-function dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
+"""
+    dmaster_nh_dynamic!(drho, f, rates, rho, drho_cache, t)
+
+Computes the non-hermitian Hamiltonian and jump operators as
+`Hnh,Hnh_dagger,J,Jdagger=f(t,rho)` and update `drho` according to a master
+equation. Optionally, rates can also be returned from `f`.
+
+See also: [`master_dynamic`](@ref), [`dmaster_h!`](@ref), [`dmaster_nh!`](@ref),
+    [`dmaster_h_dynamic!`](@ref)
+"""
+function dmaster_nh_dynamic!(drho, f, rates, rho, drho_cache, t)
     result = f(t, rho)
     QO_CHECKS[] && @assert 4 <= length(result) <= 5
     if length(result) == 4
@@ -344,7 +393,7 @@ function dmaster_nh_dynamic(t, rho, f, rates, drho, tmp)
         Hnh, Hnh_dagger, J, Jdagger, rates_ = result
     end
     QO_CHECKS[] && check_master(rho, Hnh, J, Jdagger, rates_)
-    dmaster_nh(rho, Hnh, Hnh_dagger, rates_, J, Jdagger, drho, tmp)
+    dmaster_nh(rho, Hnh, Hnh_dagger, rates_, J, Jdagger, drho, drho_cache)
 end
 
 
@@ -375,8 +424,3 @@ function check_master(rho0, H, J, Jdagger, rates)
     end
     isreducible
 end
-
-get_type(rho, H, rates::Nothing, J, Jdagger) = promote_type(eltype(rho),eltype(H),eltype.(J)...,eltype.(Jdagger)...)
-get_type(rho, H, rates::AbstractVecOrMat, J, Jdagger) = promote_type(eltype(rho),eltype(H),eltype(rates),eltype.(J)...,eltype.(Jdagger)...)
-get_type(rho, Hnh, Hnhdagger, rates::Nothing, J, Jdagger) = promote_type(eltype(rho),eltype(Hnh),eltype(Hnhdagger), eltype.(J)...,eltype.(Jdagger)...)
-get_type(rho, Hnh, Hnhdagger, rates::AbstractVecOrMat, J, Jdagger) = promote_type(eltype(rho),eltype(Hnh),eltype(Hnhdagger),eltype(rates),eltype.(J)...,eltype.(Jdagger)...)

@@ -184,7 +184,7 @@ end
 
 function dmaster_h_dynamic(t, state, fquantum, fclassical, rates, dstate, tmp)
     fquantum_(t, rho) = fquantum(t, state.quantum, state.classical)
-    timeevolution.dmaster_h_dynamic(t, state.quantum, fquantum_, rates, dstate.quantum, tmp)
+    timeevolution.dmaster_h_dynamic!(dstate.quantum, fquantum_, rates, state.quantum, tmp, t)
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 
