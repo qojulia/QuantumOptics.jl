@@ -23,6 +23,10 @@ module timeevolution
     include("schroedinger.jl")
     include("mcwf.jl")
     include("bloch_redfield_master.jl")
+
+    # Deprecate old derivatives
+    # @deprecate dschroedinger(psi, H, dpsi) dschroedinger!(dpsi, H, psi) false
+    # @deprecate dschroedinger_dynamic(t, psi0, f, dpsi) dschroedinger_dynamic!(dpsi, f, psi, t) false
 end
 module steadystate
     using QuantumOpticsBase

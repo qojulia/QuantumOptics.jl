@@ -15,7 +15,7 @@ Integrate Schroedinger equation to evolve states or compute propagators.
 function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...) where {B,T<:Union{AbstractOperator{B,B},StateVector{B}}}
-    dschroedinger_(t, psi, dpsi) = dschroedinger(psi, H, dpsi)
+    dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
@@ -37,10 +37,10 @@ Integrate time-dependent Schroedinger equation to evolve states or compute propa
         normalized nor permanent! It is still in use by the ode solver and
         therefore must not be changed.
 """
-function schroedinger_dynamic(tspan, psi0, f::Function;
+function schroedinger_dynamic(tspan, psi0, f;
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...)
-    dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic(t, psi, f, dpsi)
+    dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
@@ -51,25 +51,39 @@ end
 recast!(x::D, psi::StateVector{B,D}) where {B, D} = (psi.data = x);
 recast!(psi::StateVector{B,D}, x::D) where {B, D} = nothing
 
+"""
+    dschroedinger!(dpsi, H, psi)
 
-function dschroedinger(psi, H, dpsi)
+Update the increment `dpsi` in-place according to a Schrödinger equation
+as `-im*H*psi`.
+
+See also: [`dschroedinger_dynamic!`](@ref)
+"""
+function dschroedinger!(dpsi, H, psi)
     QuantumOpticsBase.mul!(dpsi,H,psi,eltype(psi)(-im),zero(eltype(psi)))
     return dpsi
 end
 
-function dschroedinger(psi::Bra, H, dpsi)
+function dschroedinger!(dpsi, H, psi::Bra)
     QuantumOpticsBase.mul!(dpsi,psi,H,eltype(psi)(im),zero(eltype(psi)))
     return dpsi
 end
 
+"""
+    dschroedinger_dynamic!(dpsi, f, psi, t)
 
-function dschroedinger_dynamic(t, psi0, f::Function, dpsi)
-    H = f(t, psi0)
-    dschroedinger(psi0, H, dpsi)
+Compute the Hamiltonian as `H=f(t, psi)` and update `dpsi` according to a
+Schrödinger equation as `-im*H*psi`.
+
+See also: [`dschroedinger!`](@ref)
+"""
+function dschroedinger_dynamic!(dpsi, f, psi, t)
+    H = f(t, psi)
+    dschroedinger!(dpsi, H, psi)
 end
 
 
-function check_schroedinger(psi::Ket, H)
+function check_schroedinger(psi, H)
     check_multiplicable(H, psi)
     check_samebases(H)
 end

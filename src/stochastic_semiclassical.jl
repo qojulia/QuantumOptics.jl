@@ -187,7 +187,7 @@ function dschroedinger_stochastic(dx::AbstractVector, t,
     H = fstoch_quantum(t, state.quantum, state.classical)
     recast!(dx, dstate)
     QO_CHECKS[] && check_schroedinger(state.quantum, H[1])
-    dschroedinger(state.quantum, H[1], dstate.quantum)
+    dschroedinger!(dstate.quantum, H[1], state.quantum)
     recast!(dstate, dx)
 end
 function dschroedinger_stochastic(dx::AbstractMatrix, t,
@@ -198,7 +198,7 @@ function dschroedinger_stochastic(dx::AbstractMatrix, t,
         dx_i = @view dx[:, i]
         recast!(dx_i, dstate)
         QO_CHECKS[] && check_schroedinger(state.quantum, H[i])
-        dschroedinger(state.quantum, H[i], dstate.quantum)
+        dschroedinger!(dstate.quantum, H[i], state.quantum)
         recast!(dstate, dx_i)
     end
 end

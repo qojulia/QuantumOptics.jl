@@ -178,7 +178,7 @@ end
 
 function dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
     fquantum_(t, psi) = fquantum(t, state.quantum, state.classical)
-    timeevolution.dschroedinger_dynamic(t, state.quantum, fquantum_, dstate.quantum)
+    timeevolution.dschroedinger_dynamic!(dstate.quantum, fquantum_, state.quantum, t)
     fclassical(t, state.quantum, state.classical, dstate.classical)
 end
 
