@@ -124,7 +124,7 @@ function dschroedinger_stochastic(dx::AbstractMatrix, psi, Hs, dpsi, n)
     for i=1:n
         dx_i = @view dx[:, i]
         recast!(dx_i, dpsi)
-        dschroedinger(psi, Hs[i], dpsi)
+        dschroedinger!(dpsi, Hs[i], psi)
         recast!(dpsi, dx_i)
     end
 end
