@@ -370,7 +370,7 @@ function dmaster_h_dynamic!(drho, f, rates, rho, drho_cache, t)
         H, J, Jdagger, rates_ = result
     end
     QO_CHECKS[] && check_master(rho, H, J, Jdagger, rates_)
-    dmaster_h(rho, H, rates_, J, Jdagger, drho, drho_cache)
+    dmaster_h!(drho, H, J, Jdagger, rates_, rho, drho_cache)
 end
 
 """
@@ -393,7 +393,7 @@ function dmaster_nh_dynamic!(drho, f, rates, rho, drho_cache, t)
         Hnh, Hnh_dagger, J, Jdagger, rates_ = result
     end
     QO_CHECKS[] && check_master(rho, Hnh, J, Jdagger, rates_)
-    dmaster_nh(rho, Hnh, Hnh_dagger, rates_, J, Jdagger, drho, drho_cache)
+    dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates_, rho, drho_cache)
 end
 
 
