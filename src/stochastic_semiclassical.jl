@@ -47,7 +47,7 @@ function schroedinger_semiclassical(tspan, state0::S, fquantum,
                 kwargs...) where {B<:Basis,T<:Ket{B},S<:State{B,T}}
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     dschroedinger_det(t, state, dstate) =
-            semiclassical.dschroedinger_dynamic(t, state, fquantum, fclassical, dstate)
+            semiclassical.dschroedinger_dynamic!(dstate, fquantum, fclassical, state, t)
 
     if isa(fstoch_quantum, Nothing) && isa(fstoch_classical, Nothing)
         throw(ArgumentError("No stochastic functions provided!"))
@@ -168,7 +168,7 @@ function master_semiclassical(tspan, rho0::S,
     end
 
     dmaster_determ(t, rho, drho) =
-            semiclassical.dmaster_h_dynamic(t, rho, fquantum, fclassical, rates, drho, tmp)
+            semiclassical.dmaster_h_dynamic!(drho, fquantum, fclassical, rates, rho, tmp, t)
 
     dmaster_stoch(dx, t, rho, drho, n) =
         dmaster_stoch_dynamic(dx, t, rho, fstoch_quantum, fstoch_classical, drho, n)
