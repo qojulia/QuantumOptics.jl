@@ -190,7 +190,7 @@ end
 
 function dmcwf_h_dynamic(t, psi, fquantum, fclassical, rates, dpsi, tmp)
     fquantum_(t, rho) = fquantum(t, psi.quantum, psi.classical)
-    timeevolution.dmcwf_h_dynamic(t, psi.quantum, fquantum_, rates, dpsi.quantum, tmp)
+    timeevolution.dmcwf_h_dynamic!(dpsi.quantum, fquantum_, rates, psi.quantum, tmp, t)
     fclassical(t, psi.quantum, psi.classical, dpsi.classical)
 end
 

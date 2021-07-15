@@ -1,5 +1,7 @@
 using Random, LinearAlgebra
 
+import ..timeevolution: dschroedinger!
+
 # TODO: Remove imports
 import RecursiveArrayTools.copyat_or_push!
 
@@ -17,7 +19,7 @@ function mcwf_h(tspan, psi0::Ket, H::AbstractOperator, J;
         display_beforeevent=false, display_afterevent=false,
         kwargs...)
     check_mcwf(psi0, H, J, Jdagger, rates)
-    f(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+    f(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
         display_beforeevent=display_beforeevent,
@@ -41,7 +43,7 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J;
         display_beforeevent=false, display_afterevent=false,
         kwargs...)
     check_mcwf(psi0, Hnh, J, J, nothing)
-    f(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+    f(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
         display_beforeevent=display_beforeevent,
@@ -95,7 +97,7 @@ function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
     isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(psi0)
-        dmcwf_h_(t, psi, dpsi) = dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates)
+        dmcwf_h_(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
         j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
         integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed,
             fout;
@@ -113,7 +115,7 @@ function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
                 Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
             end
         end
-        dmcwf_nh_(t, psi, dpsi) = dmcwf_nh(psi, Hnh, dpsi)
+        dmcwf_nh_(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
         j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
         integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed,
             fout;
@@ -157,7 +159,7 @@ function mcwf_dynamic(tspan, psi0::Ket, f;
     fout=nothing, display_beforeevent=false, display_afterevent=false,
     kwargs...)
     tmp = copy(psi0)
-    dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic(t, psi, f, rates, dpsi, tmp)
+    dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, f, rates, psi, tmp, t)
     j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
         fout;
@@ -177,7 +179,7 @@ function mcwf_nh_dynamic(tspan, psi0::Ket, f;
     seed=rand(UInt), rates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
     kwargs...)
-    dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic(t, psi, f, dpsi)
+    dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic!(dpsi, f, psi, t)
     j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
         fout;
@@ -186,8 +188,15 @@ function mcwf_nh_dynamic(tspan, psi0::Ket, f;
         kwargs...)
 end
 
-function dmcwf_h_dynamic(t, psi, f, rates,
-                    dpsi, tmp)
+"""
+    dmcwf_h_dynamic!(dpsi, f, rates, psi, dpsi_cache, t)
+
+Compute the Hamiltonian and jump operators as `H,J,Jdagger=f(t,psi)` and
+update `dpsi` according to a non-Hermitian Schrödinger equation.
+
+See also: [`mcwf_dynamic`](@ref), [`dmcwf_h!`](@ref), [`dmcwf_nh_dynamic`](@ref)
+"""
+function dmcwf_h_dynamic!(dpsi, f, rates, psi, dpsi_cache, t)
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     if length(result) == 3
@@ -197,15 +206,23 @@ function dmcwf_h_dynamic(t, psi, f, rates,
         H, J, Jdagger, rates_ = result
     end
     QO_CHECKS[] && check_mcwf(psi, H, J, Jdagger, rates_)
-    dmcwf_h(psi, H, J, Jdagger, dpsi, tmp, rates_)
+    dmcwf_h!(dpsi, H, J, Jdagger, rates_, psi, dpsi_cache)
 end
 
-function dmcwf_nh_dynamic(t, psi, f, dpsi)
+"""
+    dmcwf_nh_dynamic!(dpsi, f, psi, t)
+
+Compute the non-Hermitian Hamiltonian and jump operators as `H,J,Jdagger=f(t,psi)`
+and update `dpsi` according to a Schrödinger equation.
+
+See also: [`mcwf_nh_dynamic`](@ref), [`dmcwf_nh!`](@ref), [`dschroedinger!`](@ref)
+"""
+function dmcwf_nh_dynamic!(dpsi, f, psi, t)
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     H, J, Jdagger = result[1:3]
     QO_CHECKS[] && check_mcwf(psi, H, J, Jdagger, nothing)
-    dmcwf_nh(psi, H, dpsi)
+    dschroedinger!(dpsi, H, psi)
 end
 
 function jump_dynamic(rng, t, psi, f, psi_new, rates)
@@ -333,7 +350,7 @@ function jump_callback(jumpfun, seed, scb, save_before!,
 
     rng = MersenneTwister(convert(UInt, seed))
     jumpnorm = Ref(rand(rng))
-    djumpnorm(x::Vector, t, integrator) = norm(x)^2 - (1-jumpnorm[])
+    djumpnorm(x, t, integrator) = norm(x)^2 - (1-jumpnorm[])
 
     function dojump(integrator)
         x = integrator.u
@@ -407,39 +424,29 @@ function jump(rng, t, psi, J, psi_new, rates::AbstractVector)
 end
 
 """
-Evaluate non-hermitian Schroedinger equation.
+    dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, dpsi_cache)
 
-The non-hermitian Hamiltonian is given in two parts - the hermitian part H and
+Update `dpsi` according to a non-hermitian Schrödinger equation. The
+non-hermitian Hamiltonian is given in two parts - the hermitian part H and
 the jump operators J.
+
+See also: [`mcwf`](@ref)
 """
-function dmcwf_h(psi, H,
-                 J, Jdagger, dpsi, tmp, rates::Nothing)
+function dmcwf_h!(dpsi, H, J, Jdagger, rates::Nothing, psi, dpsi_cache)
     QuantumOpticsBase.mul!(dpsi,H,psi,eltype(psi)(-im),zero(eltype(psi)))
     for i=1:length(J)
-        QuantumOpticsBase.mul!(tmp,J[i],psi,true,false)
-        QuantumOpticsBase.mul!(dpsi,Jdagger[i],tmp,eltype(psi)(-0.5),one(eltype(psi)))
+        QuantumOpticsBase.mul!(dpsi_cache,J[i],psi,true,false)
+        QuantumOpticsBase.mul!(dpsi,Jdagger[i],dpsi_cache,eltype(psi)(-0.5),one(eltype(psi)))
     end
     return dpsi
 end
 
-function dmcwf_h(psi, H,
-                 J, Jdagger, dpsi, tmp, rates::AbstractVector)
+function dmcwf_h!(dpsi, H, J, Jdagger, rates::AbstractVector, psi, dpsi_cache)
     QuantumOpticsBase.mul!(dpsi,H,psi,eltype(psi)(-im),zero(eltype(psi)))
     for i=1:length(J)
-        QuantumOpticsBase.mul!(tmp,J[i],psi,eltype(psi)(rates[i]),zero(eltype(psi)))
-        QuantumOpticsBase.mul!(dpsi,Jdagger[i],tmp,eltype(psi)(-0.5),one(eltype(psi)))
+        QuantumOpticsBase.mul!(dpsi_cache,J[i],psi,eltype(psi)(rates[i]),zero(eltype(psi)))
+        QuantumOpticsBase.mul!(dpsi,Jdagger[i],dpsi_cache,eltype(psi)(-0.5),one(eltype(psi)))
     end
-    return dpsi
-end
-
-
-"""
-Evaluate non-hermitian Schroedinger equation.
-
-The given Hamiltonian is already the non-hermitian version.
-"""
-function dmcwf_nh(psi, Hnh, dpsi)
-    QuantumOpticsBase.mul!(dpsi,Hnh,psi,eltype(psi)(-im),zero(eltype(psi)))
     return dpsi
 end
 
