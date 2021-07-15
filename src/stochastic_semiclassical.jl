@@ -54,7 +54,7 @@ function schroedinger_semiclassical(tspan, state0::S, fquantum,
     end
 
     x0 = Vector{eltype(state0)}(undef, length(state0))
-    recast!(state0, x0)
+    recast!(x0,state0)
     state = copy(state0)
     dstate = copy(state0)
 
@@ -185,10 +185,10 @@ function dschroedinger_stochastic(dx::AbstractVector, t,
         state, fstoch_quantum::Function, fstoch_classical::Nothing,
         dstate, n)
     H = fstoch_quantum(t, state.quantum, state.classical)
-    recast!(dx, dstate)
+    recast!(dstate,dx)
     QO_CHECKS[] && check_schroedinger(state.quantum, H[1])
     dschroedinger!(dstate.quantum, H[1], state.quantum)
-    recast!(dstate, dx)
+    recast!(dx,dstate)
 end
 function dschroedinger_stochastic(dx::AbstractMatrix, t,
         state, fstoch_quantum::Function, fstoch_classical::Nothing,
@@ -196,10 +196,10 @@ function dschroedinger_stochastic(dx::AbstractMatrix, t,
     H = fstoch_quantum(t, state.quantum, state.classical)
     for i=1:n
         dx_i = @view dx[:, i]
-        recast!(dx_i, dstate)
+        recast!(dstate,dx_i)
         QO_CHECKS[] && check_schroedinger(state.quantum, H[i])
         dschroedinger!(dstate.quantum, H[i], state.quantum)
-        recast!(dstate, dx_i)
+        recast!(dx_i,dstate)
     end
 end
 function dschroedinger_stochastic(dx, t,
@@ -223,11 +223,11 @@ function dmaster_stoch_dynamic(dx::AbstractVector, t,
     QO_CHECKS[] && @assert length(result) == 2
     C, Cdagger = result
     QO_CHECKS[] && check_master_stoch(state.quantum, C, Cdagger)
-    recast!(dx, dstate)
+    recast!(dstate,dx)
     QuantumOpticsBase.mul!(dstate.quantum,C[1],state.quantum)
     QuantumOpticsBase.mul!(dstate.quantum,state.quantum,Cdagger[1],true,true)
     dstate.quantum.data .-= tr(dstate.quantum)*state.quantum.data
-    recast!(dstate, dx)
+    recast!(dx,dstate)
 end
 function dmaster_stoch_dynamic(dx::AbstractMatrix, t,
             state, fstoch_quantum::Function,
@@ -238,11 +238,11 @@ function dmaster_stoch_dynamic(dx::AbstractMatrix, t,
     QO_CHECKS[] && check_master_stoch(state.quantum, C, Cdagger)
     for i=1:n
         dx_i = @view dx[:, i]
-        recast!(dx_i, dstate)
+        recast!(dstate,dx_i)
         QuantumOpticsBase.mul!(dstate.quantum,C[i],state.quantum)
         QuantumOpticsBase.mul!(dstate.quantum,state.quantum,Cdagger[i],true,true)
         dstate.quantum.data .-= tr(dstate.quantum)*state.quantum.data
-        recast!(dstate, dx_i)
+        recast!(dx_i,dstate)
     end
 end
 function dmaster_stoch_dynamic(dx, t,
@@ -260,13 +260,13 @@ function dmaster_stoch_dynamic(dx, t,
     fstoch_classical(t, state.quantum, state.classical, dx_i)
 end
 
-function recast!(state::State, x::SubArray)
+function recast!(x::SubArray,state::State)
     N = length(state.quantum)
     copyto!(x, 1, state.quantum.data, 1, N)
     copyto!(x, N+1, state.classical, 1, length(state.classical))
     x
 end
-function recast!(x::SubArray, state::State)
+function recast!(state::State,x::SubArray)
     N = length(state.quantum)
     copyto!(state.quantum.data, 1, x, 1, N)
     copyto!(state.classical, 1, x, N+1, length(state.classical))

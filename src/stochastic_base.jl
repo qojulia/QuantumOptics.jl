@@ -21,19 +21,19 @@ function integrate_stoch(tspan, df, dg, x0,
             kwargs...)
 
     function df_(dx, x, p, t)
-        recast!(x, state)
-        recast!(dx, dstate)
+        recast!(state,x)
+        recast!(dstate,dx)
         df(t, state, dstate)
-        recast!(dstate, dx)
+        recast!(dx,dstate)
     end
 
     function dg_(dx, x, p, t)
-        recast!(x, state)
+        recast!(state,x)
         dg(dx, t, state, dstate, n)
     end
 
     function fout_(x, t, integrator)
-        recast!(x, state)
+        recast!(state,x)
         fout(t, state)
     end
 

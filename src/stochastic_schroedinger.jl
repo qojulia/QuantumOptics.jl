@@ -117,15 +117,15 @@ end
 
 
 function dschroedinger_stochastic(dx::AbstractVector, psi, Hs, dpsi, index)
-    recast!(dx, dpsi)
+    recast!(dpsi,dx)
     dschroedinger!(dpsi, Hs[index], psi)
 end
 function dschroedinger_stochastic(dx::AbstractMatrix, psi, Hs, dpsi, n)
     for i=1:n
         dx_i = @view dx[:, i]
-        recast!(dx_i, dpsi)
+        recast!(dpsi,dx_i)
         dschroedinger!(dpsi, Hs[i], psi)
-        recast!(dpsi, dx_i)
+        recast!(dx_i,dpsi)
     end
 end
 function dschroedinger_stochastic(dx, t, psi, f, dpsi, n)
@@ -138,5 +138,5 @@ function dschroedinger_stochastic(dx, t, psi, f, dpsi, n)
     dschroedinger_stochastic(dx, psi, ops, dpsi, n)
 end
 
-recast!(psi::Ket, x::SubArray) = (x .= psi.data)
-recast!(x::SubArray, psi::Ket) = (psi.data = x)
+recast!(x::SubArray,psi::Ket) = (x .= psi.data)
+recast!(psi::Ket,x::SubArray) = (psi.data = x)

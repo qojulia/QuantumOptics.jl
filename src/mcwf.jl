@@ -293,7 +293,7 @@ function integrate_mcwf(dmcwf, jumpfun, tspan,
     end
 
     function fout_(x, t, integrator)
-        recast!(x, state)
+        recast!(state,x)
         fout(t, state)
     end
 
@@ -309,10 +309,10 @@ function integrate_mcwf(dmcwf, jumpfun, tspan,
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
 
     function df_(dx, x, p, t)
-        recast!(x, state)
-        recast!(dx, dstate)
+        recast!(state,x)
+        recast!(dstate,dx)
         dmcwf(t, state, dstate)
-        recast!(dstate, dx)
+        recast!(dx,dstate)
     end
 
     prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0), (tspan_[1],tspan_[end]))
@@ -358,7 +358,7 @@ function jump_callback(jumpfun, seed, scb, save_before!,
 
         affect! = scb.affect!
         save_before!(affect!,integrator)
-        recast!(x, psi_tmp)
+        recast!(psi_tmp,x)
         i = jumpfun(rng, t, psi_tmp, tmp)
         x .= tmp.data
         save_after!(affect!,integrator)

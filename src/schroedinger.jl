@@ -47,9 +47,15 @@ function schroedinger_dynamic(tspan, psi0, f;
     integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
 end
 
+"""
+    recast!(x,y)
 
-recast!(x::D, psi::StateVector{B,D}) where {B, D} = (psi.data = x);
-recast!(psi::StateVector{B,D}, x::D) where {B, D} = nothing
+Write the data stored in `y` into `x`, where either `x` or `y` is a quantum
+object such as a [`Ket`](@ref) or an [`Operator`](@ref), and the other one is
+a vector or a matrix with a matching size.
+"""
+recast!(psi::StateVector{B,D},x::D) where {B, D} = (psi.data = x);
+recast!(x::D,psi::StateVector{B,D}) where {B, D} = nothing
 
 """
     dschroedinger!(dpsi, H, psi)

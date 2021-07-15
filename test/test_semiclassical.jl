@@ -71,8 +71,8 @@ u = rand(ComplexF64, 3)
 state = semiclassical.State(rho, u)
 state_ = semiclassical.State(randoperator(b), rand(ComplexF64, 3))
 x = Vector{ComplexF64}(undef, 19)
-semiclassical.recast!(state, x)
-semiclassical.recast!(x, state_)
+semiclassical.recast!(x,state)
+semiclassical.recast!(state_,x)
 @test state_ == state
 
 

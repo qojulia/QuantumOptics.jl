@@ -123,7 +123,7 @@ master_dynamic(tspan, psi0::Ket, args...; kwargs...) = master_dynamic(tspan, dm(
 
 # Derivative functions
 function dmaster_stochastic(dx::AbstractVector, rho, C, Cdagger, drho, n)
-    recast!(dx, drho)
+    recast!(drho,dx)
     QuantumOpticsBase.mul!(drho,C[1],rho)
     QuantumOpticsBase.mul!(drho,rho,Cdagger[1],true,true)
     drho.data .-= tr(drho)*rho.data
@@ -131,11 +131,11 @@ end
 function dmaster_stochastic(dx::AbstractMatrix, rho, C, Cdagger, drho, n)
     for i=1:n
         dx_i = @view dx[:, i]
-        recast!(dx_i, drho)
+        recast!(drho,dx_i)
         QuantumOpticsBase.mul!(drho,C[i],rho)
         QuantumOpticsBase.mul!(drho,rho,Cdagger[i],true,true)
         drho.data .-= tr(drho)*rho.data
-        recast!(drho, dx_i)
+        recast!(dx_i,drho)
     end
 end
 
@@ -180,8 +180,8 @@ end
 as_vector(rho::Operator) = reshape(rho.data, length(rho))
 
 # TODO: Speed up by recasting to n-d arrays, remove vector methods
-function recast!(x::Union{Vector, SubArray}, rho::Operator{B,B,T}) where {B,T}
+function recast!(rho::Operator{B,B,T},x::Union{Vector, SubArray}) where {B,T}
     rho.data = reshape(x, size(rho.data))
 end
-recast!(state::Operator{B,B}, x::SubArray) where B = (x[:] = state.data)
-recast!(state::Operator{B,B}, x::Vector) where B = nothing
+recast!(x::SubArray,state::Operator{B,B}) where B = (x[:] = state.data)
+recast!(x::Vector,state::Operator{B,B}) where B = nothing

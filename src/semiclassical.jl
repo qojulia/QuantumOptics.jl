@@ -75,7 +75,7 @@ function schroedinger_dynamic(tspan, state0::State, fquantum, fclassical;
                 kwargs...)
     dschroedinger_(t, state, dstate) = dschroedinger_dynamic!(dstate, fquantum, fclassical, state, t)
     x0 = Vector{eltype(state0)}(undef, length(state0))
-    recast!(state0, x0)
+    recast!(x0,state0)
     state = copy(state0)
     dstate = copy(state0)
     integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
@@ -107,7 +107,7 @@ function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical;
                 kwargs...) where {B,T<:Operator}
     dmaster_(t, state, dstate) = dmaster_h_dynamic!(dstate, fquantum, fclassical, rates, state, tmp, t)
     x0 = Vector{eltype(state0)}(undef, length(state0))
-    recast!(state0, x0)
+    recast!(x0,state0)
     state = copy(state0)
     dstate = copy(state0)
     integrate(tspan, dmaster_, x0, state, dstate, fout; kwargs...)
@@ -157,20 +157,20 @@ function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum, fclassical, fjump_class
     dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, fquantum, fclassical, rates, psi, tmp, t)
     j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, fquantum, fclassical, fjump_classical, psi_new, rates)
     x0 = Vector{eltype(psi0)}(undef, length(psi0))
-    recast!(psi0, x0)
+    recast!(x0,psi0)
     psi = copy(psi0)
     dpsi = copy(psi0)
     integrate_mcwf(dmcwf_, j_, tspan, psi, seed, fout; kwargs...)
 end
 
-function recast!(state::State{B,T,C}, x::C) where {B,T,C}
+function recast!(x::C,state::State{B,T,C}) where {B,T,C}
     N = length(state.quantum)
     copyto!(x, 1, state.quantum.data, 1, N)
     copyto!(x, N+1, state.classical, 1, length(state.classical))
     x
 end
 
-function recast!(x::C, state::State{B,T,C}) where {B,T,C}
+function recast!(state::State{B,T,C},x::C) where {B,T,C}
     N = length(state.quantum)
     copyto!(state.quantum.data, 1, x, 1, N)
     copyto!(state.classical, 1, x, N+1, length(state.classical))
@@ -248,9 +248,9 @@ function jump_callback(jumpfun, seed, scb, save_before!,
 
         affect! = scb.affect!
         save_before!(affect!,integrator)
-        recast!(x, psi_tmp)
+        recast!(psi_tmp,x)
         i = jumpfun(rng, t, psi_tmp, tmp)
-        recast!(tmp, x)
+        recast!(x,tmp)
         save_after!(affect!,integrator)
         save_t_index(t,i)
 

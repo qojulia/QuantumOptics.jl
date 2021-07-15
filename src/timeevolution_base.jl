@@ -18,13 +18,13 @@ function integrate(tspan, df, x0,
             callback = nothing, kwargs...) where {T,X}
 
     function df_(dx, x, p, t)
-        recast!(x, state)
-        recast!(dx, dstate)
+        recast!(state,x)
+        recast!(dstate,dx)
         df(t, state, dstate)
-        recast!(dstate, dx)
+        recast!(dx,dstate)
     end
     function fout_(x, t, integrator)
-        recast!(x, state)
+        recast!(state,x)
         fout(t, state)
     end
 

@@ -219,10 +219,10 @@ function nh_hamiltonian(H,J,Jdagger,rates::AbstractMatrix)
 end
 
 # Recasting needed for the ODE solver is just providing the underlying data
-function recast!(x::T, rho::Operator{B,B,T}) where {B,T}
+function recast!(rho::Operator{B,B,T},x::T) where {B,T}
     rho.data = x
 end
-recast!(rho::Operator{B,B,T}, x::T) where {B,T} = nothing
+recast!(x::T,rho::Operator{B,B,T}) where {B,T} = nothing
 
 function integrate_master(tspan, df, rho0, fout; kwargs...)
     x0 = rho0.data
