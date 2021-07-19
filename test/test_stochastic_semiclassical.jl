@@ -38,22 +38,22 @@ T_short = [0:dt:dt;]
 function fquantum(t, psi, u)
     return H
 end
-function fclassical(t, psi, u, du)
+function fclassical(du, u, psi, t)
     du[1] = u[2]
     du[2] = sin(u[1])*cos(u[1])
 end
 function fquantum_stoch(t, psi, u)
     Hs
 end
-function fclassical_stoch(t, psi, u, du)
+function fclassical_stoch(du, u, psi, t)
     du[1] = 0.2*u[1]
     du[2] = 0.2*u[2]
 end
-function fclassical_stoch2(t, psi, u, du)
+function fclassical_stoch2(du, u, psi, t)
     du[1,1] = 0.2*u[1]
     du[2,2] = 0.2*u[2]
 end
-function fclassical_stoch_ndiag(t, psi, u, du)
+function fclassical_stoch_ndiag(du, u, psi, t)
     du[1,1] = 0.2*u[1]
     du[1,2] = 0.1*u[1]
     du[2,3] = -0.1u[2]

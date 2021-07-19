@@ -2,7 +2,7 @@ using ...semiclassical
 import ...semiclassical: State
 
 """
-    stochastic.schroedinger_semiclassical(tspan, state0, fquantum, fclassical[; fout, ...])
+    stochastic.schroedinger_semiclassical(tspan, state0, fquantum, fclassical![; fout, ...])
 Integrate time-dependent Schrödinger equation coupled to a classical system.
 # Arguments
 * `tspan`: Vector specifying the points of time for which the output should
@@ -10,13 +10,13 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
 * `state0`: Initial semi-classical state [`semiclassical.State`](@ref).
 * `fquantum`: Function `f(t, psi, u) -> H` returning the time and or state
         dependent Hamiltonian.
-* `fclassical`: Function `f(t, psi, u, du)` calculating the possibly time and
+* `fclassical!`: Function `f!(du, u, psi ,t)` calculating the possibly time and
         state dependent derivative of the classical equations and storing it
         in the vector `du`.
 * `fstoch_quantum=nothing`: Function `f(t, psi, u) -> Hs` that returns a vector
         of operators corresponding to the stochastic terms of the Hamiltonian.
         NOTE: Either this function or `fstoch_classical` has to be defined.
-* `fstoch_classical=nothing`: Function `f(t, psi, u, du)` that calculates the
+* `fstoch_classical=nothing`: Function `f!(du, u, psi, t)` that calculates the
         stochastic terms of the derivative `du`.
         NOTE: Either this function or `fstoch_quantum` has to be defined.
 * `fout=nothing`: If given, this function `fout(t, state)` is called every time
@@ -38,7 +38,7 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function schroedinger_semiclassical(tspan, state0::S, fquantum,
-                fclassical; fstoch_quantum=nothing,
+                fclassical!; fstoch_quantum=nothing,
                 fstoch_classical=nothing,
                 fout=nothing,
                 noise_processes::Int=0,
@@ -47,7 +47,7 @@ function schroedinger_semiclassical(tspan, state0::S, fquantum,
                 kwargs...) where {B<:Basis,T<:Ket{B},S<:State{B,T}}
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     dschroedinger_det(t, state, dstate) =
-            semiclassical.dschroedinger_dynamic!(dstate, fquantum, fclassical, state, t)
+            semiclassical.dschroedinger_dynamic!(dstate, fquantum, fclassical!, state, t)
 
     if isa(fstoch_quantum, Nothing) && isa(fstoch_classical, Nothing)
         throw(ArgumentError("No stochastic functions provided!"))
@@ -108,12 +108,12 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 * `fquantum`: Function `f(t, rho, u) -> (H, J, Jdagger)` or
         `f(t, rho, u) -> (H, J, Jdagger, rates)` giving the deterministic
         part of the master equation.
-* `fclassical`: Function `f(t, rho, u, du)` that calculates the classical
+* `fclassical!`: Function `f!(du, u, rho, t)` that calculates the classical
         derivatives `du`.
 * `fstoch_quantum=nothing`: Function `f(t, rho, u) -> C, Cdagger`
         that returns the stochastic operator for the superoperator of the form
         `C[i]*rho + rho*Cdagger[i]`.
-* `fstoch_classical=nothing`: Function `f(t, rho, u, du)` that calculates the
+* `fstoch_classical=nothing`: Function `f!(du, u, rho, t)` that calculates the
         stochastic terms of the derivative `du`.
 * `rates=nothing`: Vector or matrix specifying the coefficients (decay rates)
         for the jump operators. If nothing is specified all rates are assumed
@@ -136,7 +136,7 @@ non-hermitian Hamiltonian and then calls master_nh which is slightly faster.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
 function master_semiclassical(tspan, rho0::S,
-                fquantum, fclassical;
+                fquantum, fclassical!;
                 fstoch_quantum=nothing,
                 fstoch_classical=nothing,
                 rates=nothing,
@@ -168,7 +168,7 @@ function master_semiclassical(tspan, rho0::S,
     end
 
     dmaster_determ(t, rho, drho) =
-            semiclassical.dmaster_h_dynamic!(drho, fquantum, fclassical, rates, rho, tmp, t)
+            semiclassical.dmaster_h_dynamic!(drho, fquantum, fclassical!, rates, rho, tmp, t)
 
     dmaster_stoch(dx, t, rho, drho, n) =
         dmaster_stoch_dynamic(dx, t, rho, fstoch_quantum, fstoch_classical, drho, n)
@@ -206,14 +206,14 @@ function dschroedinger_stochastic(dx, t,
             state, fstoch_quantum::Nothing, fstoch_classical::Function,
             dstate, n)
     dclassical = @view dx[length(state.quantum)+1:end, :]
-    fstoch_classical(t, state.quantum, state.classical, dclassical)
+    fstoch_classical(dclassical, state.classical, state.quantum, t)
 end
 function dschroedinger_stochastic(dx, t, state, fstoch_quantum::Function,
             fstoch_classical::Function, dstate, n)
     dschroedinger_stochastic(dx, t, state, fstoch_quantum, nothing, dstate, n)
 
     dx_i = @view dx[length(state.quantum)+1:end, n+1:end]
-    fstoch_classical(t, state.quantum, state.classical, dx_i)
+    fstoch_classical(dx_i, state.classical, state.quantum, t)
 end
 
 function dmaster_stoch_dynamic(dx::AbstractVector, t,
@@ -249,7 +249,7 @@ function dmaster_stoch_dynamic(dx, t,
             state, fstoch_quantum::Nothing,
             fstoch_classical::Function, dstate, n)
     dclassical = @view dx[length(state.quantum)+1:end, :]
-    fstoch_classical(t, state.quantum, state.classical, dclassical)
+    fstoch_classical(dclassical, state.classical, state.quantum, t)
 end
 function dmaster_stoch_dynamic(dx, t,
             state, fstoch_quantum::Function,
@@ -257,7 +257,7 @@ function dmaster_stoch_dynamic(dx, t,
     dmaster_stoch_dynamic(dx, t, state, fstoch_quantum, nothing, dstate, n)
 
     dx_i = @view dx[length(state.quantum)+1:end, n+1:end]
-    fstoch_classical(t, state.quantum, state.classical, dx_i)
+    fstoch_classical(dx_i, state.classical, state.quantum, t)
 end
 
 function recast!(x::SubArray,state::State)
