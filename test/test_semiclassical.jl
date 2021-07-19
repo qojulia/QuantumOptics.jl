@@ -104,7 +104,7 @@ T = [0:0.5:1;]
 
 fquantum_schroedinger(t, rho, u) = H
 fquantum_master(t, rho, u) = H, [], []
-function fclassical(t, quantumstate, u, du)
+function fclassical(du, u, quantumstate, t)
     du[1] = -1*u[1]
 end
 
@@ -137,12 +137,12 @@ Jdagger = dagger.(J)
 function fquantum(t,psi,u)
     return H, J, Jdagger
 end
-function fclassical(t,psi,u,du)
+function fclassical(du,u,psi,t)
     du[1] = u[2] # dx
     du[2] = 0.0
 end
 njumps = [0]
-function fjump_classical(t,psi,u,i)
+function fjump_classical(u,psi,i,t)
     @test i==2
     njumps .+= 1
     u[2] += 1.0
