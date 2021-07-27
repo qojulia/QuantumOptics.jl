@@ -112,12 +112,11 @@ function _linmap_liouvillian(rho,H,J,Jdagger,rates)
     # Linear mapping
     function f!(y,x)
         # Reshape
-        drho.data .= @views reshape(y[1:end-1], M, M)
         rho.data .= @views reshape(x[1:end-1], M, M)
         # Apply function
         dmaster_(drho,rho)
         # Recast data
-        @views y[1:end-1] .= reshape(drho.data, M^2)
+        copyto!(y, 1, drho.data, 1, M^2)
         y[end] = tr(rho)
         return y
     end

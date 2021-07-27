@@ -93,6 +93,18 @@ steadystate.iterative!(ρss32, Hdense32, Jdense32)
 ρt32 = DenseOperator(ρt[end].basis_l, ρt[end].basis_r, Matrix{ComplexF32}(ρt[end].data))
 @test tracedistance(ρss32, ρt[end]) < 2*1e-3
 
+ρbig = Operator(basis, basis, Matrix{Complex{BigFloat}}(ρ₀.data))
+Hbig = Operator(basis, basis, Matrix{Complex{BigFloat}}(H.data))
+Jbig = [Operator(basis, basis, Matrix{Complex{BigFloat}}(j.data)) for j ∈ J]
+steadystate.iterative!(ρbig, Hbig, Jbig)
+@test ρbig.data[2,2] ≈ 1
+check = Ref(true)
+for i=1:size(ρbig, 1), j=1:size(ρbig, 2)
+    2==i==j && continue
+    check[] = iszero(ρbig.data[i,j])
+end
+@test check[]
+
 # Iterative methods with lazy operators
 Hlazy = LazySum(Ha, Hc, Hint)
 Ja_lazy = LazyTensor(basis, 1, sqrt(γ)*sm)
