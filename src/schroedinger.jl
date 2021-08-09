@@ -5,7 +5,8 @@ Integrate Schroedinger equation to evolve states or compute propagators.
 
 # Arguments
 * `tspan`: Vector specifying the points of time for which output should be displayed.
-* `psi0`: Initial state vector (can be a bra or a ket) or initial propagator.
+* `psi0`: Initial state vector (can be a bra or a ket) or initial propagator. Has to be
+        complex array.
 * `H`: Arbitrary operator specifying the Hamiltonian.
 * `fout=nothing`: If given, this function `fout(t, psi)` is called every time
         an output should be displayed. ATTENTION: The state `psi` is neither
@@ -15,6 +16,7 @@ Integrate Schroedinger equation to evolve states or compute propagators.
 function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...) where {B,T<:Union{AbstractOperator{B,B},StateVector{B}}}
+    check_psi0(psi0)
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
     x0 = psi0.data
     state = copy(psi0)
@@ -40,6 +42,7 @@ Integrate time-dependent Schroedinger equation to evolve states or compute propa
 function schroedinger_dynamic(tspan, psi0, f;
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...)
+    check_psi0(psi0)
     dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
     x0 = psi0.data
     state = copy(psi0)
@@ -97,4 +100,10 @@ end
 function check_schroedinger(psi::Bra, H)
     check_multiplicable(psi, H)
     check_samebases(H)
+end
+
+function check_psi0(psi0)
+    if !(psi0 isa Ket{B, Array{T, 1}} where B<:Basis where T<:Complex)
+        error("Method only works for complex-valued initual wave functions.")
+    end
 end
