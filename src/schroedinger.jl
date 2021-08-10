@@ -101,9 +101,3 @@ function check_schroedinger(psi::Bra, H)
     check_multiplicable(psi, H)
     check_samebases(H)
 end
-
-function check_psi0(psi0)
-    if !(psi0 isa Ket{B, Array{T, 1}} where B<:Basis where T<:Complex)
-        error("Method only works for complex-valued initual wave functions.")
-    end
-end

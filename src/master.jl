@@ -192,7 +192,10 @@ end
 
 # Automatically convert Ket states to density operators
 for f ∈ [:master,:master_h,:master_nh,:master_dynamic,:master_nh_dynamic]
-    @eval $f(tspan,psi0::Ket,args...;kwargs...) = $f(tspan,dm(psi0),args...;kwargs...)
+    @eval function $f(tspan,psi0::Ket,args...;kwargs...)
+        check_psi0(psi0)
+        $f(tspan,dm(psi0),args...;kwargs...)
+    end
 end
 
 # Non-hermitian Hamiltonian

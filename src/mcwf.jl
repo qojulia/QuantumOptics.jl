@@ -457,6 +457,7 @@ Check input of mcwf.
 """
 function check_mcwf(psi0, H, J, Jdagger, rates)
     # TODO: replace type checks by dispatch; make types of J known
+    check_psi0(psi0)
     isreducible = true
     if !(isa(H, DenseOpType) || isa(H, SparseOpType))
         isreducible = false

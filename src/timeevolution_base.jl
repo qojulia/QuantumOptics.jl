@@ -74,6 +74,15 @@ function integrate(tspan, df, x0,
     integrate(tspan, df, x0, state, dstate, fout; kwargs...)
 end
 
+function check_psi0(psi0::Ket{B, T} where B<:Basis where T<:Array)
+    if !isa(psi0, Ket{B, Array{T, 1}} where B<:Basis where T<:Complex)
+        error("Method only works for complex-valued initual wave functions.")
+    end
+end
+
+function check_psi0(psi0)
+end
+
 struct SteadyStateCondtion{T,T2,T3}
     rho0::T
     tol::T2
