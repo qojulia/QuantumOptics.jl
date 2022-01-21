@@ -63,6 +63,39 @@ end
 
 
 """
+    correlation_dynamic(tspan, rho0, f, op1, op2; <keyword arguments>)
+
+
+Calculate two time correlation values ``⟨A(t)B(0)⟩`` for time-dependent Liouvillian
+
+The calculation is done by multiplying the initial density operator
+with ``B`` performing a time evolution according to a master equation
+and then calculating the expectation value ``\\mathrm{Tr} \\{A ρ\\}``
+
+
+# Arguments
+* `tspan`: Points of time at which the correlation should be calculated.
+* `rho0`: Initial density operator.
+* `f`: Function `f(t, rho) -> (H, J, Jdagger)` or `f(t, rho) -> (H, J, Jdagger, rates)`
+* `op1`: Operator at time `t`.
+* `op2`: Operator at time `t=0`.
+* `rates=ones(N)`: Vector or matrix specifying the coefficients (decay rates)
+        for the jump operators.
+* `kwargs...`: Further arguments are passed on to the ode solver.
+"""
+function correlation_dynamic(tspan, rho0::Operator, f, op1, op2;
+                             rates=nothing, kwargs...)
+
+    function fout(t, rho)
+        expect(op1, rho)
+    end
+
+    t,u = timeevolution.master_dynamic(tspan, op2*rho0, f, rates=rates,fout=fout, kwargs...)
+    u
+end
+
+
+"""
     timecorrelations.spectrum([omega_samplepoints,] H, J, op; <keyword arguments>)
 
 Calculate spectrum as Fourier transform of a correlation function
