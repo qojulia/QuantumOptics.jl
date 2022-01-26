@@ -63,7 +63,7 @@ end
 
 
 """
-    timecorrelations.correlation_dynamic(tspan, rho0, f, op1, op2; <keyword arguments>)
+    timecorrelations.correlation_dynamic(tspan, rho0, f, A, B; <keyword arguments>)
 
 
 Calculate two time correlation values ``⟨A(t)B(0)⟩`` for time-dependent Liouvillian
