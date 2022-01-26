@@ -1,6 +1,6 @@
 module timecorrelations
 
-export correlation, spectrum, correlation2spectrum
+export correlation, spectrum, correlation2spectrum, correlation_dynamic
 
 using QuantumOpticsBase
 using ..timeevolution, ..steadystate
@@ -63,7 +63,7 @@ end
 
 
 """
-    correlation_dynamic(tspan, rho0, f, op1, op2; <keyword arguments>)
+    timecorrelations.correlation_dynamic(tspan, rho0, f, op1, op2; <keyword arguments>)
 
 
 Calculate two time correlation values ``⟨A(t)B(0)⟩`` for time-dependent Liouvillian
