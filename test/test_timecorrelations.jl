@@ -30,6 +30,10 @@ Ja2 = embed(basis, 1, sqrt(0.5*γ)*sp)
 Jc = embed(basis, 2, sqrt(κ)*destroy(fockbasis))
 J = [Ja, Ja2, Jc]
 
+# time-dependent Hamiltonian in rotating frame of cavity mode,
+# which should not change the time correlation for spin operators.
+f_HJ(t,rho) = [ Ha + exp(im*ωc*t) * sm ⊗ create(fockbasis) + exp(-im*ωc*t) * sp ⊗ destroy(fockbasis), J, dagger.(J) ]
+
 Ψ₀ = basisstate(spinbasis, 2) ⊗ fockstate(fockbasis, 5)
 ρ₀ = dm(Ψ₀)
 
@@ -41,12 +45,16 @@ exp_values = timecorrelations.correlation(tspan, ρ₀, H, J, dagger(op), op)
 ρ₀ = dm(Ψ₀)
 
 tout, exp_values2 = timecorrelations.correlation(ρ₀, H, J, dagger(op), op; tol=1e-5)
+  
+exp_values3 = timecorrelations.correlation_dynamic(tspan, ρ₀, f_HJ, dagger(op), op)
 
 @test length(exp_values) == length(tspan)
 @test length(exp_values2) == length(tout)
+@test length(exp_values3) == length(tspan)
 @test norm(exp_values[1]-exp_values2[1]) < 1e-15
 @test norm(exp_values[end]-exp_values2[end]) < 1e-4
-
+@test all(norm.(exp_values .- exp_values3) .< 1e-4)
+  
 n = length(tspan)
 omega_sample = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
 omega_sample .*= 2pi/tspan[end]
