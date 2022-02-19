@@ -168,6 +168,17 @@ qsu2dm = sum(qfuncsu2(dmrs,res).*costhetam)*(π/res)^2
 @test isapprox(wsu2, 1.0, atol=1e-2)
 @test isapprox(wsu2dm, 1.0, atol=1e-2)
 
+
+# Test CSS for large spin number (#326)
+b = SpinBasis(35)  # S=35 overflows `binomial` function, e.g. binomial(70, 26)
+theta = π*rand()
+phi =2π*rand()
+css = coherentspinstate(b,theta,phi)
+css0 = coherentspinstate(b,0,0)
+css2 = exp(-0.5im * phi * dense(sigmaz(b))) * exp(-0.5im * theta * dense(sigmay(b))) * css0
+@test norm(css - css2) < 1e-12
+
+
 ########### YLM test #############
 res = 1000
 int = 0
