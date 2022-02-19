@@ -295,8 +295,10 @@ function coherentspinstate(b::SpinBasis, theta::Real, phi::Real)
     costh = cos(0.5theta)
     expphi = exp(0.5im*phi)
     expphi_con = conj(expphi)
+    sb = 1.0  # = recursive definition of √(N over n)
     @inbounds for n=0:N
-        data[n+1] = sqrt(binomial(N, n)) * (sinth*expphi)^n * (costh*expphi_con)^(N-n)
+        data[n+1] = sb * (sinth*expphi)^n * (costh*expphi_con)^(N-n)
+        sb = sb * √((N - n) / (n + 1))  # N over n = (N+1-n)/n (N over n-1)
     end
     return result
 end
