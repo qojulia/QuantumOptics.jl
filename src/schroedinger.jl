@@ -56,6 +56,10 @@ a vector or a matrix with a matching size.
 """
 recast!(psi::StateVector{B,D},x::D) where {B, D} = (psi.data = x);
 recast!(x::D,psi::StateVector{B,D}) where {B, D} = nothing
+function recast!(proj::Operator{B1,B2,T},x::T) where {B1,B2,T}
+    proj.data = x
+end
+recast!(x::T,proj::Operator{B1,B2,T}) where {B1,B2,T} = nothing
 
 """
     dschroedinger!(dpsi, H, psi)
