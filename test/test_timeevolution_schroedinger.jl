@@ -68,6 +68,28 @@ end
 t_fout, psi_fout = timeevolution.schroedinger(T, psi0, Hrot; fout=fout)
 @test t_fout == tout && psi_fout == psi_rot_t
 
+
+# propagate few different states separately
+subspace = basisstate.([basis], (Ncutoff+1).^(0:N-1).+1)
+t_list, psi_list = timeevolution.schroedinger_dynamic.([T], subspace, f; abstol=eps(), reltol=eps()) |> q->(getindex.(q,1), getindex.(q,2))
+# propagate the same states as before, together as an projection from SubSpaceBasis
+proj1 = projector(basis, SubspaceBasis(basis, subspace))
+t_sub1, psi_sub1 = timeevolution.schroedinger_dynamic(T, proj1, f; abstol=eps(), reltol=eps())
+# propagate the same states as before, together as a transformation from NLevelBasis
+proj2 = Operator(proj1.basis_l, NLevelBasis(size(proj1.data,2)), proj1.data)
+t_sub2, psi_sub2 = timeevolution.schroedinger_dynamic(T, proj2, f; abstol=eps(), reltol=eps())
+
+# check that time vector is the same
+@test t_list[1:end-1] == t_list[2:end] && t_list[1] == t_sub1 == t_sub2
+# check that base is preserved
+@test all(getfield.(psi_sub1, :basis_l) .== [proj1.basis_l]) && all(getfield.(psi_sub1, :basis_r) .== [proj1.basis_r])
+@test all(getfield.(psi_sub2, :basis_l) .== [proj2.basis_l]) && all(getfield.(psi_sub2, :basis_r) .== [proj2.basis_r])
+# check that data is independent of basis_r
+@test all(getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data))
+# check that data is the same
+@test all([hcat(q...) for q=eachrow(getfield.(hcat(psi_list...),:data))] .≈ getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data))
+
+
 # test integration of propagator using 2 level system
 basis = SpinBasis(1//2)
 su = spinup(basis)
