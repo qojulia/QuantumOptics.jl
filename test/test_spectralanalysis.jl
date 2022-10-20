@@ -98,15 +98,14 @@ dsq3_std = eigenenergies(dense(Ssq3))
 @test diagm(0 => dsq3_std) ≈ v3'*Ssq3.data*v3
 
 fockbasis = FockBasis(4)
-@test_throws ErrorException simdiag([Sy3, Sz3])
-@test_throws ErrorException simdiag([dense(destroy(fockbasis)), dense(create(fockbasis))])
+@test_throws ErrorException simdiag([Sy3, Sz3]; warning=false)
+@test_throws ErrorException simdiag([dense(destroy(fockbasis)), dense(create(fockbasis))]; warning=false)
 
 b = FockBasis(10)
 a = destroy(b)
 ad = dagger(a)
 H = ad*a
 H1 = 0.5im*H
-@test_throws ErrorException simdiag([dense(H), dense(H1)])
-@test isa(simdiag([dense(H), dense(H1)]; hermitian=false), Tuple)
+@test isa(simdiag([dense(H), dense(H1)]; warning=false), Tuple)
 
 end # testset
