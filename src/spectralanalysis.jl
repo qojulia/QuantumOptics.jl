@@ -92,9 +92,9 @@ eigenenergies(op::AbstractOperator, n::Int=0) = arithmetic_unary_error("eigenene
 
 
 """
-    simdiag(ops; atol, rtol)
+    simdiag(ops; atol, rtol, hermitian=true)
 
-Simultaneously diagonalize commuting Hermitian operators specified in `ops`.
+Simultaneously diagonalize commuting operators specified in `ops`.
 
 This is done by diagonalizing the sum of the operators. The eigenvalues are
 computed by ``a = ⟨ψ|A|ψ⟩`` and it is checked whether the eigenvectors fulfill
@@ -106,17 +106,21 @@ the equation ``A|ψ⟩ = a|ψ⟩``.
         approximate check
 * `rtol=1e-14`: kwarg of Base.isapprox specifying the tolerance of the
         approximate check
+* `warning=false`: If the given operators are non-hermitian a warning is given. This behavior
+    can be turned off using the keyword `warning=false`.
 
 # Returns
 * `evals_sorted`: Vector containing all vectors of the eigenvalues sorted
         by the eigenvalues of the first operator.
 * `v`: Common eigenvectors.
 """
-function simdiag(ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14) where T<:DenseOpType
+function simdiag(ops::Vector{T}; atol::Real=1e-14, rtol::Real=1e-14, warning=true) where T<:DenseOpType
     # Check input
     for A=ops
-        if !ishermitian(A)
-            error("Non-hermitian operator given!")
+        if !ishermitian(A) && warning
+            @warn("Non-hermitian operator given. If this is due to a numerical error make the operator
+                hermitian by calculating (x+dagger(x))/2 first. If you want to simultaneously
+                diagonalize non-hermitian operators and neglect the warning, set `warning=false`.")
         end
     end
 
