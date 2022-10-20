@@ -101,4 +101,12 @@ fockbasis = FockBasis(4)
 @test_throws ErrorException simdiag([Sy3, Sz3])
 @test_throws ErrorException simdiag([dense(destroy(fockbasis)), dense(create(fockbasis))])
 
+b = FockBasis(10)
+a = destroy(b)
+ad = dagger(a)
+H = ad*a
+H1 = 0.5im*H
+@test_throws ErrorException simdiag([dense(H), dense(H1)])
+@test isa(simdiag([dense(H), dense(H1)]; hermitian=false), Tuple)
+
 end # testset
