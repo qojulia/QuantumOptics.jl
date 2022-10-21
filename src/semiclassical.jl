@@ -2,7 +2,8 @@ module semiclassical
 
 using QuantumOpticsBase
 import Base: ==
-import ..timeevolution: integrate, recast!, jump, integrate_mcwf, jump_callback, as_vector, QO_CHECKS
+import ..timeevolution: integrate, recast!, jump, integrate_mcwf, jump_callback,
+    JumpRNGState, threshold, roll!, as_vector, QO_CHECKS
 import LinearAlgebra: normalize, normalize!
 
 using Random, LinearAlgebra
@@ -237,19 +238,18 @@ function jump_dynamic(rng, t, psi, fquantum, fclassical!, fjump_classical!, psi_
 end
 
 function jump_callback(jumpfun, seed, scb, save_before!,
-                        save_after!, save_t_index, psi0::State, jump_state)
+                        save_after!, save_t_index, psi0::State, rng_state)
     tmp = copy(psi0)
     psi_tmp = copy(psi0)
 
-    if jump_state === nothing
-        rng = MersenneTwister(convert(UInt, seed))
-        jumpnorm = Ref(rand(rng))
+    if rng_state === nothing
+        rngstate = JumpRNGState(seed)
     else
-        rng, jumpnorm = jump_state
+        rngstate = rng_state
     end
 
     n = length(psi0.quantum)
-    djumpnorm(x::Vector, t, integrator) = norm(x[1:n])^2 - (1-jumpnorm[])
+    djumpnorm(x::Vector, t, integrator) = norm(x[1:n])^2 - (1-threshold(rngstate))
 
     function dojump(integrator)
         x = integrator.u
@@ -258,12 +258,12 @@ function jump_callback(jumpfun, seed, scb, save_before!,
         affect! = scb.affect!
         save_before!(affect!,integrator)
         recast!(psi_tmp,x)
-        i = jumpfun(rng, t, psi_tmp, tmp)
+        i = jumpfun(rngstate.rng, t, psi_tmp, tmp)
         recast!(x,tmp)
         save_after!(affect!,integrator)
         save_t_index(t,i)
 
-        jumpnorm[] = rand(rng)
+        roll!(rngstate)
         return nothing
     end
 

@@ -84,6 +84,8 @@ and therefore must not be changed.
 operators. If they are not given they are calculated automatically.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
+* `rng_state`: An optional `timeevolution.JumpRNGState``, providing the RNG and
+        an initial jump threshold. If provided, `seed` is ignored.
 * `display_jumps=false`: If set to true, an additional list of times and indices
 is returned. These correspond to the times at which a jump occured and the index
 of the jump operators with which the jump occured, respectively.
@@ -149,6 +151,8 @@ normalized nor permanent! It is still in use by the ode solve
 and therefore must not be changed.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
+* `rng_state`: An optional `timeevolution.JumpRNGState``, providing the RNG and
+        an initial jump threshold. If provided, `seed` is ignored.
 * `display_jumps=false`: If set to true, an additional list of times and indices
 is returned. These correspond to the times at which a jump occured and the index
 of the jump operators with which the jump occured, respectively.
@@ -256,13 +260,15 @@ Integrate a single Monte Carlo wave function trajectory.
         output should be displayed. ATTENTION: The state `psi` is neither
         normalized nor permanent! It is still in use by the ode solver
         and therefore must not be changed.
+* `rng_state`: An optional `timeevolution.JumpRNGState``, providing the RNG and
+        an initial jump threshold. If provided, `seed` is ignored.
 * `kwargs`: Further arguments are passed on to the ode solver.
 """
 function integrate_mcwf(dmcwf, jumpfun, tspan,
                         psi0, seed, fout::Function;
                         display_beforeevent=false, display_afterevent=false,
                         display_jumps=false,
-                        jump_state=nothing,
+                        rng_state=nothing,
                         save_everystep=false, callback=nothing,
                         saveat=tspan,
                         alg=OrdinaryDiffEq.DP5(),
@@ -306,7 +312,7 @@ function integrate_mcwf(dmcwf, jumpfun, tspan,
                                          save_everystep=save_everystep,
                                          save_start = false)
 
-    cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0, jump_state)
+    cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0, rng_state)
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
 
     function df_(dx, x, p, t)
@@ -343,19 +349,39 @@ function integrate_mcwf(dmcwf, jumpfun, tspan,
     integrate_mcwf(dmcwf, jumpfun, tspan, psi0, seed, fout_; kwargs...)
 end
 
+"""
+Jump RNG state.
+
+Stores the RNG used to generate jump thresholds, as well as
+the most recent threshold rolled. A jump is carried out when
+the norm-squared of the evolving state drops below the threshold.
+
+Can be passed to `mcwf()` and related functions as the `rng_state`
+keyword argument to persist the state across calls.
+"""
+mutable struct JumpRNGState{R<:AbstractRNG}
+    rng::R
+    threshold::Float64
+end
+function JumpRNGState(seed)
+    rng = MersenneTwister(seed)
+    JumpRNGState(rng, rand(rng))
+end
+roll!(s::JumpRNGState) = (s.threshold = rand(s.rng))
+threshold(s::JumpRNGState) = s.threshold
+
 function jump_callback(jumpfun, seed, scb, save_before!,
-                        save_after!, save_t_index, psi0, jump_state)
+                        save_after!, save_t_index, psi0, rng_state)
 
     tmp = copy(psi0)
     psi_tmp = copy(psi0)
 
-    if jump_state === nothing
-        rng = MersenneTwister(convert(UInt, seed))
-        jumpnorm = Ref(rand(rng))
+    if rng_state === nothing
+        rngstate = JumpRNGState(seed)
     else
-        rng, jumpnorm = jump_state
+        rngstate = rng_state
     end
-    djumpnorm(x, t, integrator) = norm(x)^2 - (1-jumpnorm[])
+    djumpnorm(x, t, integrator) = norm(x)^2 - (1-threshold(rngstate))
 
     function dojump(integrator)
         x = integrator.u
@@ -364,12 +390,12 @@ function jump_callback(jumpfun, seed, scb, save_before!,
         affect! = scb.affect!
         save_before!(affect!,integrator)
         recast!(psi_tmp,x)
-        i = jumpfun(rng, t, psi_tmp, tmp)
+        i = jumpfun(rngstate.rng, t, psi_tmp, tmp)
         x .= tmp.data
         save_after!(affect!,integrator)
         save_t_index(t,i)
 
-        jumpnorm[] = rand(rng)
+        roll!(rngstate)
         return nothing
     end
 
