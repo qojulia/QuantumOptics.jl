@@ -373,10 +373,8 @@ function jump_callback(jumpfun, seed, scb, save_before!,
         return nothing
     end
 
-    ccb = OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
+    return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
             save_positions = (false,false))
-
-    return ccb
 end
 as_vector(psi::StateVector) = psi.data
 
