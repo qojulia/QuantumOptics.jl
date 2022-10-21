@@ -262,6 +262,7 @@ function integrate_mcwf(dmcwf, jumpfun, tspan,
                         psi0, seed, fout::Function;
                         display_beforeevent=false, display_afterevent=false,
                         display_jumps=false,
+                        jump_state=nothing,
                         save_everystep=false, callback=nothing,
                         saveat=tspan,
                         alg=OrdinaryDiffEq.DP5(),
@@ -305,7 +306,7 @@ function integrate_mcwf(dmcwf, jumpfun, tspan,
                                          save_everystep=save_everystep,
                                          save_start = false)
 
-    cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0)
+    cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0, jump_state)
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
 
     function df_(dx, x, p, t)
@@ -343,13 +344,17 @@ function integrate_mcwf(dmcwf, jumpfun, tspan,
 end
 
 function jump_callback(jumpfun, seed, scb, save_before!,
-                        save_after!, save_t_index, psi0)
+                        save_after!, save_t_index, psi0, jump_state)
 
     tmp = copy(psi0)
     psi_tmp = copy(psi0)
 
-    rng = MersenneTwister(convert(UInt, seed))
-    jumpnorm = Ref(rand(rng))
+    if jump_state === nothing
+        rng = MersenneTwister(convert(UInt, seed))
+        jumpnorm = Ref(rand(rng))
+    else
+        rng, jumpnorm = jump_state
+    end
     djumpnorm(x, t, integrator) = norm(x)^2 - (1-jumpnorm[])
 
     function dojump(integrator)
@@ -368,8 +373,10 @@ function jump_callback(jumpfun, seed, scb, save_before!,
         return nothing
     end
 
-    return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
-                     save_positions = (false,false))
+    ccb = OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
+            save_positions = (false,false))
+
+    return ccb
 end
 as_vector(psi::StateVector) = psi.data
 
