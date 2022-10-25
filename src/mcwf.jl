@@ -372,17 +372,12 @@ roll!(s::JumpRNGState{T}) where T = (s.threshold = rand(s.rng, T))
 threshold(s::JumpRNGState) = s.threshold
 
 function jump_callback(jumpfun, seed, scb, save_before!,
-                        save_after!, save_t_index, psi0, rng_state)
+                        save_after!, save_t_index, psi0, rng_state::JumpRNGState)
 
     tmp = copy(psi0)
     psi_tmp = copy(psi0)
 
-    if rng_state === nothing
-        rngstate = JumpRNGState(real(eltype(psi0)), seed)
-    else
-        rngstate = rng_state
-    end
-    djumpnorm(x, t, integrator) = norm(x)^2 - (1-threshold(rngstate))
+    djumpnorm(x, t, integrator) = norm(x)^2 - (1-threshold(rng_state))
 
     function dojump(integrator)
         x = integrator.u
@@ -391,18 +386,23 @@ function jump_callback(jumpfun, seed, scb, save_before!,
         affect! = scb.affect!
         save_before!(affect!,integrator)
         recast!(psi_tmp,x)
-        i = jumpfun(rngstate.rng, t, psi_tmp, tmp)
+        i = jumpfun(rng_state.rng, t, psi_tmp, tmp)
         x .= tmp.data
         save_after!(affect!,integrator)
         save_t_index(t,i)
 
-        roll!(rngstate)
+        roll!(rng_state)
         return nothing
     end
 
     return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
             save_positions = (false,false))
 end
+jump_callback(jumpfun, seed, scb, save_before!,
+                        save_after!, save_t_index, psi0, ::Nothing) =
+    jump_callback(jumpfun, seed, scb, save_before!,
+        save_after!, save_t_index, psi0, JumpRNGState(real(eltype(psi0)), seed))
+
 as_vector(psi::StateVector) = psi.data
 
 """
