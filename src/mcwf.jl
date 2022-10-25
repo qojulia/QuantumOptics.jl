@@ -363,12 +363,12 @@ mutable struct JumpRNGState{T<:Number,R<:AbstractRNG}
     rng::R
     threshold::T
 end
-function JumpRNGState(seed)
+function JumpRNGState(::Type{T}, seed) where T
     rng = MersenneTwister(seed)
-    threshold = rand(rng)
+    threshold = rand(rng, T)
     JumpRNGState(rng, threshold)
 end
-roll!(s::JumpRNGState) = (s.threshold = rand(s.rng))
+roll!(s::JumpRNGState{T}) where T = (s.threshold = rand(s.rng, T))
 threshold(s::JumpRNGState) = s.threshold
 
 function jump_callback(jumpfun, seed, scb, save_before!,
@@ -378,7 +378,7 @@ function jump_callback(jumpfun, seed, scb, save_before!,
     psi_tmp = copy(psi0)
 
     if rng_state === nothing
-        rngstate = JumpRNGState(seed)
+        rngstate = JumpRNGState(real(eltype(psi0)), seed)
     else
         rngstate = rng_state
     end

@@ -243,7 +243,7 @@ function jump_callback(jumpfun, seed, scb, save_before!,
     psi_tmp = copy(psi0)
 
     if rng_state === nothing
-        rngstate = JumpRNGState(seed)
+        rngstate = JumpRNGState(real(eltype(psi0)), seed)
     else
         rngstate = rng_state
     end
