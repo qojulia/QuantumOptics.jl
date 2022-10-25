@@ -35,7 +35,7 @@ end
 Base.length(state::State) = length(state.quantum) + length(state.classical)
 Base.copy(state::State) = State(copy(state.quantum), copy(state.classical))
 Base.eltype(state::State) = promote_type(eltype(state.quantum),eltype(state.classical))
-normalize!(state::State) where {B,T} = (normalize!(state.quantum); state)
+normalize!(state::State) = (normalize!(state.quantum); state)
 normalize(state::State) = State(normalize(state.quantum),copy(state.classical))
 
 function ==(a::State, b::State)

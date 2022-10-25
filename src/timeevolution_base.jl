@@ -15,7 +15,7 @@ function integrate(tspan, df, x0,
             state, dstate, fout;
             alg = OrdinaryDiffEq.DP5(),
             steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
-            callback = nothing, kwargs...) where {T,X}
+            callback = nothing, kwargs...)
 
     function df_(dx, x, p, t)
         recast!(state,x)
