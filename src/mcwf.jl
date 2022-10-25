@@ -359,13 +359,14 @@ the norm-squared of the evolving state drops below the threshold.
 Can be passed to `mcwf()` and related functions as the `rng_state`
 keyword argument to persist the state across calls.
 """
-mutable struct JumpRNGState{R<:AbstractRNG}
+mutable struct JumpRNGState{T<:Number,R<:AbstractRNG}
     rng::R
-    threshold::Float64
+    threshold::T
 end
 function JumpRNGState(seed)
     rng = MersenneTwister(seed)
-    JumpRNGState(rng, rand(rng))
+    threshold = rand(rng)
+    JumpRNGState(rng, threshold)
 end
 roll!(s::JumpRNGState) = (s.threshold = rand(s.rng))
 threshold(s::JumpRNGState) = s.threshold
