@@ -359,7 +359,7 @@ the norm-squared of the evolving state drops below the threshold.
 Can be passed to `mcwf()` and related functions as the `rng_state`
 keyword argument to persist the state across calls.
 """
-mutable struct JumpRNGState{T<:Number,R<:AbstractRNG}
+mutable struct JumpRNGState{T<:Real,R<:AbstractRNG}
     rng::R
     threshold::T
 end
