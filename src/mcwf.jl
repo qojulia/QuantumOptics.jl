@@ -84,7 +84,7 @@ and therefore must not be changed.
 operators. If they are not given they are calculated automatically.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
-* `rng_state`: An optional `timeevolution.JumpRNGState``, providing the RNG and
+* `rng_state=nothing`: An optional `timeevolution.JumpRNGState``, providing the RNG and
         an initial jump threshold. If provided, `seed` is ignored.
 * `display_jumps=false`: If set to true, an additional list of times and indices
 is returned. These correspond to the times at which a jump occured and the index
@@ -151,7 +151,7 @@ normalized nor permanent! It is still in use by the ode solve
 and therefore must not be changed.
 * `display_beforeevent=false`: `fout` is called before every jump.
 * `display_afterevent=false`: `fout` is called after every jump.
-* `rng_state`: An optional `timeevolution.JumpRNGState``, providing the RNG and
+* `rng_state=nothing`: An optional `timeevolution.JumpRNGState``, providing the RNG and
         an initial jump threshold. If provided, `seed` is ignored.
 * `display_jumps=false`: If set to true, an additional list of times and indices
 is returned. These correspond to the times at which a jump occured and the index
@@ -260,7 +260,7 @@ Integrate a single Monte Carlo wave function trajectory.
         output should be displayed. ATTENTION: The state `psi` is neither
         normalized nor permanent! It is still in use by the ode solver
         and therefore must not be changed.
-* `rng_state`: An optional `timeevolution.JumpRNGState``, providing the RNG and
+* `rng_state=nothing`: An optional `timeevolution.JumpRNGState``, providing the RNG and
         an initial jump threshold. If provided, `seed` is ignored.
 * `kwargs`: Further arguments are passed on to the ode solver.
 """
