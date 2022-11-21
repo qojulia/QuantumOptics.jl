@@ -152,4 +152,25 @@ function fout_wrong(t, x)
 end
 @test_throws AssertionError steadystate.master(Hdense, Jdense; fout=fout_wrong)
 
+### Test Arpack version v0.5.4 failed
+ω_mech = 10.; Δ = -ω_mech
+g = 1.; η = 2.; κ = 1.;
+b_cav = FockBasis(4)
+b_mech = FockBasis(10)
+a = destroy(b_cav) ⊗ one(b_mech)
+at = create(b_cav) ⊗ one(b_mech)
+b = one(b_cav) ⊗ destroy(b_mech)
+bt = one(b_cav) ⊗ create(b_mech);
+# Hamilton operator
+H_cav = -Δ*at*a + η*(a + at)
+H_mech = ω_mech*bt*b
+H_int = -g*(bt+b)*at*a
+H = H_cav + H_mech + H_int
+J = [a]
+rates = [κ]
+
+ρ_end = steadystate.eigenvector(H,sqrt.(rates).*J;which=:SM)
+@test round(real(expect(bt*b,ρ_end)), digits=8) == 0.00088995
+@test round(real(expect(at*a,ρ_end)), digits=4) == 0.0406
+
 end # testset
