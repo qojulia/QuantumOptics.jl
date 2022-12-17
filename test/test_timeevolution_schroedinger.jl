@@ -111,3 +111,31 @@ t, u = timeevolution.schroedinger_dynamic(tspan, u0, f)
 
 
 end # testset
+
+
+@testset "reverse time schroedinger" begin
+
+# time span
+tl0 = 3rand()-1.5 |> q -> range(q-0.5, q+0.5, 2^7)
+# basis
+bas = GenericBasis(rand(2:4))
+# states to propagate
+ψ0 = Operator([randstate(bas) for _=1:3])
+# Hamiltonian 
+op_list = [randoperator(bas) for _=1:4]
+op_list.+= dagger.(op_list)
+fun_list = [cos, sin, abs2, exp]
+Ht(t,_) = sum(f(t)*op for (f,op)=zip(fun_list, op_list))
+# propagate
+tol=1e-12
+## moving forward
+tl  , ψl  = timeevolution.schroedinger_dynamic(tl0         ,      ψ0,  Ht;  abstol=tol, reltol=tol);
+## propagate final state backwards
+tlr , ψlr = timeevolution.schroedinger_dynamic(reverse(tl0), last(ψl), Ht;  abstol=tol, reltol=tol);
+
+# test reverse output time is indeed reverse
+@test tlr == reverse(tl0)
+# test that the state is traced back to the initial state
+@test all(isapprox.(ψl, reverse(ψlr), rtol=100tol))
+
+end # testset
