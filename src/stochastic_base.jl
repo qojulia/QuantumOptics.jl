@@ -59,7 +59,8 @@ function integrate_stoch(tspan, df, dg, x0,
 
     scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=saveat,
                                          save_everystep=save_everystep,
-                                         save_start = false)
+                                         save_start = false,
+                                         tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
     full_cb = OrdinaryDiffEq.CallbackSet(callback, ncb, scb)
 
