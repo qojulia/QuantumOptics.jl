@@ -16,6 +16,7 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...) where {B,T<:Union{AbstractOperator{B,B},StateVector{B}}}
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
+    tspan, psi0 = _promote_time_and_state(tspan, psi0, f) # promote
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
@@ -41,6 +42,7 @@ function schroedinger_dynamic(tspan, psi0, f;
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
+    tspan, psi0 = _promote_time_and_state(tspan, psi0, f) # promote
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
@@ -101,4 +103,38 @@ end
 function check_schroedinger(psi::Bra, H)
     check_multiplicable(psi, H)
     check_samebases(H)
+end
+
+
+_promote_time_and_state(tspan, psi0, f) = _promote_time_and_state(tspan, psi0, f(first(tspan), psi0))
+function _promote_time_and_state(tspan, psi0, H::AbstractOperator)
+    Ts, Tt = _get_type(H) # general case is Ts<:Complex, Tt<:Real
+    tspan = Tt.(tspan)
+    psi0 = _promote_state(Ts, psi0)
+    return tspan, psi0
+end
+_promote_state(Ts, psi0::Operator) = Operator(psi0.basis_l, psi0.basis_r, Ts.(psi0.data))
+_promote_state(Ts, psi0::Ket) = Ket(psi0.basis, Ts.(psi0.data))
+_get_type(H0::AbstractOperator) = _get_type(dense(H0))
+function _get_type(H0::LazySum)
+    Tf = eltype(H0.factors)
+    To = promote_type(first.(_get_type.(H0.operators))...)
+    T = promote_type(Tf,To)
+    _get_type(T)
+end
+function _get_type(H0::LazyTensor)
+    Tf = eltype(H0.factor)
+    To = promote_type(first.(_get_type.(H0.operators))...)
+    T = promote_type(Tf,To)
+    _get_type(T)
+end
+function _get_type(H0::Operator)
+    T = eltype(H0.data[1])
+    _get_type(T)
+end
+function _get_type(T::Type{<:Complex{<:U}}) where U
+    T, U
+end
+function _get_type(T::Type{<:Real})
+    T, T
 end
