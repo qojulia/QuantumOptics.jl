@@ -1,0 +1,5 @@
+[deps]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+QuantumOptics = "6e0679c1-51ea-5a7c-ac74-d61b76210b0c"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
