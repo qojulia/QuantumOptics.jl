@@ -118,3 +118,4 @@ function _promote_time_and_state(tspan, psi0, H::AbstractOperator)
 end
 _promote_state(Ts, psi0::Operator) = Operator(psi0.basis_l, psi0.basis_r, Ts.(psi0.data))
 _promote_state(Ts, psi0::Ket) = Ket(psi0.basis, Ts.(psi0.data))
+_promote_state(Ts, psi0::Bra) = Bra(psi0.basis, Ts.(psi0.data))
