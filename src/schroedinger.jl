@@ -16,7 +16,7 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...) where {B,T<:Union{AbstractOperator{B,B},StateVector{B}}}
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
-    tspan, psi0 = _promote_time_and_state(tspan, psi0, f) # promote
+    tspan, psi0 = _promote_time_and_state(tspan, psi0, H) # promote
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
