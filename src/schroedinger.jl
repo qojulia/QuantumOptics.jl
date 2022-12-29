@@ -16,7 +16,7 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...) where {B,T<:Union{AbstractOperator{B,B},StateVector{B}}}
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
-    tspan, psi0 = _promote_time_and_state(tspan, psi0, H) # promote
+    tspan, psi0 = _promote_time_and_state(tspan, psi0, H) # promote only if ForwardDiff.Dual
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
@@ -42,7 +42,7 @@ function schroedinger_dynamic(tspan, psi0, f;
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
-    tspan, psi0 = _promote_time_and_state(tspan, psi0, f) # promote
+    tspan, psi0 = _promote_time_and_state(tspan, psi0, f) # promote only if ForwardDiff.Dual
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
@@ -108,13 +108,16 @@ end
 
 _promote_time_and_state(tspan, psi0, f) = _promote_time_and_state(tspan, psi0, f(first(tspan), psi0))
 function _promote_time_and_state(tspan, psi0, H::AbstractOperator)
-    # general case is Ts<:Complex, Tt<:Real
     Ts = eltype(H)
     Tt = real(Ts)
-    (isconcretetype(Ts) && isconcretetype(Tt)) || @warn "For using `ForwardDiff` on `schroedinger` the element type of `real(H(t,psi)*psi)` must be concrete !!\nGot elements of type $Tt \nTry promoting the Hamiltonian elements based on the parameters you are differentiating by."
-    tspan = Tt.(tspan)
-    psi0 = _promote_state(Ts, psi0)
-    return tspan, psi0
+    # promote only if ForwardDiff.Dual
+    if Tt <: ForwardDiff.Dual
+        tspan = Tt.(tspan)
+        psi0 = _promote_state(Ts, psi0)
+        return tspan, psi0
+    else
+        return tspan, psi0
+    end
 end
 _promote_state(Ts, psi0::Operator) = Operator(psi0.basis_l, psi0.basis_r, Ts.(psi0.data))
 _promote_state(Ts, psi0::Ket) = Ket(psi0.basis, Ts.(psi0.data))
