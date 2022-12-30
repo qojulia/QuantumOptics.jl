@@ -15,13 +15,13 @@ fin_diff(fun, x; ϵ=√eps()) = [fin_diff(fun, x, k; ϵ) for k=1:length(x)]
 # ex0
 ε = √eps()
 ## dynamic
-ba = FockBasis(5)
-ψ0 = basisstate(ba, 1)
-target = basisstate(ba, 2)
-#ψ0 = randstate(ba)
-#target = randstate(ba)
+ba0 = FockBasis(5)
+psi = basisstate(ba0, 1)
+target0 = basisstate(ba0, 2)
+#psi = randstate(ba0)
+#target0 = randstate(ba0)
 function getHt(p)
-    op = [create(ba)+destroy(ba)]
+    op = [create(ba0)+destroy(ba0)]
     f(t) = sin(p*t)
     H_at_t = LazySum([f(0)], op)
     function Ht(t,_)
@@ -34,36 +34,40 @@ end
 function cost01(par)
     Ht = getHt(par)
     ts = (0.0, 1.0)
-    _, ψT = timeevolution.schroedinger_dynamic(ts, ψ0, Ht)
-    abs2(target'*last(ψT))
+    _, ψT = timeevolution.schroedinger_dynamic(ts, psi, Ht)
+    abs2(target0'*last(ψT))
 end
 
+cost01(rand())
+FD.derivative(cost01, rand())
 @test all([isapprox(FD.derivative(cost01, 1.0), (cost01(1.0+ε)-cost01(1.0))/ε, atol=1e-7) for q=range(0,2π,2^7)])
 
 ## static
 function get_H(p)
-    op = create(ba)+destroy(ba)
+    op = create(ba0)+destroy(ba0)
     return sin(p)*op
 end
 
 function cost02(par)
     H = get_H(par)
     ts = (0.0, 1.0)
-    _, ψT = timeevolution.schroedinger(ts, ψ0, H)
-    abs2(target'*last(ψT))
+    _, ψT = timeevolution.schroedinger(ts, psi, H)
+    abs2(target0'*last(ψT))
 end
 
+cost02(rand())
+FD.derivative(cost02, rand())
 @test all([isapprox(FD.derivative(cost02, 1.0), (cost02(1.0+ε)-cost02(1.0))/ε, atol=1e-7) for q=range(0,2π,2^7)])
 
 # ex1
 ## 3 level kerr transmon with drive
-ba = FockBasis(2)
+ba1 = FockBasis(2)
 T2 = (1+rand())*1e4
 ω00, α0 = 0.1randn(), -0.2+0.05rand()
 function get_Ht(p::Vector{<:Tp}) where Tp
     ω0, α = Tp(ω00), Tp(α0)
     A, freq, ϕ, T = p
-    op = 2π*([number(ba), 2\create(ba)*number(ba)*destroy(ba), im*(create(ba)-destroy(ba))])
+    op = 2π*([number(ba1), 2\create(ba1)*number(ba1)*destroy(ba1), im*(create(ba1)-destroy(ba1))])
     fω(t) = ω0
     fα(t) = α
     fΩ(t) = A*cospi(2t*freq + 2ϕ)*sinpi(t/T)^2
@@ -75,37 +79,41 @@ function get_Ht(p::Vector{<:Tp}) where Tp
     return Ht
 end
 ## initial states
-ψ0 = Operator(SpinBasis(1/2), basisstate(ba, 1), basisstate(ba, 2))
+ψ01 = Operator(SpinBasis(1/2), basisstate(ba1, 1), basisstate(ba1, 2))
 ## target states
-target = ψ0*exp(im*0.5π*dense(sigmax(SpinBasis(1/2)))) # x gate
+target1 = ψ01*exp(im*0.5π*dense(sigmax(SpinBasis(1/2)))) # x gate
 ## cost function using QO.jl
-function cost(par)
+function cost1(par)
     T = par[4]
     Ht = get_Ht(par)
     ts = (0.0, T)
-    _, ψT = timeevolution.schroedinger_dynamic(ts, ψ0, Ht; abstol=1e-9, reltol=1e-9, alg=nothing, dtmax=1e-2)
-    1-abs2(tr(target'last(ψT))/2)*exp(-T/T2)
+    _, ψT = timeevolution.schroedinger_dynamic(ts, ψ01, Ht; abstol=1e-9, reltol=1e-9, dtmax=1e-2)
+    1-abs2(tr(target1'last(ψT))/2)*exp(-T/T2)
 end
 
 p0 = [0.03, ω00, 0.25, 100.0]
 rp(k) = p0 .* ( ones(length(p0))+k*(1 .-2rand(length(p0))) )
 
-@test all([isapprox(FD.gradient(cost, p), fin_diff(cost, p); atol=1e-6) for p=rp.(range(0.0, 0.1, 2^7))])
+cost1(p0)
+FD.gradient(cost1, p0)
+@test all([isapprox(FD.gradient(cost1, p), fin_diff(cost1, p); atol=1e-6) for p=rp.(range(0.0, 0.1, 2^7))])
 
 # ex2
-ba = FockBasis(3)
-A, B = randoperator(ba), randoperator(ba)
+ba2 = FockBasis(3)
+A, B = randoperator(ba2), randoperator(ba2)
 A+=A'
 B+=B'
-ψ02 = randstate(ba)
-target2 = randstate(ba)
+ψ02 = randstate(ba2)
+target2 = randstate(ba2)
 function cost2(par)
     a,b = par
     Ht(t,u) = A + a*cos(b*t)*B/10
-    _, ψT = timeevolution.schroedinger_dynamic((0.0, 1.0, 2.0), ψ02, Ht; abstol=1e-9, reltol=1e-9, alg=nothing, dtmax=0.05)
+    _, ψT = timeevolution.schroedinger_dynamic((0.0, 1.0, 2.0), ψ02, Ht; abstol=1e-9, reltol=1e-9, dtmax=0.05)
     abs2(tr(target2'ψT[2])) + abs2(tr(ψ02'ψT[3]))
 end
 
+cost2(rand(2))
+FD.gradient(cost2, rand(2))
 @test all([begin
     p = randn(2)
     g1 = FD.gradient(cost2, p)
