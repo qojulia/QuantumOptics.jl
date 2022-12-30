@@ -1,0 +1,2 @@
+[ForwardDiff]
+nansafe_mode = true

@@ -20,7 +20,9 @@ names = [
     "test_stochastic_master.jl",
     "test_stochastic_semiclassical.jl",
 
-    "test_timeevolution_abstractdata.jl"
+    "test_timeevolution_abstractdata.jl",
+
+    "test_ForwardDiff.jl"
 ]
 
 detected_tests = filter(
