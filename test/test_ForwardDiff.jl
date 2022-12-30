@@ -87,7 +87,7 @@ function cost1(par)
     T = par[4]
     Ht = get_Ht(par)
     ts = (0.0, T)
-    _, ψT = timeevolution.schroedinger_dynamic(ts, ψ01, Ht; abstol=1e-9, reltol=1e-9, dtmax=1e-2)
+    _, ψT = timeevolution.schroedinger_dynamic(ts, ψ01, Ht; abstol=1e-9, reltol=1e-9, dtmax=exp2(-5))
     1-abs2(tr(target1'last(ψT))/2)*exp(-T/T2)
 end
 
