@@ -110,14 +110,19 @@ _promote_time_and_state(tspan, psi0, f) = _promote_time_and_state(tspan, psi0, f
 function _promote_time_and_state(tspan, psi0, H::AbstractOperator)
     Ts = eltype(H)
     Tt = real(Ts)
-    # promote only if ForwardDiff.Dual
-    if Tt <: ForwardDiff.Dual
-        tspan = Tt.(tspan)
-        psi0 = _promote_state(Ts, psi0)
-        return tspan, psi0
-    else
+    Ttspan = eltype(tspan)
+    Trealpsi = real(eltype(psi0))
+    if !(promote_type(Tt, Ttspan, Trealpsi) <: ForwardDiff.Dual)
         return tspan, psi0
     end
+    # promote only if ForwardDiff.Dual
+    if !(Ttspan <: ForwardDiff.Dual)
+        tspan = Tt.(tspan)
+    end
+    if !(Trealpsi <: ForwardDiff.Dual)
+        psi0 = _promote_state(Ts, psi0)
+    end
+    return tspan, psi0
 end
 _promote_state(Ts, psi0::Operator) = Operator(psi0.basis_l, psi0.basis_r, Ts.(psi0.data))
 _promote_state(Ts, psi0::Ket) = Ket(psi0.basis, Ts.(psi0.data))
