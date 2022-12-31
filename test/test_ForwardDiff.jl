@@ -2,6 +2,8 @@ using Test
 using OrdinaryDiffEq, QuantumOptics
 import ForwardDiff as FD
 
+tests_repetition = 2^3
+
 function fin_diff(fun, x::Vector, ind::Int; ϵ)
     dx = zeros(length(x))
     dx[ind]+= ϵ/2
@@ -10,7 +12,7 @@ end
 
 fin_diff(fun, x; ϵ=√eps()) = [fin_diff(fun, x, k; ϵ) for k=1:length(x)]
 
-@testset "ForwardDiff with schroedinger" begin
+@time @testset "ForwardDiff with schroedinger" begin
 
 # ex0
 ε = √eps()
@@ -34,13 +36,13 @@ end
 function cost01(par)
     Ht = getHt(par)
     ts = (0.0, 1.0)
-    _, ψT = timeevolution.schroedinger_dynamic(ts, psi, Ht)
+    _, ψT = timeevolution.schroedinger_dynamic(ts, psi, Ht; dtmax=exp2(-4))
     abs2(target0'*last(ψT))
 end
 
 cost01(rand())
 FD.derivative(cost01, rand())
-@test all([isapprox(FD.derivative(cost01, 1.0), (cost01(1.0+ε)-cost01(1.0))/ε, atol=1e-7) for q=range(0,2π,2^7)])
+@time @test all([isapprox(FD.derivative(cost01, q), (cost01(q+ε)-cost01(q))/ε, atol=1e-7) for q=range(0,2π,tests_repetition)])
 
 ## static
 function get_H(p)
@@ -49,15 +51,18 @@ function get_H(p)
 end
 
 function cost02(par)
+    # test the promotion switch -> not to get Dual(Complex(Dual{...}))
+    Ts = promote_type(eltype(par), eltype(psi))
+    PSI = Ket(psi.basis, Ts.(psi.data))
     H = get_H(par)
     ts = (0.0, 1.0)
-    _, ψT = timeevolution.schroedinger(ts, psi, H)
+    _, ψT = timeevolution.schroedinger(ts, PSI, H; dtmax=exp2(-4)) # using dtmax here to improve derivative accuracy, specifically for par=0
     abs2(target0'*last(ψT))
 end
 
 cost02(rand())
 FD.derivative(cost02, rand())
-@test all([isapprox(FD.derivative(cost02, 1.0), (cost02(1.0+ε)-cost02(1.0))/ε, atol=1e-7) for q=range(0,2π,2^7)])
+@time @test all([isapprox(FD.derivative(cost02, q), (cost02(q+ε)-cost02(q))/ε, atol=1e-7) for q=range(0,2π,tests_repetition)])
 
 # ex1
 ## 3 level kerr transmon with drive
@@ -91,12 +96,12 @@ function cost1(par)
     1-abs2(tr(target1'last(ψT))/2)*exp(-T/T2)
 end
 
-p0 = [0.03, ω00, 0.25, 100.0]
+p0 = [0.3, ω00, 0.25, 10.0]
 rp(k) = p0 .* ( ones(length(p0))+k*(1 .-2rand(length(p0))) )
 
 cost1(p0)
 FD.gradient(cost1, p0)
-@test all([isapprox(FD.gradient(cost1, p), fin_diff(cost1, p); atol=1e-6) for p=rp.(range(0.0, 0.1, 2^7))])
+@time @test all([isapprox(FD.gradient(cost1, p), fin_diff(cost1, p); atol=1e-6) for p=rp.(range(0.0, 0.1, tests_repetition))])
 
 # ex2
 ba2 = FockBasis(3)
@@ -114,12 +119,12 @@ end
 
 cost2(rand(2))
 FD.gradient(cost2, rand(2))
-@test all([begin
+@time @test all([begin
     p = randn(2)
     g1 = FD.gradient(cost2, p)
     g2 = fin_diff(cost2, p)
     isapprox(g1, g2 ; atol=1e-6)
-    end for _=1:2^7])
+    end for _=1:tests_repetition])
 
 
 end # testset
