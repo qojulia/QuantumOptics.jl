@@ -12,7 +12,7 @@ end
 
 fin_diff(fun, x; ϵ=√eps()) = [fin_diff(fun, x, k; ϵ) for k=1:length(x)]
 
-@time @testset "ForwardDiff with schroedinger" begin
+@testset "ForwardDiff with schroedinger" begin
 
 # ex0
 ε = √eps()
@@ -35,14 +35,14 @@ end
 
 function cost01(par)
     Ht = getHt(par)
-    ts = (0.0, 1.0)
+    ts = eltype(par).((0.0, 1.0))
     _, ψT = timeevolution.schroedinger_dynamic(ts, psi, Ht; dtmax=exp2(-4))
     abs2(target0'*last(ψT))
 end
 
 cost01(rand())
 FD.derivative(cost01, rand())
-@time @test all([isapprox(FD.derivative(cost01, q), (cost01(q+ε)-cost01(q))/ε, atol=1e-7) for q=range(0,2π,tests_repetition)])
+@test all([isapprox(FD.derivative(cost01, q), (cost01(q+ε)-cost01(q))/ε, atol=1e-7) for q=range(0,2π,tests_repetition)])
 
 ## static
 function get_H(p)
@@ -62,7 +62,7 @@ end
 
 cost02(rand())
 FD.derivative(cost02, rand())
-@time @test all([isapprox(FD.derivative(cost02, q), (cost02(q+ε)-cost02(q))/ε, atol=1e-7) for q=range(0,2π,tests_repetition)])
+@test all([isapprox(FD.derivative(cost02, q), (cost02(q+ε)-cost02(q))/ε, atol=1e-7) for q=range(0,2π,tests_repetition)])
 
 # ex1
 ## 3 level kerr transmon with drive
@@ -101,7 +101,7 @@ rp(k) = p0 .* ( ones(length(p0))+k*(1 .-2rand(length(p0))) )
 
 cost1(p0)
 FD.gradient(cost1, p0)
-@time @test all([isapprox(FD.gradient(cost1, p), fin_diff(cost1, p); atol=1e-6) for p=rp.(range(0.0, 0.1, tests_repetition))])
+@test all([isapprox(FD.gradient(cost1, p), fin_diff(cost1, p); atol=1e-6) for p=rp.(range(0.0, 0.1, tests_repetition))])
 
 # ex2
 ba2 = FockBasis(3)
@@ -119,7 +119,7 @@ end
 
 cost2(rand(2))
 FD.gradient(cost2, rand(2))
-@time @test all([begin
+@test all([begin
     p = randn(2)
     g1 = FD.gradient(cost2, p)
     g2 = fin_diff(cost2, p)
