@@ -6,6 +6,7 @@ write(file, """
 [ForwardDiff]
 nansafe_mode = true
 """
+
 import ForwardDiff as FD
 
 tests_repetition = 2^3
