@@ -1,7 +1,7 @@
 using Test
 using OrdinaryDiffEq, QuantumOptics
-touch("LocalPreferences.toml")
-file = open("LocalPreferences.toml", "w")
+touch("../LocalPreferences.toml")
+file = open("../LocalPreferences.toml", "w")
 write(file, """
 [ForwardDiff]
 nansafe_mode = true
