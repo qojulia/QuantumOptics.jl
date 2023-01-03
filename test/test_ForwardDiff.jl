@@ -84,8 +84,8 @@ cost02_with_dt(rand())
 FDgrad(cost02, rand())
 FDgrad(cost02_with_dt, rand())
 fin_diff(cost02, rand())
-@test_broken all([test_vs_fin_diff(cost02, q; atol=1e-7) for q=vcat(0,π,rand(tests_repetition)*2π)])
-@time @test all([test_vs_fin_diff(cost02_with_dt, q; atol=1e-7) for q=vcat(0,π,rand(tests_repetition)*2π)])
+@test_broken all([test_vs_fin_diff(cost02, q; atol=1e-7) for q=vcat(0,π,rand(1)*2π)])
+@test all([test_vs_fin_diff(cost02_with_dt, q; atol=1e-7) for q=vcat(0,π,rand(tests_repetition)*2π)])
 
 # ex1
 ## 3 level kerr transmon with drive
@@ -126,7 +126,7 @@ rp(k) = p0 .* ( ones(length(p0))+k*(1 .-2rand(length(p0))) )
 rp(rand())
 cost1(p0)
 FDgrad(cost1, p0)
-@test_broken all([test_vs_fin_diff(cost1, p; atol=1e-6) for p=rp.(range(0.0, 0.1, tests_repetition))])
+@test_broken all([test_vs_fin_diff(cost1, p; atol=1e-6) for p=rp.(range(0.0, 0.1, 2))])
 @test all([test_vs_fin_diff(cost1_with_dt, p; atol=1e-6) for p=rp.(range(0.0, 0.1, tests_repetition))])
 
 # ex2
