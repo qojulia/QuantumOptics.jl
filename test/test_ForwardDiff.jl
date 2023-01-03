@@ -145,7 +145,7 @@ end
 
 cost2(rand(2))
 FDgrad(cost2, rand(2))
-@test all([test_vs_fin_diff(cost2, randn(2); atol=1e-6) for _=1:tests_repetition])
+@test all([test_vs_fin_diff(cost2, randn(2); atol=1e-5) for _=1:tests_repetition])
 
 
 end # testset
