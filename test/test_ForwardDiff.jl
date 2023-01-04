@@ -77,7 +77,7 @@ function cost02(par; kwargs...)
     _, ψT = timeevolution.schroedinger(ts, PSI, H; dtmax=exp2(-4), kwargs...) # using dtmax here to improve derivative accuracy, specifically for par=0
     abs2(target0'*last(ψT))
 end
-cost02_with_dt(par; kwargs...) = cost02(par; dt=0.5, kwargs...)
+cost02_with_dt(par; kwargs...) = cost02(par; dt=exp2(-4), kwargs...)
 
 cost02(rand())
 cost02_with_dt(rand())
@@ -118,7 +118,7 @@ function cost1(par; kwargs...)
     _, ψT = timeevolution.schroedinger_dynamic(ts, ψ01, Ht; abstol=1e-9, reltol=1e-9, dtmax=exp2(-5), kwargs...)
     1-abs2(tr(target1'last(ψT))/2)*exp(-T/T2)
 end
-cost1_with_dt(par; kwargs...) = cost1(par; dt=par[end]/100, kwargs...)
+cost1_with_dt(par; kwargs...) = cost1(par; dt=exp2(-5), kwargs...)
 
 p0 = [0.3, ω00, 0.25, 10.0]
 rp(k) = p0 .* ( ones(length(p0))+k*(1 .-2rand(length(p0))) )
