@@ -16,7 +16,7 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...) where {B,T<:Union{AbstractOperator{B,B},StateVector{B}}}
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
-    tspan, psi0 = _promote_time_and_state(tspan, psi0, H) # promote only if ForwardDiff.Dual
+    tspan, psi0 = _promote_time_and_state(psi0, H, tspan) # promote only if ForwardDiff.Dual
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
@@ -42,7 +42,7 @@ function schroedinger_dynamic(tspan, psi0, f;
                 fout::Union{Function,Nothing}=nothing,
                 kwargs...)
     dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
-    tspan, psi0 = _promote_time_and_state(tspan, psi0, f) # promote only if ForwardDiff.Dual
+    tspan, psi0 = _promote_time_and_state(psi0, f, tspan) # promote only if ForwardDiff.Dual
     x0 = psi0.data
     state = copy(psi0)
     dstate = copy(psi0)
@@ -106,24 +106,17 @@ function check_schroedinger(psi::Bra, H)
 end
 
 
-_promote_time_and_state(tspan, psi0, f) = _promote_time_and_state(tspan, psi0, f(first(tspan), psi0))
-function _promote_time_and_state(tspan, psi0, H::AbstractOperator)
+function _promote_time_and_state(u0, H::AbstractOperator, tspan)
     Ts = eltype(H)
     Tt = real(Ts)
-    Ttspan = eltype(tspan)
-    Trealpsi = real(eltype(psi0))
-    if !(promote_type(Tt, Ttspan, Trealpsi) <: ForwardDiff.Dual)
-        return tspan, psi0
-    end
-    # promote only if ForwardDiff.Dual
-    if !(Ttspan <: ForwardDiff.Dual)
-        tspan = Tt.(tspan)
-    end
-    if !(Trealpsi <: ForwardDiff.Dual)
-        psi0 = _promote_state(Ts, psi0)
-    end
-    return tspan, psi0
+    p = Vector{Tt}(undef,0)
+    u0data_promote = OrdinaryDiffEq.DiffEqBase.promote_u0(u0.data, p, tspan[1])
+    tspan_promote = OrdinaryDiffEq.DiffEqBase.promote_tspan(u0data_promote, p, tspan, nothing, Dict{Symbol, Any}())
+    u0_promote = rebuild(u0, u0data_promote)
+    return tspan_promote, u0_promote
 end
-_promote_state(Ts, psi0::Operator) = Operator(psi0.basis_l, psi0.basis_r, Ts.(psi0.data))
-_promote_state(Ts, psi0::Ket) = Ket(psi0.basis, Ts.(psi0.data))
-_promote_state(Ts, psi0::Bra) = Bra(psi0.basis, Ts.(psi0.data))
+_promote_time_and_state(u0, f, tspan) = _promote_time_and_state(u0, f(first(tspan), u0), tspan)
+
+rebuild(op::Operator, new_data) = Operator(op.basis_l, op.basis_r, new_data)
+rebuild(state::Ket, new_data) = Ket(state.basis, new_data)
+rebuild(state::Bra, new_data) = Bra(state.basis, new_data)
