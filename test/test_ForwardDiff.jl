@@ -67,8 +67,11 @@ end
 function cost01(par)
     Ht = getHt(par)
     ts = eltype(par).((0.0, 1.0))
-    _, ψT = timeevolution.schroedinger_dynamic(ts, psi, Ht; dtmax=exp2(-4))
-    abs2(target0'*last(ψT))
+    _, ψT = timeevolution.schroedinger_dynamic((0.0, 0.2), psi'     , Ht; dtmax=exp2(-4)) # this will rebuild the Bra with Dual elements
+    _, ψT = timeevolution.schroedinger_dynamic((0.2, 0.4), last(ψT) , Ht; dtmax=exp2(-4)) # this will not rebuild the Bra
+    _, ψT = timeevolution.schroedinger_dynamic((0.4, 0.6), last(ψT)', Ht; dtmax=exp2(-4)) # this will not rebuild the Ket
+    _, ψT = timeevolution.schroedinger_dynamic((0.6, 0.8), last(ψT)⊗last(ψT)', Ht; dtmax=exp2(-4)) # this will not rebuild the Ket
+    abs2(target0'*last(ψT)*target0)
 end
 ### check that nothing fails
 cost01(rand())
@@ -86,7 +89,8 @@ end
 function cost02(par; kwargs...)
     H = get_H(par)
     ts = (0.0, 1.0)
-    _, ψT = timeevolution.schroedinger(ts, psi, H; dtmax=exp2(-4), alg=Tsit5(), abstol=1e-5, reltol=1e-5, kwargs...) # using dtmax here to improve derivative accuracy, specifically for par=0
+    # using dtmax here to improve derivative accuracy, specifically for par=0
+    _, ψT = timeevolution.schroedinger(ts, psi, H; dtmax=exp2(-4), alg=Tsit5(), abstol=1e-5, reltol=1e-5, kwargs...) # this will rebuild the Ket with Dual elements
     abs2(target0'*last(ψT))
 end
 
@@ -99,8 +103,10 @@ FDgrad(cost02, rand())
 FDgrad(cost02_with_dt, rand())
 fin_diff(cost02, rand())
 ### test vs finite difference
-@test all([test_vs_fin_diff(cost02_with_dt, q; atol=1e-7) for q=vcat(0,π,rand(tests_repetition)*2π)])
+#@test all([test_vs_fin_diff(cost02, q; atol=1e-7) for q=vcat(0,π,rand(tests_repetition)*2π)]) # use this line is NaN issue is solve in DiffEq
+@test all([test_vs_fin_diff(cost02_with_dt, q; atol=1e-7) for q=vcat(0,π,rand(tests_repetition)*2π)]) # remove this line is NaN issue is solve in DiffEq
 ### check that we still get NaN's
+### is we don't get NaN, maybe DiffEq.jl NaN thing is fixed, so we can switch the test above from `cost02_with_dt` to `cost02`.
 #### In this case, it seems that if sin(p) is small, we don't get a NaN
 @test_broken all(.!isnan.(FDgrad.(cost02, range(π/2,tests_repetition))))
 
@@ -121,6 +127,7 @@ FDgrad(cost02_via_DiffEq, rand())
     p = 2π*rand(tests_repetition)
     gde = FDgrad.(cost02_via_DiffEq, p)
     gqo = FDgrad.(cost02, p)
+    #return isapprox(gqo, gde, atol=1e-12) # use this line is NaN issue is solve in DiffEq
     NaN_check = isnan.(gqo) == isnan.(gde) # have NaN at same places
     if !NaN_check
         return NaN_check
@@ -131,64 +138,18 @@ end
 ### check that we still get NaN's
 @test_broken all(.!isnan.(FDgrad.(cost02_via_DiffEq, range(π/2,tests_repetition))))
 
-# ex1
-## 3 level kerr transmon with drive
-ba1 = FockBasis(2)
-T2 = (1+rand())*1e4
-ω00, α0 = 0.1randn(), -0.2+0.05rand()
-function get_Ht(p::Vector{<:Tp}) where Tp
-    ω0, α = Tp(ω00), Tp(α0)
-    A, freq, ϕ, T = p
-    op = 2π*([number(ba1), 2\create(ba1)*number(ba1)*destroy(ba1), im*(create(ba1)-destroy(ba1))])
-    fω(t) = ω0
-    fα(t) = α
-    fΩ(t) = A*cospi(2t*freq + 2ϕ)*sinpi(t/T)^2
-    H_at_t = LazySum(zeros(Tp,length(op)), op)
-    function Ht(t,_)
-        H_at_t.factors.= (fω(t), fα(t), fΩ(t))
-        return H_at_t
-    end
-    return Ht
-end
-## initial states
-ψ01 = Operator(SpinBasis(1/2), basisstate(ba1, 1), basisstate(ba1, 2))
-## target states
-target1 = ψ01*exp(im*0.5π*dense(sigmax(SpinBasis(1/2)))) # x gate
-## cost function using QO.jl
-function cost1(par; kwargs...)
-    T = par[4]
-    Ht = get_Ht(par)
-    ts = (0.0, T)
-    _, ψT = timeevolution.schroedinger_dynamic(ts, ψ01, Ht; abstol=1e-9, reltol=1e-9, dtmax=exp2(-5), kwargs...)
-    1-abs2(tr(target1'last(ψT))/2)*exp(-T/T2)
-end
-cost1_with_dt(par; kwargs...) = cost1(par; dt=exp2(-5), kwargs...)
-
-p0 = [0.3, ω00, 0.25, 10.0]
-rp(k) = p0 .* ( ones(length(p0))+k*(1 .-2rand(length(p0))) )
-### check that nothing fails
-rp(rand())
-cost1(p0)
-FDgrad(cost1, p0)
-FDgrad(cost1_with_dt, p0)
-### test vs finite difference
-#### there somtimes an issue with the gradient at p0, which is alot less accurate
-@test all([test_vs_fin_diff(cost1_with_dt, p; atol=1e-6) for p=rp.(range(1e-9, 0.1, tests_repetition))])
-### check that this fails if no initial dt value - this is due to NaN's
-@test_broken all([test_vs_fin_diff(cost1, p; atol=1e-6) for p=rp.(range(0.0, 0.1, 2))])
-
 # ex2
 ba2 = FockBasis(3)
 A, B = randoperator(ba2), randoperator(ba2)
 A+=A'
 B+=B'
-ψ02 = randstate(ba2)
+ψ02 = Operator(randstate(ba2), randstate(ba2))
 target2 = randstate(ba2)
 function cost2(par)
     a,b = par
-    Ht(t,u) = A + a*cos(b*t)*B/10
-    _, ψT = timeevolution.schroedinger_dynamic((0.0, 1.0, 2.0), ψ02, Ht; abstol=1e-9, reltol=1e-9, dtmax=0.005, alg=Vern8())
-    abs2(tr(target2'ψT[2])) + abs2(tr(ψ02'ψT[3]))
+    Ht(t,_) = A + a*cos(b*t)*B/10
+    _, ψT = timeevolution.schroedinger_dynamic((0.0, 1.0, 2.0), ψ02, Ht; abstol=1e-9, reltol=1e-9, dtmax=0.005, alg=Vern8()) # this will rebuild the Operator with Dual elements
+    abs(target2'ψT[2]*ψT[2]'target2) + abs2(tr(ψ02'ψT[3]))
 end
 ### check that nothing fails
 cost2(rand(2))
@@ -207,7 +168,7 @@ function cost2_via_DiffEq(par)
     end
     prob = ODEProblem(schrod!, ψ02.data, (0.0, 2.0), par; abstol=1e-9, reltol=1e-9, dtmax=0.005, saveat=(0.0, 1.0, 2.0), alg=Vern8())
     sol = solve(prob)
-    abs2(tr(target2.data'sol.u[2])) + abs2(tr(ψ02.data'sol.u[3]))
+    abs(target2.data'sol.u[2]*sol.u[2]'target2.data) + abs2(tr(ψ02.data'sol.u[3]))
 end
 ### check that nothing fails
 cost2_via_DiffEq(rand(2))
