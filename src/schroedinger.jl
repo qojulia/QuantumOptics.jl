@@ -112,8 +112,11 @@ function _promote_time_and_state(u0, H::AbstractOperator, tspan)
     p = Vector{Tt}(undef,0)
     u0data_promote = OrdinaryDiffEq.DiffEqBase.promote_u0(u0.data, p, tspan[1])
     tspan_promote = OrdinaryDiffEq.DiffEqBase.promote_tspan(u0data_promote, p, tspan, nothing, Dict{Symbol, Any}())
-    u0_promote = rebuild(u0, u0data_promote)
-    return tspan_promote, u0_promote
+    if u0data_promote !== u0.data
+        u0_promote = rebuild(u0, u0data_promote)
+        return tspan_promote, u0_promote
+    end
+    return tspan_promote, u0
 end
 _promote_time_and_state(u0, f, tspan) = _promote_time_and_state(u0, f(first(tspan), u0), tspan)
 
