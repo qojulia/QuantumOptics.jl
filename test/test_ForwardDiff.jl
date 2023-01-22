@@ -20,7 +20,7 @@ psi = basisstate(ba0, 1)
 function getHt(p)
     op = [create(ba0)+destroy(ba0)]
     f(t) = sin(p*t)
-    H_at_t = LazySum([f(0)], op)
+    H_at_t = LazySum([f(0.0)], op)
     function Ht(t,_)
         H_at_t.factors .= (f(t),)
         return H_at_t
@@ -36,7 +36,7 @@ function cost(par, ψ0; kwargs...)
     _, ψT = timeevolution.schroedinger_dynamic((0.0, 1.0), ψ0, Ht; opti..., kwargs...)
     # this will not rebuild the state
     _, ψT = timeevolution.schroedinger((1.0, 2.0), last(ψT), Ht(0.5, ψ0); opti..., kwargs...)
-    abs2(tr(ψ0'*last(ψT)))
+    (abs2∘tr)( ψ0.data' * last(ψT).data ) # getting the data so this will work with also Bra states
 end
 
 # setup
