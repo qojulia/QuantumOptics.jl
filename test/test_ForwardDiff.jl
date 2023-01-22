@@ -33,9 +33,9 @@ function cost(par, ψ0; kwargs...)
     opti = (;dtmax=exp2(-4), dt=exp2(-4))
     Ht = getHt(par)
     # this will rebuild the state with Dual elements
-    _, ψT = timeevolution.schroedinger_dynamic((0.0, 1.0), ψ0      , Ht; opti..., kwargs...)
+    _, ψT = timeevolution.schroedinger_dynamic((0.0, 1.0), ψ0, Ht; opti..., kwargs...)
     # this will not rebuild the state
-    _, ψT = timeevolution.schroedinger((1.0, 2.0), last(ψT), Ht(0.5); opti..., kwargs...)
+    _, ψT = timeevolution.schroedinger((1.0, 2.0), last(ψT), Ht(0.5, ψ0); opti..., kwargs...)
     abs2(tr(ψ0'*last(ψT)))
 end
 
