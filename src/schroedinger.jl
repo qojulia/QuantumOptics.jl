@@ -14,7 +14,7 @@ Integrate Schroedinger equation to evolve states or compute propagators.
 """
 function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...) where {B,T<:Union{AbstractOperator{B,B},StateVector{B}}}
+                kwargs...) where {B,Bo,T<:Union{AbstractOperator{B,Bo},StateVector{B}}}
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
     tspan, psi0 = _promote_time_and_state(psi0, H, tspan) # promote only if ForwardDiff.Dual
     x0 = psi0.data
