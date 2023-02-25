@@ -88,7 +88,15 @@ t_sub2, psi_sub2 = timeevolution.schroedinger_dynamic(T, proj2, f; abstol=eps(),
 @test all(getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data))
 # check that data is the same
 @test all([hcat(q...) for q=eachrow(getfield.(hcat(psi_list...),:data))] .≈ getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data))
-
+## same for schroedinger
+t_list, psi_list = timeevolution.schroedinger.([T], subspace, f.(0.0, subspace); abstol=eps(), reltol=eps()) |> q->(getindex.(q,1), getindex.(q,2))
+t_sub1, psi_sub1 = timeevolution.schroedinger(T, proj1, f(0.0, proj1); abstol=eps(), reltol=eps())
+t_sub2, psi_sub2 = timeevolution.schroedinger(T, proj2, f(0.0, proj2); abstol=eps(), reltol=eps())
+@test t_list[1:end-1] == t_list[2:end] && t_list[1] == t_sub1 == t_sub2 # check that time vector is the same
+@test all(getfield.(psi_sub1, :basis_l) .== [proj1.basis_l]) && all(getfield.(psi_sub1, :basis_r) .== [proj1.basis_r]) # check that base is preserved
+@test all(getfield.(psi_sub2, :basis_l) .== [proj2.basis_l]) && all(getfield.(psi_sub2, :basis_r) .== [proj2.basis_r])
+@test all(getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data)) # check that data is independent of basis_r
+@test all([hcat(q...) for q=eachrow(getfield.(hcat(psi_list...),:data))] .≈ getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data)) # check that data is the same
 
 # test integration of propagator using 2 level system
 basis = SpinBasis(1//2)
