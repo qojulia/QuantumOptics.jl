@@ -93,7 +93,7 @@ t_sub2, psi_sub2 = timeevolution.schroedinger_dynamic(T, proj2, f; abstol=eps(),
 # test integration of propagator using 2 level system
 basis = SpinBasis(1//2)
 su = spinup(basis)
-u0 = identityoperator(basis)
+u0 = dense(identityoperator(basis))
 sx = sigmax(basis)
 sz = sigmaz(basis)
 
