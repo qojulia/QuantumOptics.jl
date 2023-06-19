@@ -41,10 +41,15 @@ Jdense = map(dense, J)
 ψ0_p = fockstate(fockbasis, 0)
 ρ0_p = dm(ψ0_p)
 
+Ψ∞ = spindown(spinbasis) ⊗ fockstate(fockbasis, 0)
+ρ∞ = dm(Ψ∞)
+
 tout, ρt = timeevolution.master([0,100], ρ₀, Hdense, Jdense; reltol=1e-7)
 
 tss, ρss = steadystate.master(Hdense, Jdense; tol=1e-4)
 @test tracedistance(ρss[end], ρt[end]) < 1e-3
+@test tracedistance(ρss[end], ρ∞) < 1e-3
+@test tracedistance(ρ∞, ρt[end]) < 1e-3
 
 ρss = steadystate.eigenvector(Hdense, Jdense)
 @test tracedistance(ρss, ρt[end]) < 1e-6
