@@ -23,6 +23,7 @@ module timeevolution
     include("schroedinger.jl")
     include("mcwf.jl")
     include("bloch_redfield_master.jl")
+    include("time_dependent_operators.jl")
 end
 module steadystate
     using QuantumOpticsBase
