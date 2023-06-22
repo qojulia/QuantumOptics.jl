@@ -19,11 +19,11 @@ module timeevolution
     export diagonaljumps, @skiptimechecks
 
     include("timeevolution_base.jl")
+    include("time_dependent_operators.jl")
     include("master.jl")
     include("schroedinger.jl")
     include("mcwf.jl")
     include("bloch_redfield_master.jl")
-    include("time_dependent_operators.jl")
 end
 module steadystate
     using QuantumOpticsBase

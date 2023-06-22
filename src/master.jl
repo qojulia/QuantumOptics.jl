@@ -145,6 +145,12 @@ H_{nh} = H - \\frac{i}{2} \\sum_k J^†_k J_k
 The given function can either be of the form `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger)`
 or `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger, rates)` For further information look
 at [`master_dynamic`](@ref).
+
+    timeevolution.master_dynamic(tspan, rho0, Hnh::AbstractTimeDependentOperator, J; <keyword arguments>)
+
+This version takes the non-hermitian Hamiltonian `Hnh` and jump operators `J` as time-dependent operators.
+The jump operators may be `<: AbstractTimeDependentOperator` or other types
+of operator.
 """
 function master_nh_dynamic(tspan, rho0::Operator, f;
                 rates=nothing,
@@ -153,6 +159,12 @@ function master_nh_dynamic(tspan, rho0::Operator, f;
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_nh_dynamic!(drho, f, rates, rho, tmp, t)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
+end
+
+function master_nh_dynamic(tspan, rho0::Operator, Hnh::AbstractTimeDependentOperator, J;
+    kwargs...)
+    f = master_nh_dynamic_function(Hnh, J)
+    master_nh_dynamic(tspan, rho0, f; kwargs...)
 end
 
 """
@@ -179,6 +191,12 @@ operators:
         permanent! It is still in use by the ode solver and therefore must not
         be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
+
+    timeevolution.master_dynamic(tspan, rho0, H::AbstractTimeDependentOperator, J; <keyword arguments>)
+
+This version takes the Hamiltonian `H` and jump operators `J` as time-dependent operators.
+The jump operators may be `<: AbstractTimeDependentOperator` or other types
+of operator.
 """
 function master_dynamic(tspan, rho0::Operator, f;
                 rates=nothing,
@@ -189,6 +207,11 @@ function master_dynamic(tspan, rho0::Operator, f;
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
+function master_dynamic(tspan, rho0::Operator, H::AbstractTimeDependentOperator, J;
+    kwargs...)
+    f = master_h_dynamic_function(H, J)
+    master_dynamic(tspan, rho0, f; kwargs...)
+end
 
 # Automatically convert Ket states to density operators
 for f ∈ [:master,:master_h,:master_nh,:master_dynamic,:master_nh_dynamic]

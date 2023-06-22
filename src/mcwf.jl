@@ -157,6 +157,12 @@ and therefore must not be changed.
 is returned. These correspond to the times at which a jump occured and the index
 of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
+
+    mcwf_dynamic(tspan, psi0, H::AbstractTimeDependentOperator, J; <keyword arguments>)
+
+This version takes the Hamiltonian `H` and jump operators `J` as time-dependent operators.
+The jump operators may be `<: AbstractTimeDependentOperator` or other types
+of operator.
 """
 function mcwf_dynamic(tspan, psi0::Ket, f;
     seed=rand(UInt), rates=nothing,
@@ -172,8 +178,14 @@ function mcwf_dynamic(tspan, psi0::Ket, f;
         kwargs...)
 end
 
+function mcwf_dynamic(tspan, psi0::Ket, H::AbstractTimeDependentOperator, J; kwargs...)
+    f = mcfw_dynamic_function(H, J)
+    mcwf_dynamic(tspan, psi0, f; kwargs...)
+end
+
 """
     mcwf_nh_dynamic(tspan, rho0, f; <keyword arguments>)
+    mcwf_nh_dynamic(tspan, rho0, Hnh::AbstractTimeDependentOperator, J; <keyword arguments>)
 
 Calculate MCWF trajectory where the dynamic Hamiltonian is given in non-hermitian form.
 
@@ -190,6 +202,11 @@ function mcwf_nh_dynamic(tspan, psi0::Ket, f;
         display_beforeevent=display_beforeevent,
         display_afterevent=display_afterevent,
         kwargs...)
+end
+
+function mcwf_nh_dynamic(tspan, psi0::Ket, Hnh::AbstractTimeDependentOperator, J; kwargs...)
+    f = mcfw_nh_dynamic_function(Hnh, J)
+    mcwf_nh_dynamic(tspan, psi0, f; kwargs...)
 end
 
 """

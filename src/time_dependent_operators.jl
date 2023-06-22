@@ -83,35 +83,8 @@ mcfw_dynamic_function(H, Js) = master_h_dynamic_function(H, Js)
 Returns a function `f(t, state) -> Hnh(t), Js, dagger.(Js)`.
 The `state` argument is currently ignored.
 
-This is the function expected by [`timeevolution.mcwf_dynamic()](@ref),
+This is the function expected by [`timeevolution.mcwf_dynamic()`](@ref),
 where `Hnh` is represents the non-Hermitian Hamiltonian and `Js` are the (time
 independent) jump operators.
 """
 mcfw_nh_dynamic_function(Hnh, Js) = master_h_dynamic_function(Hnh, Js)
-
-function schroedinger_dynamic(tspan, psi0::T, H::AbstractTimeDependentOperator;
-    kwargs...) where {B,Bp,T<:Union{AbstractOperator{B,Bp},StateVector{B}}}
-    schroedinger_dynamic(tspan, psi0, schroedinger_dynamic_function(H); kwargs...)
-end
-
-function master_dynamic(tspan, rho0::Operator, H::AbstractTimeDependentOperator, J;
-    kwargs...)
-    f = master_h_dynamic_function(H, J)
-    master_dynamic(tspan, rho0, f; kwargs...)
-end
-
-function master_nh_dynamic(tspan, rho0::Operator, Hnh::AbstractTimeDependentOperator, J;
-    kwargs...)
-    f = master_nh_dynamic_function(Hnh, J)
-    master_nh_dynamic(tspan, rho0, f; kwargs...)
-end
-
-function mcwf_dynamic(tspan, psi0::Ket, H::AbstractTimeDependentOperator, J; kwargs...)
-    f = mcfw_dynamic_function(H, J)
-    mcwf_dynamic(tspan, psi0, f; kwargs...)
-end
-
-function mcwf_nh_dynamic(tspan, psi0::Ket, Hnh::AbstractTimeDependentOperator, J; kwargs...)
-    f = mcfw_nh_dynamic_function(Hnh, J)
-    mcwf_nh_dynamic(tspan, psi0, f; kwargs...)
-end
