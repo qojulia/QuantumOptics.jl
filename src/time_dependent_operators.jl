@@ -17,6 +17,20 @@ function schroedinger_dynamic_function(H::AbstractTimeDependentOperator)
     return _getfunc(Htup)
 end
 
+_tdopdagger(o) = dagger(o)
+function _tdopdagger(o::TimeDependentSum)
+    # This is a kind-of-hacky, more efficient TimeDependentSum dagger operation
+    # that requires that the original operator sticks around and is always
+    # updated first (though this is checked).
+    # Copies and conjugates the coefficients from the original op.
+    o_ls = QuantumOpticsBase.static_operator(o)
+    facs = o_ls.factors
+    c1 = (t)->(@assert current_time(o) == t; conj(facs[1]))
+    crest = (((_)->conj(facs[i])) for i in 2:length(facs))
+    odag = TimeDependentSum((c1, crest...), dagger(o_ls), current_time(o))
+    return odag
+end
+
 """
     master_h_dynamic_function(H::AbstractTimeDependentOperator, Js)
 
@@ -31,9 +45,7 @@ function master_h_dynamic_function(H::AbstractTimeDependentOperator, Js)
     Htup = _tuplify(H)
     Js_tup = ((_tuplify(J) for J in Js)...,)
 
-    # TODO: We can do better than this for TimeDependentSum by only executing
-    #       coefficient functions once.
-    Jdags_tup = dagger.(Js_tup)
+    Jdags_tup = _tdopdagger.(Js_tup)
     function _getfunc(Hop, Jops, Jdops)
         return (@inline _tdop_master_wrapper_1(t, _) = ((Hop)(t), set_time!.(Jops, t), set_time!.(Jdops, t)))
     end
@@ -54,10 +66,8 @@ function master_nh_dynamic_function(Hnh::AbstractTimeDependentOperator, Js)
     Hnhtup = _tuplify(Hnh)
     Js_tup = ((_tuplify(J) for J in Js)...,)
 
-    # TODO: We can do better than this for TimeDependentSum by only executing
-    #       coefficient functions once.
-    Jdags_tup = dagger.(Js_tup)
-    Htdagup = dagger(Hnhtup)
+    Jdags_tup = _tdopdagger.(Js_tup)
+    Htdagup = _tdopdagger(Hnhtup)
 
     function _getfunc(Hop, Hdop, Jops, Jdops)
         return (@inline _tdop_master_wrapper_2(t, _) = ((Hop)(t), (Hdop)(t), set_time!.(Jops, t), set_time!.(Jdops, t)))

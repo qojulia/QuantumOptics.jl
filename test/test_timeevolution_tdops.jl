@@ -25,10 +25,13 @@ ts_out, psis = timeevolution.schroedinger_dynamic(ts, psi0, H)
 ts_out2, psis2 = timeevolution.schroedinger_dynamic(ts, psi0, fman)
 @test psis[end].data ≈ psis2[end].data
 
-Js = [TimeDependentSum(cos=>a)]
+Js = [TimeDependentSum(cos=>a), 0.01 * a']
 Jdags = dagger.(Js)
 
-_getf = (H0, Hd, a) -> (t,_) -> (H0 + cos(t)*Hd, [cos(t)*a], [cos(t)*a'])
+_js(t, a) = (cos(t)*a, 0.01*a')
+_h(t, H0, Hd) = H0 + cos(t)*Hd
+
+_getf = (H0, Hd, a) -> (t,_) -> (_h(t, H0, Hd), _js(t, a), dagger.(_js(t, a)))
 fman = _getf(H0, Hd, a)
 
 ts_out, psis = timeevolution.mcwf_dynamic(ts, psi0, H, Js; seed=0)
@@ -43,9 +46,9 @@ ts_out2, rhos2 = timeevolution.master_dynamic(ts, psi0, fman)
 Hnh = H - 0.5im * sum(J' * J for J in Js)
 
 _getf = (H0, Hd, a) -> (t,_) -> (
-    H0 + cos(t)*Hd - 0.5im * a' * a * cos(t)^2,
-    [cos(t)*a],
-    [cos(t)*a'])
+    _h(t, H0, Hd) - 0.5im * sum(dagger.(_js(t, a)) .* _js(t, a)),
+    _js(t, a),
+    dagger.(_js(t, a)))
 
 fman = _getf(H0, Hd, a)
 
@@ -54,10 +57,10 @@ ts_out2, psis2 = timeevolution.mcwf_nh_dynamic(ts, psi0, fman; seed=0)
 @test psis[end].data ≈ psis2[end].data
 
 _getf = (H0, Hd, a) -> (t,_) -> (
-    H0 + cos(t)*Hd - 0.5im * a' * a * cos(t)^2,
-    H0 + cos(t)*Hd + 0.5im * a' * a * cos(t)^2,
-    [cos(t)*a],
-    [cos(t)*a'])
+    _h(t, H0, Hd) - 0.5im * sum(dagger.(_js(t, a)) .* _js(t, a)),
+    _h(t, H0, Hd) + 0.5im * sum(dagger.(_js(t, a)) .* _js(t, a)),
+    _js(t, a),
+    dagger.(_js(t, a)))
 
 fman = _getf(H0, Hd, a)
 
