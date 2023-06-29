@@ -7,6 +7,7 @@ using SparseArrays, LinearAlgebra
 export
     ylm,
     eigenstates, eigenenergies, simdiag,
+    LapackDiag, ArpackDiag, KrylovDiag,
     timeevolution, diagonaljumps, @skiptimechecks,
     steadystate,
     timecorrelations,

@@ -11,7 +11,6 @@ DiagStrategy{T}(n::Int) where T = DiagStrategy{T}(n, nothing)
 const LapackDiag = DiagStrategy{:lapack}
 const ArpackDiag = DiagStrategy{:arpack}
 const KrylovDiag = DiagStrategy{:krylov}
-export LapackDiag, ArpackDiag, KrylovDiag
 
 arithmetic_unary_error = QuantumOpticsBase.arithmetic_unary_error
 DiagStrategy(op::AbstractOperator) = arithmetic_unary_error("DiagStrategy", op)
@@ -19,12 +18,9 @@ function DiagStrategy(op::DataOperator)
     basis(op) # Checks basis match
     DiagStrategy(op.data)
 end
-DiagStrategy(m::Matrix) = LapackDiag(size(m)[1], nothing)
-DiagStrategy(m::SparseMatrixCSC) = ArpackDiag(6, rand(eltype(m), size(m)[1]))
+DiagStrategy(m::Matrix) = LapackDiag(size(m)[1])
+DiagStrategy(::SparseMatrixCSC) = KrylovDiag(6)
 DiagStrategy(m::AbstractMatrix) = ArgumentError("Cannot detect DiagStrategy for array type $(typeof(m))")
-function _assert_starting_vector(ds::DiagStrategy)
-    @assert ds.v0 !== nothing "Starting vector required for $(typeof(ds)) strategy"
-end
 
 """
     eigenstates(op::AbstractOperator[, n::Int; warning=true])
@@ -88,19 +84,20 @@ function eigenstates(op::Operator, ds::KrylovDiag; warning::Bool=true,
     info && println("INFO: Defaulting to sparse diagonalization.
         If storing the full operator is possible, it might be faster to do
         eigenstates(dense(op)). Set info=false to turn off this message.")
-    _assert_starting_vector(ds)
     if ds.v0 === nothing
         D, Vs = eigsolve(op.data, ds.n, :SR; kwargs...)
     else
         D, Vs = eigsolve(op.data, ds.v0, ds.n, :SR; kwargs...)
     end
-    states = [Ket(b, v) for v=Vs]
-    D, states
+    states = [Ket(b, Vs[k]) for k=1:ds.n]
+    D[1:ds.n], states
 end
 
-function eigenstates(op::AbstractOperator, n::Union{Int,Nothing}=nothing; warning=true, kw...)
+function eigenstates(op::AbstractOperator, n::Union{Int,Nothing}=nothing,
+        v0::Union{AbstractVector,Nothing}=nothing; warning=true, kw...)
     ds = DiagStrategy(op)
     n !== nothing && (ds.n = n)
+    v0 !== nothing && (ds.v0 = v0)
     eigenstates(op, ds; warning=warning, kw...)
 end
 
@@ -132,7 +129,7 @@ end
 """
 For sparse operators by default it only returns the 6 lowest eigenvalues.
 """
-eigenenergies(op::Operator, ds::ArpackDiag; kwargs...) = eigenstates(op, ds; kwargs...)[1]
+eigenenergies(op::Operator, ds::DiagStrategy; kwargs...) = eigenstates(op, ds; kwargs...)[1]
 
 function eigenenergies(op::AbstractOperator, n::Union{Int,Nothing}=nothing; kw...)
     ds = DiagStrategy(op)
