@@ -63,7 +63,7 @@ detect_diagstrategy(op::AbstractOperator; kw...) = arithmetic_unary_error("detec
 """
     get_starting_vector(m::AbstractMatrix)
 
-Generates a default starting vector for Arnoldi-like iterative methods for matrix `m`.
+Generate a default starting vector for Arnoldi-like iterative methods for matrix `m`.
 """
 get_starting_vector(::SparseMatrixCSC) = nothing
 function detect_diagstrategy(m::AbstractSparseMatrix; kw...)
@@ -78,8 +78,15 @@ function detect_diagstrategy(m::Matrix; kw...)
     new_kw = Base.structdiff(values(kw), NamedTuple{(:n,)})
     return LapackDiag(nev), new_kw
 end
-detect_diagstrategy(m::AbstractMatrix; _...) = throw(ArgumentError(
-    "Cannot detect DiagStrategy for array type $(typeof(m)). Refer to `QuantumOptics.detect_diagstrategy` docstring for more info."))
+"""
+    detect_diagstrategy(m::AbstractMatrix; kw...)
+
+Same as above, but dispatches on different internal array types.
+"""
+detect_diagstrategy(m::T; _...) where T<:AbstractMatrix = throw(ArgumentError(
+    """Cannot detect DiagStrategy for array type $(typeof(m)).
+    Consider defining `QuantumOptics.detect_diagstrategy(::$T; kw...)` method.
+    Refer to `QuantumOptics.detect_diagstrategy` docstring for more info."""))
 
 """
     eigenstates(op::Operator[, n::Int; warning=true, kw...])
@@ -104,10 +111,10 @@ can be turned off using the keyword `warning=false`.
 - `v0`: The starting vector for Arnoldi-like iterative methods.
 - `krylovdim`: The upper bound for dimenstion count of the emerging Krylov space.
 """
-function eigenstates(op::AbstractOperator; warning=true, info=true, kw...)
+function eigenstates(op::AbstractOperator; info=true, kw...)
     ds, kwargs_rem = detect_diagstrategy(op; kw...)
-    info && print("""Diagonalization method was automatically selected: $ds. Set `info=false` to turn this message off.""")
-    eigenstates(op, ds; warning=warning, kwargs_rem...)
+    info && print("Diagonalization method was automatically selected: $ds. Set `info=false` to turn this message off.")
+    eigenstates(op, ds; kwargs_rem...)
 end
 eigenstates(op::AbstractOperator, n::Int; warning=true, kw...) =
     eigenstates(op; warning=warning, kw..., n=n)
@@ -158,6 +165,13 @@ can be turned off using the keyword `warning=false`.
 
 See `eigenstates` for more info.
 """
+function eigenenergies(op::AbstractOperator; info=true, kw...)
+    ds, kw_rem = detect_diagstrategy(op; kw...)
+    info && println("Diagonalization method was automatically selected: $ds. Set `info=false` to turn this message off.")
+    eigenenergies(op, ds; kw_rem...)
+end
+eigenenergies(op::AbstractOperator, n::Int; kw...) = eigenenergies(op; kw..., n=n)
+
 function eigenenergies(op::Operator, ds::LapackDiag; warning=true)
     if ishermitian(op)
         D = eigvals(Hermitian(op.data), 1:ds.n)
@@ -172,12 +186,6 @@ end
 
 # Call eigenstates
 eigenenergies(op::Operator, ds::DiagStrategy; kwargs...) = eigenstates(op, ds; kwargs...)[1]
-
-function eigenenergies(op::AbstractOperator; kw...)
-    ds, kw_rem = detect_diagstrategy(op; kw...)
-    eigenenergies(op, ds; kw_rem...)
-end
-eigenenergies(op::AbstractOperator, n::Int; kw...) = eigenenergies(op; kw..., n=n)
 
 """
     simdiag(ops; atol, rtol)
