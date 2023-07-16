@@ -6,6 +6,7 @@ names = [
     "test_timeevolution_master.jl",
     "test_timeevolution_mcwf.jl",
     "test_timeevolution_bloch_redfield.jl",
+    "test_timeevolution_tdops.jl",
 
     "test_timeevolution_twolevel.jl",
     "test_timeevolution_pumpedcavity.jl",

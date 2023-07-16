@@ -20,6 +20,7 @@ module timeevolution
     export diagonaljumps, @skiptimechecks
 
     include("timeevolution_base.jl")
+    include("time_dependent_operators.jl")
     include("master.jl")
     include("schroedinger.jl")
     include("mcwf.jl")

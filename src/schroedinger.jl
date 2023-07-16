@@ -37,6 +37,10 @@ Integrate time-dependent Schroedinger equation to evolve states or compute propa
         an output should be displayed. ATTENTION: The state `psi` is neither
         normalized nor permanent! It is still in use by the ode solver and
         therefore must not be changed.
+
+    timeevolution.schroedinger_dynamic(tspan, psi0, H::AbstractTimeDependentOperator; fout)
+
+Instead of a function `f`, this takes a time-dependent operator `H`.
 """
 function schroedinger_dynamic(tspan, psi0, f;
                 fout::Union{Function,Nothing}=nothing,
@@ -47,6 +51,11 @@ function schroedinger_dynamic(tspan, psi0, f;
     state = copy(psi0)
     dstate = copy(psi0)
     integrate(tspan, dschroedinger_, x0, state, dstate, fout; kwargs...)
+end
+
+function schroedinger_dynamic(tspan, psi0::T, H::AbstractTimeDependentOperator;
+    kwargs...) where {B,Bp,T<:Union{AbstractOperator{B,Bp},StateVector{B}}}
+    schroedinger_dynamic(tspan, psi0, schroedinger_dynamic_function(H); kwargs...)
 end
 
 """
