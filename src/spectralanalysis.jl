@@ -111,9 +111,9 @@ can be turned off using the keyword `warning=false`.
 - `v0`: The starting vector for Arnoldi-like iterative methods.
 - `krylovdim`: The upper bound for dimenstion count of the emerging Krylov space.
 """
-function eigenstates(op::AbstractOperator; info=true, kw...)
+function eigenstates(op::AbstractOperator; kw...)
     ds, kwargs_rem = detect_diagstrategy(op; kw...)
-    info && print("Diagonalization method was automatically selected: $ds. Set `info=false` to turn this message off.")
+    @debug "Diagonalization method was automatically selected:" ds
     eigenstates(op, ds; kwargs_rem...)
 end
 eigenstates(op::AbstractOperator, n::Int; warning=true, kw...) =
