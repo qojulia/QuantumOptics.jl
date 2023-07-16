@@ -67,15 +67,18 @@ Generate a default starting vector for Arnoldi-like iterative methods for matrix
 """
 get_starting_vector(::SparseMatrixCSC) = nothing
 function detect_diagstrategy(m::AbstractSparseMatrix; kw...)
+    if get(kw, :info, true)
+        @info "Defaulting to sparse diagonalization for sparse operator. If storing the full operator is possible, it might be faster to do `eigenstates(dense(op))`. Set `info=false` to turn off this message."
+    end
     nev = get(kw, :n, 6)
     v0 = get(kw, :v0, get_starting_vector(m))
     krylovdim = get(kw, :krylovdim, nev + 30)
-    new_kw = Base.structdiff(values(kw), NamedTuple{(:n, :v0, :krylovdim)})
+    new_kw = Base.structdiff(values(kw), NamedTuple{(:n, :v0, :krylovdim, :info)})
     return KrylovDiag(nev, v0, krylovdim), new_kw
 end
 function detect_diagstrategy(m::Matrix; kw...)
     nev = get(kw, :n, size(m)[1])
-    new_kw = Base.structdiff(values(kw), NamedTuple{(:n,)})
+    new_kw = Base.structdiff(values(kw), NamedTuple{(:n, :info)})
     return LapackDiag(nev), new_kw
 end
 """
@@ -113,7 +116,6 @@ can be turned off using the keyword `warning=false`.
 """
 function eigenstates(op::AbstractOperator; kw...)
     ds, kwargs_rem = detect_diagstrategy(op; kw...)
-    @debug "Diagonalization method was automatically selected:" ds
     eigenstates(op, ds; kwargs_rem...)
 end
 eigenstates(op::AbstractOperator, n::Int; warning=true, kw...) =
@@ -165,9 +167,8 @@ can be turned off using the keyword `warning=false`.
 
 See `eigenstates` for more info.
 """
-function eigenenergies(op::AbstractOperator; info=true, kw...)
+function eigenenergies(op::AbstractOperator; kw...)
     ds, kw_rem = detect_diagstrategy(op; kw...)
-    info && println("Diagonalization method was automatically selected: $ds. Set `info=false` to turn this message off.")
     eigenenergies(op, ds; kw_rem...)
 end
 eigenenergies(op::AbstractOperator, n::Int; kw...) = eigenenergies(op; kw..., n=n)
