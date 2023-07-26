@@ -7,12 +7,12 @@ _tuplify(o::AbstractOperator) = o
 """
     schroedinger_dynamic_function(H::AbstractTimeDependentOperator)
 
-Creates a function `f(t, state) -> H(t)`. The `state` argument is ignored.
+Creates a function of the form `f(t, state) -> H(t)`. The `state` argument is ignored.
 
 This is the function expected by [`timeevolution.schroedinger_dynamic()`](@ref).
 """
 function schroedinger_dynamic_function(H::AbstractTimeDependentOperator)
-    _getfunc(op) = (@inline _tdop_schroedinger_wrapper(t, _) = (op)(t))
+    _getfunc(op) = (@inline _tdop_schroedinger_wrapper(t, _) = set_time!(op, t))
     Htup = _tuplify(H)
     return _getfunc(Htup)
 end
@@ -34,7 +34,7 @@ end
 """
     master_h_dynamic_function(H::AbstractTimeDependentOperator, Js)
 
-Returns a function `f(t, state) -> H(t), Js, dagger.(Js)`.
+Returns a function of the form `f(t, state) -> H(t), Js, dagger.(Js)`.
 The `state` argument is ignored.
 
 This is the function expected by [`timeevolution.master_h_dynamic()`](@ref),
@@ -47,7 +47,7 @@ function master_h_dynamic_function(H::AbstractTimeDependentOperator, Js)
 
     Jdags_tup = _tdopdagger.(Js_tup)
     function _getfunc(Hop, Jops, Jdops)
-        return (@inline _tdop_master_wrapper_1(t, _) = ((Hop)(t), set_time!.(Jops, t), set_time!.(Jdops, t)))
+        return (@inline _tdop_master_wrapper_1(t, _) = (set_time!(Hop, t), set_time!.(Jops, t), set_time!.(Jdops, t)))
     end
     return _getfunc(Htup, Js_tup, Jdags_tup)
 end
@@ -55,7 +55,7 @@ end
 """
     master_nh_dynamic_function(Hnh::AbstractTimeDependentOperator, Js)
 
-Returns a function `f(t, state) -> Hnh(t), Hnh(t)', Js, dagger.(Js)`.
+Returns a function of the form `f(t, state) -> Hnh(t), Hnh(t)', Js, dagger.(Js)`.
 The `state` argument is currently ignored.
 
 This is the function expected by [`timeevolution.master_nh_dynamic()`](@ref),
@@ -70,7 +70,7 @@ function master_nh_dynamic_function(Hnh::AbstractTimeDependentOperator, Js)
     Htdagup = _tdopdagger(Hnhtup)
 
     function _getfunc(Hop, Hdop, Jops, Jdops)
-        return (@inline _tdop_master_wrapper_2(t, _) = ((Hop)(t), (Hdop)(t), set_time!.(Jops, t), set_time!.(Jdops, t)))
+        return (@inline _tdop_master_wrapper_2(t, _) = (set_time!(Hop, t), set_time!(Hdop, t), set_time!.(Jops, t), set_time!.(Jdops, t)))
     end
     return _getfunc(Hnhtup, Htdagup, Js_tup, Jdags_tup)
 end
@@ -78,7 +78,7 @@ end
 """
     mcfw_dynamic_function(H, Js)
 
-Returns a function `f(t, state) -> H(t), Js, dagger.(Js)`.
+Returns a function of the form `f(t, state) -> H(t), Js, dagger.(Js)`.
 The `state` argument is currently ignored.
 
 This is the function expected by [`timeevolution.mcwf_dynamic()`](@ref),
@@ -90,7 +90,7 @@ mcfw_dynamic_function(H, Js) = master_h_dynamic_function(H, Js)
 """
     mcfw_nh_dynamic_function(Hnh, Js)
 
-Returns a function `f(t, state) -> Hnh(t), Js, dagger.(Js)`.
+Returns a function of the form `f(t, state) -> Hnh(t), Js, dagger.(Js)`.
 The `state` argument is currently ignored.
 
 This is the function expected by [`timeevolution.mcwf_dynamic()`](@ref),
