@@ -47,7 +47,6 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J;
         kwargs...)
     _check_const(Hnh)
     _check_const.(J)
-    _check_const.(Jdagger)
     check_mcwf(psi0, Hnh, J, J, nothing)
     f(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
