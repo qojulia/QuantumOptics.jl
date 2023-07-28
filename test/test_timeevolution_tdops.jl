@@ -19,6 +19,8 @@ _getf = (H0, Hd) -> (t,_) -> _h(t, H0, Hd)
 fman = _getf(H0, Hd)
 
 psi0 = basisstate(b, 1)
+
+@test_throws ArgumentError timeevolution.schroedinger(ts, psi0, H)
 ts_out, psis = timeevolution.schroedinger_dynamic(ts, psi0, H)
 # check this is not trivial
 @test !(psis[1].data ≈ psis[end].data)
@@ -29,6 +31,7 @@ ts_out2, psis2 = timeevolution.schroedinger_dynamic(ts, psi0, fman)
 _getf = (H0, Hd, a) -> (t,_) -> (_h(t, H0, Hd), (), ())
 fman = _getf(H0, Hd, a)
 
+@test_throws ArgumentError timeevolution.master(ts, psi0, H, [])
 ts_out, rhos = timeevolution.master_dynamic(ts, psi0, H, [])
 ts_out2, rhos2 = timeevolution.master_dynamic(ts, psi0, fman)
 @test rhos[end].data ≈ rhos2[end].data
@@ -41,10 +44,12 @@ _js(t, a) = (cos(t)*a, 0.01*a', 0.01*a'*a)
 _getf = (H0, Hd, a) -> (t,_) -> (_h(t, H0, Hd), _js(t, a), dagger.(_js(t, a)))
 fman = _getf(H0, Hd, a)
 
+@test_throws ArgumentError timeevolution.mcwf(ts, psi0, H, Js; seed=0)
 ts_out, psis = timeevolution.mcwf_dynamic(ts, psi0, H, Js; seed=0)
 ts_out2, psis2 = timeevolution.mcwf_dynamic(ts, psi0, fman; seed=0)
 @test psis[end].data ≈ psis2[end].data
 
+@test_throws ArgumentError timeevolution.master(ts, psi0, H, Js)
 ts_out, rhos = timeevolution.master_dynamic(ts, psi0, H, Js)
 ts_out2, rhos2 = timeevolution.master_dynamic(ts, psi0, fman)
 @test rhos[end].data ≈ rhos2[end].data
@@ -58,6 +63,7 @@ _getf = (H0, Hd, a) -> (t,_) -> (
 
 fman = _getf(H0, Hd, a)
 
+@test_throws ArgumentError timeevolution.mcwf_nh(ts, psi0, Hnh, Js; seed=0)
 ts_out, psis = timeevolution.mcwf_nh_dynamic(ts, psi0, Hnh, Js; seed=0)
 ts_out2, psis2 = timeevolution.mcwf_nh_dynamic(ts, psi0, fman; seed=0)
 @test psis[end].data ≈ psis2[end].data
@@ -70,6 +76,7 @@ _getf = (H0, Hd, a) -> (t,_) -> (
 
 fman = _getf(H0, Hd, a)
 
+@test_throws ArgumentError timeevolution.master_nh(ts, psi0, Hnh, Js)
 ts_out, rhos = timeevolution.master_nh_dynamic(ts, psi0, Hnh, Js)
 ts_out2, rhos2 = timeevolution.master_nh_dynamic(ts, psi0, fman)
 @test rhos[end].data ≈ rhos2[end].data
