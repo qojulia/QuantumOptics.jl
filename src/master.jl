@@ -10,6 +10,9 @@ function master_h(tspan, rho0::Operator, H::AbstractOperator, J;
                 Jdagger=dagger.(J),
                 fout=nothing,
                 kwargs...)
+    _check_const(H)
+    _check_const.(J)
+    _check_const.(Jdagger)
     check_master(rho0, H, J, Jdagger, rates)
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
@@ -33,6 +36,10 @@ function master_nh(tspan, rho0::Operator, Hnh::AbstractOperator, J;
                 Jdagger=dagger.(J),
                 fout=nothing,
                 kwargs...)
+    _check_const(Hnh)
+    _check_const(Hnhdagger)
+    _check_const.(J)
+    _check_const.(Jdagger)
     check_master(rho0, Hnh, J, Jdagger, rates)
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
@@ -76,6 +83,9 @@ function master(tspan, rho0::Operator, H::AbstractOperator, J;
                 Jdagger=dagger.(J),
                 fout=nothing,
                 kwargs...)
+    _check_const(H)
+    _check_const.(J)
+    _check_const.(Jdagger)
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)

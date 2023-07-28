@@ -24,6 +24,8 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B}, Hs::Vector;
                 normalize_state=false,
                 calback=nothing,
                 kwargs...) where {B,T<:Ket{B}}
+    _check_const(H)
+    _check_const.(Hs)
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
 
     n = length(Hs)

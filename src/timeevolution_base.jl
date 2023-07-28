@@ -88,6 +88,12 @@ function (c::SteadyStateCondtion)(rho,t,integrator)
     drho/dt < c.tol
 end
 
+function _check_const(op)
+    if !QuantumOpticsBase.is_const(op)
+        error("Use of time-dependent operators with static evolution methods. Convert to static operators first or use `_dynamic`` evolution variants.")
+    end
+    nothing
+end
 
 const QO_CHECKS = Ref(true)
 """

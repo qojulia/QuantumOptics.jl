@@ -35,7 +35,9 @@ function master(tspan, rho0::T, H::AbstractOperator{B,B},
                 Jdagger=dagger.(J), Cdagger=dagger.(C),
                 fout=nothing,
                 kwargs...) where {B,T<:Operator{B,B}}
-
+    _check_const(H)
+    _check_const.(J)
+    _check_const.(Jdagger)
     tmp = copy(rho0)
 
     n = length(C)

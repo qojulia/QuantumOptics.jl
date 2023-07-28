@@ -18,6 +18,9 @@ function mcwf_h(tspan, psi0::Ket, H::AbstractOperator, J;
         tmp=copy(psi0),
         display_beforeevent=false, display_afterevent=false,
         kwargs...)
+    _check_const(H)
+    _check_const.(J)
+    _check_const.(Jdagger)
     check_mcwf(psi0, H, J, Jdagger, rates)
     f(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
@@ -42,6 +45,9 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J;
         seed=rand(UInt), fout=nothing,
         display_beforeevent=false, display_afterevent=false,
         kwargs...)
+    _check_const(Hnh)
+    _check_const.(J)
+    _check_const.(Jdagger)
     check_mcwf(psi0, Hnh, J, J, nothing)
     f(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
     j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
@@ -96,6 +102,9 @@ function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
         fout=nothing, Jdagger=dagger.(J),
         display_beforeevent=false, display_afterevent=false,
         kwargs...)
+    _check_const(H)
+    _check_const.(J)
+    _check_const.(Jdagger)
     isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(psi0)

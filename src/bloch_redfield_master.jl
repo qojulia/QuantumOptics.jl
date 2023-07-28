@@ -16,7 +16,8 @@ See QuTiP's documentation (http://qutip.org/docs/latest/guide/dynamics/dynamics-
                         This argument is only taken into account if use_secular=true.
 """
 function bloch_redfield_tensor(H::AbstractOperator, a_ops; J=SparseOpType[], use_secular=true, secular_cutoff=0.1)
-
+    _check_const(H)
+    _check_const.(J)
     # Use the energy eigenbasis
     H_evals, transf_mat = eigen(Array(H.data)) #Array call makes sure H is a dense array
     H_ekets = [Ket(H.basis_l, transf_mat[:, i]) for i in 1:length(H_evals)]
