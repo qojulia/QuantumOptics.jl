@@ -560,11 +560,11 @@ function _calc_ylm_norm(l, m)
 end
 
 """
-    squeeze(b::FockBasis, x::Complex)
+    squeeze(b::FockBasis, x)
 
-This function generates a squeeze operator with squeezing parameter |x| 
-along squeezing direction specified by arg(x)/2
-                    exp(0.5*( conj(x)*a^2 - x*ad^2))
+Squeeze operator on a `FockBasis` described by  
+``S = e^{\\frac{1}{2}(x^* a^2 - x (a^\dagger)^2)}``.
+For ``x = e^{i θ}`` the squeezing is along `θ/2`.
 """
 function squeeze(b::FockBasis,x)
     a = destroy(b)
@@ -574,16 +574,16 @@ function squeeze(b::FockBasis,x)
 end
 
 """
-    squeeze(b::SpinBasis, x::Complex)
+    squeeze(b::SpinBasis, x)
 
-This function generates a spin squeeze operator  
-along squeezing direction specified by arg(x)/2
-                   exp(0.5/N*( conj(x)*Jm^2 - x*Jp^2 ))
-note that due to the finiteness of the Hilbert space setting a too large
- squeezing x will create an oversqueezed state. For nice squeezing
- x should be smaller than sqrt(N)
+Squeeze operator on a `SpinBasis` described by  
+``S = e^{\\frac{1}{2 N}(x^* J_-^2 - x J_+^2)}``.
+For ``x = e^{i θ}`` the squeezing is along `θ/2`.
+Due to the finiteness of the Hilbert space a too large
+ squeezing ``(|x| > \sqrt{N})`` will create an over-squeezed state. 
 """
 function squeeze(b::SpinBasis,x)
+    N = Int(b.spinnumber*2)
     Jm = sigmam(b)/2
     Jp = sigmap(b)/2
     s = exp(conj(x)*dense(Jm)^2/2/N - x*dense(Jp)^2/2/N)
