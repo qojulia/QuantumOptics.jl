@@ -558,3 +558,34 @@ function _calc_ylm_norm(l, m)
     end
     return n
 end
+
+"""
+    squeeze(b::FockBasis, x::Complex)
+
+This function generates a squeeze operator with squeezing parameter |x| 
+along squeezing direction specified by arg(x)/2
+                    exp(0.5*( conj(x)*a^2 - x*ad^2))
+"""
+function squeeze(b::FockBasis,x)
+    a = destroy(b)
+    ad = create(b)
+    s = exp(conj(x)*dense(a)^2/2 - x*dense(ad)^2/2)
+    return s
+end
+
+"""
+    squeeze(b::SpinBasis, x::Complex)
+
+This function generates a spin squeeze operator  
+along squeezing direction specified by arg(x)/2
+                   exp(0.5/N*( conj(x)*Jm^2 - x*Jp^2 ))
+note that due to the finiteness of the Hilbert space setting a too large
+ squeezing x will create an oversqueezed state. For nice squeezing
+ x should be smaller than sqrt(N)
+"""
+function squeeze(b::SpinBasis,x)
+    Jm = sigmam(b)/2
+    Jp = sigmap(b)/2
+    s = exp(conj(x)*dense(Jm)^2/2/N - x*dense(Jp)^2/2/N)
+    return s
+end

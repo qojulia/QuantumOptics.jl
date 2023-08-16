@@ -207,4 +207,36 @@ end
 t2 = abs(int*2*(pi/res)^2)
 @test isapprox(t2, 0, atol=1e-2)
 
+# squeeze operator tests HO
+co = 100
+b_fock = FockBasis(co)
+a = destroy(b_fock)
+ad = create(b_fock);
+xx = rand() 
+s = squeeze(b_fock,xx*exp(1im*pi));
+
+@test log(real(variance((ad+a),s*fockstate(b_fock,0))))/2 ≈ xx
+
+s = squeeze(b_fock,xx*exp(1im*pi*rand()));
+
+@test log(real(variance((ad+a),s*fockstate(b_fock,0))))/2 < xx
+@test log(real(variance((ad+a),s*fockstate(b_fock,0))))/2 > -xx
+
+# squeeze oerator test SPIN
+N = 500
+b_spin = SpinBasis(N//2)
+ss = squeeze(b_spin,rand()*sqrt(N)*exp(1im*rand()*pi));
+st = ss*spindown(b_spin);
+
+# Heisenberg uncertainty test
+@test abs(variance(sigmax(b_spin)/2,st)*variance(sigmay(b_spin)/2,st)) ≥ abs2(expect(sigmaz(b_spin)/2,st))/4
+
+# small squeezing test
+xx = rand()/10
+ss = squeeze(b_spin,xx*sqrt(N));
+st = ss*spindown(b_spin);
+
+@test isapprox(2*log(real(variance(sigmax(b_spin)/2,st))/N*4) , -xx*sqrt(N), atol=1e-2)
+@test isapprox(2*log(real(variance(sigmay(b_spin)/2,st))/N*4) , xx*sqrt(N), atol=1e-2)
+
 end # testset
