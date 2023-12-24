@@ -50,3 +50,24 @@ for u0 = (psi, psi', psi⊗psi') # test all methods of `rebuild`
 end
 
 end # testset
+
+@testset "ForwardDiff with schroedinger using TimeDependentSum" begin
+
+base=SpinBasis(1/2)
+ψi = spinup(base)
+ψt = spindown(base)
+function Ftdop(q)
+    H = TimeDependentSum([q, abs2∘sinpi], [sigmaz(base), sigmax(base)])
+    _, ψf = schroedinger_dynamic(range(0,1,2), ψi, H)
+    abs2(ψt'last(ψf))
+end
+@test FD.derivative(Ftdop, 1.0) isa Any
+
+function Ftdop(q)
+    H = TimeDependentSum([1, abs2∘sinpi], [sigmaz(base), q*sigmax(base)])
+    _, ψf = schroedinger_dynamic(range(0,1,2), ψi, H)
+    abs2(ψt'last(ψf))
+end
+@test FD.derivative(Ftdop, 1.0) isa Any
+
+end # testset
