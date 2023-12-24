@@ -58,16 +58,18 @@ base=SpinBasis(1/2)
 ψt = spindown(base)
 function Ftdop(q)
     H = TimeDependentSum([q, abs2∘sinpi], [sigmaz(base), sigmax(base)])
-    _, ψf = schroedinger_dynamic(range(0,1,2), ψi, H)
+    _, ψf = timeevolution.schroedinger_dynamic(range(0,1,2), ψi, H)
     abs2(ψt'last(ψf))
 end
+Ftdop(1.0)
 @test ForwardDiff.derivative(Ftdop, 1.0) isa Any
 
 function Ftdop(q)
     H = TimeDependentSum([1, abs2∘sinpi], [sigmaz(base), q*sigmax(base)])
-    _, ψf = schroedinger_dynamic(range(0,1,2), ψi, H)
+    _, ψf = timeevolution.schroedinger_dynamic(range(0,1,2), ψi, H)
     abs2(ψt'last(ψf))
 end
+Ftdop(1.0)
 @test ForwardDiff.derivative(Ftdop, 1.0) isa Any
 
 end # testset
