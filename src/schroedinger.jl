@@ -56,7 +56,9 @@ end
 
 function schroedinger_dynamic(tspan, psi0::T, H::AbstractTimeDependentOperator;
     kwargs...) where {B,Bp,T<:Union{AbstractOperator{B,Bp},StateVector{B}}}
-    schroedinger_dynamic(tspan, psi0, schroedinger_dynamic_function(H); kwargs...)
+    tspan, psi0 = _promote_time_and_state(psi0, H, tspan)
+    Ht = TimeDependentSum(H.coefficients, H.static_op; init_time=zero(promote_type(eltype(tspan), typeof(current_time(H)))))
+    schroedinger_dynamic(tspan, psi0, schroedinger_dynamic_function(Ht); kwargs...)
 end
 
 """
