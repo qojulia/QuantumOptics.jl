@@ -24,7 +24,7 @@ WignerSymbols = "9f57e263-0b3d-5e2e-b1be-24f2bb48858b"
 [compat]
 Arpack = "0.5.1 - 0.5.3"
 DiffEqBase = "6.113"
-DiffEqCallbacks = "2"
+DiffEqCallbacks = "2, 3"
 FFTW = "1"
 ForwardDiff = "0.10"
 IterativeSolvers = "0.9"
