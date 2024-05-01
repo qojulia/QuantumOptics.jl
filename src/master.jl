@@ -115,6 +115,8 @@ Time-evolution according to a master equation with a Liouvillian superoperator `
         permanent! It is still in use by the ode solver and therefore must not
         be changed.
 * `kwargs...`: Further arguments are passed on to the ode solver.
+
+See also: [`master_dynamic`](@ref)
 """
 function master(tspan, rho0::Operator, L::SuperOperator; fout=nothing, kwargs...)
     # Rewrite rho as Ket and L as Operator
