@@ -88,12 +88,20 @@ t_sub2, psi_sub2 = timeevolution.schroedinger_dynamic(T, proj2, f; abstol=eps(),
 @test all(getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data))
 # check that data is the same
 @test all([hcat(q...) for q=eachrow(getfield.(hcat(psi_list...),:data))] .≈ getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data))
-
+## same for schroedinger
+t_list, psi_list = timeevolution.schroedinger.([T], subspace, f.(0.0, subspace); abstol=eps(), reltol=eps()) |> q->(getindex.(q,1), getindex.(q,2))
+t_sub1, psi_sub1 = timeevolution.schroedinger(T, proj1, f(0.0, proj1); abstol=eps(), reltol=eps())
+t_sub2, psi_sub2 = timeevolution.schroedinger(T, proj2, f(0.0, proj2); abstol=eps(), reltol=eps())
+@test t_list[1:end-1] == t_list[2:end] && t_list[1] == t_sub1 == t_sub2 # check that time vector is the same
+@test all(getfield.(psi_sub1, :basis_l) .== [proj1.basis_l]) && all(getfield.(psi_sub1, :basis_r) .== [proj1.basis_r]) # check that base is preserved
+@test all(getfield.(psi_sub2, :basis_l) .== [proj2.basis_l]) && all(getfield.(psi_sub2, :basis_r) .== [proj2.basis_r])
+@test all(getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data)) # check that data is independent of basis_r
+@test all([hcat(q...) for q=eachrow(getfield.(hcat(psi_list...),:data))] .≈ getfield.(psi_sub1, :data) .≈ getfield.(psi_sub2, :data)) # check that data is the same
 
 # test integration of propagator using 2 level system
 basis = SpinBasis(1//2)
 su = spinup(basis)
-u0 = identityoperator(basis)
+u0 = dense(identityoperator(basis))
 sx = sigmax(basis)
 sz = sigmaz(basis)
 
@@ -109,5 +117,33 @@ t, u = timeevolution.schroedinger_dynamic(tspan, u0, f)
 @test abs(expect(sz, u[end] * su)) - abs(expect(sz, u0 * su)) < 1e-6
 
 
+
+end # testset
+
+
+@testset "reverse time schroedinger" begin
+
+# time span
+tl0 = 3rand()-1.5 |> q -> range(q-0.5, q+0.5, 2^7)
+# basis
+bas = GenericBasis(rand(2:4))
+# states to propagate
+ψ0 = Operator([randstate(bas) for _=1:3])
+# Hamiltonian 
+op_list = [randoperator(bas) for _=1:4]
+op_list.+= dagger.(op_list)
+fun_list = [cos, sin, abs2, exp]
+Ht(t,_) = sum(f(t)*op for (f,op)=zip(fun_list, op_list))
+# propagate
+tol=1e-12
+## moving forward
+tl  , ψl  = timeevolution.schroedinger_dynamic(tl0         ,      ψ0,  Ht;  abstol=tol, reltol=tol);
+## propagate final state backwards
+tlr , ψlr = timeevolution.schroedinger_dynamic(reverse(tl0), last(ψl), Ht;  abstol=tol, reltol=tol);
+
+# test reverse output time is indeed reverse
+@test tlr == reverse(tl0)
+# test that the state is traced back to the initial state
+@test all(isapprox.(ψl, reverse(ψlr), rtol=100tol))
 
 end # testset

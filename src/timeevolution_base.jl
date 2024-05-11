@@ -1,7 +1,7 @@
 using QuantumOpticsBase
 using QuantumOpticsBase: check_samebases, check_multiplicable
 
-import OrdinaryDiffEq, DiffEqCallbacks
+import OrdinaryDiffEq, DiffEqCallbacks, DiffEqBase, ForwardDiff
 
 function recast! end
 
@@ -35,7 +35,8 @@ function integrate(tspan, df, x0,
 
     scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=saveat,
                                          save_everystep=save_everystep,
-                                         save_start = false)
+                                         save_start = false,
+                                         tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
     prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(convert(tType, tspan[1]),convert(tType, tspan[end])))
 
@@ -87,6 +88,17 @@ function (c::SteadyStateCondtion)(rho,t,integrator)
     drho/dt < c.tol
 end
 
+function _check_const(op)
+    if !QuantumOpticsBase.is_const(op)
+        throw(
+          ArgumentError("You are attempting to use a time-dependent dynamics generator " *
+            "(a Hamiltonian or Lindbladian) with a solver that assumes constant " * 
+            "dynamics. To avoid errors, please use the _dynamic solvers instead, " *
+            "e.g. schroedinger_dynamic instead of schroedinger")
+        )
+    end
+    nothing
+end
 
 const QO_CHECKS = Ref(true)
 """

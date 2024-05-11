@@ -59,7 +59,8 @@ function integrate_stoch(tspan, df, dg, x0,
 
     scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=saveat,
                                          save_everystep=save_everystep,
-                                         save_start = false)
+                                         save_start = false,
+                                         tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
     full_cb = OrdinaryDiffEq.CallbackSet(callback, ncb, scb)
 
@@ -90,4 +91,16 @@ function integrate_stoch(tspan, df, dg, x0,
         copy(state)
     end
     integrate_stoch(tspan, df, dg, x0, state, dstate, fout, n; kwargs...)
+end
+
+function _check_const(op)
+    if !QuantumOpticsBase.is_const(op)
+        throw(
+          ArgumentError("You are attempting to use a time-dependent dynamics generator " *
+            "(a Hamiltonian or Lindbladian) with a solver that assumes constant " * 
+            "dynamics. To avoid errors, please use the _dynamic solvers instead, " *
+            "e.g. schroedinger_dynamic instead of schroedinger")
+        )
+    end
+    nothing
 end
