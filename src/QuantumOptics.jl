@@ -37,6 +37,7 @@ end
 include("timecorrelations.jl")
 include("spectralanalysis.jl")
 include("semiclassical.jl")
+include("debug.jl")
 module stochastic
     include("stochastic_base.jl")
     include("stochastic_definitions.jl")
