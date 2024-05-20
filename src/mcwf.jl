@@ -172,10 +172,10 @@ This version takes the Hamiltonian `H` and jump operators `J` as time-dependent 
 The jump operators may be `<: AbstractTimeDependentOperator` or other types
 of operator.
 """
-function mcwf_dynamic(tspan, psi0::Ket, f;
+function mcwf_dynamic(tspan, psi0::Ket, f::F;
     seed=rand(UInt), rates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
-    kwargs...)
+    kwargs...) where {F}
     tmp = copy(psi0)
     dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, f, rates, psi, tmp, t)
     j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
@@ -199,10 +199,10 @@ Calculate MCWF trajectory where the dynamic Hamiltonian is given in non-hermitia
 
 For more information see: [`mcwf_dynamic`](@ref)
 """
-function mcwf_nh_dynamic(tspan, psi0::Ket, f;
+function mcwf_nh_dynamic(tspan, psi0::Ket, f::F;
     seed=rand(UInt), rates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
-    kwargs...)
+    kwargs...) where {F}
     dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic!(dpsi, f, psi, t)
     j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
@@ -225,7 +225,7 @@ update `dpsi` according to a non-Hermitian Schrödinger equation.
 
 See also: [`mcwf_dynamic`](@ref), [`dmcwf_h!`](@ref), [`dmcwf_nh_dynamic`](@ref)
 """
-function dmcwf_h_dynamic!(dpsi, f, rates, psi, dpsi_cache, t)
+function dmcwf_h_dynamic!(dpsi, f::F, rates, psi, dpsi_cache, t) where {F}
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     if length(result) == 3
@@ -246,7 +246,7 @@ and update `dpsi` according to a Schrödinger equation.
 
 See also: [`mcwf_nh_dynamic`](@ref), [`dmcwf_nh!`](@ref), [`dschroedinger!`](@ref)
 """
-function dmcwf_nh_dynamic!(dpsi, f, psi, t)
+function dmcwf_nh_dynamic!(dpsi, f::F, psi, t) where {F}
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     H, J, Jdagger = result[1:3]
@@ -254,7 +254,7 @@ function dmcwf_nh_dynamic!(dpsi, f, psi, t)
     dschroedinger!(dpsi, H, psi)
 end
 
-function jump_dynamic(rng, t, psi, f, psi_new, rates)
+function jump_dynamic(rng, t, psi, f::F, psi_new, rates) where {F}
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     J = result[2]
@@ -289,15 +289,15 @@ Integrate a single Monte Carlo wave function trajectory.
         an initial jump threshold. If provided, `seed` is ignored.
 * `kwargs`: Further arguments are passed on to the ode solver.
 """
-function integrate_mcwf(dmcwf, jumpfun, tspan,
-                        psi0, seed, fout::Function;
+function integrate_mcwf(dmcwf::T, jumpfun, tspan,
+                        psi0, seed, fout::F;
                         display_beforeevent=false, display_afterevent=false,
                         display_jumps=false,
                         rng_state=nothing,
                         save_everystep=false, callback=nothing,
                         saveat=tspan,
                         alg=OrdinaryDiffEq.DP5(),
-                        kwargs...)
+                        kwargs...) where {T, F}
 
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     # Display before or after events
@@ -396,8 +396,8 @@ end
 roll!(s::JumpRNGState{T}) where T = (s.threshold = rand(s.rng, T))
 threshold(s::JumpRNGState) = s.threshold
 
-function jump_callback(jumpfun, seed, scb, save_before!,
-                        save_after!, save_t_index, psi0, rng_state::JumpRNGState)
+function jump_callback(jumpfun::F, seed, scb, save_before!::G,
+                        save_after!::H, save_t_index::I, psi0, rng_state::JumpRNGState) where {F,G,H,I}
 
     tmp = copy(psi0)
     psi_tmp = copy(psi0)

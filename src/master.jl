@@ -164,10 +164,10 @@ This version takes the non-hermitian Hamiltonian `Hnh` and jump operators `J` as
 The jump operators may be `<: AbstractTimeDependentOperator` or other types
 of operator.
 """
-function master_nh_dynamic(tspan, rho0::Operator, f;
+function master_nh_dynamic(tspan, rho0::Operator, f::F;
                 rates=nothing,
                 fout=nothing,
-                kwargs...)
+                kwargs...) where {F}
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_nh_dynamic!(drho, f, rates, rho, tmp, t)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
@@ -210,10 +210,10 @@ This version takes the Hamiltonian `H` and jump operators `J` as time-dependent 
 The jump operators may be `<: AbstractTimeDependentOperator` or other types
 of operator.
 """
-function master_dynamic(tspan, rho0::Operator, f;
+function master_dynamic(tspan, rho0::Operator, f::F;
                 rates=nothing,
                 fout=nothing,
-                kwargs...)
+                kwargs...) where {F}
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
@@ -395,7 +395,7 @@ returned from `f`.
 See also: [`master_dynamic`](@ref), [`dmaster_h!`](@ref), [`dmaster_nh!`](@ref),
     [`dmaster_nh_dynamic!`](@ref)
 """
-function dmaster_h_dynamic!(drho, f, rates, rho, drho_cache, t)
+function dmaster_h_dynamic!(drho, f::F, rates, rho, drho_cache, t) where {F}
     result = f(t, rho)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     if length(result) == 3
@@ -418,7 +418,7 @@ equation. Optionally, rates can also be returned from `f`.
 See also: [`master_dynamic`](@ref), [`dmaster_h!`](@ref), [`dmaster_nh!`](@ref),
     [`dmaster_h_dynamic!`](@ref)
 """
-function dmaster_nh_dynamic!(drho, f, rates, rho, drho_cache, t)
+function dmaster_nh_dynamic!(drho, f::F, rates, rho, drho_cache, t) where {F}
     result = f(t, rho)
     QO_CHECKS[] && @assert 4 <= length(result) <= 5
     if length(result) == 4

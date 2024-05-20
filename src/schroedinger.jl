@@ -43,9 +43,9 @@ Integrate time-dependent Schroedinger equation to evolve states or compute propa
 
 Instead of a function `f`, this takes a time-dependent operator `H`.
 """
-function schroedinger_dynamic(tspan, psi0, f;
+function schroedinger_dynamic(tspan, psi0, f::F;
                 fout::Union{Function,Nothing}=nothing,
-                kwargs...)
+                kwargs...) where {F}
     dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
     tspan, psi0 = _promote_time_and_state(psi0, f, tspan) # promote only if ForwardDiff.Dual
     x0 = psi0.data
@@ -105,7 +105,7 @@ Schrödinger equation as `-im*H*psi`.
 
 See also: [`dschroedinger!`](@ref)
 """
-function dschroedinger_dynamic!(dpsi, f, psi, t)
+function dschroedinger_dynamic!(dpsi, f::F, psi, t) where {F}
     H = f(t, psi)
     dschroedinger!(dpsi, H, psi)
 end

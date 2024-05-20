@@ -175,8 +175,8 @@ end
 
 # Integrate with given fout
 function integrate_br(tspan, dmaster_br, rho,
-                transf_op, inv_transf_op, fout::Function;
-                kwargs...)
+                transf_op, inv_transf_op, fout::F;
+                kwargs...) where {F}
     # Pre-allocate for in-place back-transformation from eigenbasis
     rho_out = copy(transf_op)
     tmp = copy(transf_op)
