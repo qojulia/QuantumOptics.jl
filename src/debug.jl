@@ -5,7 +5,7 @@ function __init__()
                 # Check if the given Hamiltonian is constant.
                 if !(QuantumOpticsBase.is_const(exc.args[3]))
                     printstyled(io, "\nHint", color=:green)
-                    print(io, ": You are attempting to use a time-dependent Hamiltonian with a solver that assumes constant dynamics. To avoid errors, please use the _dynamic solvers instead, e.g. master_dynamic instead of master_dynamic.")
+                    print(io, ": You are attempting to use a time-dependent Hamiltonian with a solver that assumes constant dynamics. To avoid errors, please use the dynamic solvers instead, e.g. `master_dynamic` instead of `master`.")
                 end
             end
 
@@ -13,7 +13,7 @@ function __init__()
                 # Check if the given Hamiltonian is constant.
                 if !(QuantumOpticsBase.is_const(exc.args[3]))
                     printstyled(io, "\nHint", color=:green)
-                    print(io, ": You are attempting to use a time-dependent Hamiltonian with a solver that assumes constant dynamics. To avoid errors, please use the _dynamic solvers instead, e.g. schroedinger_dynamic instead of schroedinger_dynamic.")
+                    print(io, ": You are attempting to use a time-dependent Hamiltonian with a solver that assumes constant dynamics. To avoid errors, please use the dynamic solvers instead, e.g. `schroedinger_dynamic` instead of `schroedinger`.")
                 end
             end
         end
