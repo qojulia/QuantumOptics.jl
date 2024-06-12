@@ -164,10 +164,10 @@ This version takes the non-hermitian Hamiltonian `Hnh` and jump operators `J` as
 The jump operators may be `<: AbstractTimeDependentOperator` or other types
 of operator.
 """
-function master_nh_dynamic(tspan, rho0::Operator, f::F;
+function master_nh_dynamic(tspan, rho0::Operator, f;
                 rates=nothing,
                 fout=nothing,
-                kwargs...) where {F}
+                kwargs...)
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_nh_dynamic!(drho, f, rates, rho, tmp, t)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
@@ -210,12 +210,14 @@ This version takes the Hamiltonian `H` and jump operators `J` as time-dependent 
 The jump operators may be `<: AbstractTimeDependentOperator` or other types
 of operator.
 """
-function master_dynamic(tspan, rho0::Operator, f::F;
+function master_dynamic(tspan, rho0::Operator, f;
                 rates=nothing,
                 fout=nothing,
-                kwargs...) where {F}
+                kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
+    dmaster_ = let f = f, tmp = tmp
+        dmaster_(t, rho, drho) = dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
+    end
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 

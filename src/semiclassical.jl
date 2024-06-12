@@ -71,10 +71,12 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
         normalized nor permanent!
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function schroedinger_dynamic(tspan, state0::State, fquantum::F, fclassical!::G;
+function schroedinger_dynamic(tspan, state0::State, fquantum, fclassical!;
                 fout=nothing,
-                kwargs...) where {F, G}
-    dschroedinger_(t, state, dstate) = dschroedinger_dynamic!(dstate, fquantum, fclassical!, state, t)
+                kwargs...)
+    dschroedinger_ = let fquantum = fquantum, fclassical! = fclassical!
+        dschroedinger_(t, state, dstate) = dschroedinger_dynamic!(dstate, fquantum, fclassical!, state, t)
+    end
     x0 = Vector{eltype(state0)}(undef, length(state0))
     recast!(x0,state0)
     state = copy(state0)
@@ -101,12 +103,14 @@ Integrate time-dependent master equation coupled to a classical system.
         permanent!
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function master_dynamic(tspan, state0::State{B,T}, fquantum::F, fclassical!::G;
+function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical!;
                 rates=nothing,
                 fout=nothing,
                 tmp=copy(state0.quantum),
-                kwargs...) where {B,T<:Operator,F,G}
-    dmaster_(t, state, dstate) = dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, tmp, t)
+                kwargs...) where {B,T<:Operator}
+    dmaster_ = let fquantum = fquantum, fclassical! = fclassical!
+        dmaster_(t, state, dstate) = dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, tmp, t)
+    end
     x0 = Vector{eltype(state0)}(undef, length(state0))
     recast!(x0,state0)
     state = copy(state0)
@@ -149,14 +153,20 @@ sure to take this into account when computing expectation values!
         the index of the jump operators with which the jump occured, respectively.
 * `kwargs...`: Further arguments are passed on to the ode solver.
 """
-function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum::F, fclassical!::G, fjump_classical!::H;
+function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum, fclassical!, fjump_classical!;
                 seed=rand(UInt),
                 rates=nothing,
                 fout=nothing,
-                kwargs...) where {B,T<:Ket,F,G,H}
+                kwargs...) where {B,T<:Ket}
     tmp=copy(psi0.quantum)
-    dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, tmp, t)
-    j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, fquantum, fclassical!, fjump_classical!, psi_new, rates)
+    dmcwf_ = let fquantum = fquantum, fclassical! = fclassical!
+        dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, tmp, t)
+    end
+    J = fquantum(first(tspan), psi0.quantum, psi0.classical)[2]
+    probs = zeros(real(eltype(psi0)), length(J))
+    j_ = let fquantum = fquantum, fclassical! = fclassical!, fjump_classical! = fjump_classical!, probs = probs
+        j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, fquantum, fclassical!, fjump_classical!, psi_new, probs, rates)
+    end
     x0 = Vector{eltype(psi0)}(undef, length(psi0))
     recast!(x0,psi0)
     psi = copy(psi0)
@@ -222,7 +232,7 @@ function dmcwf_h_dynamic!(dpsi, fquantum::F, fclassical!::G, rates, psi, tmp, t)
     return dpsi
 end
 
-function jump_dynamic(rng, t, psi, fquantum::F, fclassical!::G, fjump_classical!::H, psi_new, rates) where {F,G,H}
+function jump_dynamic(rng, t, psi, fquantum::F, fclassical!::G, fjump_classical!::H, psi_new, probs_tmp, rates) where {F,G,H}
     result = fquantum(t, psi.quantum, psi.classical)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     J = result[2]
@@ -231,7 +241,7 @@ function jump_dynamic(rng, t, psi, fquantum::F, fclassical!::G, fjump_classical!
     else
         rates_ = result[4]
     end
-    i = jump(rng, t, psi.quantum, J, psi_new.quantum, rates_)
+    i = jump(rng, t, psi.quantum, J, psi_new.quantum, probs_tmp, rates_)
     fjump_classical!(psi.classical, psi_new.quantum, i, t)
     psi_new.classical .= psi.classical
     return i

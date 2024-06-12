@@ -13,7 +13,7 @@ Integrate Schroedinger equation to evolve states or compute propagators.
         therefore must not be changed.
 """
 function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
-                fout::Union{Function,Nothing}=nothing,
+                fout=nothing,
                 kwargs...) where {B,Bo,T<:Union{AbstractOperator{B,Bo},StateVector{B}}}
     _check_const(H)
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
@@ -43,10 +43,12 @@ Integrate time-dependent Schroedinger equation to evolve states or compute propa
 
 Instead of a function `f`, this takes a time-dependent operator `H`.
 """
-function schroedinger_dynamic(tspan, psi0, f::F;
-                fout::Union{Function,Nothing}=nothing,
-                kwargs...) where {F}
-    dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
+function schroedinger_dynamic(tspan, psi0, f;
+                fout=nothing,
+                kwargs...)
+    dschroedinger_ = let f = f
+        dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
+    end
     tspan, psi0 = _promote_time_and_state(psi0, f, tspan) # promote only if ForwardDiff.Dual
     x0 = psi0.data
     state = copy(psi0)
