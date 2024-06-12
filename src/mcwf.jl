@@ -22,8 +22,13 @@ function mcwf_h(tspan, psi0::Ket, H::AbstractOperator, J;
     _check_const.(J)
     _check_const.(Jdagger)
     check_mcwf(psi0, H, J, Jdagger, rates)
-    f(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
+    f = let H = H, J = J, Jdagger = Jdagger, rates = rates, tmp = tmp
+        f(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
+    end
+    probs = zeros(real(eltype(psi0)), length(J))
+    j = let J = J, probs = probs, rates = rates
+        j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, probs, rates)
+    end
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
         display_beforeevent=display_beforeevent,
         display_afterevent=display_afterevent,
@@ -48,8 +53,13 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J;
     _check_const(Hnh)
     _check_const.(J)
     check_mcwf(psi0, Hnh, J, J, nothing)
-    f(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
-    j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, nothing)
+    f = let Hnh = Hnh
+        f(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
+    end
+    probs = zeros(real(eltype(psi0)), length(J))
+    j = let J = J, probs = probs
+        j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, probs, nothing)
+    end
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
         display_beforeevent=display_beforeevent,
         display_afterevent=display_afterevent,
@@ -107,8 +117,13 @@ function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
     isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(psi0)
-        dmcwf_h_(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
-        j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
+        dmcwf_h_ = let H = H, J = J, Jdagger = Jdagger, rates = rates, tmp = tmp
+            dmcwf_h_(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
+        end
+        probs = zeros(real(eltype(psi0)), length(J))
+        j_h = let J = J, probs = probs, rates = rates
+            j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, probs, rates)
+        end
         integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed,
             fout;
             display_beforeevent=display_beforeevent,
@@ -125,8 +140,13 @@ function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
                 Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
             end
         end
-        dmcwf_nh_(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
-        j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, rates)
+        dmcwf_nh_ = let Hnh = Hnh  # Hnh type often not inferrable
+            dmcwf_nh_(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
+        end
+        probs = zeros(real(eltype(psi0)), length(J))
+        j_nh = let J = J, probs = probs, rates = rates
+            j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, probs, rates)
+        end
         integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed,
             fout;
             display_beforeevent=display_beforeevent,
@@ -172,13 +192,19 @@ This version takes the Hamiltonian `H` and jump operators `J` as time-dependent 
 The jump operators may be `<: AbstractTimeDependentOperator` or other types
 of operator.
 """
-function mcwf_dynamic(tspan, psi0::Ket, f::F;
+function mcwf_dynamic(tspan, psi0::Ket, f;
     seed=rand(UInt), rates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
-    kwargs...) where {F}
+    kwargs...)
     tmp = copy(psi0)
-    dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, f, rates, psi, tmp, t)
-    j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
+    dmcwf_ = let f = f, tmp = tmp, rates = rates
+        dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, f, rates, psi, tmp, t)
+    end
+    J = f(first(tspan), psi0)[2]
+    probs = zeros(real(eltype(psi0)), length(J))
+    j_ = let f = f, probs = probs, rates = rates
+        j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, probs, rates)
+    end
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
         fout;
         display_beforeevent=display_beforeevent,
@@ -199,12 +225,18 @@ Calculate MCWF trajectory where the dynamic Hamiltonian is given in non-hermitia
 
 For more information see: [`mcwf_dynamic`](@ref)
 """
-function mcwf_nh_dynamic(tspan, psi0::Ket, f::F;
+function mcwf_nh_dynamic(tspan, psi0::Ket, f;
     seed=rand(UInt), rates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
-    kwargs...) where {F}
-    dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic!(dpsi, f, psi, t)
-    j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, rates)
+    kwargs...)
+    dmcwf_ = let f = f
+        dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic!(dpsi, f, psi, t)
+    end
+    J = f(first(tspan), psi0)[2]
+    probs = zeros(real(eltype(psi0)), length(J))
+    j_ = let f = f, probs = probs, rates = rates
+        j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, probs, rates)
+    end
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
         fout;
         display_beforeevent=display_beforeevent,
@@ -254,7 +286,7 @@ function dmcwf_nh_dynamic!(dpsi, f::F, psi, t) where {F}
     dschroedinger!(dpsi, H, psi)
 end
 
-function jump_dynamic(rng, t, psi, f::F, psi_new, rates) where {F}
+function jump_dynamic(rng, t, psi, f::F, psi_new, probs_tmp, rates) where {F}
     result = f(t, psi)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     J = result[2]
@@ -263,7 +295,7 @@ function jump_dynamic(rng, t, psi, f::F, psi_new, rates) where {F}
     else
         rates_ = result[4]
     end
-    jump(rng, t, psi, J, psi_new, rates_)
+    jump(rng, t, psi, J, psi_new, probs_tmp, rates_)
 end
 
 """
@@ -289,15 +321,15 @@ Integrate a single Monte Carlo wave function trajectory.
         an initial jump threshold. If provided, `seed` is ignored.
 * `kwargs`: Further arguments are passed on to the ode solver.
 """
-function integrate_mcwf(dmcwf::T, jumpfun, tspan,
-                        psi0, seed, fout::F;
+function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
+                        psi0, seed, fout;
                         display_beforeevent=false, display_afterevent=false,
                         display_jumps=false,
                         rng_state=nothing,
                         save_everystep=false, callback=nothing,
                         saveat=tspan,
                         alg=OrdinaryDiffEq.DP5(),
-                        kwargs...) where {T, F}
+                        kwargs...) where {T, J}
 
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     # Display before or after events
@@ -308,29 +340,33 @@ function integrate_mcwf(dmcwf::T, jumpfun, tspan,
             affect!.save_func(integrator.u, integrator.t, integrator),Val{false})
         return nothing
     end
-    save_before! = display_beforeevent ? save_func! : (affect!,integrator)->nothing
-    save_after! = display_afterevent ? save_func! : (affect!,integrator)->nothing
+    no_save_func!(affect!,integrator) = nothing
+    save_before! = display_beforeevent ? save_func! : no_save_func!
+    save_after! = display_afterevent ? save_func! : no_save_func!
 
     # Display jump operator index and times
     jump_t = eltype(tspan_)[]
     jump_index = Int[]
-    save_t_index = if display_jumps
-        function(t,i)
-            push!(jump_t,t)
-            push!(jump_index,i)
-            return nothing
-        end
-    else
-        (t,i)->nothing
-    end
 
-    function fout_(x, t, integrator)
-        recast!(state,x)
-        fout(t, state)
+    function jump_saver(t, i)
+        push!(jump_t,t)
+        push!(jump_index,i)
+        return nothing
     end
+    no_jump_saver(t, i) = nothing
+
+    save_t_index = display_jumps ? jump_saver : no_jump_saver
 
     state = copy(psi0)
     dstate = copy(psi0)
+
+    fout_ = let state = state, fout = fout
+        function fout_(x, t, integrator)
+            recast!(state,x)
+            fout(t, state)
+        end
+    end
+
     out_type = pure_inference(fout, Tuple{eltype(tspan_),typeof(state)})
     out = DiffEqCallbacks.SavedValues(eltype(tspan_),out_type)
     scb = DiffEqCallbacks.SavingCallback(fout_,out,saveat=tspan_,
@@ -340,11 +376,14 @@ function integrate_mcwf(dmcwf::T, jumpfun, tspan,
     cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0, rng_state)
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
 
-    function df_(dx, x, p, t)
-        recast!(state,x)
-        recast!(dstate,dx)
-        dmcwf(t, state, dstate)
-        recast!(dx,dstate)
+    df_ = let state = state, dstate = dstate  # help inference along
+        function df_(dx, x, p, t)
+            recast!(state,x)
+            recast!(dstate,dx)
+            dmcwf(t, state, dstate)
+            recast!(dx,dstate)
+            return nothing
+        end
     end
 
     prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0), (tspan_[1],tspan_[end]))
@@ -431,7 +470,7 @@ jump_callback(jumpfun, seed, scb, save_before!,
 as_vector(psi::StateVector) = psi.data
 
 """
-    jump(rng, t, psi, J, psi_new)
+    jump(rng, t, psi, J, psi_new, probs_tmp)
 
 Default jump function.
 
@@ -441,41 +480,52 @@ Default jump function.
 * `psi`: State vector before the jump.
 * `J`: List of jump operators.
 * `psi_new`: Result of jump.
+* `probs_tmp`: Temporary array for holding jump probailities.
 """
-function jump(rng, t, psi, J, psi_new, rates::Nothing)
+function jump(rng, t, psi, J, psi_new, probs_tmp, rates::Nothing)
     if length(J)==1
         QuantumOpticsBase.mul!(psi_new,J[1],psi,true,false)
         psi_new.data ./= norm(psi_new)
         i=1
     else
-        probs = zeros(real(eltype(psi)), length(J))
         for i=1:length(J)
             QuantumOpticsBase.mul!(psi_new,J[i],psi,true,false)
-            probs[i] = real(dot(psi_new.data, psi_new.data))
+            probs_tmp[i] = real(dot(psi_new.data, psi_new.data))
         end
-        cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
-        i = findfirst(cumprobs.>r)
-        QuantumOpticsBase.mul!(psi_new,J[i],psi,one(eltype(psi))/sqrt(probs[i]),zero(eltype(psi)))
+        total = sum(probs_tmp)
+        cumulative_prob = 0.0
+        i = 0
+        for p in probs_tmp
+            i += 1
+            cumulative_prob += p / total
+            cumulative_prob > r && break
+        end
+        QuantumOpticsBase.mul!(psi_new,J[i],psi,eltype(psi)(1/sqrt(probs_tmp[i])),zero(eltype(psi)))
     end
     return i
 end
 
-function jump(rng, t, psi, J, psi_new, rates::AbstractVector)
+function jump(rng, t, psi, J, psi_new, probs_tmp, rates::AbstractVector)
     if length(J)==1
         QuantumOpticsBase.mul!(psi_new,J[1],psi,eltype(psi)(sqrt(rates[1])),zero(eltype(psi)))
         psi_new.data ./= norm(psi_new)
         i=1
     else
-        probs = zeros(real(eltype(psi)), length(J))
         for i=1:length(J)
             QuantumOpticsBase.mul!(psi_new,J[i],psi,eltype(psi)(sqrt(rates[i])),zero(eltype(psi)))
-            probs[i] = real(dot(psi_new.data, psi_new.data))
+            probs_tmp[i] = real(dot(psi_new.data, psi_new.data))
         end
-        cumprobs = cumsum(probs./sum(probs))
         r = rand(rng)
-        i = findfirst(cumprobs.>r)
-        QuantumOpticsBase.mul!(psi_new,J[i],psi,eltype(psi)(sqrt(rates[i]/probs[i])),zero(eltype(psi)))
+        total = sum(probs_tmp)
+        cumulative_prob = 0.0
+        i = 0
+        for p in probs_tmp
+            i += 1
+            cumulative_prob += p / total
+            cumulative_prob > r && break
+        end
+        QuantumOpticsBase.mul!(psi_new,J[i],psi,eltype(psi)(sqrt(rates[i]/probs_tmp[i])),zero(eltype(psi)))
     end
     return i
 end
