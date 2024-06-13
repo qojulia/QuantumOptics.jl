@@ -22,6 +22,7 @@ function integrate(tspan, df::F, x0,
         recast!(dstate,dx)
         df(t, state, dstate)
         recast!(dx,dstate)
+        return nothing
     end
 
     fout_ = let fout = fout, state = state
