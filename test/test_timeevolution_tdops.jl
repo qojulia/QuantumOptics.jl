@@ -9,7 +9,19 @@ a = destroy(b)
 
 H0 = number(b)
 Hd = (a + a')
+
+# function and op types homogeneous
+H = TimeDependentSum(cos=>H0, cos=>Hd)
+@test timeevolution._tuplify(H) === H
+
+# op types not homogeneous
+H = TimeDependentSum(cos=>H0, cos=>dense(Hd))
+@test timeevolution._tuplify(H) !== H
+
 H = TimeDependentSum(1.0=>H0, cos=>Hd)
+
+# function types not homogeneous
+@test timeevolution._tuplify(H) !== H
 
 ts = [0.0, 0.4]
 ts_half = 0.5 * ts
@@ -54,6 +66,8 @@ ts_out, rhos = timeevolution.master_dynamic(ts, psi0, H, Js)
 ts_out2, rhos2 = timeevolution.master_dynamic(ts, psi0, fman)
 @test rhos[end].data ≈ rhos2[end].data
 
+set_time!(H, 0.0)
+set_time!.(Js, 0.0)
 Hnh = H - 0.5im * sum(J' * J for J in Js)
 
 _getf = (H0, Hd, a) -> (t,_) -> (

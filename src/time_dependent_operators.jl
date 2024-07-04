@@ -1,7 +1,19 @@
 # Convert storage of heterogeneous stuff to tuples for maximal compilation
 # and to avoid runtime dispatch.
-_tuplify(o::TimeDependentSum) = TimeDependentSum(Tuple, o)
-_tuplify(o::LazySum) = LazySum(eltype(o.factors), o.factors, (o.operators...,))
+function _tuplify(o::TimeDependentSum)
+    if isconcretetype(eltype(o.coefficients)) && isconcretetype(eltype(o.static_op.operators))
+        # No need to tuplify is types are concrete.
+        # We will save on compile time this way.
+        return o
+    end
+    return TimeDependentSum(Tuple, o)
+end
+function _tuplify(o::LazySum)
+    if isconcretetype(eltype(o.factors)) && isconcretetype(eltype(o.operators))
+        return o
+    end
+    return LazySum(eltype(o.factors), o.factors, (o.operators...,))
+end
 _tuplify(o::AbstractOperator) = o
 
 """
@@ -23,6 +35,7 @@ function _tdopdagger(o::TimeDependentSum)
     # that requires that the original operator sticks around and is always
     # updated first (though this is checked).
     # Copies and conjugates the coefficients from the original op.
+    # TODO: Make an Adjoint wrapper for TimeDependentSum instead?
     o_ls = QuantumOpticsBase.static_operator(o)
     facs = o_ls.factors
     c1 = (t)->(@assert current_time(o) == t; conj(facs[1]))
