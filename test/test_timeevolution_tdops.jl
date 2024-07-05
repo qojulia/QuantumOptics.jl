@@ -1,6 +1,13 @@
 using Test
 using QuantumOptics
 
+function test_settime(op)
+    t = current_time(op)
+    set_time!(op, randn())
+    set_time!(op, t)
+    return nothing
+end
+
 @testset "time-dependent operators" begin
 
 b = FockBasis(7)
@@ -12,11 +19,17 @@ Hd = (a + a')
 
 # function and op types homogeneous
 H = TimeDependentSum(cos=>H0, cos=>Hd)
-@test timeevolution._tuplify(H) === H
+Htup = timeevolution._tuplify(H)
+@test Htup === H
+test_settime(Htup)
+@test (@allocated(test_settime)) == 0
 
 # op types not homogeneous
-H = TimeDependentSum(cos=>H0, cos=>dense(Hd))
-@test timeevolution._tuplify(H) !== H
+H = TimeDependentSum(cos=>H0, cos=>dense(Hd), cos=>LazySum(H0), cos=>LazySum(dense(Hd)))
+Htup = timeevolution._tuplify(H)
+@test Htup !== H
+test_settime(Htup)
+@test (@allocated(test_settime)) == 0
 
 H = TimeDependentSum(1.0=>H0, cos=>Hd)
 
