@@ -57,12 +57,17 @@ operators.
 function master_h_dynamic_function(H::AbstractTimeDependentOperator, Js)
     Htup = _tuplify(H)
     Js_tup = ((_tuplify(J) for J in Js)...,)
-
     Jdags_tup = _tdopdagger.(Js_tup)
-    function _getfunc(Hop, Jops, Jdops)
-        return (@inline _tdop_master_wrapper_1(t, _) = (set_time!(Hop, t), set_time!.(Jops, t), set_time!.(Jdops, t)))
+
+    return let Hop = Htup, Jops = Js_tup, Jdops = Jdags_tup
+        @inline function _tdop_master_wrapper_1(t, _)
+            f = (o -> set_time!(o, t))
+            foreach(f, Jops)
+            foreach(f, Jdops)
+            set_time!(Hop, t)
+            return Hop, Jops, Jdops
+        end
     end
-    return _getfunc(Htup, Js_tup, Jdags_tup)
 end
 
 """
@@ -82,8 +87,15 @@ function master_nh_dynamic_function(Hnh::AbstractTimeDependentOperator, Js)
     Jdags_tup = _tdopdagger.(Js_tup)
     Htdagup = _tdopdagger(Hnhtup)
 
-    function _getfunc(Hop, Hdop, Jops, Jdops)
-        return (@inline _tdop_master_wrapper_2(t, _) = (set_time!(Hop, t), set_time!(Hdop, t), set_time!.(Jops, t), set_time!.(Jdops, t)))
+    return let Hop = Htup, Hdop = Htdagup, Jops = Js_tup, Jdops = Jdags_tup
+        @inline function _tdop_master_wrapper_2(t, _)
+            f = (o -> set_time!(o, t))
+            foreach(f, Jops)
+            foreach(f, Jdops)
+            set_time!(Hop, t)
+            set_time!(Hdop, t)
+            return Hop, Hdop, Jops, Jdops
+        end
     end
     return _getfunc(Hnhtup, Htdagup, Js_tup, Jdags_tup)
 end
