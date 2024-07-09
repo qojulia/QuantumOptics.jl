@@ -14,6 +14,7 @@ function _tuplify(o::LazySum)
     end
     return LazySum(eltype(o.factors), o.factors, (o.operators...,))
 end
+_tuplify(o::AbstractVector{T}) where T = isconcretetype(T) ? (o...,) : o
 _tuplify(o::AbstractOperator) = o
 
 """
@@ -56,12 +57,12 @@ operators.
 """
 function master_h_dynamic_function(H::AbstractTimeDependentOperator, Js)
     Htup = _tuplify(H)
-    Js_tup = ((_tuplify(J) for J in Js)...,)
-    Jdags_tup = _tdopdagger.(Js_tup)
+    Js_tup = _tuplify(map(_tuplify, Js))
+    Jdags_tup = map(_tdopdagger, Js_tup)
 
     return let Hop = Htup, Jops = Js_tup, Jdops = Jdags_tup
-        @inline function _tdop_master_wrapper_1(t, _)
-            f = (o -> set_time!(o, t))
+        function _tdop_master_wrapper_1(t, _)
+            f = Base.Fix2(set_time!, t)
             foreach(f, Jops)
             foreach(f, Jdops)
             set_time!(Hop, t)
@@ -82,14 +83,14 @@ where `Hnh` is represents the non-Hermitian Hamiltonian and `Js` are the
 """
 function master_nh_dynamic_function(Hnh::AbstractTimeDependentOperator, Js)
     Hnhtup = _tuplify(Hnh)
-    Js_tup = ((_tuplify(J) for J in Js)...,)
+    Js_tup = _tuplify(map(_tuplify, Js))
 
-    Jdags_tup = _tdopdagger.(Js_tup)
+    Jdags_tup = map(_tdopdagger, Js_tup)
     Htdagup = _tdopdagger(Hnhtup)
 
-    return let Hop = Htup, Hdop = Htdagup, Jops = Js_tup, Jdops = Jdags_tup
-        @inline function _tdop_master_wrapper_2(t, _)
-            f = (o -> set_time!(o, t))
+    return let Hop = Hnhtup, Hdop = Htdagup, Jops = Js_tup, Jdops = Jdags_tup
+        function _tdop_master_wrapper_2(t, _)
+            f = Base.Fix2(set_time!, t)
             foreach(f, Jops)
             foreach(f, Jdops)
             set_time!(Hop, t)
@@ -97,7 +98,6 @@ function master_nh_dynamic_function(Hnh::AbstractTimeDependentOperator, Js)
             return Hop, Hdop, Jops, Jdops
         end
     end
-    return _getfunc(Hnhtup, Htdagup, Js_tup, Jdags_tup)
 end
 
 """
