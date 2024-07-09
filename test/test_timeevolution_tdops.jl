@@ -117,4 +117,12 @@ allocs1 = @allocated timeevolution.master_nh_dynamic(ts, psi0, Hnh, Js)
 allocs2 = @allocated timeevolution.master_nh_dynamic(ts_half, psi0, Hnh, Js)
 @test allocs1 == allocs2
 
+Jstup = (Js...,)
+ts_out2, rhos2 = timeevolution.master_nh_dynamic(ts, psi0, Hnh, Jstup)
+@test rhos[end].data ≈ rhos2[end].data
+
+allocs1 = @allocated timeevolution.master_nh_dynamic(ts, psi0, Hnh, Jstup)
+allocs2 = @allocated timeevolution.master_nh_dynamic(ts_half, psi0, Hnh, Jstup)
+@test allocs1 == allocs2
+
 end

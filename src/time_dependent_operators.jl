@@ -14,7 +14,8 @@ function _tuplify(o::LazySum)
     end
     return LazySum(eltype(o.factors), o.factors, (o.operators...,))
 end
-_tuplify(o::AbstractVector{T}) where T = isconcretetype(T) ? (o...,) : o
+_tuplify(o::AbstractVector{T}) where T = isconcretetype(T) ? o : (o...,)
+_tuplify(o::Tuple) = o
 _tuplify(o::AbstractOperator) = o
 
 """
