@@ -2,7 +2,7 @@ using Test
 using QuantumOptics
 using LinearAlgebra
 
-# @testset "timecorrelations" begin
+@testset "timecorrelations" begin
 
 ωc = 1.2
 ωa = 0.9
@@ -84,4 +84,4 @@ omega5, S5 = timecorrelations.spectrum(omega_sample, H, J5, op;  rho_ss=ρ₀, r
 omega5_2, S5_2 = timecorrelations.spectrum(H, J5, op; rates=rates5, tol=1e-3)
 @test abs(sum(S2 .- S5_2)) < 1e-8
 
-# end # testset
+end # testset
