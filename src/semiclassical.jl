@@ -1,7 +1,7 @@
 module semiclassical
 
 using QuantumOpticsBase
-import Base: ==
+import Base: ==, isapprox, +, -, *, /
 import ..timeevolution: integrate, recast!, jump, integrate_mcwf, jump_callback,
     JumpRNGState, threshold, roll!, as_vector, QO_CHECKS
 import LinearAlgebra: normalize, normalize!
@@ -31,19 +31,36 @@ mutable struct State{B,T,C}
         new{B,T,C}(quantum, classical)
     end
 end
+State{B}(q::T, c::C) where {B,T<:QuantumState{B},C} = State(q,c)
 
-Base.length(state::State) = length(state.quantum) + length(state.classical)
-Base.copy(state::State) = State(copy(state.quantum), copy(state.classical))
-Base.eltype(state::State) = promote_type(eltype(state.quantum),eltype(state.classical))
-normalize!(state::State) = (normalize!(state.quantum); state)
-normalize(state::State) = State(normalize(state.quantum),copy(state.classical))
+Base.zero(x::State) = State(zero(x.quantum), zero(x.classical))
+Base.real(x::State) = State(real.(x.quantum), real(x.classical))
+Base.oneunit(x::State) = State(one.(x.quantum), one.(x.classical))
+Base.length(x::State) = length(x.quantum) + length(x.classical)
+Base.size(x::State) = size(x.quantum)
+Base.ndims(x::State) = ndims(x.quantum)
+Base.ndims(x::Type{<:State{B,T,C}}) where {B,T<:QuantumState{B},C} = ndims(T)
+Base.copy(x::State) = State(copy(x.quantum), copy(x.classical))
+Base.copyto!(x::State, y::State) = (copyto!(x.quantum, y.quantum); copyto!(x.classical, y.classical); x)
+Base.fill!(x::State, a) = (fill!(x.quantum, a), fill!(x.classical, a))
+Base.eltype(x::State) = promote_type(eltype(x.quantum),eltype(x.classical))
+normalize!(x::State) = (normalize!(x.quantum); x)
+normalize(x::State) = State(normalize(x.quantum),copy(x.classical))
+LinearAlgebra.norm(x::State) = LinearAlgebra.norm(x.quantum)
+LinearAlgebra.norm(x::State, p::Int64) = LinearAlgebra.norm(x.quantum, p)
 
-function ==(a::State, b::State)
-    QuantumOpticsBase.samebases(a.quantum, b.quantum) &&
-    length(a.classical)==length(b.classical) &&
-    (a.classical==b.classical) &&
-    (a.quantum==b.quantum)
-end
+==(x::State{B}, y::State{B}) where {B} = (x.classical==y.classical) && (x.quantum==y.quantum)
+==(x::State, y::State) = false
+
++(x::State, y::State) = State(x.quantum+y.quantum, x.classical+y.classical)
+-(x::State, y::State) = State(x.quantum-y.quantum, x.classical-y.classical)
+*(x::Number, y::State) = State(x*y.quantum, x*y.classical)
+*(x::State, y::Number) = y*x
+/(x::State, y::State) = State(x.quantum ./ y.quantum, x.classical ./ y.classical)
+/(x::State, y::Number) = State(x.quantum/y, x.classical/y)
+
+isapprox(x::State{B}, y::State{B}; kwargs...) where {B} = isapprox(x.quantum,y.quantum) && isapprox(x.classical,y.classical)
+isapprox(x::State, y::State; kwargs...) = false
 
 QuantumOpticsBase.expect(op, state::State) = expect(op, state.quantum)
 QuantumOpticsBase.variance(op, state::State) = variance(op, state.quantum)
@@ -51,6 +68,52 @@ QuantumOpticsBase.ptrace(state::State, indices) = State(ptrace(state.quantum, in
 
 QuantumOpticsBase.dm(x::State) = State(dm(x.quantum), x.classical)
 
+Base.broadcastable(x::State) = Ref(x)
+
+# Custom broadcasting style
+struct StateStyle{B} <: Broadcast.BroadcastStyle end
+
+# Style precedence rules
+Broadcast.BroadcastStyle(::Type{<:State{B}}) where {B} = StateStyle{B}()
+Broadcast.BroadcastStyle(::StateStyle{B1}, ::StateStyle{B2}) where {B1,B2} = throw(IncompatibleBases())
+
+# Broadcast with scalars
+Broadcast.BroadcastStyle(::T, ::Broadcast.DefaultArrayStyle{0}) where {B,T<:StateStyle{B}} = T()
+
+# Out-of-place broadcasting
+@inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B,Style<:StateStyle{B},Axes,F,Args<:Tuple}
+    bcf = Broadcast.flatten(bc)
+    q, c = find_quantum(bcf), find_classical(bcf) 
+    return State{B}(copy(q), copy(c))
+end
+
+for f ∈ [:find_quantum, :find_classical]
+    @eval ($f)(bc::Broadcast.Broadcasted) = ($f)(bc.args)
+    @eval ($f)(args::Tuple) = ($f)(($f)(args[1]), Base.tail(args))
+    @eval ($f)(x) = x
+    @eval ($f)(::Any, rest) = ($f)(rest)
+end
+find_basis(x::State, rest) = QuantumOpticsBase.find_basis(x.quantum)
+find_quantum(x::State, rest) = x.quantum
+find_classical(x::State, rest) = x.classical
+@inline Base.getindex(x::State, idx) = getindex([vec(x.quantum); x.classical], idx)
+Base.@propagate_inbounds Base.Broadcast._broadcast_getindex(x::State, i) = [vec(x.quantum); x.classical][i]
+
+# In-place broadcasting
+@inline function Base.copyto!(dest::State{B}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B,Style<:StateStyle{B},Axes,F,Args}
+    bc′ = Base.Broadcast.preprocess(dest, bc)
+    q, c = find_quantum(bc), find_classical(bc) 
+    copyto!(dest.quantum, q)
+    copyto!(dest.classical, c)
+    return dest
+end
+@inline Base.copyto!(dest::State{B1}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B1,B2,Style<:StateStyle{B2},Axes,F,Args} =
+    throw(IncompatibleBases())
+@inline Base.copyto!(dest::State, bc::Broadcast.Broadcasted) = print(bc)
+
+Broadcast.similar(x::State, t) = State(similar(x.quantum), similar(x.classical))
+using RecursiveArrayTools
+RecursiveArrayTools.recursive_unitless_bottom_eltype(x::State) = eltype(x) 
 
 """
     semiclassical.schroedinger_dynamic(tspan, state0, fquantum, fclassical[; fout, ...])
