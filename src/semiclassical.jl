@@ -34,16 +34,21 @@ end
 State{B}(q::T, c::C) where {B,T<:QuantumState{B},C} = State(q,c)
 
 Base.zero(x::State) = State(zero(x.quantum), zero(x.classical))
-Base.real(x::State) = State(real.(x.quantum), real(x.classical))
 Base.oneunit(x::State) = State(one.(x.quantum), one.(x.classical))
 Base.length(x::State) = length(x.quantum) + length(x.classical)
 Base.size(x::State) = size(x.quantum)
 Base.ndims(x::State) = ndims(x.quantum)
+Base.axes(x::State) = axes(x.quantum)
 Base.ndims(x::Type{<:State{B,T,C}}) where {B,T<:QuantumState{B},C} = ndims(T)
 Base.copy(x::State) = State(copy(x.quantum), copy(x.classical))
 Base.copyto!(x::State, y::State) = (copyto!(x.quantum, y.quantum); copyto!(x.classical, y.classical); x)
 Base.fill!(x::State, a) = (fill!(x.quantum, a), fill!(x.classical, a))
 Base.eltype(x::State) = promote_type(eltype(x.quantum),eltype(x.classical))
+Base.similar(x::State) = State(similar(x.quantum), similar(x.classical))
+Base.getindex(x::State, idx) = idx <= length(x.quantum) ? getindex(x.quantum, idx) : getindex(x.classical, idx-length(x.quantum))
+Base.setindex!(x::State, v, idx) = idx <= length(x.quantum) ? setindex(x.quantum, v, idx) : setindex(x.classical, v, idx-length(x.quantum))
+Base.firstindex(x::State) = 1
+Base.lastindex(x::State) = length(x)
 normalize!(x::State) = (normalize!(x.quantum); x)
 normalize(x::State) = State(normalize(x.quantum),copy(x.classical))
 LinearAlgebra.norm(x::State) = LinearAlgebra.norm(x.quantum)
@@ -56,8 +61,8 @@ LinearAlgebra.norm(x::State, p::Int64) = LinearAlgebra.norm(x.quantum, p)
 -(x::State, y::State) = State(x.quantum-y.quantum, x.classical-y.classical)
 *(x::Number, y::State) = State(x*y.quantum, x*y.classical)
 *(x::State, y::Number) = y*x
-/(x::State, y::State) = State(x.quantum ./ y.quantum, x.classical ./ y.classical)
 /(x::State, y::Number) = State(x.quantum/y, x.classical/y)
+/(x::State, y::State) = State(x.quantum ./ y.quantum, x.classical ./ y.classical)
 
 isapprox(x::State{B}, y::State{B}; kwargs...) where {B} = isapprox(x.quantum,y.quantum) && isapprox(x.classical,y.classical)
 isapprox(x::State, y::State; kwargs...) = false
@@ -83,7 +88,8 @@ Broadcast.BroadcastStyle(::T, ::Broadcast.DefaultArrayStyle{0}) where {B,T<:Stat
 # Out-of-place broadcasting
 @inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B,Style<:StateStyle{B},Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
-    q, c = find_quantum(bcf), find_classical(bcf) 
+    q = find_quantum(bcf)
+    c = find_classical(bcf) 
     return State{B}(copy(q), copy(c))
 end
 
@@ -96,22 +102,22 @@ end
 find_basis(x::State, rest) = QuantumOpticsBase.find_basis(x.quantum)
 find_quantum(x::State, rest) = x.quantum
 find_classical(x::State, rest) = x.classical
-@inline Base.getindex(x::State, idx) = getindex([vec(x.quantum); x.classical], idx)
-Base.@propagate_inbounds Base.Broadcast._broadcast_getindex(x::State, i) = [vec(x.quantum); x.classical][i]
 
 # In-place broadcasting
 @inline function Base.copyto!(dest::State{B}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B,Style<:StateStyle{B},Axes,F,Args}
     bc′ = Base.Broadcast.preprocess(dest, bc)
-    q, c = find_quantum(bc), find_classical(bc) 
+    q, c = find_quantum(bc′), find_classical(bc′) 
     copyto!(dest.quantum, q)
     copyto!(dest.classical, c)
     return dest
 end
 @inline Base.copyto!(dest::State{B1}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B1,B2,Style<:StateStyle{B2},Axes,F,Args} =
     throw(IncompatibleBases())
+
 @inline Base.copyto!(dest::State, bc::Broadcast.Broadcasted) = print(bc)
 
-Broadcast.similar(x::State, t) = State(similar(x.quantum), similar(x.classical))
+Base.@propagate_inbounds Base.Broadcast._broadcast_getindex(x::State, i) = Base.getindex(x, i)
+Base.@propagate_inbounds Base.Broadcast._broadcast_getindex(bc::Broadcast.Broadcasted{Style,Axes,F,Args}, i) where {B,Style<:StateStyle{B},Axes,F,Args} = Base.getindex(bc)
 using RecursiveArrayTools
 RecursiveArrayTools.recursive_unitless_bottom_eltype(x::State) = eltype(x) 
 
