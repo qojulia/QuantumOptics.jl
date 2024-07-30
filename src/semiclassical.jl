@@ -119,8 +119,8 @@ find_classical(x::State, rest) = x.classical
     end
     # write broadcasted classical data to dest
     cobj = dest.classical
-    @inbounds @simd for I in 1:length(c)
-        cobj[I] = bc′[I+length(q)]
+    @inbounds @simd for I in 1:length(cobj)
+        cobj[I] = bc′[I+length(qobj)]
     end
     return dest
 end
