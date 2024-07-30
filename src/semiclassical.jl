@@ -33,22 +33,22 @@ mutable struct State{B,T,C}
 end
 State{B}(q::T, c::C) where {B,T<:QuantumState{B},C} = State(q,c)
 
+# Standard interfaces
 Base.zero(x::State) = State(zero(x.quantum), zero(x.classical))
-Base.oneunit(x::State) = State(one.(x.quantum), one.(x.classical))
 Base.length(x::State) = length(x.quantum) + length(x.classical)
+Base.axes(x::State) = (Base.OneTo(length(x)),)
 Base.size(x::State) = size(x.quantum)
 Base.ndims(x::State) = ndims(x.quantum)
-Base.axes(x::State) = axes(x.quantum)
 Base.ndims(x::Type{<:State{B,T,C}}) where {B,T<:QuantumState{B},C} = ndims(T)
 Base.copy(x::State) = State(copy(x.quantum), copy(x.classical))
 Base.copyto!(x::State, y::State) = (copyto!(x.quantum, y.quantum); copyto!(x.classical, y.classical); x)
 Base.fill!(x::State, a) = (fill!(x.quantum, a), fill!(x.classical, a))
 Base.eltype(x::State) = promote_type(eltype(x.quantum),eltype(x.classical))
-Base.similar(x::State) = State(similar(x.quantum), similar(x.classical))
+Base.eltype(x::State{B,T,C}) where {B,T<:QuantumState{B},C} = promote_type(eltype(T), eltype(C))
+Base.similar(x::State, ::Type{T} = eltype(x)) where {T} = State(similar(x.quantum, T), similar(x.classical, T))
 Base.getindex(x::State, idx) = idx <= length(x.quantum) ? getindex(x.quantum, idx) : getindex(x.classical, idx-length(x.quantum))
 Base.setindex!(x::State, v, idx) = idx <= length(x.quantum) ? setindex(x.quantum, v, idx) : setindex(x.classical, v, idx-length(x.quantum))
-Base.firstindex(x::State) = 1
-Base.lastindex(x::State) = length(x)
+
 normalize!(x::State) = (normalize!(x.quantum); x)
 normalize(x::State) = State(normalize(x.quantum),copy(x.classical))
 LinearAlgebra.norm(x::State) = LinearAlgebra.norm(x.quantum)
@@ -57,23 +57,15 @@ LinearAlgebra.norm(x::State, p::Int64) = LinearAlgebra.norm(x.quantum, p)
 ==(x::State{B}, y::State{B}) where {B} = (x.classical==y.classical) && (x.quantum==y.quantum)
 ==(x::State, y::State) = false
 
-+(x::State, y::State) = State(x.quantum+y.quantum, x.classical+y.classical)
--(x::State, y::State) = State(x.quantum-y.quantum, x.classical-y.classical)
-*(x::Number, y::State) = State(x*y.quantum, x*y.classical)
-*(x::State, y::Number) = y*x
-/(x::State, y::Number) = State(x.quantum/y, x.classical/y)
-/(x::State, y::State) = State(x.quantum ./ y.quantum, x.classical ./ y.classical)
-
 isapprox(x::State{B}, y::State{B}; kwargs...) where {B} = isapprox(x.quantum,y.quantum) && isapprox(x.classical,y.classical)
 isapprox(x::State, y::State; kwargs...) = false
 
 QuantumOpticsBase.expect(op, state::State) = expect(op, state.quantum)
 QuantumOpticsBase.variance(op, state::State) = variance(op, state.quantum)
 QuantumOpticsBase.ptrace(state::State, indices) = State(ptrace(state.quantum, indices), state.classical)
-
 QuantumOpticsBase.dm(x::State) = State(dm(x.quantum), x.classical)
 
-Base.broadcastable(x::State) = Ref(x)
+Base.broadcastable(x::State) = x
 
 # Custom broadcasting style
 struct StateStyle{B} <: Broadcast.BroadcastStyle end
@@ -81,16 +73,30 @@ struct StateStyle{B} <: Broadcast.BroadcastStyle end
 # Style precedence rules
 Broadcast.BroadcastStyle(::Type{<:State{B}}) where {B} = StateStyle{B}()
 Broadcast.BroadcastStyle(::StateStyle{B1}, ::StateStyle{B2}) where {B1,B2} = throw(IncompatibleBases())
-
-# Broadcast with scalars
-Broadcast.BroadcastStyle(::T, ::Broadcast.DefaultArrayStyle{0}) where {B,T<:StateStyle{B}} = T()
+Broadcast.BroadcastStyle(::StateStyle{B}, ::Broadcast.DefaultArrayStyle{0}) where {B} = StateStyle{B}()
+Broadcast.BroadcastStyle(::Broadcast.DefaultArrayStyle{0}, ::StateStyle{B}) where {B} = StateStyle{B}()
 
 # Out-of-place broadcasting
-@inline function Base.copy(bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B,Style<:StateStyle{B},Axes,F,Args<:Tuple}
+@inline function Base.copy(bc::Broadcast.Broadcasted{<:StateStyle{B},Axes,F,Args}) where {B,Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
-    q = find_quantum(bcf)
-    c = find_classical(bcf) 
-    return State{B}(copy(q), copy(c))
+    # extract quantum object from broadcast container
+    qobj = find_quantum(bcf)
+    data_q = zeros(eltype(qobj), size(qobj)...)
+    Nq = length(qobj)
+    # allocate quantum data from broadcast container
+    @inbounds @simd for I in 1:Nq
+        data_q[I] = bcf[I]
+    end
+    # extract classical object from broadcast container
+    cobj = find_classical(bcf)
+    data_c = zeros(eltype(cobj), length(cobj))
+    Nc = length(cobj)
+    # allocate classical data from broadcast container
+    @inbounds @simd for I in 1:Nc
+        data_c[I] = bcf[I+Nq]
+    end
+    type = eval(nameof(typeof(qobj)))
+    return State{B}(type(basis(qobj), data_q), data_c)
 end
 
 for f ∈ [:find_quantum, :find_classical]
@@ -99,27 +105,34 @@ for f ∈ [:find_quantum, :find_classical]
     @eval ($f)(x) = x
     @eval ($f)(::Any, rest) = ($f)(rest)
 end
-find_basis(x::State, rest) = QuantumOpticsBase.find_basis(x.quantum)
 find_quantum(x::State, rest) = x.quantum
 find_classical(x::State, rest) = x.classical
 
 # In-place broadcasting
-@inline function Base.copyto!(dest::State{B}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B,Style<:StateStyle{B},Axes,F,Args}
+@inline function Base.copyto!(dest::State{B}, bc::Broadcast.Broadcasted{<:StateStyle{B},Axes,F,Args}) where {B,Axes,F,Args<:Tuple}
+    axes(dest) == axes(bc) || throwdm(axes(dest), axes(bc))
     bc′ = Base.Broadcast.preprocess(dest, bc)
-    q, c = find_quantum(bc′), find_classical(bc′) 
-    copyto!(dest.quantum, q)
-    copyto!(dest.classical, c)
+    # write broadcasted quantum data to dest
+    qobj = dest.quantum
+    @inbounds @simd for I in 1:length(qobj)
+        qobj.data[I] = bc′[I]
+    end
+    # write broadcasted classical data to dest
+    cobj = dest.classical
+    @inbounds @simd for I in 1:length(c)
+        cobj[I] = bc′[I+length(q)]
+    end
     return dest
 end
-@inline Base.copyto!(dest::State{B1}, bc::Broadcast.Broadcasted{Style,Axes,F,Args}) where {B1,B2,Style<:StateStyle{B2},Axes,F,Args} =
+@inline Base.copyto!(dest::State{B1}, bc::Broadcast.Broadcasted{<:StateStyle{B2},Axes,F,Args}) where {B1,B2,Axes,F,Args<:Tuple} =
     throw(IncompatibleBases())
 
-@inline Base.copyto!(dest::State, bc::Broadcast.Broadcasted) = print(bc)
-
 Base.@propagate_inbounds Base.Broadcast._broadcast_getindex(x::State, i) = Base.getindex(x, i)
-Base.@propagate_inbounds Base.Broadcast._broadcast_getindex(bc::Broadcast.Broadcasted{Style,Axes,F,Args}, i) where {B,Style<:StateStyle{B},Axes,F,Args} = Base.getindex(bc)
 using RecursiveArrayTools
-RecursiveArrayTools.recursive_unitless_bottom_eltype(x::State) = eltype(x) 
+RecursiveArrayTools.recursive_unitless_bottom_eltype(x::State) = eltype(x)
+RecursiveArrayTools.recursivecopy!(dest::State, src::State) = copyto!(dest, src)
+RecursiveArrayTools.recursivecopy(x::State) = copy(x)
+RecursiveArrayTools.recursivefill!(x::State, a) = fill!(x, a)
 
 """
     semiclassical.schroedinger_dynamic(tspan, state0, fquantum, fclassical[; fout, ...])
