@@ -5,6 +5,7 @@ import Base: ==, isapprox, +, -, *, /
 import ..timeevolution: integrate, recast!, jump, integrate_mcwf, jump_callback,
     JumpRNGState, threshold, roll!, as_vector, QO_CHECKS
 import LinearAlgebra: normalize, normalize!
+import RecursiveArrayTools
 
 using Random, LinearAlgebra
 import OrdinaryDiffEq
@@ -128,7 +129,6 @@ end
     throw(IncompatibleBases())
 
 Base.@propagate_inbounds Base.Broadcast._broadcast_getindex(x::State, i) = Base.getindex(x, i)
-using RecursiveArrayTools
 RecursiveArrayTools.recursive_unitless_bottom_eltype(x::State) = eltype(x)
 RecursiveArrayTools.recursivecopy!(dest::State, src::State) = copyto!(dest, src)
 RecursiveArrayTools.recursivecopy(x::State) = copy(x)
