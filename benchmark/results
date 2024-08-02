@@ -1,0 +1,67 @@
+# Benchmark Report for */Users/andrewkille/Documents/Julia Packages/QuantumJulia/QuantumOptics.jl*
+
+## Job Properties
+* Time of benchmark: 1 Aug 2024 - 17:49
+* Package commit: dirty
+* Julia commit: 48d4fd
+* Julia command flags: None
+* Environment variables: None
+
+## Results
+Below is a table of this job's results, obtained by running the benchmarks.
+The values listed in the `ID` column have the structure `[parent_group, child_group, ..., key]`, and can be used to
+index into the BaseBenchmarks suite to retrieve the corresponding benchmarks.
+The percentages accompanying time and memory values in the below table are noise tolerances. The "true"
+time/memory value for a given benchmark is expected to fall within this percentage of the reported value.
+An empty cell means that the value was zero.
+
+| ID                                        | time            | GC time  | memory          | allocations |
+|-------------------------------------------|----------------:|---------:|----------------:|------------:|
+| `["ode", "ket", "custom", "1//2"]`        |  13.958 μs (5%) |          |   8.70 KiB (1%) |         152 |
+| `["ode", "ket", "custom", "100//1"]`      |   2.307 ms (5%) |          |  98.39 KiB (1%) |         152 |
+| `["ode", "ket", "custom", "20//1"]`       | 160.666 μs (5%) |          |  25.81 KiB (1%) |         152 |
+| `["ode", "ket", "pure", "1//2"]`          |  13.917 μs (5%) |          |   8.81 KiB (1%) |         156 |
+| `["ode", "ket", "pure", "100//1"]`        |   2.189 ms (5%) |          | 105.06 KiB (1%) |         156 |
+| `["ode", "ket", "pure", "20//1"]`         | 103.833 μs (5%) |          |  27.17 KiB (1%) |         156 |
+| `["ode", "operator", "custom", "1//2"]`   |  37.917 μs (5%) |          |  36.55 KiB (1%) |         501 |
+| `["ode", "operator", "custom", "100//1"]` |   32.938 s (5%) |  1.385 s |  36.37 GiB (1%) |      301977 |
+| `["ode", "operator", "custom", "20//1"]`  |  61.025 ms (5%) | 1.851 ms |  73.30 MiB (1%) |       14217 |
+| `["ode", "operator", "pure", "1//2"]`     |  36.375 μs (5%) |          |  34.95 KiB (1%) |         409 |
+| `["ode", "operator", "pure", "100//1"]`   |   33.442 s (5%) |  1.159 s |  36.33 GiB (1%) |      241389 |
+| `["ode", "operator", "pure", "20//1"]`    |  63.903 ms (5%) | 1.135 ms |  73.51 MiB (1%) |       11445 |
+
+## Benchmark Group List
+Here's a list of all the benchmark groups executed by this job:
+
+- `["ode", "ket", "custom"]`
+- `["ode", "ket", "pure"]`
+- `["ode", "operator", "custom"]`
+- `["ode", "operator", "pure"]`
+
+## Julia versioninfo
+```
+Julia Version 1.10.4
+Commit 48d4fd48430 (2024-06-04 10:41 UTC)
+Build Info:
+  Official https://julialang.org/ release
+Platform Info:
+  OS: macOS (arm64-apple-darwin22.4.0)
+  uname: Darwin 23.2.0 Darwin Kernel Version 23.2.0: Wed Nov 15 21:53:18 PST 2023; root:xnu-10002.61.3~2/RELEASE_ARM64_T6000 arm64 arm
+  CPU: Apple M1 Pro: 
+              speed         user         nice          sys         idle          irq
+       #1  2400 MHz     933451 s          0 s     458109 s    2027713 s          0 s
+       #2  2400 MHz     933836 s          0 s     455438 s    2048381 s          0 s
+       #3  2400 MHz     412066 s          0 s     118249 s    2999526 s          0 s
+       #4  2400 MHz     238921 s          0 s      76311 s    3225010 s          0 s
+       #5  2400 MHz     124574 s          0 s      39452 s    3384122 s          0 s
+       #6  2400 MHz     109310 s          0 s      26888 s    3414836 s          0 s
+       #7  2400 MHz      49508 s          0 s      11629 s    3493153 s          0 s
+       #8  2400 MHz      28010 s          0 s       6123 s    3521503 s          0 s
+  Memory: 16.0 GB (50.5 MB free)
+  Uptime: 620479.0 sec
+  Load Avg:  3.27490234375  3.01513671875  2.90576171875
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-15.0.7 (ORCJIT, apple-m1)
+Threads: 1 default, 0 interactive, 1 GC (on 6 virtual cores)
+```
