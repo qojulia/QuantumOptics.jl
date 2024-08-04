@@ -2,16 +2,15 @@ using BenchmarkTools
 using QuantumOptics
 using OrdinaryDiffEq
 using StochasticDiffEq
+using LinearAlgebra
 
 const SUITE = BenchmarkGroup()
 
-for prob in ("ode", "sde")
+prob_list = ("schrod", "master")
+for prob in prob_list
     SUITE[prob] = BenchmarkGroup([prob])
-    for obj in ("ket", "operator")
-        SUITE[prob][obj] = BenchmarkGroup()
-        for type in ("pure", "custom")
-            SUITE[prob][obj][type] = BenchmarkGroup()
-        end
+    for type in ("pure", "custom")
+        SUITE[prob][type] = BenchmarkGroup()
     end
 end
 
@@ -49,12 +48,13 @@ function bench_master(dim; pure=true)
     master!(drho, rho, p, t) = timeevolution.dmaster_h!(drho, Hobj, [Jobj], [Jdag], nothing, rho, copy(obj))
     prob = ODEProblem(master!, obj, (t₀, t₁))
 end
-for dim in (1//2)
-    for prob in zip(("ket", "operator"), (:bench_schroedinger, :bench_master))
-        type, bench = (prob[1], prob[2])
+
+for dim in (1//2, 10//1, 50//1, 100//1)
+    for prob in zip(prob_list, (:bench_schroedinger, :bench_master))
+        name, bench = (prob[1], prob[2])
         # benchmark solving ODE problems on data of QO types
-        SUITE["ode"][type]["pure"][string(dim)] = @benchmarkable solve(eval($bench)($dim; pure=true), DP5(); save_everystep=false)
+        SUITE[name]["pure"][string(dim)] = @benchmarkable solve(eval($bench)($dim; pure=true), DP5(); save_everystep=false)
         # benchmark solving ODE problems on custom QO types
-        SUITE["ode"][type]["custom"][string(dim)] = @benchmarkable solve(eval($bench)($dim; pure=false), DP5(); save_everystep=false)
+        SUITE[name]["custom"][string(dim)] = @benchmarkable solve(eval($bench)($dim; pure=false), DP5(); save_everystep=false)
     end
 end
