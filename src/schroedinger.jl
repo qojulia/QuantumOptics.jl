@@ -128,16 +128,25 @@ function _promote_time_and_state(u0, H::AbstractOperator, tspan)
     Ts = eltype(H)
     Tt = real(Ts)
     p = Vector{Tt}(undef,0)
-    u0data_promote = DiffEqBase.promote_u0(u0.data, p, tspan[1])
-    tspan_promote = DiffEqBase.promote_tspan(u0data_promote, p, tspan, nothing, Dict{Symbol, Any}())
-    if u0data_promote !== u0.data
-        u0_promote = rebuild(u0, u0data_promote)
-        return tspan_promote, u0_promote
-    end
-    return tspan_promote, u0
+    u0_promote = DiffEqBase.promote_u0(u0, p, tspan[1])
+    tspan_promote = DiffEqBase.promote_tspan(u0_promote, p, tspan, nothing, Dict{Symbol, Any}())
+    return tspan_promote, u0_promote
 end
 _promote_time_and_state(u0, f, tspan) = _promote_time_and_state(u0, f(first(tspan), u0), tspan)
 
-rebuild(op::Operator, new_data) = Operator(op.basis_l, op.basis_r, new_data)
-rebuild(state::Ket, new_data) = Ket(state.basis, new_data)
-rebuild(state::Bra, new_data) = Bra(state.basis, new_data)
+@inline function DiffEqBase.promote_u0(u0::T, p, t0) where {T<:Union{Bra,Ket}}
+    u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
+    if u0data_promote !== u0.data
+        u0_promote = T(u0.basis, u0data_promote)
+        return u0_promote
+    end
+    return u0
+end
+@inline function DiffEqBase.promote_u0(u0::Operator, p, t0)
+    u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
+    if u0data_promote !== u0.data
+        u0_promote = Operator(u0.basis_l, u0.basis_r, u0data_promote)
+        return u0_promote
+    end
+    return u0
+end
