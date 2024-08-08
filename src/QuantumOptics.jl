@@ -3,6 +3,7 @@ module QuantumOptics
 using Reexport
 @reexport using QuantumOpticsBase
 using SparseArrays, LinearAlgebra
+import RecursiveArrayTools
 
 export
     ylm,
