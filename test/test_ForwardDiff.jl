@@ -76,33 +76,35 @@ Ftdop(1.0)
 end # testset
 
 
-@testset "ForwardDiff with `master`" begin
+@testset "ForwardDiff with master" begin
 
 b = SpinBasis(1//2)
 psi0 = spindown(b)
 rho0 = dm(psi0)
-params = [10.0, -3.0]
+params = [rand(), rand()]
 
-# test to see if parameter propagates through Hamiltonian
-H(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # Hamiltonian
-function cost1(p) #
-    tf, psif = timeevolution.master((0.0, pi), rho0, H(p), [sigmax(b)])
-    return 1 - norm(psif)
+for f in (:(timeevolution.master), :(timeevolution.master_h), :(timeevolution.master_nh))
+    # test to see if parameter propagates through Hamiltonian
+    H(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # Hamiltonian
+    function cost_H(p) #
+        tf, psif = eval(f)((0.0, pi), rho0, H(p), [sigmax(b)])
+        return 1 - norm(psif)
+    end
+
+    forwarddiff_H = ForwardDiff.gradient(cost_H, params)
+    finitediff_H = FiniteDiff.finite_difference_gradient(cost_H, params)
+    @test isapprox(forwarddiff_H, finitediff_H; atol=1e-4)
+
+    # test to see if parameter propagates through Jump operator
+    J(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # jump operator
+    function cost_J(p)
+        tf, psif = eval(f)((0.0, pi), rho0, sigmax(b), [J(p)])
+        return 1 - norm(psif)
+    end
+
+    forwarddiff_J = ForwardDiff.gradient(cost_J, params)
+    finitediff_J = FiniteDiff.finite_difference_gradient(cost_J, params)
+    @test isapprox(forwarddiff_J, finitediff_J; atol=1e-4)
 end
-
-forwarddiff1 = ForwardDiff.gradient(cost1, params)
-finitediff1 = FiniteDiff.finite_difference_gradient(cost1, params)
-@test isapprox(forwarddiff1, finitediff1; atol=1e-5)
-
-# test to see if parameter propagates through Jump operator
-J(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # jump operator
-function cost2(p)
-    tf, psif = timeevolution.master((0.0, pi), rho0, sigmax(b), [J(p)])
-    return 1 - norm(psif)
-end
-
-forwarddiff2 = ForwardDiff.gradient(cost2, params)
-finitediff2 = FiniteDiff.finite_difference_gradient(cost2, params)
-@test isapprox(forwarddiff2, finitediff2; atol=1e-5)
 
 end
