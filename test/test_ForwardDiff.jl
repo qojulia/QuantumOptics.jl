@@ -1,6 +1,7 @@
 using Test
 using OrdinaryDiffEq, QuantumOptics
 import ForwardDiff
+import FiniteDiff
 
 # for some caese ForwardDiff.jl returns NaN due to issue with DiffEq.jl. see https://github.com/SciML/DiffEqBase.jl/issues/861
 # Here we test;
@@ -73,3 +74,35 @@ Ftdop(1.0)
 @test ForwardDiff.derivative(Ftdop, 1.0) isa Any
 
 end # testset
+
+
+@testset "ForwardDiff with `master`" begin
+
+b = SpinBasis(1//2)
+psi0 = spindown(b)
+rho0 = dm(psi0)
+params = [10.0, -3.0]
+
+# test to see if parameter propagates through Hamiltonian
+H(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # Hamiltonian
+function cost1(p) #
+    tf, psif = timeevolution.master((0.0, pi), rho0, H(p), [sigmax(b)])
+    return 1 - norm(psif)
+end
+
+forwarddiff1 = ForwardDiff.gradient(cost1, params)
+finitediff1 = FiniteDiff.finite_difference_gradient(cost1, params)
+@test isapprox(forwarddiff1, finitediff1; atol=1e-5)
+
+# test to see if parameter propagates through Jump operator
+J(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # jump operator
+function cost2(p)
+    tf, psif = timeevolution.master((0.0, pi), rho0, sigmax(b), [J(p)])
+    return 1 - norm(psif)
+end
+
+forwarddiff2 = ForwardDiff.gradient(cost2, params)
+finitediff2 = FiniteDiff.finite_difference_gradient(cost2, params)
+@test isapprox(forwarddiff2, finitediff2; atol=1e-5)
+
+end
