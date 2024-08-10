@@ -270,6 +270,8 @@ function dmcwf_h_dynamic!(dpsi, f::F, rates, psi, dpsi_cache, t) where {F}
     dmcwf_h!(dpsi, H, J, Jdagger, rates_, psi, dpsi_cache)
 end
 
+dmcwf_h_dynamic!(dpsi, f::F, rates, psi, t) where {F} = dmcwf_h_dynamic!(dpsi, f, rates, psi, copy(dpsi), t)
+
 """
     dmcwf_nh_dynamic!(dpsi, f, psi, t)
 
@@ -556,6 +558,8 @@ function dmcwf_h!(dpsi, H, J, Jdagger, rates::AbstractVector, psi, dpsi_cache)
     end
     return dpsi
 end
+
+dmcwf_h!(dpsi, H, J, Jdagger, rates, psi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, copy(dpsi))
 
 """
     check_mcwf(psi0, H, J, Jdagger, rates)

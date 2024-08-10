@@ -332,6 +332,8 @@ function dmaster_h!(drho, H, J, Jdagger, rates::AbstractMatrix, rho, drho_cache)
     return drho
 end
 
+dmaster_h!(drho, H, J, Jdagger, rates, rho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, copy(drho))
+
 """
     dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates, rho, drho_cache)
 
@@ -373,6 +375,8 @@ function dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates::AbstractMatrix, r
     return drho
 end
 
+dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates, rho) = dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates, rho, copy(drho))
+
 """
     dmaster_liouville!(drho,L,rho)
 
@@ -410,6 +414,8 @@ function dmaster_h_dynamic!(drho, f::F, rates, rho, drho_cache, t) where {F}
     dmaster_h!(drho, H, J, Jdagger, rates_, rho, drho_cache)
 end
 
+dmaster_h_dynamic!(drho, f::F, rates, rho, t) where {F} = dmaster_h_dynamic!(drho, f, rates, rho, copy(drho), t)
+
 """
     dmaster_nh_dynamic!(drho, f, rates, rho, drho_cache, t)
 
@@ -432,6 +438,8 @@ function dmaster_nh_dynamic!(drho, f::F, rates, rho, drho_cache, t) where {F}
     QO_CHECKS[] && check_master(rho, Hnh, J, Jdagger, rates_)
     dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates_, rho, drho_cache)
 end
+
+dmaster_nh_dynamic!(drho, f::F, rates, rho, t) where {F} = dmaster_nh_dynamic!(drho, f, rates, rho, copy(drho), t)
 
 
 function check_master(rho0, H, J, Jdagger, rates)
