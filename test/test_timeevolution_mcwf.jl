@@ -115,6 +115,20 @@ tout, Ψt = timeevolution.mcwf_nh(T, Ψ₀, Hnh_dense, J; seed=UInt(1), reltol=1
 tout, Ψt = timeevolution.mcwf_nh(T, Ψ₀, Hnh, J; seed=UInt(2), reltol=1e-6)
 @test norm(Ψt[end]-Ψ) > 0.1
 
+# Test no cache derivative methods
+
+function Ht(t, psi)
+    H*exp(-(5-t)^2), J, dagger.(J)
+end
+t0, t1 = (0.0, 1.0)
+
+fmcwf_h_dynamic!(dpsi, psi, p, t) = timeevolution.dmcwf_h_dynamic!(dpsi, Ht, nothing, psi, t)
+prob_mcwf_h_dynamic! = ODEProblem(fmcwf_h_dynamic!, Ψ₀, (t0, t1))
+@test_nowarn sol_mcwf_h_dynamic! = solve(prob_mcwf_h_dynamic!, DP5(); save_everystep=false)
+
+fmcwf_h!(dpsi, psi, p, t) = timeevolution.dmcwf_h!(dpsi, H, J, nothing, psi)
+prob_mcwf_h! = ODEProblem(fmcwf_h!, Ψ₀, (t0, t1))
+@test_nowarn sol_mcwf_h! = solve(prob_mcwf_h!, DP5(); save_everystep=false)
 
 
 # Test convergence to master solution

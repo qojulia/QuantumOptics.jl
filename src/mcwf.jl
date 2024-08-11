@@ -251,6 +251,7 @@ end
 
 """
     dmcwf_h_dynamic!(dpsi, f, rates, psi, dpsi_cache, t)
+    dmcwf_h_dynamic!(dpsi, f, rates, psi, t)
 
 Compute the Hamiltonian and jump operators as `H,J,Jdagger=f(t,psi)` and
 update `dpsi` according to a non-Hermitian Schrödinger equation.
@@ -534,6 +535,7 @@ end
 
 """
     dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, dpsi_cache)
+    dmcwf_h!(dpsi, H, J, rates, psi)
 
 Update `dpsi` according to a non-hermitian Schrödinger equation. The
 non-hermitian Hamiltonian is given in two parts - the hermitian part H and
@@ -559,7 +561,7 @@ function dmcwf_h!(dpsi, H, J, Jdagger, rates::AbstractVector, psi, dpsi_cache)
     return dpsi
 end
 
-dmcwf_h!(dpsi, H, J, Jdagger, rates, psi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, copy(dpsi))
+dmcwf_h!(dpsi, H, J, rates, psi) = dmcwf_h!(dpsi, H, J, dagger.(J), rates, psi, copy(dpsi))
 
 """
     check_mcwf(psi0, H, J, Jdagger, rates)

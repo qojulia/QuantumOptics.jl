@@ -38,6 +38,13 @@ J = [Ja, Jc]
 Jlazy = [LazyTensor(basis, 1, sqrt(γ)*sm), Jc]
 
 Hnh = H - 0.5im*sum([dagger(J[i])*J[i] for i=1:length(J)])
+function Ht(t, psi)
+    return H*exp(-(5-t)^2), J, dagger.(J)
+end
+function Hnht(t, psi)
+    Hnhtime = H*exp(-(5-t)^2) - 0.5im * sum(i' * i for i in J)
+    return Hnhtime, dagger(Hnhtime), J, dagger.(J)
+end
 
 Hdense = dense(H)
 Hlazy = LazySum(Ha, Hc, Hint)
@@ -109,6 +116,24 @@ tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh_dense, J; reltol=1e-6)
 tout, ρt = timeevolution.master_nh(T, Ψ₀, Hnh_dense, Jdense; reltol=1e-6)
 @test tracedistance(ρt[end], ρ) < 1e-5
 
+# Test no cache derivative methods
+
+t0, t1 = (0.0, 1.0)
+fmaster_h!(drho, rho, p, t) = timeevolution.dmaster_h!(drho, H, J, nothing, rho)
+prob_master_h! = ODEProblem(fmaster_h!, ρ₀, (t0, t1))
+@test_nowarn sol_master_h! = solve(prob_master_h!, DP5(); save_everystep=false)
+
+fmaster_nh!(drho, rho, p, t) = timeevolution.dmaster_nh!(drho, Hnh, J, nothing, rho)
+prob_master_nh! = ODEProblem(fmaster_nh!, ρ₀, (t0, t1))
+@test_nowarn sol_master_nh! = solve(prob_master_nh!, DP5(); save_everystep=false)
+
+fmaster_h_dynamic!(drho, rho, p, t) = timeevolution.dmaster_h_dynamic!(drho, Ht, nothing, rho, t)
+prob_master_h_dynamic! = ODEProblem(fmaster_h_dynamic!, ρ₀, (t0, t1))
+@test_nowarn sol_master_h_dynamic! = solve(prob_master_h_dynamic!, DP5(); save_everystep=false)
+
+fmaster_nh_dynamic!(drho, rho, p, t) = timeevolution.dmaster_nh_dynamic!(drho, Hnht, nothing, rho, t)
+prob_master_nh_dynamic! = ODEProblem(fmaster_nh_dynamic!, ρ₀, (t0, t1))
+@test_nowarn sol_master_nh_dynamic! = solve(prob_master_nh_dynamic!, DP5(); save_everystep=false)
 
 # Test explicit gamma vector
 rates_vector = [γ, κ]

@@ -204,9 +204,10 @@ end
 
 """
     dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, tmp, t)
+    dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, t)
 
 Update the semiclassical state `dstate` according to a time-dependent,
-semiclassical master eqaution.
+semiclassical master equation.
 
 See also: [`semiclassical.master_dynamic`](@ref)
 """
@@ -217,11 +218,13 @@ function dmaster_h_dynamic!(dstate, fquantum::F, fclassical!::G, rates, state, t
     return dstate
 end
 
-dmaster_h_dynamic!(dstate, fquantum::F, fclassical!::G, rates, state, t) where {F,G}
-    = dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, copy(dstate), t)
+function dmaster_h_dynamic!(dstate, fquantum::F, fclassical!::G, rates, state, t) where {F,G}
+    dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, copy(dstate), t)
+end
 
 """
     dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, tmp, t)
+    dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, t)
 
 Update the semiclassical state `dpsi` according to a time-dependent, semiclassical
 and non-Hermitian Schrödinger equation (MCWF).
@@ -235,8 +238,9 @@ function dmcwf_h_dynamic!(dpsi, fquantum::F, fclassical!::G, rates, psi, tmp, t)
     return dpsi
 end
 
-dmcwf_h_dynamic!(dpsi, fquantum::F, fclassical!::G, rates, psi, t) where {F,G}
-    = dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, copy(dpsi), t)
+function dmcwf_h_dynamic!(dpsi, fquantum::F, fclassical!::G, rates, psi, t) where {F,G}
+    dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, copy(dpsi), t)
+end
 
 function jump_dynamic(rng, t, psi, fquantum::F, fclassical!::G, fjump_classical!::H, psi_new, probs_tmp, rates) where {F,G,H}
     result = fquantum(t, psi.quantum, psi.classical)

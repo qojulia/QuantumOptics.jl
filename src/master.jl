@@ -280,6 +280,7 @@ end
 
 """
     dmaster_h!(drho, H, J, Jdagger, rates, rho, drho_cache)
+    dmaster_h!(drho, H, J, rates, rho)
 
 Update `drho` according to a master equation given in standard Lindblad form.
 A cached copy `drho_cache` of `drho` is used as a temporary saving step.
@@ -332,10 +333,11 @@ function dmaster_h!(drho, H, J, Jdagger, rates::AbstractMatrix, rho, drho_cache)
     return drho
 end
 
-dmaster_h!(drho, H, J, Jdagger, rates, rho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, copy(drho))
+dmaster_h!(drho, H, J, rates, rho) = dmaster_h!(drho, H, J, dagger.(J), rates, rho, copy(drho))
 
 """
     dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates, rho, drho_cache)
+    dmaster_nh!(drho, Hnh, J, rates, rho)
 
 Updates `drho` according to a master equation given in standard Lindblad form.
 The part of the Liuovillian which can be written as a commutator should be
@@ -375,7 +377,7 @@ function dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates::AbstractMatrix, r
     return drho
 end
 
-dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates, rho) = dmaster_nh!(drho, Hnh, Hnh_dagger, J, Jdagger, rates, rho, copy(drho))
+dmaster_nh!(drho, Hnh, J, rates, rho) = dmaster_nh!(drho, Hnh, dagger(Hnh), J, dagger.(J), rates, rho, copy(drho))
 
 """
     dmaster_liouville!(drho,L,rho)
@@ -393,6 +395,7 @@ end
 
 """
     dmaster_h_dynamic!(drho, f, rates, rho, drho_cache, t)
+    dmaster_h_dynamic!(drho, f, rates, rho, t)
 
 Computes the Hamiltonian and jump operators as `H,J,Jdagger=f(t,rho)` and
 update `drho` according to a master equation. Optionally, rates can also be
@@ -418,6 +421,7 @@ dmaster_h_dynamic!(drho, f::F, rates, rho, t) where {F} = dmaster_h_dynamic!(drh
 
 """
     dmaster_nh_dynamic!(drho, f, rates, rho, drho_cache, t)
+    dmaster_nh_dynamic!(drho, f, rates, rho, t)
 
 Computes the non-hermitian Hamiltonian and jump operators as
 `Hnh,Hnh_dagger,J,Jdagger=f(t,rho)` and update `drho` according to a master
