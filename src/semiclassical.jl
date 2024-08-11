@@ -1,7 +1,7 @@
 module semiclassical
 
 using QuantumOpticsBase
-import QuantumOpticsBases: IncompatibleBases
+import QuantumOpticsBase: IncompatibleBases
 import Base: ==, isapprox, +, -, *, /
 import ..timeevolution: integrate, recast!, jump, integrate_mcwf, jump_callback,
     JumpRNGState, threshold, roll!, as_vector, QO_CHECKS
