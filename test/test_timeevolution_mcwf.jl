@@ -1,6 +1,7 @@
 using Test
 using QuantumOptics
 using Random, LinearAlgebra
+using OrdinaryDiffEq
 
 @testset "mcwf" begin
 

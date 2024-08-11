@@ -1,6 +1,7 @@
 using Test
 using QuantumOptics
 using LinearAlgebra
+using OrdinaryDiffEq
 
 @testset "master" begin
 
