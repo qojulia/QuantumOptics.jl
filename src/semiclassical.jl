@@ -1,10 +1,12 @@
 module semiclassical
 
 using QuantumOpticsBase
+import QuantumOpticsBase: IncompatibleBases
 import Base: ==, isapprox, +, -, *, /
 import ..timeevolution: integrate, recast!, jump, integrate_mcwf, jump_callback,
     JumpRNGState, threshold, roll!, as_vector, QO_CHECKS
 import LinearAlgebra: normalize, normalize!
+import RecursiveArrayTools
 
 using Random, LinearAlgebra
 import OrdinaryDiffEq
@@ -38,7 +40,6 @@ Base.zero(x::State) = State(zero(x.quantum), zero(x.classical))
 Base.length(x::State) = length(x.quantum) + length(x.classical)
 Base.axes(x::State) = (Base.OneTo(length(x)),)
 Base.size(x::State) = size(x.quantum)
-Base.ndims(x::State) = ndims(x.quantum)
 Base.ndims(x::Type{<:State{B,T,C}}) where {B,T<:QuantumState{B},C} = ndims(T)
 Base.copy(x::State) = State(copy(x.quantum), copy(x.classical))
 Base.copyto!(x::State, y::State) = (copyto!(x.quantum, y.quantum); copyto!(x.classical, y.classical); x)
@@ -47,17 +48,15 @@ Base.eltype(x::State) = promote_type(eltype(x.quantum),eltype(x.classical))
 Base.eltype(x::Type{<:State{B,T,C}}) where {B,T<:QuantumState{B},C} = promote_type(eltype(T), eltype(C))
 Base.similar(x::State, ::Type{T} = eltype(x)) where {T} = State(similar(x.quantum, T), similar(x.classical, T))
 Base.getindex(x::State, idx) = idx <= length(x.quantum) ? getindex(x.quantum, idx) : getindex(x.classical, idx-length(x.quantum))
-Base.setindex!(x::State, v, idx) = idx <= length(x.quantum) ? setindex(x.quantum, v, idx) : setindex(x.classical, v, idx-length(x.quantum))
 
 normalize!(x::State) = (normalize!(x.quantum); x)
 normalize(x::State) = State(normalize(x.quantum),copy(x.classical))
 LinearAlgebra.norm(x::State) = LinearAlgebra.norm(x.quantum)
-LinearAlgebra.norm(x::State, p::Int64) = LinearAlgebra.norm(x.quantum, p)
 
 ==(x::State{B}, y::State{B}) where {B} = (x.classical==y.classical) && (x.quantum==y.quantum)
 ==(x::State, y::State) = false
 
-isapprox(x::State{B}, y::State{B}; kwargs...) where {B} = isapprox(x.quantum,y.quantum) && isapprox(x.classical,y.classical)
+isapprox(x::State{B}, y::State{B}; kwargs...) where {B} = isapprox(x.quantum,y.quantum; kwargs...) && isapprox(x.classical,y.classical; kwargs...)
 isapprox(x::State, y::State; kwargs...) = false
 
 QuantumOpticsBase.expect(op, state::State) = expect(op, state.quantum)
@@ -128,7 +127,6 @@ end
     throw(IncompatibleBases())
 
 Base.@propagate_inbounds Base.Broadcast._broadcast_getindex(x::State, i) = Base.getindex(x, i)
-using RecursiveArrayTools
 RecursiveArrayTools.recursive_unitless_bottom_eltype(x::State) = eltype(x)
 RecursiveArrayTools.recursivecopy!(dest::State, src::State) = copyto!(dest, src)
 RecursiveArrayTools.recursivecopy(x::State) = copy(x)

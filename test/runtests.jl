@@ -23,6 +23,7 @@ names = [
 
     "test_timeevolution_abstractdata.jl",
 
+    "test_sciml_broadcast_interfaces.jl",
     "test_ForwardDiff.jl"
 ]
 
