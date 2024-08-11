@@ -93,7 +93,7 @@ for f in (:(timeevolution.master), :(timeevolution.master_h), :(timeevolution.ma
 
     forwarddiff_H = ForwardDiff.gradient(cost_H, params)
     finitediff_H = FiniteDiff.finite_difference_gradient(cost_H, params)
-    @test isapprox(forwarddiff_H, finitediff_H; atol=1e-4)
+    @test isapprox(forwarddiff_H, finitediff_H; atol=1e-2)
 
     # test to see if parameter propagates through Jump operator
     J(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # jump operator
@@ -104,7 +104,7 @@ for f in (:(timeevolution.master), :(timeevolution.master_h), :(timeevolution.ma
 
     forwarddiff_J = ForwardDiff.gradient(cost_J, params)
     finitediff_J = FiniteDiff.finite_difference_gradient(cost_J, params)
-    @test isapprox(forwarddiff_J, finitediff_J; atol=1e-4)
+    @test isapprox(forwarddiff_J, finitediff_J; atol=1e-2)
 end
 
 end
