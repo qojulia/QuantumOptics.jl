@@ -299,7 +299,7 @@ function dmaster_h_dynamic!(dstate, fquantum::F, fclassical!::G, rates, state, t
 end
 
 function dmaster_h_dynamic!(dstate, fquantum::F, fclassical!::G, rates, state, t) where {F,G}
-    dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, copy(dstate), t)
+    dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, copy(dstate.quantum), t)
 end
 
 """
@@ -319,7 +319,7 @@ function dmcwf_h_dynamic!(dpsi, fquantum::F, fclassical!::G, rates, psi, tmp, t)
 end
 
 function dmcwf_h_dynamic!(dpsi, fquantum::F, fclassical!::G, rates, psi, t) where {F,G}
-    dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, copy(dpsi), t)
+    dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, copy(dpsi.quantum), t)
 end
 
 function jump_dynamic(rng, t, psi, fquantum::F, fclassical!::G, fjump_classical!::H, psi_new, probs_tmp, rates) where {F,G,H}

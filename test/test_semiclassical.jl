@@ -2,6 +2,7 @@ using Test
 using QuantumOptics
 using LinearAlgebra
 using QuantumOpticsBase: IncompatibleBases
+using OrdinaryDiffEq
 
 @testset "semiclassical" begin
 
@@ -166,12 +167,13 @@ tout5, ut = semiclassical.mcwf_dynamic(T,ψ0,fquantum,fclassical,fjump_classical
 # Test no cache derivative methods
 
 t0, t1 = (0.0, 1.0)
+rho0 = semiclassical.State(dm(spinup(ba)⊗fockstate(bf,0)),u0)
 
-fmaster_h_dynamic!(dstate, state, p, t) = semiclassical.dmaster_h_dynamic!(dstate, fquantum, fclassical!, nothing, state, t)
-prob_master_h_dynamic! = ODEProblem(fmaster_h_dynamic!, ψ0, (t0, t1))
+fmaster_h_dynamic!(dstate, state, p, t) = semiclassical.dmaster_h_dynamic!(dstate, fquantum_master, fclassical, nothing, state, t)
+prob_master_h_dynamic! = ODEProblem(fmaster_h_dynamic!, rho0, (t0, t1))
 @test_nowarn sol_master_h_dynamic! = solve(prob_master_h_dynamic!, DP5(); save_everystep=false)
 
-fmcwf_h_dynamic!(dpsi, psi, p, t) = semiclassical.dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, nothing, psi, t)
+fmcwf_h_dynamic!(dstate, state, p, t) = semiclassical.dmcwf_h_dynamic!(dstate, fquantum, fclassical, nothing, state, t)
 prob_mcwf_h_dynamic! = ODEProblem(fmcwf_h_dynamic!, ψ0, (t0, t1))
 @test_nowarn sol_mcwf_h_dynamic! = solve(prob_mcwf_h_dynamic!, DP5(); save_everystep=false)
 
