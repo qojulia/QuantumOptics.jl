@@ -13,6 +13,27 @@ import FiniteDiff
 # here we partially control the gradient error by limiting step size (dtmax)
 
 
+@testset "ForwardDiff on ODE Problems" begin
+
+# schroedinger equation
+b = SpinBasis(10//1)
+psi0 = spindown(b)
+H(p) = p[1]*sigmax(b) + p[2]*sigmam(b)
+f_schrod!(dpsi, psi, p, t) = timeevolution.dschroedinger!(dpsi, H(p), psi)
+function cost_schrod(p)
+    prob = ODEProblem(f_schrod!, psi0, (0.0, pi), p)
+    sol = solve(prob, DP5(); save_everystep=false)
+    return 1 - norm(sol[end])
+end
+
+p = [rand(), rand()]
+fordiff_schrod = ForwardDiff.gradient(cost_schrod, p)
+findiff_schrod = FiniteDiff.finite_difference_gradient(cost_schrod, p)
+
+@test isapprox(fordiff_schrod, findiff_schrod; atol=1e-2)
+
+end
+
 @testset "ForwardDiff with schroedinger" begin
 
 # system
