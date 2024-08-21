@@ -12,10 +12,10 @@ function recast! end
 Integrate using OrdinaryDiffEq
 """
 function integrate(tspan, df::F, x0,
-    state, dstate, fout;
-    alg = OrdinaryDiffEq.DP5(),
-    steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
-    callback = nothing, return_problem=false, kwargs...) where {F}
+        state, dstate, fout;
+        alg = OrdinaryDiffEq.DP5(),
+        steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
+        callback = nothing, return_problem=false, kwargs...) where {F}
 
     function df_(dx, x, p, t)
         recast!(state,x)
