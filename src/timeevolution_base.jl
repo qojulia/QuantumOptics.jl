@@ -42,21 +42,21 @@ function integrate(tspan, df::F, x0,
                                          save_start = false,
                                          tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
-                                         prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(convert(tType, tspan[1]),convert(tType, tspan[end])))
+    prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(convert(tType, tspan[1]),convert(tType, tspan[end])))
 
-                                         if steady_state
-                                            affect! = function (integrator)
-                                                !save_everystep && scb.affect!(integrator,true)
-                                                OrdinaryDiffEq.terminate!(integrator)
-                                            end
-                                            _cb = OrdinaryDiffEq.DiscreteCallback(
-                                                                    SteadyStateCondtion(copy(state),tol,state),
-                                                                    affect!;
-                                                                    save_positions = (false,false))
-                                            cb = OrdinaryDiffEq.CallbackSet(_cb,scb)
-                                        else
-                                            cb = scb
-                                        end
+    if steady_state
+        affect! = function (integrator)
+            !save_everystep && scb.affect!(integrator,true)
+            OrdinaryDiffEq.terminate!(integrator)
+        end
+        _cb = OrdinaryDiffEq.DiscreteCallback(
+                                SteadyStateCondtion(copy(state),tol,state),
+                                affect!;
+                                save_positions = (false,false))
+        cb = OrdinaryDiffEq.CallbackSet(_cb,scb)
+    else
+        cb = scb
+    end
 
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb)
 
