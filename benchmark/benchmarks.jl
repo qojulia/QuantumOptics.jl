@@ -5,6 +5,7 @@ using StochasticDiffEq
 using LinearAlgebra
 using PkgBenchmark
 
+
 const SUITE = BenchmarkGroup()
 
 prob_list = ("schroedinger", "master", "stochastic_schroedinger", "stochastic_master")
