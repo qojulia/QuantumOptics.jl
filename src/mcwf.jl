@@ -322,15 +322,15 @@ Integrate a single Monte Carlo wave function trajectory.
 * `kwargs`: Further arguments are passed on to the ode solver.
 """
 function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
-                psi0, seed, fout;
-                display_beforeevent=false, display_afterevent=false,
-                display_jumps=false,
-                rng_state=nothing,
-                save_everystep=false, callback=nothing,
-                saveat=tspan,
-                alg=OrdinaryDiffEq.DP5(),
-                return_problem=false,
-                kwargs...) where {T,J}
+                    psi0, seed, fout;
+                    display_beforeevent=false, display_afterevent=false,
+                    display_jumps=false,
+                    rng_state=nothing,
+                    save_everystep=false, callback=nothing,
+                    saveat=tspan,
+                    alg=OrdinaryDiffEq.DP5(),
+                    return_problem=false,
+                    kwargs...) where {T,J}
 
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     # Display before or after events
