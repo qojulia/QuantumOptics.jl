@@ -76,8 +76,8 @@ tout, Ψt = timeevolution.mcwf(T, Ψ₀, H, J; seed=UInt(2), reltol=1e-6)
 t_fout = Float64[]
 Ψ_fout = []
 function fout(t, x)
-    push!(t_fout, t)
-    push!(Ψ_fout, normalize(x))
+ push!(t_fout, t)
+ push!(Ψ_fout, normalize(x))
 end
 timeevolution.mcwf(T, Ψ₀, H, J; seed=UInt(2), reltol=1e-6, fout=fout)
 @test tout == t_fout && Ψt == Ψ_fout
@@ -212,8 +212,8 @@ end
 
 dist = []
 for i=1:length(tout)
-    @test tracedistance(ρ3_nondiag[i], ρ3_diag[i]) < 1e-14
-    @test tracedistance(ρ3_avg[i], ρ3_diag[i]) < 0.1
+ @test tracedistance(ρ3_nondiag[i], ρ3_diag[i]) < 1e-14
+ @test tracedistance(ρ3_avg[i], ρ3_diag[i]) < 0.1
 end
 
 @test_throws ArgumentError timeevolution.mcwf(T, ψ3, H, J3; rates=rates)

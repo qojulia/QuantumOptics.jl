@@ -9,8 +9,8 @@ Ncutoff = 2
 T = [0.:0.1:1.;]
 
 Ω = [0 2 3;
-        2 0 1;
-        3 1 0]
+    2 0 1;
+    3 1 0]
 
 ω = [1., 1.2, 1.5]
 
@@ -64,7 +64,7 @@ for (i, t) in enumerate(tout)
 end
 
 function fout(t, psi)
-    deepcopy(psi)
+ deepcopy(psi)
 end
 t_fout, psi_fout = timeevolution.schroedinger(T, psi0, Hrot; fout=fout)
 @test t_fout == tout && psi_fout == psi_rot_t
