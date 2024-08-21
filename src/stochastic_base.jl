@@ -11,14 +11,15 @@ import DiffEqCallbacks, StochasticDiffEq, OrdinaryDiffEq
 Integrate using StochasticDiffEq
 """
 function integrate_stoch(tspan, df, dg, x0,
-            state, dstate, fout, n;
-            save_everystep = false, callback=nothing, saveat=tspan,
-            alg=StochasticDiffEq.EM(),
-            noise_rate_prototype = nothing,
-            noise_prototype_classical = nothing,
-            noise=nothing,
-            ncb=nothing,
-            kwargs...)
+    state, dstate, fout, n;
+    save_everystep = false, callback=nothing, saveat=tspan,
+    alg=StochasticDiffEq.EM(),
+    noise_rate_prototype = nothing,
+    noise_prototype_classical = nothing,
+    noise=nothing,
+    ncb=nothing,
+    return_problem=false,
+    kwargs...)
 
     function df_(dx, x, p, t)
         recast!(state,x)
@@ -65,10 +66,13 @@ function integrate_stoch(tspan, df, dg, x0,
     full_cb = OrdinaryDiffEq.CallbackSet(callback, ncb, scb)
 
     prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),
-                    noise=noise_,
-                    noise_rate_prototype=noise_rate_prototype)
+        noise=noise_,
+        noise_rate_prototype=noise_rate_prototype)
 
-    sol = StochasticDiffEq.solve(
+    if return_problem
+        return Dict("out" => out, "prob" => prob, "alg" => alg, "solve_kwargs" => (reltol=1.0e-3, abstol=1.0e-3, save_everystep=false, save_start=false, save_end=false, callback=full_cb, kwargs...))
+    else
+        sol = StochasticDiffEq.solve(
                 prob,
                 alg;
                 reltol = 1.0e-3,
@@ -77,7 +81,8 @@ function integrate_stoch(tspan, df, dg, x0,
                 save_end = false,
                 callback=full_cb, kwargs...)
 
-    out.t,out.saveval
+        return out.t, out.saveval
+    end
 end
 
 """

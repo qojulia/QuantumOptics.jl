@@ -49,9 +49,15 @@ function fstoch_2(t, psi)
 end
 
 # Non-dynamic Schrödinger
-tout, ψt4 = stochastic.schroedinger(T, ψ0, H, [zero_op, zero_op]; dt=0.1dt)
+tout, ψt4 = stochastic.schroedinger(T, ψ0, H, [zero_op, zero_op]; dt=0.1dt, seed=1)
+rslt4 = stochastic.schroedinger(T, ψ0, H, [zero_op, zero_op]; dt=0.1dt, seed=1, return_problem=true)
+sol = StochasticDiffEq.solve(rslt4["prob"], rslt4["alg"]; rslt4["solve_kwargs"]...)
+@test ψt4 == rslt4["out"].saveval
 # Dynamic Schrödinger
-tout, ψt1 = stochastic.schroedinger_dynamic(T, ψ0, fdeterm, fstoch_1; dt=0.1dt)
+tout, ψt1 = stochastic.schroedinger_dynamic(T, ψ0, fdeterm, fstoch_1; dt=0.1dt, seed=1)
+rslt1 = stochastic.schroedinger(T, ψ0, H, [zero_op, zero_op]; dt=0.1dt, seed=1, return_problem=true)
+sol = StochasticDiffEq.solve(rslt1["prob"], rslt1["alg"]; rslt1["solve_kwargs"]...)
+@test ψt1 == rslt1["out"].saveval
 tout, ψt2 = stochastic.schroedinger_dynamic(T, ψ0, fdeterm, fstoch_2; noise_processes=3, dt=0.1dt)
 
 # Test equivalence to Schrödinger equation with zero noise
