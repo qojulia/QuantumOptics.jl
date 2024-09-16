@@ -122,22 +122,3 @@ function check_schroedinger(psi::Bra, H)
     check_multiplicable(psi, H)
     check_samebases(H)
 end
-
-
-function _promote_time_and_state(u0, H::AbstractOperator, tspan)
-    Ts = eltype(H)
-    Tt = real(Ts)
-    p = Vector{Tt}(undef,0)
-    u0data_promote = DiffEqBase.promote_u0(u0.data, p, tspan[1])
-    tspan_promote = DiffEqBase.promote_tspan(u0data_promote, p, tspan, nothing, Dict{Symbol, Any}())
-    if u0data_promote !== u0.data
-        u0_promote = rebuild(u0, u0data_promote)
-        return tspan_promote, u0_promote
-    end
-    return tspan_promote, u0
-end
-_promote_time_and_state(u0, f, tspan) = _promote_time_and_state(u0, f(first(tspan), u0), tspan)
-
-rebuild(op::Operator, new_data) = Operator(op.basis_l, op.basis_r, new_data)
-rebuild(state::Ket, new_data) = Ket(state.basis, new_data)
-rebuild(state::Bra, new_data) = Bra(state.basis, new_data)
