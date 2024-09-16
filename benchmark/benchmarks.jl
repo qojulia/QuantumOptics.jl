@@ -11,7 +11,7 @@ const SUITE = BenchmarkGroup()
 prob_list = ("schroedinger", "master", "stochastic_schroedinger", "stochastic_master")
 for prob in prob_list
     SUITE[prob] = BenchmarkGroup([prob])
-    for type in ("pure", "custom")
+    for type in ("qo types", "base array types")
         SUITE[prob][type] = BenchmarkGroup()
     end
 end
@@ -96,18 +96,18 @@ function bench_stochastic_master(dim; pure=true)
 end
 
 for dim in (1//2, 20//1, 50//1, 100//1)
-    for prob in zip(("schroedinger", "master"), (:(bench_schroedinger), :(bench_master)))
-        name, bench = (prob[1], prob[2])
+    for solver in zip(("schroedinger", "master"), (:(bench_schroedinger), :(bench_master)))
+        name, bench = (solver[1], solver[2])
         # benchmark solving ODE problems on data of QO types
-        SUITE[name]["pure"][string(dim)] = @benchmarkable solve(eval($bench)($dim; pure=true), DP5(); save_everystep=false)
+        SUITE[name]["base array types"][string(dim)] = @benchmarkable solve(prob, DP5(); save_everystep=false) setup=(prob=eval($bench)($dim; pure=true))
         # benchmark solving ODE problems on custom QO types
-        SUITE[name]["custom"][string(dim)] = @benchmarkable solve(eval($bench)($dim; pure=false), DP5(); save_everystep=false)
+        SUITE[name]["qo types"][string(dim)] = @benchmarkable solve(prob, DP5(); save_everystep=false) setup=(prob=eval($bench)($dim; pure=false))
     end
-    for prob in zip(("stochastic_schroedinger", "stochastic_master"), (:(bench_stochastic_schroedinger), :(bench_stochastic_master)))
-        name, bench = (prob[1], prob[2])
+    for solver in zip(("stochastic schroedinger", "stochastic master"), (:(bench_stochastic_schroedinger), :(bench_stochastic_master)))
+        name, bench = (solver[1], solver[2])
         # benchmark solving ODE problems on data of QO types
-        SUITE[name]["pure"][string(dim)] = @benchmarkable solve(eval($bench)($dim; pure=true), EM(), dt=1/100; save_everystep=false)
+        SUITE[name]["base array types"][string(dim)] = @benchmarkable solve(prob, EM(), dt=1/100; save_everystep=false) setup=(prob=eval($bench)($dim; pure=true))
         # benchmark solving ODE problems on custom QO types
-        SUITE[name]["custom"][string(dim)] = @benchmarkable solve(eval($bench)($dim; pure=false), EM(), dt=1/100; save_everystep=false)
+        SUITE[name]["qo types"][string(dim)] = @benchmarkable solve(prob, EM(), dt=1/100; save_everystep=false) setup=(prob=eval($bench)($dim; pure=false))
     end
 end
