@@ -1,6 +1,13 @@
 using Test
 using QuantumOptics
 
+function test_settime(op)
+    t = current_time(op)
+    set_time!(op, randn())
+    set_time!(op, t)
+    return nothing
+end
+
 @testset "time-dependent operators" begin
 
 b = FockBasis(7)
@@ -9,7 +16,25 @@ a = destroy(b)
 
 H0 = number(b)
 Hd = (a + a')
+
+# function and op types homogeneous
+H = TimeDependentSum(cos=>H0, cos=>Hd)
+Htup = timeevolution._tuplify(H)
+@test Htup === H
+test_settime(Htup)
+@test (@allocated(test_settime)) == 0
+
+# op types not homogeneous
+H = TimeDependentSum(cos=>H0, cos=>dense(Hd), cos=>LazySum(H0), cos=>LazySum(dense(Hd)))
+Htup = timeevolution._tuplify(H)
+@test Htup !== H
+test_settime(Htup)
+@test (@allocated(test_settime)) == 0
+
 H = TimeDependentSum(1.0=>H0, cos=>Hd)
+
+# function types not homogeneous
+@test timeevolution._tuplify(H) !== H
 
 ts = [0.0, 0.4]
 ts_half = 0.5 * ts
@@ -54,6 +79,8 @@ ts_out, rhos = timeevolution.master_dynamic(ts, psi0, H, Js)
 ts_out2, rhos2 = timeevolution.master_dynamic(ts, psi0, fman)
 @test rhos[end].data ≈ rhos2[end].data
 
+set_time!(H, 0.0)
+set_time!.(Js, 0.0)
 Hnh = H - 0.5im * sum(J' * J for J in Js)
 
 _getf = (H0, Hd, a) -> (t,_) -> (
@@ -88,6 +115,14 @@ allocs2 = @allocated timeevolution.schroedinger_dynamic(ts_half, psi0, H)
 
 allocs1 = @allocated timeevolution.master_nh_dynamic(ts, psi0, Hnh, Js)
 allocs2 = @allocated timeevolution.master_nh_dynamic(ts_half, psi0, Hnh, Js)
+@test allocs1 == allocs2
+
+Jstup = (Js...,)
+ts_out2, rhos2 = timeevolution.master_nh_dynamic(ts, psi0, Hnh, Jstup)
+@test rhos[end].data ≈ rhos2[end].data
+
+allocs1 = @allocated timeevolution.master_nh_dynamic(ts, psi0, Hnh, Jstup)
+allocs2 = @allocated timeevolution.master_nh_dynamic(ts_half, psi0, Hnh, Jstup)
 @test allocs1 == allocs2
 
 end

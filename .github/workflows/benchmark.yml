@@ -1,0 +1,57 @@
+name: Performance tracking
+on:
+  pull_request:
+
+env:
+  PYTHON: ~
+
+jobs:
+  performance-tracking:
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
+    steps:
+      # setup
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: '1.10'
+      - uses: julia-actions/julia-buildpkg@latest
+      - name: install dependencies
+        run: julia -e 'using Pkg; pkg"add PkgBenchmark BenchmarkCI@0.1"'
+
+      # run the benchmark suite
+      - name: run benchmarks
+        run: |
+          julia -e '
+            using BenchmarkCI
+            BenchmarkCI.judge()
+            BenchmarkCI.displayjudgement()
+            '
+
+      # generate and record the benchmark result as markdown
+      - name: generate benchmark result
+        run: |
+          body=$(julia -e '
+          using BenchmarkCI
+
+          let
+              judgement = BenchmarkCI._loadjudge(BenchmarkCI.DEFAULT_WORKSPACE)
+              title = "Benchmark Result"
+              ciresult = BenchmarkCI.CIResult(; judgement, title)
+              BenchmarkCI.printcommentmd(stdout::IO, ciresult)
+          end
+          ')
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}"
+          echo $body > ./benchmark-result.artifact
+
+      # record the pull request number
+      - name: record pull request number
+        run: echo ${{ github.event.pull_request.number }} > ./pull-request-number.artifact
+
+      # save as artifacts (performance tracking (comment) workflow will use it)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: performance-tracking
+          path: ./*.artifact

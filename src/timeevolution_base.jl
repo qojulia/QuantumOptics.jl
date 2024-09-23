@@ -11,21 +11,25 @@ function recast! end
 
 Integrate using OrdinaryDiffEq
 """
-function integrate(tspan, df, x0,
+function integrate(tspan, df::F, x0,
             state, dstate, fout;
             alg = OrdinaryDiffEq.DP5(),
             steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
-            callback = nothing, kwargs...)
+            callback = nothing, kwargs...) where {F}
 
     function df_(dx, x, p, t)
         recast!(state,x)
         recast!(dstate,dx)
         df(t, state, dstate)
         recast!(dx,dstate)
+        return nothing
     end
-    function fout_(x, t, integrator)
-        recast!(state,x)
-        fout(t, state)
+
+    fout_ = let fout = fout, state = state
+        function fout_(x, t, integrator)
+            recast!(state,x)
+            fout(t, state)
+        end
     end
 
     tType = float(eltype(tspan))
@@ -117,3 +121,47 @@ macro skiptimechecks(ex)
 end
 
 Base.@pure pure_inference(fout,T) = Core.Compiler.return_type(fout, T)
+
+function _promote_time_and_state(u0, H::AbstractOperator, tspan)
+    Ts = eltype(H)
+    Tt = real(Ts)
+    p = Vector{Tt}(undef,0)
+    u0_promote = DiffEqBase.promote_u0(u0, p, tspan[1])
+    tspan_promote = DiffEqBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
+    return tspan_promote, u0_promote
+end
+function _promote_time_and_state(u0, H::AbstractOperator, J, tspan)
+    Ts = DiffEqBase.promote_dual(eltype(H), DiffEqBase.anyeltypedual(J))
+    Tt = real(Ts)
+    p = Vector{Tt}(undef,0)
+    u0_promote = DiffEqBase.promote_u0(u0, p, tspan[1])
+    tspan_promote = DiffEqBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
+    return tspan_promote, u0_promote
+end
+
+_promote_time_and_state(u0, f, tspan) = _promote_time_and_state(u0, f(first(tspan)..., u0), tspan)
+
+@inline function DiffEqBase.promote_u0(u0::Ket, p, t0)
+    u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
+    if u0data_promote !== u0.data
+        u0_promote = Ket(u0.basis, u0data_promote)
+        return u0_promote
+    end
+    return u0
+end
+@inline function DiffEqBase.promote_u0(u0::Bra, p, t0)
+    u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
+    if u0data_promote !== u0.data
+        u0_promote = Bra(u0.basis, u0data_promote)
+        return u0_promote
+    end
+    return u0
+end
+@inline function DiffEqBase.promote_u0(u0::Operator, p, t0)
+    u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
+    if u0data_promote !== u0.data
+        u0_promote = Operator(u0.basis_l, u0.basis_r, u0data_promote)
+        return u0_promote
+    end
+    return u0
+end

@@ -1,8 +1,9 @@
 using QuantumOpticsBase
 using QuantumOpticsBase: check_samebases, check_multiplicable
+using Random: AbstractRNG, randn!
 import ..timeevolution: recast!, QO_CHECKS, pure_inference, as_vector
 
-import DiffEqCallbacks, StochasticDiffEq, OrdinaryDiffEq
+import DiffEqCallbacks, StochasticDiffEq, OrdinaryDiffEq, DiffEqNoiseProcess
 
 """
     integrate_stoch(tspan, df::Function, dg{Function}, x0{ComplexF64},
@@ -104,3 +105,5 @@ function _check_const(op)
     end
     nothing
 end
+
+DiffEqNoiseProcess.wiener_randn!(rng::AbstractRNG,rand_vec::T) where {T<:Union{Bra,Ket,Operator}} = randn!(rng,rand_vec.data)

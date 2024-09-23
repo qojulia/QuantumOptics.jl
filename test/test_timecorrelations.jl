@@ -72,4 +72,16 @@ omegaFFT, SFFT = timecorrelations.correlation2spectrum(tspan, exp_values)
 tspan[5] = tspan[4]
 @test_throws ArgumentError timecorrelations.correlation2spectrum(tspan, exp_values)
 
+# tests kwarg rates
+J5 = [embed(basis, 1, sm), embed(basis, 1, sp), embed(basis, 2, destroy(fockbasis))]
+rates5 = [γ, 0.5γ, κ]
+exp_values5 = timecorrelations.correlation(tspan, ρ₀, H, J5, dagger(op), op; rates=rates5)
+@test abs(exp_values[end] - exp_values5[end] ) < 1e-8
+
+omega5, S5 = timecorrelations.spectrum(omega_sample, H, J5, op;  rho_ss=ρ₀, rates=rates5)
+@test abs(sum(S .- S5)) < 1e-8
+
+omega5_2, S5_2 = timecorrelations.spectrum(H, J5, op; rates=rates5, tol=1e-3)
+@test abs(sum(S2 .- S5_2)) < 1e-8
+
 end # testset

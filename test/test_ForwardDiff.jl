@@ -1,6 +1,7 @@
 using Test
 using OrdinaryDiffEq, QuantumOptics
 import ForwardDiff
+import FiniteDiff
 
 # for some caese ForwardDiff.jl returns NaN due to issue with DiffEq.jl. see https://github.com/SciML/DiffEqBase.jl/issues/861
 # Here we test;
@@ -11,6 +12,27 @@ import ForwardDiff
 # partially related (here we use ForwardDiff and not some adjoint method) https://github.com/SciML/SciMLSensitivity.jl/issues/510
 # here we partially control the gradient error by limiting step size (dtmax)
 
+
+@testset "ForwardDiff on ODE Problems" begin
+
+# schroedinger equation
+b = SpinBasis(10//1)
+psi0 = spindown(b)
+H(p) = p[1]*sigmax(b) + p[2]*sigmam(b)
+f_schrod!(dpsi, psi, p, t) = timeevolution.dschroedinger!(dpsi, H(p), psi)
+function cost_schrod(p)
+    prob = ODEProblem(f_schrod!, psi0, (0.0, pi), p)
+    sol = solve(prob, DP5(); save_everystep=false)
+    return 1 - norm(sol[end])
+end
+
+p = [rand(), rand()]
+fordiff_schrod = ForwardDiff.gradient(cost_schrod, p)
+findiff_schrod = FiniteDiff.finite_difference_gradient(cost_schrod, p)
+
+@test isapprox(fordiff_schrod, findiff_schrod; atol=1e-2)
+
+end
 
 @testset "ForwardDiff with schroedinger" begin
 
@@ -73,3 +95,37 @@ Ftdop(1.0)
 @test ForwardDiff.derivative(Ftdop, 1.0) isa Any
 
 end # testset
+
+
+@testset "ForwardDiff with master" begin
+
+b = SpinBasis(1//2)
+psi0 = spindown(b)
+rho0 = dm(psi0)
+params = [rand(), rand()]
+
+for f in (:(timeevolution.master), :(timeevolution.master_h), :(timeevolution.master_nh))
+    # test to see if parameter propagates through Hamiltonian
+    H(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # Hamiltonian
+    function cost_H(p) #
+        tf, psif = eval(f)((0.0, pi), rho0, H(p), [sigmax(b)])
+        return 1 - norm(psif)
+    end
+
+    forwarddiff_H = ForwardDiff.gradient(cost_H, params)
+    finitediff_H = FiniteDiff.finite_difference_gradient(cost_H, params)
+    @test isapprox(forwarddiff_H, finitediff_H; atol=1e-2)
+
+    # test to see if parameter propagates through Jump operator
+    J(p) = p[1]*sigmax(b) + p[2]*sigmam(b)  # jump operator
+    function cost_J(p)
+        tf, psif = eval(f)((0.0, pi), rho0, sigmax(b), [J(p)])
+        return 1 - norm(psif)
+    end
+
+    forwarddiff_J = ForwardDiff.gradient(cost_J, params)
+    finitediff_J = FiniteDiff.finite_difference_gradient(cost_J, params)
+    @test isapprox(forwarddiff_J, finitediff_J; atol=1e-2)
+end
+
+end

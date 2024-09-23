@@ -132,13 +132,14 @@ function spectrum(omega_samplepoints,
                 H::AbstractOperator, J, op;
                 rho0=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol=1e-4,
-                rho_ss=steadystate.master(H, J; tol=tol, rho0=rho0)[end][end],
+                rates=nothing,
+                rho_ss=steadystate.master(H, J; rates=rates, tol=tol, rho0=rho0)[end][end],
                 kwargs...)
     domega = minimum(diff(omega_samplepoints))
     dt = 2*pi/abs(omega_samplepoints[end] - omega_samplepoints[1])
     T = 2*pi/domega
     tspan = [0.:dt:T;]
-    exp_values = correlation(tspan, rho_ss, H, J, dagger(op), op, kwargs...)
+    exp_values = correlation(tspan, rho_ss, H, J, dagger(op), op; rates=rates, kwargs...)
     S = 2dt.*fftshift(real(fft(exp_values)))
     return omega_samplepoints, S
 end
@@ -146,16 +147,17 @@ end
 function spectrum(H::AbstractOperator, J, op;
                 rho0=tensor(basisstate(H.basis_l, 1), dagger(basisstate(H.basis_r, 1))),
                 tol=1e-4,
-                rho_ss=steadystate.master(H, J; tol=tol)[end][end],
+                rates=nothing,
+                rho_ss=steadystate.master(H, J; rates=rates, tol=tol)[end][end],
                 kwargs...)
-    tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op, tol=tol, kwargs...)
+    tspan, exp_values = correlation(rho_ss, H, J, dagger(op), op; rates=rates, tol=tol, kwargs...)
     dtmin = minimum(diff(tspan))
     T = tspan[end] - tspan[1]
     tspan = Float64[0.:dtmin:T;]
     n = length(tspan)
     omega = mod(n, 2) == 0 ? [-n/2:n/2-1;] : [-(n-1)/2:(n-1)/2;]
     omega .*= 2pi/T
-    return spectrum(omega, H, J, op; tol=tol, rho_ss=rho_ss, kwargs...)
+    return spectrum(omega, H, J, op; tol=tol, rates=rates, rho_ss=rho_ss, kwargs...)
 end
 
 

@@ -13,7 +13,7 @@ Integrate Schroedinger equation to evolve states or compute propagators.
         therefore must not be changed.
 """
 function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
-                fout::Union{Function,Nothing}=nothing,
+                fout=nothing,
                 kwargs...) where {B,Bo,T<:Union{AbstractOperator{B,Bo},StateVector{B}}}
     _check_const(H)
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
@@ -44,9 +44,11 @@ Integrate time-dependent Schroedinger equation to evolve states or compute propa
 Instead of a function `f`, this takes a time-dependent operator `H`.
 """
 function schroedinger_dynamic(tspan, psi0, f;
-                fout::Union{Function,Nothing}=nothing,
+                fout=nothing,
                 kwargs...)
-    dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
+    dschroedinger_ = let f = f
+        dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
+    end
     tspan, psi0 = _promote_time_and_state(psi0, f, tspan) # promote only if ForwardDiff.Dual
     x0 = psi0.data
     state = copy(psi0)
@@ -105,7 +107,7 @@ Schrödinger equation as `-im*H*psi`.
 
 See also: [`dschroedinger!`](@ref)
 """
-function dschroedinger_dynamic!(dpsi, f, psi, t)
+function dschroedinger_dynamic!(dpsi, f::F, psi, t) where {F}
     H = f(t, psi)
     dschroedinger!(dpsi, H, psi)
 end
@@ -120,22 +122,3 @@ function check_schroedinger(psi::Bra, H)
     check_multiplicable(psi, H)
     check_samebases(H)
 end
-
-
-function _promote_time_and_state(u0, H::AbstractOperator, tspan)
-    Ts = eltype(H)
-    Tt = real(Ts)
-    p = Vector{Tt}(undef,0)
-    u0data_promote = DiffEqBase.promote_u0(u0.data, p, tspan[1])
-    tspan_promote = DiffEqBase.promote_tspan(u0data_promote, p, tspan, nothing, Dict{Symbol, Any}())
-    if u0data_promote !== u0.data
-        u0_promote = rebuild(u0, u0data_promote)
-        return tspan_promote, u0_promote
-    end
-    return tspan_promote, u0
-end
-_promote_time_and_state(u0, f, tspan) = _promote_time_and_state(u0, f(first(tspan), u0), tspan)
-
-rebuild(op::Operator, new_data) = Operator(op.basis_l, op.basis_r, new_data)
-rebuild(state::Ket, new_data) = Ket(state.basis, new_data)
-rebuild(state::Bra, new_data) = Bra(state.basis, new_data)

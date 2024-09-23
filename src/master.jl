@@ -14,6 +14,7 @@ function master_h(tspan, rho0::Operator, H::AbstractOperator, J;
     _check_const.(J)
     _check_const.(Jdagger)
     check_master(rho0, H, J, Jdagger, rates)
+    tspan, rho0 = _promote_time_and_state(rho0, H, J, tspan)
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
@@ -41,6 +42,7 @@ function master_nh(tspan, rho0::Operator, Hnh::AbstractOperator, J;
     _check_const.(J)
     _check_const.(Jdagger)
     check_master(rho0, Hnh, J, Jdagger, rates)
+    tspan, rho0 = _promote_time_and_state(rho0, Hnh, J, tspan)
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
@@ -86,6 +88,7 @@ function master(tspan, rho0::Operator, H::AbstractOperator, J;
     _check_const(H)
     _check_const.(J)
     _check_const.(Jdagger)
+    tspan, rho0 = _promote_time_and_state(rho0, H, J, tspan)
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
@@ -124,6 +127,7 @@ function master(tspan, rho0::Operator, L::SuperOperator; fout=nothing, kwargs...
     b = GenericBasis(dim)
     rho_ = Ket(b,reshape(rho0.data, dim))
     L_ = Operator(b,b,L.data)
+    tspan, rho_ = _promote_time_and_state(rho_, L_, tspan)
     dmaster_(t,rho,drho) = dmaster_liouville!(drho,L_,rho)
 
     # Rewrite into density matrix when saving
@@ -215,7 +219,9 @@ function master_dynamic(tspan, rho0::Operator, f;
                 fout=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
+    dmaster_ = let f = f, tmp = tmp
+        dmaster_(t, rho, drho) = dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
+    end
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -395,7 +401,7 @@ returned from `f`.
 See also: [`master_dynamic`](@ref), [`dmaster_h!`](@ref), [`dmaster_nh!`](@ref),
     [`dmaster_nh_dynamic!`](@ref)
 """
-function dmaster_h_dynamic!(drho, f, rates, rho, drho_cache, t)
+function dmaster_h_dynamic!(drho, f::F, rates, rho, drho_cache, t) where {F}
     result = f(t, rho)
     QO_CHECKS[] && @assert 3 <= length(result) <= 4
     if length(result) == 3
@@ -418,7 +424,7 @@ equation. Optionally, rates can also be returned from `f`.
 See also: [`master_dynamic`](@ref), [`dmaster_h!`](@ref), [`dmaster_nh!`](@ref),
     [`dmaster_h_dynamic!`](@ref)
 """
-function dmaster_nh_dynamic!(drho, f, rates, rho, drho_cache, t)
+function dmaster_nh_dynamic!(drho, f::F, rates, rho, drho_cache, t) where {F}
     result = f(t, rho)
     QO_CHECKS[] && @assert 4 <= length(result) <= 5
     if length(result) == 4

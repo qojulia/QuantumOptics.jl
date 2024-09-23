@@ -1,6 +1,7 @@
 using Test
 using QuantumOptics
 using LinearAlgebra
+using QuantumOpticsBase: IncompatibleBases
 
 @testset "semiclassical" begin
 
@@ -174,5 +175,29 @@ after_jump = findlast(t-> !(t∈T), tout4)
 @test ψt1[end].quantum == spindown(ba)⊗fockstate(bf,0)
 @test ψt4[before_jump].quantum == ψ0.quantum
 @test ψt4[after_jump].quantum == spindown(ba)⊗fockstate(bf,0)
+
+# Test broadcasting interface
+b = FockBasis(10)
+bn = FockBasis(20)
+u0 = ComplexF64[0.7, 0.2]
+psi = fockstate(b, 2)
+psin = fockstate(bn, 2)
+rho = dm(psi)
+
+sc_ket = semiclassical.State(psi, u0)
+sc_ketn = semiclassical.State(psin, u0)
+sc_dm = semiclassical.State(rho, u0)
+
+@test Base.size(sc_dm) == Base.size(rho)
+@test (copy_sc = copy(sc_ket); Base.fill!(copy_sc, 0.0); copy_sc) == semiclassical.State(fill!(copy(psi), 0.0), fill!(copy(u0), 0.0))
+@test Base.similar(sc_ket, Int) isa semiclassical.State
+@test normalize!(copy(sc_ket)) == semiclassical.State(normalize!(copy(psi)), u0)
+@test !(sc_ket == sc_ketn)
+@test !(isapprox(sc_ket, sc_ketn))
+@test sc_ket .* 1.0 == sc_ket
+@test sc_dm .* 1.0 == sc_dm
+@test sc_ket .+ 2.0 == semiclassical.State(psi .+ 2.0, u0 .+ 2.0)
+@test sc_dm .+ 2.0 == semiclassical.State(rho .+ 2.0, u0 .+ 2.0)
+@test_throws IncompatibleBases sc_ket .+ semiclassical.State(spinup(SpinBasis(10)), u0)
 
 end # testsets
