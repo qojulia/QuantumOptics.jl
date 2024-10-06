@@ -11,7 +11,7 @@ trajectories according to Carmichael with `stochastic.schroedinger_dynamic`.
     Defines the operator of the measured quadrature as
     ``X_\\theta = C e^{-i\\theta} + C^\\dagger e^{i\\theta}``. Needs to be a
     vector of the same length as `C` if `C` is a vector.
-* `normalize_expect=true`: Specifiy whether or not to normalize the state vector
+* `normalize_expect=true`: Specify whether or not to normalize the state vector
     when the expectation value in the nonlinear term is calculated. NOTE:
     should only be set to `false` if the state is guaranteed to be normalized,
     e.g. by setting `normalize_state=true` in `stochastic.schroedinger_dynamic`.
