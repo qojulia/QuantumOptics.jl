@@ -1,6 +1,7 @@
 using Test
 using QuantumOptics
 using LinearAlgebra
+using OrdinaryDiffEq
 
 @testset "master" begin
 
@@ -57,6 +58,11 @@ end
 @test tracedistance(L*ρ₀, ρ) < 1e-10
 
 # Test master
+tout, ρt = timeevolution.master(T, Ψ₀, Hdense, Jdense; reltol=1e-6)
+rslt = timeevolution.master(T, Ψ₀, Hdense, Jdense; reltol=1e-6, return_problem=true)
+sol = OrdinaryDiffEq.solve(rslt["prob"], rslt["alg"]; rslt["solve_kwargs"]...)
+@test ρt == rslt["out"].saveval
+
 @test timeevolution.check_master(ρ₀, Hdense, Jdense, dagger.(Jdense), nothing)
 tout, ρt = timeevolution.master(T, ρ₀, Hdense, Jdense; reltol=1e-7)
 ρ = ρt[end]

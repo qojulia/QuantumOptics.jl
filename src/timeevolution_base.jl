@@ -12,10 +12,10 @@ function recast! end
 Integrate using OrdinaryDiffEq
 """
 function integrate(tspan, df::F, x0,
-            state, dstate, fout;
-            alg = OrdinaryDiffEq.DP5(),
-            steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
-            callback = nothing, kwargs...) where {F}
+        state, dstate, fout;
+        alg = OrdinaryDiffEq.DP5(),
+        steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
+        callback = nothing, return_problem=false, kwargs...) where {F}
 
     function df_(dx, x, p, t)
         recast!(state,x)
@@ -60,15 +60,19 @@ function integrate(tspan, df::F, x0,
 
     full_cb = OrdinaryDiffEq.CallbackSet(callback,cb)
 
-    sol = OrdinaryDiffEq.solve(
-                prob,
-                alg;
-                reltol = 1.0e-6,
-                abstol = 1.0e-8,
-                save_everystep = false, save_start = false,
-                save_end = false,
-                callback=full_cb, kwargs...)
-    out.t,out.saveval
+    if return_problem
+        return Dict("out" => out, "prob" => prob, "alg" => alg, "solve_kwargs" => (reltol=1.0e-6, abstol=1.0e-8, save_everystep=false, save_start=false, save_end=false, callback=full_cb, kwargs...))
+    else
+        sol = OrdinaryDiffEq.solve(
+            prob,
+            alg;
+            reltol=1.0e-6,
+            abstol=1.0e-8,
+            save_everystep=false, save_start=false,
+            save_end=false,
+            callback=full_cb, kwargs...)
+        return out.t, out.saveval
+    end
 end
 
 function integrate(tspan, df, x0,

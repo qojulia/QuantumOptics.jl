@@ -1,5 +1,6 @@
 using Test
 using QuantumOptics
+using OrdinaryDiffEq
 
 @testset "schroedinger" begin
 
@@ -109,6 +110,9 @@ sz = sigmaz(basis)
 f(t, psi) = sx * π
 tspan = 0:1.0
 t, u = timeevolution.schroedinger(tspan, u0, π * sx)
+rslt = timeevolution.schroedinger(tspan, u0, π * sx, return_problem=true)
+sol = OrdinaryDiffEq.solve(rslt["prob"], rslt["alg"]; rslt["solve_kwargs"]...)
+@test u == rslt["out"].saveval
 
 # I think the tolerance on the differential equation is 1e-6, we expect the operator to be essentially the identity
 @test abs(expect(sz, u[end] * su)) - abs(expect(sz, u0 * su)) < 1e-6

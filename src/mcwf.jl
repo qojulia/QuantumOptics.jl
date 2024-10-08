@@ -322,14 +322,15 @@ Integrate a single Monte Carlo wave function trajectory.
 * `kwargs`: Further arguments are passed on to the ode solver.
 """
 function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
-                        psi0, seed, fout;
-                        display_beforeevent=false, display_afterevent=false,
-                        display_jumps=false,
-                        rng_state=nothing,
-                        save_everystep=false, callback=nothing,
-                        saveat=tspan,
-                        alg=OrdinaryDiffEq.DP5(),
-                        kwargs...) where {T, J}
+                    psi0, seed, fout;
+                    display_beforeevent=false, display_afterevent=false,
+                    display_jumps=false,
+                    rng_state=nothing,
+                    save_everystep=false, callback=nothing,
+                    saveat=tspan,
+                    alg=OrdinaryDiffEq.DP5(),
+                    return_problem=false,
+                    kwargs...) where {T,J}
 
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
     # Display before or after events
@@ -388,7 +389,14 @@ function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
 
     prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0), (tspan_[1],tspan_[end]))
 
-    sol = OrdinaryDiffEq.solve(
+    if return_problem
+        if display_jumps
+            return Dict("out" => out, "jump_t" => jump_t, "jump_index" => jump_index, "prob" => prob, "alg" => alg, "solve_kwargs" => (reltol=1.0e-6, abstol=1.0e-8, save_everystep=false, save_start=false, save_end=false, callback=full_cb, kwargs...))
+        else
+            return Dict("out" => out, "prob" => prob, "alg" => alg, "solve_kwargs" => (reltol=1.0e-6, abstol=1.0e-8, save_everystep=false, save_start=false, save_end=false, callback=full_cb, kwargs...))
+        end
+    else
+        sol = OrdinaryDiffEq.solve(
                 prob,
                 alg;
                 reltol = 1.0e-6,
@@ -397,10 +405,11 @@ function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
                 save_end = false,
                 callback=full_cb, kwargs...)
 
-    if display_jumps
-        return out.t, out.saveval, jump_t, jump_index
-    else
-        return out.t, out.saveval
+        if display_jumps
+            return out.t, out.saveval, jump_t, jump_index
+        else
+            return out.t, out.saveval
+        end
     end
 end
 

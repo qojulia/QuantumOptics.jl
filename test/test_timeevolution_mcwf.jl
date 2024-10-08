@@ -1,6 +1,7 @@
 using Test
 using QuantumOptics
 using Random, LinearAlgebra
+using OrdinaryDiffEq
 
 @testset "mcwf" begin
 
@@ -46,6 +47,14 @@ Jlazy = [LazyTensor(basis, 1, sqrt(γ)*sm), LazyTensor(basis, 2, sqrt(κ)*destro
 
 
 # Test mcwf
+@test timeevolution.check_mcwf(Ψ₀, Hdense, Jdense, dagger.(Jdense), nothing)
+tout, Ψt = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7)
+rslt = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7, return_problem=true)
+sol = OrdinaryDiffEq.solve(rslt["prob"], rslt["alg"]; rslt["solve_kwargs"]...)
+tout2 = rslt["out"].t
+Ψt2 = rslt["out"].saveval
+@test Ψt == Ψt2
+
 @test timeevolution.check_mcwf(Ψ₀, Hdense, Jdense, dagger.(Jdense), nothing)
 tout, Ψt = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7)
 tout2, Ψt2 = timeevolution.mcwf(T, Ψ₀, Hdense, Jdense; seed=UInt(1), reltol=1e-7)
