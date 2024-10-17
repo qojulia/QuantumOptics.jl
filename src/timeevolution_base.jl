@@ -11,18 +11,20 @@ function recast! end
 
 Integrate using OrdinaryDiffEq
 """
-function integrate(tspan, df::F, x0,
+function integrate(tspan, df, x0,
             state, dstate, fout;
             alg = OrdinaryDiffEq.DP5(),
             steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
-            callback = nothing, kwargs...) where {F}
+            callback = nothing, kwargs...)
 
-    function df_(dx, x, p, t)
-        recast!(state,x)
-        recast!(dstate,dx)
-        df(t, state, dstate)
-        recast!(dx,dstate)
-        return nothing
+    df_ = let df = df
+        function df_(dx, x, p, t)
+            recast!(state,x)
+            recast!(dstate,dx)
+            df(t, state, dstate)
+            recast!(dx,dstate)
+            return nothing
+        end
     end
 
     fout_ = let fout = fout, state = state
