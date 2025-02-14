@@ -134,7 +134,7 @@ function _promote_time_and_state(u0, H::AbstractOperator, tspan)
 end
 function _promote_time_and_state(u0, H::AbstractOperator, J, tspan)
     # TODO: Find an alternative to promote_dual, which was moved to
-    #       and extension in DiffEqBase 6.162.0
+    #       an extension in DiffEqBase 6.162.0
     ext = Base.get_extension(DiffEqBase, :DiffEqBaseForwardDiffExt)
     Ts = ext.promote_dual(eltype(H), DiffEqBase.anyeltypedual(J))
     Tt = real(Ts)
