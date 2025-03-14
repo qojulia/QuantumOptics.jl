@@ -150,7 +150,7 @@ end
 
 
 """
-    timeevolution.master_dynamic(tspan, rho0, f; <keyword arguments>)
+    timeevolution.master_nh_dynamic(tspan, rho0, f; <keyword arguments>)
 
 Time-evolution according to a master equation with a dynamic non-hermitian Hamiltonian and J.
 
@@ -162,7 +162,7 @@ The given function can either be of the form `f(t, rho) -> (Hnh, Hnhdagger, J, J
 or `f(t, rho) -> (Hnh, Hnhdagger, J, Jdagger, rates)` For further information look
 at [`master_dynamic`](@ref).
 
-    timeevolution.master_dynamic(tspan, rho0, Hnh::AbstractTimeDependentOperator, J; <keyword arguments>)
+    timeevolution.master_nh_dynamic(tspan, rho0, Hnh::AbstractTimeDependentOperator, J; <keyword arguments>)
 
 This version takes the non-hermitian Hamiltonian `Hnh` and jump operators `J` as time-dependent operators.
 The jump operators may be `<: AbstractTimeDependentOperator` or other types
