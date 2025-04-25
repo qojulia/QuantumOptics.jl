@@ -1,7 +1,7 @@
 using QuantumOpticsBase
 using QuantumOpticsBase: check_samebases, check_multiplicable
 
-import OrdinaryDiffEq, DiffEqCallbacks, DiffEqBase, ForwardDiff
+import OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, DiffEqCallbacks, DiffEqBase, ForwardDiff
 
 function recast! end
 
@@ -13,7 +13,7 @@ Integrate using OrdinaryDiffEq
 """
 function integrate(tspan, df, x0,
             state, dstate, fout;
-            alg = OrdinaryDiffEq.DP5(),
+            alg = OrdinaryDiffEqLowOrderRK.DP5(),
             steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
             callback = nothing, kwargs...)
 
@@ -44,25 +44,25 @@ function integrate(tspan, df, x0,
                                          save_start = false,
                                          tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
-    prob = OrdinaryDiffEq.ODEProblem{true}(df_, x0,(convert(tType, tspan[1]),convert(tType, tspan[end])))
+    prob = OrdinaryDiffEqCore.ODEProblem{true}(df_, x0,(convert(tType, tspan[1]),convert(tType, tspan[end])))
 
     if steady_state
         affect! = function (integrator)
             !save_everystep && scb.affect!(integrator,true)
-            OrdinaryDiffEq.terminate!(integrator)
+            OrdinaryDiffEqCore.terminate!(integrator)
         end
-        _cb = OrdinaryDiffEq.DiscreteCallback(
+        _cb = OrdinaryDiffEqCore.DiscreteCallback(
                                 SteadyStateCondtion(copy(state),tol,state),
                                 affect!;
                                 save_positions = (false,false))
-        cb = OrdinaryDiffEq.CallbackSet(_cb,scb)
+        cb = OrdinaryDiffEqCore.CallbackSet(_cb,scb)
     else
         cb = scb
     end
 
-    full_cb = OrdinaryDiffEq.CallbackSet(callback,cb)
+    full_cb = OrdinaryDiffEqCore.CallbackSet(callback,cb)
 
-    sol = OrdinaryDiffEq.solve(
+    sol = OrdinaryDiffEqCore.solve(
                 prob,
                 alg;
                 reltol = 1.0e-6,
@@ -98,7 +98,7 @@ function _check_const(op)
     if !QuantumOpticsBase.is_const(op)
         throw(
           ArgumentError("You are attempting to use a time-dependent dynamics generator " *
-            "(a Hamiltonian or Lindbladian) with a solver that assumes constant " * 
+            "(a Hamiltonian or Lindbladian) with a solver that assumes constant " *
             "dynamics. To avoid errors, please use the _dynamic solvers instead, " *
             "e.g. schroedinger_dynamic instead of schroedinger")
         )

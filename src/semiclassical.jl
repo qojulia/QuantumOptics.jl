@@ -9,7 +9,7 @@ import LinearAlgebra: normalize, normalize!
 import RecursiveArrayTools
 
 using Random, LinearAlgebra
-import OrdinaryDiffEq
+import OrdinaryDiffEqCore
 
 # TODO: Remove imports
 import DiffEqCallbacks, RecursiveArrayTools.copyat_or_push!
@@ -351,7 +351,7 @@ function jump_callback(jumpfun::F, seed, scb, save_before!::G,
         return nothing
     end
 
-    return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
+    return OrdinaryDiffEqCore.ContinuousCallback(djumpnorm,dojump,
                      save_positions = (false,false))
 end
 as_vector(psi::State) = vcat(psi.quantum.data[:], psi.classical)
