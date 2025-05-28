@@ -1,4 +1,6 @@
 names = [
+    "test_aqua.jl",
+
     "test_phasespace.jl",
     "test_spectralanalysis.jl",
 

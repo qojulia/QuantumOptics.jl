@@ -12,9 +12,9 @@ Integrate Schroedinger equation to evolve states or compute propagators.
         normalized nor permanent! It is still in use by the ode solver and
         therefore must not be changed.
 """
-function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B};
+function schroedinger(tspan, psi0::T, H::AbstractOperator;
                 fout=nothing,
-                kwargs...) where {B,Bo,T<:Union{AbstractOperator{B,Bo},StateVector{B}}}
+                kwargs...) where {T<:Union{AbstractOperator,StateVector}}
     _check_const(H)
     dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
     tspan, psi0 = _promote_time_and_state(psi0, H, tspan) # promote only if ForwardDiff.Dual
@@ -57,7 +57,7 @@ function schroedinger_dynamic(tspan, psi0, f;
 end
 
 function schroedinger_dynamic(tspan, psi0::T, H::AbstractTimeDependentOperator;
-    kwargs...) where {B,Bp,T<:Union{AbstractOperator{B,Bp},StateVector{B}}}
+    kwargs...) where {T<:Union{AbstractOperator,StateVector}}
     promoted_tspan, psi0 = _promote_time_and_state(psi0, H, tspan)
     if promoted_tspan !== tspan # promote H
         promoted_H = TimeDependentSum(H.coefficients, H.static_op.operators; init_time=first(promoted_tspan))
