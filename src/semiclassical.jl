@@ -109,7 +109,7 @@ find_classical(x::State, rest) = x.classical
 
 # In-place broadcasting
 @inline function Base.copyto!(dest::State{B}, bc::Broadcast.Broadcasted{<:StateStyle{B},Axes,F,Args}) where {B,Axes,F,Args<:Tuple}
-    axes(dest) == axes(bc) || throwdm(axes(dest), axes(bc))
+    axes(dest) == axes(bc) || throw(DimensionMismatch("Dimension of $(axes(dest)) and $(axes(bc)) does not match"))
     bc′ = Base.Broadcast.preprocess(dest, bc)
     # write broadcasted quantum data to dest
     qobj = dest.quantum
