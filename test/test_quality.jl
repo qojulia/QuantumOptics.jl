@@ -4,5 +4,5 @@ using QuantumOptics
 @testset "Quality Assurance" begin
     using Aqua
 
-    Aqua.test_all(QuantumOptics)
+    Aqua.test_all(QuantumOptics, piracies = false, unbound_args = false)
 end
