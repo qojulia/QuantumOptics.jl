@@ -24,26 +24,33 @@ StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 WignerSymbols = "9f57e263-0b3d-5e2e-b1be-24f2bb48858b"
 
 [compat]
+Aqua = "0.8.11"
 Arpack = "0.5.1 - 0.5.3"
 DiffEqBase = "6.162"
 DiffEqCallbacks = "2, 3, 4"
 DiffEqNoiseProcess = "5.23.0"
 FFTW = "1"
+FiniteDiff = "2.27.0"
 ForwardDiff = "0.10"
 IterativeSolvers = "0.9"
 JET = "0.9.18"
 KrylovKit = "0.6, 0.7, 0.8, 0.9"
+LinearAlgebra = "1.10"
 LinearMaps = "3"
 OrdinaryDiffEqCore = "1.12.1"
 OrdinaryDiffEqLowOrderRK = "1.2.0"
 QuantumOpticsBase = "0.3, 0.4, 0.5"
+Random = "1.10"
 RecursiveArrayTools = "2, 3"
 Reexport = "0.2, 1.0"
+SparseArrays = "1.10"
 StochasticDiffEq = "6.76.0"
+Test = "1.10"
 WignerSymbols = "1, 2"
 julia = "1.10"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -52,4 +59,4 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["FiniteDiff", "JET", "LinearAlgebra", "SparseArrays", "Random", "Test"]
+test = ["Aqua", "FiniteDiff", "JET", "LinearAlgebra", "SparseArrays", "Random", "Test"]
