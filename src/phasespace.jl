@@ -287,7 +287,7 @@ systems and can be described by two angles θ and ϕ (although this
 parametrization is not unique), similarly to a qubit on the
 Bloch sphere.
 """
-function QuantumOpticsBase.coherentspinstate(b::SpinBasis, theta::Real, phi::Real)
+function coherentspinstate(b::SpinBasis, theta::Real, phi::Real)
 
     result = Ket(b)
     data = result.data
@@ -336,7 +336,7 @@ function qfuncsu2(psi::Ket{B}, Ntheta::Integer; Nphi::Integer=2Ntheta) where B<:
     lb = float(b.spinnumber)
     result = Array{real(eltype(psi))}(undef, Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
-        result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi_bra_data*QuantumOpticsBase.coherentspinstate(b,pi-i*pi/(Ntheta-1),j*2pi/(Nphi-1)-pi).data)
+        result[i+1,j+1] = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,pi-i*pi/(Ntheta-1),j*2pi/(Nphi-1)-pi).data)
     end
     return result
 end
@@ -346,7 +346,7 @@ function qfuncsu2(rho::Operator{B,B}, Ntheta::Integer; Nphi::Integer=2Ntheta) wh
     lb = float(b.spinnumber)
     result = Array{real(eltype(rho))}(undef, Ntheta,Nphi)
     @inbounds  for i = 0:Ntheta-1, j = 0:Nphi-1
-        c = QuantumOpticsBase.coherentspinstate(b,pi-i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi)
+        c = coherentspinstate(b,pi-i*1pi/(Ntheta-1),j*2pi/(Nphi-1)-pi)
         result[i+1,j+1] = abs((2*lb+1)/(4pi)*c.data'*rho.data*c.data)
     end
     return result
@@ -356,14 +356,14 @@ function qfuncsu2(psi::Ket{B}, theta::Real, phi::Real) where B<:SpinBasis
     b = basis(psi)
     psi_bra_data = psi.data'
     lb = float(b.spinnumber)
-    result = (2*lb+1)/(4pi)*abs2(psi_bra_data*QuantumOpticsBase.coherentspinstate(b,theta,phi).data)
+    result = (2*lb+1)/(4pi)*abs2(psi_bra_data*coherentspinstate(b,theta,phi).data)
     return result
 end
 
 function qfuncsu2(rho::Operator{B,B}, theta::Real, phi::Real) where B<:SpinBasis
     b = basis(rho)
     lb = float(b.spinnumber)
-    c = QuantumOpticsBase.coherentspinstate(b,theta,phi)
+    c = coherentspinstate(b,theta,phi)
     result = abs((2*lb+1)/(4pi)*c.data'*rho.data*c.data)
     return result
 end
