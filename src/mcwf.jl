@@ -328,7 +328,7 @@ function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
                         rng_state=nothing,
                         save_everystep=false, callback=nothing,
                         saveat=tspan,
-                        alg=OrdinaryDiffEq.DP5(),
+                        alg=OrdinaryDiffEqLowOrderRK.DP5(),
                         kwargs...) where {T, J}
 
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
@@ -374,7 +374,7 @@ function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
                                          save_start = false)
 
     cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0, rng_state)
-    full_cb = OrdinaryDiffEq.CallbackSet(callback,cb,scb)
+    full_cb = OrdinaryDiffEqCore.CallbackSet(callback,cb,scb)
 
     df_ = let state = state, dstate = dstate  # help inference along
         function df_(dx, x, p, t)
@@ -386,9 +386,9 @@ function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
         end
     end
 
-    prob = OrdinaryDiffEq.ODEProblem{true}(df_, as_vector(psi0), (tspan_[1],tspan_[end]))
+    prob = OrdinaryDiffEqCore.ODEProblem{true}(df_, as_vector(psi0), (tspan_[1],tspan_[end]))
 
-    sol = OrdinaryDiffEq.solve(
+    sol = OrdinaryDiffEqCore.solve(
                 prob,
                 alg;
                 reltol = 1.0e-6,
@@ -459,7 +459,7 @@ function jump_callback(jumpfun::F, seed, scb, save_before!::G,
         return nothing
     end
 
-    return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
+    return OrdinaryDiffEqCore.ContinuousCallback(djumpnorm,dojump,
             save_positions = (false,false))
 end
 jump_callback(jumpfun, seed, scb, save_before!,

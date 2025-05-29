@@ -3,7 +3,7 @@ using QuantumOpticsBase: check_samebases, check_multiplicable
 using Random: AbstractRNG, randn!
 import ..timeevolution: recast!, QO_CHECKS, pure_inference, as_vector
 
-import DiffEqCallbacks, StochasticDiffEq, OrdinaryDiffEq, DiffEqNoiseProcess
+import DiffEqCallbacks, StochasticDiffEq, OrdinaryDiffEqCore, DiffEqNoiseProcess
 
 """
     integrate_stoch(tspan, df::Function, dg{Function}, x0{ComplexF64},
@@ -63,7 +63,7 @@ function integrate_stoch(tspan, df, dg, x0,
                                          save_start = false,
                                          tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
-    full_cb = OrdinaryDiffEq.CallbackSet(callback, ncb, scb)
+    full_cb = OrdinaryDiffEqCore.CallbackSet(callback, ncb, scb)
 
     prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),
                     noise=noise_,
@@ -98,7 +98,7 @@ function _check_const(op)
     if !QuantumOpticsBase.is_const(op)
         throw(
           ArgumentError("You are attempting to use a time-dependent dynamics generator " *
-            "(a Hamiltonian or Lindbladian) with a solver that assumes constant " * 
+            "(a Hamiltonian or Lindbladian) with a solver that assumes constant " *
             "dynamics. To avoid errors, please use the _dynamic solvers instead, " *
             "e.g. schroedinger_dynamic instead of schroedinger")
         )

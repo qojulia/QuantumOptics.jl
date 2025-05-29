@@ -1,5 +1,5 @@
 using Test
-using OrdinaryDiffEq, QuantumOptics
+using OrdinaryDiffEqCore, QuantumOptics
 import ForwardDiff
 import FiniteDiff
 

@@ -9,7 +9,7 @@ import LinearAlgebra: normalize, normalize!
 import RecursiveArrayTools
 
 using Random, LinearAlgebra
-import OrdinaryDiffEq
+import OrdinaryDiffEqCore
 
 # TODO: Remove imports
 import DiffEqCallbacks, RecursiveArrayTools.copyat_or_push!
@@ -109,7 +109,7 @@ find_classical(x::State, rest) = x.classical
 
 # In-place broadcasting
 @inline function Base.copyto!(dest::State{B}, bc::Broadcast.Broadcasted{<:StateStyle{B},Axes,F,Args}) where {B,Axes,F,Args<:Tuple}
-    axes(dest) == axes(bc) || throwdm(axes(dest), axes(bc))
+    axes(dest) == axes(bc) || throw(DimensionMismatch("Dimension of $(axes(dest)) and $(axes(bc)) does not match"))
     bc′ = Base.Broadcast.preprocess(dest, bc)
     # write broadcasted quantum data to dest
     qobj = dest.quantum
@@ -351,7 +351,7 @@ function jump_callback(jumpfun::F, seed, scb, save_before!::G,
         return nothing
     end
 
-    return OrdinaryDiffEq.ContinuousCallback(djumpnorm,dojump,
+    return OrdinaryDiffEqCore.ContinuousCallback(djumpnorm,dojump,
                      save_positions = (false,false))
 end
 as_vector(psi::State) = vcat(psi.quantum.data[:], psi.classical)
