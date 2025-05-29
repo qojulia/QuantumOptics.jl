@@ -1,8 +1,7 @@
-using Test
 using QuantumOptics
 using Random, LinearAlgebra
 
-@testset "mcwf" begin
+@testitem "mcwf" begin
 
 # Define parameters for spin coupled to electric field mode.
 ωc = 1.2

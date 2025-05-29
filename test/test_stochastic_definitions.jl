@@ -1,7 +1,6 @@
-using Test
 using QuantumOptics
 
-@testset "stochastic_definitions" begin
+@testitem "stochastic_definitions" begin
 
 n=20
 b=FockBasis(n)

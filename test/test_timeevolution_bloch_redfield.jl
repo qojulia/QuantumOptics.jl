@@ -1,8 +1,7 @@
 using QuantumOptics
-using Test
 
 
-@testset "bloch-redfield" begin
+@testitem "bloch-redfield" begin
 
 Δ = 0.2 * 2*π
 ϵ0 = 1.0 * 2*π

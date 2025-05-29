@@ -1,8 +1,7 @@
-using Test
 using QuantumOptics
 using LinearAlgebra
 
-@testset "steadystate" begin
+@testitem "steadystate" begin
 
 ωc = 1.2
 ωa = 0.9

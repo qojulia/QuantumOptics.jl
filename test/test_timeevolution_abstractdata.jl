@@ -1,4 +1,3 @@
-using Test
 using QuantumOptics
 
 # Implement custom type with AbstractArray interface

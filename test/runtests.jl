@@ -1,3 +1,5 @@
+using TestItemRunner
+
 names = [
     "test_aqua.jl",
     "test_jet.jl",

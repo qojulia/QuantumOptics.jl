@@ -1,9 +1,8 @@
-using Test
 using QuantumOptics
 using LinearAlgebra
 using QuantumOpticsBase: IncompatibleBases
 
-@testset "semiclassical" begin
+@testitem "semiclassical" begin
 
 # Test equality
 b = GenericBasis(3)

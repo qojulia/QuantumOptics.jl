@@ -13,7 +13,7 @@ import FiniteDiff
 # here we partially control the gradient error by limiting step size (dtmax)
 
 
-@testset "ForwardDiff on ODE Problems" begin
+@testitem "ForwardDiff on ODE Problems" begin
 
 # schroedinger equation
 b = SpinBasis(10//1)
@@ -34,7 +34,7 @@ findiff_schrod = FiniteDiff.finite_difference_gradient(cost_schrod, p)
 
 end
 
-@testset "ForwardDiff with schroedinger" begin
+@testitem "ForwardDiff with schroedinger" begin
 
 # system
 ba0 = FockBasis(2)
@@ -73,7 +73,7 @@ end
 
 end # testset
 
-@testset "ForwardDiff with schroedinger using TimeDependentSum" begin
+@testitem "ForwardDiff with schroedinger using TimeDependentSum" begin
 
 base=SpinBasis(1/2)
 ψi = spinup(base)
@@ -97,7 +97,7 @@ Ftdop(1.0)
 end # testset
 
 
-@testset "ForwardDiff with master" begin
+@testitem "ForwardDiff with master" begin
 
 b = SpinBasis(1//2)
 psi0 = spindown(b)

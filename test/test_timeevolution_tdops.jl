@@ -1,4 +1,3 @@
-using Test
 using QuantumOptics
 
 function test_settime(op)
@@ -8,7 +7,7 @@ function test_settime(op)
     return nothing
 end
 
-@testset "time-dependent operators" begin
+@testitem "time-dependent operators" begin
 
 b = FockBasis(7)
 

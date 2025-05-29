@@ -1,7 +1,6 @@
-using Test
 using QuantumOptics
 
-@testset "schroedinger" begin
+@testitem "schroedinger" begin
 
 N = 3
 Ncutoff = 2
@@ -121,7 +120,7 @@ t, u = timeevolution.schroedinger_dynamic(tspan, u0, f)
 end # testset
 
 
-@testset "reverse time schroedinger" begin
+@testitem "reverse time schroedinger" begin
 
 # time span
 tl0 = 3rand()-1.5 |> q -> range(q-0.5, q+0.5, 2^7)

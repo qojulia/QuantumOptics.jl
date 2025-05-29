@@ -1,10 +1,9 @@
-using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
 mutable struct SpectralanalysisTestOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR} end
 
-@testset "spectralanalysis" begin
+@testitem "spectralanalysis" begin
 
 Random.seed!(0)
 

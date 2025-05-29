@@ -1,4 +1,3 @@
-using Test
 using QuantumOptics
 using OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, OrdinaryDiffEqTsit5, OrdinaryDiffEqVerner
 import ForwardDiff as FD
@@ -47,7 +46,7 @@ function test_vs_fin_diff(fun, p; ε=√eps(eltype(p)), kwargs...)
     isapprox(FD_grad, fin_diff_grad; kwargs...) ? true : (@show abs_diff, rel_diff; false)
 end
 
-@testset "ForwardDiff with schroedinger" begin
+@testitem "ForwardDiff with schroedinger" begin
 
 # ex0
 ## dynamic

@@ -1,8 +1,7 @@
-using Test
 using QuantumOptics
 using LinearAlgebra
 
-@testset "stochastic_master" begin
+@testitem "stochastic_master" begin
 
 b_spin = SpinBasis(1//2)
 sz = sigmaz(b_spin)

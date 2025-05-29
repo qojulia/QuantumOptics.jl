@@ -1,9 +1,8 @@
-using Test
 using QuantumOptics
 using LinearAlgebra
 import StochasticDiffEq
 
-@testset "stochastic_schroedinger" begin
+@testitem "stochastic_schroedinger" begin
 
 b_spin = SpinBasis(1//2)
 sz = sigmaz(b_spin)

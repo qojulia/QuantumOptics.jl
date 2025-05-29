@@ -1,8 +1,7 @@
-using Test
 using QuantumOptics
 using LinearAlgebra
 
-@testset "master" begin
+@testitem "master" begin
 
 ωc = 1.2
 ωa = 0.9

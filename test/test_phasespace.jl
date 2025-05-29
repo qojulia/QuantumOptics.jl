@@ -1,8 +1,7 @@
-using Test
 using QuantumOptics
 using Random, LinearAlgebra
 
-@testset "phasespace" begin
+@testitem "phasespace" tags = [:phasespace] begin
 
 Random.seed!(0)
 

@@ -1,7 +1,6 @@
-using Test
 using QuantumOptics
 
-@testset "Quality Assurance" begin
+@testitem "Quality Assurance" tags = [:aqua] begin
     using Aqua
 
     Aqua.test_all(QuantumOptics, piracies = (broken = true,))
