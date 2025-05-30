@@ -1,4 +1,5 @@
 @testitem "steadystate" begin
+using Test
 using QuantumOptics
 using LinearAlgebra
 

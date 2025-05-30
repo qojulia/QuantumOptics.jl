@@ -1,4 +1,5 @@
 @testitem "timeevolution_pumpedcavity" begin
+using Test
 using QuantumOptics
 
 # System parameters

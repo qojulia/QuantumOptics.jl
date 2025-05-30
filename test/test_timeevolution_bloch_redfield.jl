@@ -1,4 +1,5 @@
 @testitem "bloch-redfield" begin
+using Test
 using QuantumOptics
 
 Δ = 0.2 * 2*π

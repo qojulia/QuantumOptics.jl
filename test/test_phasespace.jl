@@ -1,4 +1,5 @@
 @testitem "phasespace" tags = [:phasespace] begin
+using Test
 using QuantumOptics
 using Random, LinearAlgebra
 

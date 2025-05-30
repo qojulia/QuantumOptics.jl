@@ -1,4 +1,5 @@
 @testitem "schroedinger" begin
+using Test
 using QuantumOptics
 
 N = 3

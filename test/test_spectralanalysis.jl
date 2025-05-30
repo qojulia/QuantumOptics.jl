@@ -1,4 +1,5 @@
 @testitem "spectralanalysis" begin
+using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 

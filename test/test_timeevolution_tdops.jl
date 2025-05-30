@@ -1,4 +1,5 @@
 @testitem "time-dependent operators" begin
+using Test
 using QuantumOptics
 
 function test_settime(op)

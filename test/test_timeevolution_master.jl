@@ -1,4 +1,5 @@
 @testitem "master" begin
+using Test
 using QuantumOptics
 using LinearAlgebra
 

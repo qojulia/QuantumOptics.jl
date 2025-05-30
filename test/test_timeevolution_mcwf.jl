@@ -1,4 +1,5 @@
 @testitem "mcwf" begin
+using Test
 using QuantumOptics
 using Random, LinearAlgebra
 

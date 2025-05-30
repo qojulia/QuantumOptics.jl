@@ -1,4 +1,5 @@
 @testitem "timecorrelations" begin
+using Test
 using QuantumOptics
 using LinearAlgebra
 ωc = 1.2

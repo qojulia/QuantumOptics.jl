@@ -1,4 +1,5 @@
 @testitem "timeevolution_twolevel" begin
+using Test
 using QuantumOptics
 using LinearAlgebra
 

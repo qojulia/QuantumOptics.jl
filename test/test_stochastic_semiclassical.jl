@@ -1,4 +1,5 @@
 @testitem "stochastic_semiclassical" begin
+using Test
 using QuantumOptics
 using LinearAlgebra
 

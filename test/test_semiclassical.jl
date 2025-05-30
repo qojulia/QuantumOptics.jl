@@ -1,4 +1,5 @@
 @testitem "semiclassical" begin
+using Test
 using QuantumOptics
 using LinearAlgebra
 using QuantumOpticsBase: IncompatibleBases

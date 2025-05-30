@@ -1,4 +1,5 @@
 @testitem "stochastic_definitions" begin
+using Test
 using QuantumOptics
 
 n=20

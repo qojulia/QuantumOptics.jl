@@ -1,4 +1,5 @@
 @testitem "stochastic_schroedinger" begin
+using Test
 using QuantumOptics
 using LinearAlgebra
 import StochasticDiffEq
