@@ -1,6 +1,6 @@
 @testitem "Test ForwardDiff.jl with QuantumOptics.jl" begin
 using Test
-using OrdinaryDiffEqCore, QuantumOptics
+using OrdinaryDiffEqLowOrderRK, QuantumOptics
 import ForwardDiff
 import FiniteDiff
 
