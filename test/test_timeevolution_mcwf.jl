@@ -1,7 +1,9 @@
-@testitem "mcwf" begin
+@testitem "test_timeevolution_mcwf" begin
 using Test
 using QuantumOptics
 using Random, LinearAlgebra
+
+@testset "mcwf" begin
 
 # Define parameters for spin coupled to electric field mode.
 ωc = 1.2
@@ -31,6 +33,7 @@ Hint = sm ⊗ create(fockbasis) + sp ⊗ destroy(fockbasis)
 H = Ha + Hc + Hint
 Hdense = dense(H)
 Hlazy = LazySum(Ha, Hc, Hint)
+
 
 # Jump operators
 Ja = embed(basis, 1, sqrt(γ)*sm)
@@ -113,6 +116,7 @@ tout, Ψt = timeevolution.mcwf_nh(T, Ψ₀, Hnh_dense, J; seed=UInt(1), reltol=1
 
 tout, Ψt = timeevolution.mcwf_nh(T, Ψ₀, Hnh, J; seed=UInt(2), reltol=1e-6)
 @test norm(Ψt[end]-Ψ) > 0.1
+
 
 
 # Test convergence to master solution
@@ -275,3 +279,4 @@ tout, ψt, t_jump, j_index = timeevolution.mcwf(T, ψ0, 0Hdense, Jdense; display
 @test j_index[1] == 1
 
 end # testset
+end

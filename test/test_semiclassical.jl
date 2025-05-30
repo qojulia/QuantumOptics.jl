@@ -1,8 +1,10 @@
-@testitem "semiclassical" begin
+@testitem "test_semiclassical" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
 using QuantumOpticsBase: IncompatibleBases
+
+@testset "semiclassical" begin
 
 # Test equality
 b = GenericBasis(3)
@@ -200,3 +202,4 @@ sc_dm = semiclassical.State(rho, u0)
 @test_throws IncompatibleBases sc_ket .+ semiclassical.State(spinup(SpinBasis(10)), u0)
 
 end # testsets
+end

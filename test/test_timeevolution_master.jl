@@ -1,7 +1,9 @@
-@testitem "master" begin
+@testitem "test_timeevolution_master" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
+
+@testset "master" begin
 
 ωc = 1.2
 ωa = 0.9
@@ -182,3 +184,4 @@ tout, h_exp = timeevolution.master(T, dm(Ψ₀), L; fout=(t,rho)->expect(Hdense,
 @test isequal(expect(Hdense, rho_t), h_exp)
 
 end # testset
+end

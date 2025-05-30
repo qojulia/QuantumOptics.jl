@@ -1,4 +1,4 @@
-@testitem "time-dependent operators" begin
+@testitem "test_timeevolution_tdops" begin
 using Test
 using QuantumOptics
 
@@ -8,6 +8,8 @@ function test_settime(op)
     set_time!(op, t)
     return nothing
 end
+
+@testset "time-dependent operators" begin
 
 b = FockBasis(7)
 
@@ -124,4 +126,5 @@ allocs1 = @allocated timeevolution.master_nh_dynamic(ts, psi0, Hnh, Jstup)
 allocs2 = @allocated timeevolution.master_nh_dynamic(ts_half, psi0, Hnh, Jstup)
 @test allocs1 == allocs2
 
+end
 end

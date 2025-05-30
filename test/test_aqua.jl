@@ -1,7 +1,9 @@
+@testitem "test_aqua" begin
+using Test
+using QuantumOptics
+
 @testitem "Quality Assurance" tags = [:aqua] begin
     using Aqua
-    using Test
-    using QuantumOptics
 
     Aqua.test_all(QuantumOptics, piracies = (broken = true,))
 
@@ -9,4 +11,5 @@
     phasespace_funcs = [:qfunc, :wigner, :coherentspinstate, :qfuncsu2, :wignersu2]
     pirates = [pirate for pirate in Aqua.Piracy.hunt(QuantumOptics) if pirate.name ∉ phasespace_funcs]
     @test isempty(pirates)
+end
 end

@@ -1,7 +1,9 @@
-@testitem "stochastic_semiclassical" begin
+@testitem "test_stochastic_semiclassical" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
+
+@testset "stochastic_semiclassical" begin
 
 b_spin = SpinBasis(1//2)
 sz = sigmaz(b_spin)
@@ -98,3 +100,4 @@ tout, ρt = stochastic.master_semiclassical(T, ψ_sc, fquantum_master, fclassica
 @test_throws ArgumentError stochastic.master_semiclassical(T, ρ_sc, fquantum_master, fclassical)
 
 end # testset
+end

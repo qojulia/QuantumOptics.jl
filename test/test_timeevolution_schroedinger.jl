@@ -1,10 +1,12 @@
-@testitem "schroedinger" begin
+@testitem "test_timeevolution_schroedinger" begin
 using Test
 using QuantumOptics
 
 N = 3
 Ncutoff = 2
 T = [0.:0.1:1.;]
+
+@testset "schroedinger" begin
 
 Ω = [0 2 3;
      2 0 1;
@@ -120,8 +122,7 @@ t, u = timeevolution.schroedinger_dynamic(tspan, u0, f)
 end # testset
 
 
-@testitem "reverse time schroedinger" begin
-using QuantumOptics
+@testset "reverse time schroedinger" begin
 
 # time span
 tl0 = 3rand()-1.5 |> q -> range(q-0.5, q+0.5, 2^7)
@@ -147,3 +148,5 @@ tlr , ψlr = timeevolution.schroedinger_dynamic(reverse(tl0), last(ψl), Ht;  ab
 @test all(isapprox.(ψl, reverse(ψlr), rtol=100tol))
 
 end # testset
+
+end

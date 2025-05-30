@@ -1,7 +1,9 @@
-@testitem "steadystate" begin
+@testitem "test_steadystate" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
+
+@testset "steadystate" begin
 
 ωc = 1.2
 ωa = 0.9
@@ -178,3 +180,4 @@ rates = [κ]
 @test round(real(expect(at*a,ρ_end)), digits=4) == 0.0406
 
 end # testset
+end

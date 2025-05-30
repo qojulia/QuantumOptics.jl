@@ -1,6 +1,9 @@
-@testitem "bloch-redfield" begin
-using Test
+@testitem "test_timeevolution_bloch_redfield.jl" begin
 using QuantumOptics
+using Test
+
+
+@testset "bloch-redfield" begin
 
 Δ = 0.2 * 2*π
 ϵ0 = 1.0 * 2*π
@@ -43,3 +46,4 @@ tout, z = timeevolution.master_bloch_redfield([0.0:0.1:2.0;], psi0, R, H; fout=f
 @test isa(first(z), ComplexF64)
 
 end # testset
+end

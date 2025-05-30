@@ -1,4 +1,4 @@
-@testitem "abstract-data" begin
+@testitem "test_timeevolution_abstractdata" begin
 using Test
 using QuantumOptics
 
@@ -15,6 +15,9 @@ Base.getindex(A::TestData, inds...) = getindex(A.x, inds...)
 Base.setindex!(A::TestData, val, inds...) = setindex!(A.x, val, inds...)
 Base.similar(A::TestData, dims::Int...) = TestData(similar(A.x,dims...))
 Base.zero(A::TestData) = TestData(zero(A.x))
+
+@testset "abstract-data" begin
+
 
 ###############
 # Schrödinger #
@@ -237,3 +240,4 @@ rho0 = Operator(basis, TestData(dm(psi0).data))
 timeevolution.master(T, rho0, H_, []; fout=f)
 
 end # testset
+end

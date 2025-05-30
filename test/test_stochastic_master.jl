@@ -1,7 +1,9 @@
-@testitem "stochastic_master" begin
+@testitem "test_stochastic_master" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
+
+@testset "stochastic_master" begin
 
 b_spin = SpinBasis(1//2)
 sz = sigmaz(b_spin)
@@ -56,3 +58,4 @@ tout, ρt = stochastic.master_dynamic(T_short, ψ0, fdeterm_master, fstoch_maste
 tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch_master, dt=dt)
 
 end # testset
+end

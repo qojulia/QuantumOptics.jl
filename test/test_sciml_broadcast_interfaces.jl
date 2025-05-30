@@ -1,7 +1,9 @@
-@testitem "sciml interface" begin
+@testitem "test_sciml_broadcast_interfaces" begin
 using Test
 using QuantumOptics
 using OrdinaryDiffEqLowOrderRK
+
+@testset "sciml interface" begin
 
 # semiclassical ODE problem
 b = SpinBasis(1//2)
@@ -21,4 +23,5 @@ tout, ψt = semiclassical.schroedinger_dynamic([t₀, t₁], sc, fquantum, fclas
 
 @test sol[end] ≈ ψt[end]
 
+end
 end

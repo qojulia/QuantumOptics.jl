@@ -1,10 +1,12 @@
-@testitem "spectralanalysis" begin
+@testitem "test_spectralanalysis" begin
 using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
 mutable struct SpectralanalysisTestOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR} end
-    
+
+@testset "spectralanalysis" begin
+
 Random.seed!(0)
 
 sprandop(b) = sparse(DenseOperator(b, rand(ComplexF64, length(b), length(b))))
@@ -101,3 +103,4 @@ fockbasis = FockBasis(4)
 @test_throws ErrorException simdiag([dense(destroy(fockbasis)), dense(create(fockbasis))])
 
 end # testset
+end
