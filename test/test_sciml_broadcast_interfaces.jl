@@ -1,7 +1,6 @@
+@testitem "sciml interface" begin
 using QuantumOptics
 using OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK
-
-@testitem "sciml interface" begin
 
 # semiclassical ODE problem
 b = SpinBasis(1//2)

@@ -1,6 +1,5 @@
-using QuantumOptics
-
 @testitem "schroedinger" begin
+using QuantumOptics
 
 N = 3
 Ncutoff = 2
@@ -121,6 +120,7 @@ end # testset
 
 
 @testitem "reverse time schroedinger" begin
+using QuantumOptics
 
 # time span
 tl0 = 3rand()-1.5 |> q -> range(q-0.5, q+0.5, 2^7)

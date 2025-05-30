@@ -1,7 +1,6 @@
+@testitem "steadystate" begin
 using QuantumOptics
 using LinearAlgebra
-
-@testitem "steadystate" begin
 
 ωc = 1.2
 ωa = 0.9

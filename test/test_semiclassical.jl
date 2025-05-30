@@ -1,8 +1,7 @@
+@testitem "semiclassical" begin
 using QuantumOptics
 using LinearAlgebra
 using QuantumOpticsBase: IncompatibleBases
-
-@testitem "semiclassical" begin
 
 # Test equality
 b = GenericBasis(3)

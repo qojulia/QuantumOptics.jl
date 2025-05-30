@@ -1,7 +1,6 @@
+@testitem "mcwf" begin
 using QuantumOptics
 using Random, LinearAlgebra
-
-@testitem "mcwf" begin
 
 # Define parameters for spin coupled to electric field mode.
 ωc = 1.2
@@ -115,7 +114,6 @@ tout, Ψt = timeevolution.mcwf_nh(T, Ψ₀, Hnh, J; seed=UInt(2), reltol=1e-6)
 @test norm(Ψt[end]-Ψ) > 0.1
 
 
-
 # Test convergence to master solution
 tout_master, ρt_master = timeevolution.master(T, ρ₀, H, J)
 
@@ -131,8 +129,7 @@ for i=1:length(T)
     @test err < 0.1
 end
 
-
-# Test single jump operator
+#Test single jump operator
 J1 = [Ja]
 J1_dense = map(dense, J1)
 J2 = [Ja, 0 * Jc]

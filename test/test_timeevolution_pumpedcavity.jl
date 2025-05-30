@@ -1,6 +1,5 @@
-using QuantumOptics
-
 @testitem "timeevolution_pumpedcavity" begin
+using QuantumOptics
 
 # System parameters
 ω = 1.89 # Frequency of driving laser

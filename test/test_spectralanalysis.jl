@@ -1,10 +1,9 @@
+@testitem "spectralanalysis" begin
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
 
 mutable struct SpectralanalysisTestOperator{BL<:Basis,BR<:Basis} <: AbstractOperator{BL,BR} end
-
-@testitem "spectralanalysis" begin
-
+    
 Random.seed!(0)
 
 sprandop(b) = sparse(DenseOperator(b, rand(ComplexF64, length(b), length(b))))

@@ -1,8 +1,6 @@
+@testitem "timecorrelations" begin
 using QuantumOptics
 using LinearAlgebra
-
-@testitem "timecorrelations" begin
-
 ωc = 1.2
 ωa = 0.9
 g = 1.0

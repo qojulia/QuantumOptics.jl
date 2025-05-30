@@ -1,8 +1,7 @@
+@testitem "stochastic_schroedinger" begin
 using QuantumOptics
 using LinearAlgebra
 import StochasticDiffEq
-
-@testitem "stochastic_schroedinger" begin
 
 b_spin = SpinBasis(1//2)
 sz = sigmaz(b_spin)
@@ -22,18 +21,19 @@ dt = 1/30.0
 T = [0:1.0:100;]
 T_short = [0:dt:dt;]
 
-# Test equivalence of stochastic schroedinger phase noise and master dephasing
-Ntraj = 100
-ρ_avg = [0*ρ0 for i=1:length(T)]
-for i=1:Ntraj
-    t, ψt = stochastic.schroedinger(T, ψ0, H, Hs; dt=dt,
-        alg=StochasticDiffEq.EulerHeun())
-    ρ_avg += dm.(ψt)./Ntraj
-end
-tout, ρt = timeevolution.master(T, ρ0, H, [sz]; rates=[0.25γ^2])
+@testset "Test equivalence of stochastic schroedinger phase noise and master dephasing" begin
+    Ntraj = 100
+    ρ_avg = [0*ρ0 for i=1:length(T)]
+    for i=1:Ntraj
+        t, ψt = stochastic.schroedinger(T, ψ0, H, Hs; dt=dt,
+            alg=StochasticDiffEq.EulerHeun())
+        ρ_avg += dm.(ψt)./Ntraj
+    end
+    tout, ρt = timeevolution.master(T, ρ0, H, [sz]; rates=[0.25γ^2])
 
-for i=1:length(tout)
-    @test tracedistance(ρ_avg[i], ρt[i]) < 5dt
+    for i=1:length(tout)
+        @test tracedistance(ρ_avg[i], ρt[i]) < 5dt
+    end
 end
 
 # Function definitions for schroedinger_dynamic

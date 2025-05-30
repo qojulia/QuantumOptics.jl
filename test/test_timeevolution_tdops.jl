@@ -1,3 +1,4 @@
+@testitem "time-dependent operators" begin
 using QuantumOptics
 
 function test_settime(op)
@@ -6,8 +7,6 @@ function test_settime(op)
     set_time!(op, t)
     return nothing
 end
-
-@testitem "time-dependent operators" begin
 
 b = FockBasis(7)
 

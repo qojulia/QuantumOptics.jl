@@ -1,7 +1,6 @@
+@testitem "master" begin
 using QuantumOptics
 using LinearAlgebra
-
-@testitem "master" begin
 
 ωc = 1.2
 ωa = 0.9

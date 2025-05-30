@@ -1,6 +1,5 @@
-using QuantumOptics
-
 @testitem "stochastic_definitions" begin
+using QuantumOptics
 
 n=20
 b=FockBasis(n)

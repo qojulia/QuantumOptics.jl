@@ -1,7 +1,6 @@
+@testitem "stochastic_master" begin
 using QuantumOptics
 using LinearAlgebra
-
-@testitem "stochastic_master" begin
 
 b_spin = SpinBasis(1//2)
 sz = sigmaz(b_spin)

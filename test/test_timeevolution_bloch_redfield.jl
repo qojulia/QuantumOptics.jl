@@ -1,7 +1,5 @@
-using QuantumOptics
-
-
 @testitem "bloch-redfield" begin
+using QuantumOptics
 
 Δ = 0.2 * 2*π
 ϵ0 = 1.0 * 2*π
@@ -41,6 +39,6 @@ tout, ρt2 = timeevolution.master_bloch_redfield([0.0:0.1:2.0;], psi0, R, H; fou
 fout2(t,rho) = expect(sz,rho)
 tout, z = timeevolution.master_bloch_redfield([0.0:0.1:2.0;], psi0, R, H; fout=fout2)
 @test length(z) == length(ρt)
-@test isa(z, Vector{ComplexF64})
+@test isa(first(z), ComplexF64)
 
 end # testset

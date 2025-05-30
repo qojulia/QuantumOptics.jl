@@ -1,8 +1,3 @@
-using Test
-using OrdinaryDiffEqCore, QuantumOptics
-import ForwardDiff
-import FiniteDiff
-
 # for some caese ForwardDiff.jl returns NaN due to issue with DiffEq.jl. see https://github.com/SciML/DiffEqBase.jl/issues/861
 # Here we test;
 # That gradient from ForwardDiff.jl on QuantumOptics.jl match ForwardDiff.jl on DiffEq.jl.
@@ -14,6 +9,9 @@ import FiniteDiff
 
 
 @testitem "ForwardDiff on ODE Problems" begin
+using OrdinaryDiffEqLowOrderRK, QuantumOptics
+import ForwardDiff
+import FiniteDiff
 
 # schroedinger equation
 b = SpinBasis(10//1)
@@ -35,6 +33,9 @@ findiff_schrod = FiniteDiff.finite_difference_gradient(cost_schrod, p)
 end
 
 @testitem "ForwardDiff with schroedinger" begin
+using QuantumOptics
+import ForwardDiff
+import FiniteDiff
 
 # system
 ba0 = FockBasis(2)
@@ -74,7 +75,9 @@ end
 end # testset
 
 @testitem "ForwardDiff with schroedinger using TimeDependentSum" begin
-
+using QuantumOptics
+import ForwardDiff
+import FiniteDiff
 base=SpinBasis(1/2)
 ψi = spinup(base)
 ψt = spindown(base)
@@ -98,6 +101,9 @@ end # testset
 
 
 @testitem "ForwardDiff with master" begin
+using QuantumOptics
+import ForwardDiff
+import FiniteDiff
 
 b = SpinBasis(1//2)
 psi0 = spindown(b)

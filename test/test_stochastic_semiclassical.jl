@@ -1,8 +1,6 @@
-using Test
+@testitem "stochastic_semiclassical" begin
 using QuantumOptics
 using LinearAlgebra
-
-@testitem "stochastic_semiclassical" begin
 
 b_spin = SpinBasis(1//2)
 sz = sigmaz(b_spin)

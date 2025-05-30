@@ -1,7 +1,6 @@
+@testitem "timeevolution_twolevel" begin
 using QuantumOptics
 using LinearAlgebra
-
-@testitem "timeevolution_twolevel" begin
 
 basis = SpinBasis(1//2)
 
