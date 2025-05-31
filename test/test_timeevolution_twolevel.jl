@@ -1,3 +1,4 @@
+@testitem "test_timeevolution_twolevel" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
@@ -35,3 +36,4 @@ f(t, rho::DenseOpType) = @test 1e-5 > tracedistance(rho, dm(U(t)*psi0))
 timeevolution.master(T, psi0, H, []; fout=f)
 
 end # testset
+end

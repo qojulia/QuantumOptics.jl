@@ -1,3 +1,4 @@
+@testitem "test_stochastic_semiclassical" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
@@ -99,3 +100,4 @@ tout, ρt = stochastic.master_semiclassical(T, ψ_sc, fquantum_master, fclassica
 @test_throws ArgumentError stochastic.master_semiclassical(T, ρ_sc, fquantum_master, fclassical)
 
 end # testset
+end

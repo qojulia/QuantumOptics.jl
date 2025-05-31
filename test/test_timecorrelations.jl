@@ -1,3 +1,4 @@
+@testitem "test_timecorrelations" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
@@ -85,3 +86,4 @@ omega5_2, S5_2 = timecorrelations.spectrum(H, J5, op; rates=rates5, tol=1e-3)
 @test abs(sum(S2 .- S5_2)) < 1e-8
 
 end # testset
+end

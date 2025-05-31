@@ -1,11 +1,12 @@
+@testitem "test_timeevolution_schroedinger" begin
 using Test
 using QuantumOptics
-
-@testset "schroedinger" begin
 
 N = 3
 Ncutoff = 2
 T = [0.:0.1:1.;]
+
+@testset "schroedinger" begin
 
 Ω = [0 2 3;
      2 0 1;
@@ -147,3 +148,5 @@ tlr , ψlr = timeevolution.schroedinger_dynamic(reverse(tl0), last(ψl), Ht;  ab
 @test all(isapprox.(ψl, reverse(ψlr), rtol=100tol))
 
 end # testset
+
+end

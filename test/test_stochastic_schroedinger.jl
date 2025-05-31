@@ -1,3 +1,4 @@
+@testitem "test_stochastic_schroedinger" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
@@ -78,3 +79,4 @@ for i=1:length(T)
 end
 
 end # testset
+end

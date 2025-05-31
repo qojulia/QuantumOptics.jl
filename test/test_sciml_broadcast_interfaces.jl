@@ -1,6 +1,7 @@
+@testitem "test_sciml_broadcast_interfaces" begin
 using Test
 using QuantumOptics
-using OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK
+using OrdinaryDiffEqLowOrderRK
 
 @testset "sciml interface" begin
 
@@ -22,4 +23,5 @@ tout, ψt = semiclassical.schroedinger_dynamic([t₀, t₁], sc, fquantum, fclas
 
 @test sol[end] ≈ ψt[end]
 
+end
 end

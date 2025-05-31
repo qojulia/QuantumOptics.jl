@@ -1,3 +1,4 @@
+@testitem "test_timeevolution_pumpedcavity" begin
 using Test
 using QuantumOptics
 
@@ -96,3 +97,4 @@ timeevolution.master_nh_dynamic(T, psi0, f_HJ_nh_dynamic2; fout=f_test_decay_dyn
 timeevolution.master_nh_dynamic(T, psi0, f_HJ_nh_dynamic3; fout=f_test_decay_dynamic)
 
 end # testset
+end

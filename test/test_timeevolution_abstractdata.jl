@@ -1,3 +1,4 @@
+@testitem "test_timeevolution_abstractdata" begin
 using Test
 using QuantumOptics
 
@@ -239,3 +240,4 @@ rho0 = Operator(basis, TestData(dm(psi0).data))
 timeevolution.master(T, rho0, H_, []; fout=f)
 
 end # testset
+end

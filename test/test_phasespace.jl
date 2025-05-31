@@ -1,3 +1,4 @@
+@testitem "test_phasespace" begin
 using Test
 using QuantumOptics
 using Random, LinearAlgebra
@@ -208,3 +209,4 @@ t2 = abs(int*2*(pi/res)^2)
 @test isapprox(t2, 0, atol=1e-2)
 
 end # testset
+end

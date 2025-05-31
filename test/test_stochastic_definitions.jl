@@ -1,3 +1,4 @@
+@testitem "test_stochastic_definitions" begin
 using Test
 using QuantumOptics
 
@@ -20,3 +21,4 @@ fdeterm1, fstoch = stochastic.homodyne_carmichael(H0, a, 0.5π; normalize_expect
 @test fdeterm1(0.0, psi1) == H0 + 0.5*expect(Y, psi0)*a - 0.5im*ad*a
 
 end # testset
+end

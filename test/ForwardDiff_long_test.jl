@@ -1,3 +1,4 @@
+@testitem "ForwardDiff_long_test" tags=[:slow] begin
 using Test
 using QuantumOptics
 using OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, OrdinaryDiffEqTsit5, OrdinaryDiffEqVerner
@@ -181,3 +182,4 @@ FDgrad(cost2_via_DiffEq, rand(2))
 end # testset
 
 Random.seed!() # 'random' seed
+end
