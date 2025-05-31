@@ -1,8 +1,8 @@
-@testitem "test_aqua" begin
+@testitem "test_aqua" tags = [:aqua] begin
 using Test
 using QuantumOptics
 
-@testitem "Quality Assurance" tags = [:aqua] begin
+@testset "Quality Assurance" begin
     using Aqua
 
     Aqua.test_all(QuantumOptics, piracies = (broken = true,))

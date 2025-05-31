@@ -1,3 +1,5 @@
+@testitem "ForwardDiff_long_test" tags=[:slow] begin
+using Test
 using QuantumOptics
 using OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, OrdinaryDiffEqTsit5, OrdinaryDiffEqVerner
 import ForwardDiff as FD
@@ -46,7 +48,7 @@ function test_vs_fin_diff(fun, p; ε=√eps(eltype(p)), kwargs...)
     isapprox(FD_grad, fin_diff_grad; kwargs...) ? true : (@show abs_diff, rel_diff; false)
 end
 
-@testitem "ForwardDiff with schroedinger" begin
+@testset "ForwardDiff with schroedinger" begin
 
 # ex0
 ## dynamic
@@ -180,3 +182,4 @@ FDgrad(cost2_via_DiffEq, rand(2))
 end # testset
 
 Random.seed!() # 'random' seed
+end

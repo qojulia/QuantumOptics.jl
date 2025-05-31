@@ -1,5 +1,5 @@
 using TestItemRunner
 using QuantumOptics
 
-testfilter = ti->(contains(ti.filename, "test_") && endswith(ti.filename, ".jl") )
+testfilter = ti->(!(:slow in ti.tags))
 @run_package_tests filter=testfilter
