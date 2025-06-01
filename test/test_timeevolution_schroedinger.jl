@@ -2,11 +2,11 @@
 using Test
 using QuantumOptics
 
+@testset "schroedinger" begin
+
 N = 3
 Ncutoff = 2
 T = [0.:0.1:1.;]
-
-@testset "schroedinger" begin
 
 Ω = [0 2 3;
      2 0 1;
