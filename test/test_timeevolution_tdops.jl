@@ -1,3 +1,4 @@
+@testitem "test_timeevolution_tdops" begin
 using Test
 using QuantumOptics
 
@@ -125,4 +126,5 @@ allocs1 = @allocated timeevolution.master_nh_dynamic(ts, psi0, Hnh, Jstup)
 allocs2 = @allocated timeevolution.master_nh_dynamic(ts_half, psi0, Hnh, Jstup)
 @test allocs1 == allocs2
 
+end
 end

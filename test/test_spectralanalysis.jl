@@ -1,3 +1,4 @@
+@testitem "test_spectralanalysis" begin
 using Test
 using QuantumOptics
 using LinearAlgebra, SparseArrays, Random
@@ -102,3 +103,4 @@ fockbasis = FockBasis(4)
 @test_throws ErrorException simdiag([dense(destroy(fockbasis)), dense(create(fockbasis))])
 
 end # testset
+end

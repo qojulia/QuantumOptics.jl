@@ -1,3 +1,4 @@
+@testitem "test_steadystate" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
@@ -179,3 +180,4 @@ rates = [κ]
 @test round(real(expect(at*a,ρ_end)), digits=4) == 0.0406
 
 end # testset
+end

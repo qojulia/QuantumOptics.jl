@@ -1,5 +1,6 @@
+@testitem "Test ForwardDiff.jl with QuantumOptics.jl" begin
 using Test
-using OrdinaryDiffEqCore, QuantumOptics
+using OrdinaryDiffEqLowOrderRK, QuantumOptics
 import ForwardDiff
 import FiniteDiff
 
@@ -128,4 +129,5 @@ for f in (:(timeevolution.master), :(timeevolution.master_h), :(timeevolution.ma
     @test isapprox(forwarddiff_J, finitediff_J; atol=1e-2)
 end
 
+end
 end

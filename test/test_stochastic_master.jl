@@ -1,3 +1,4 @@
+@testitem "test_stochastic_master" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
@@ -57,3 +58,4 @@ tout, ρt = stochastic.master_dynamic(T_short, ψ0, fdeterm_master, fstoch_maste
 tout, ρt = stochastic.master_dynamic(T_short, ρ0, fdeterm_master, fstoch_master, dt=dt)
 
 end # testset
+end

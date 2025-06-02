@@ -1,3 +1,4 @@
+@testitem "test_semiclassical" begin
 using Test
 using QuantumOptics
 using LinearAlgebra
@@ -201,3 +202,4 @@ sc_dm = semiclassical.State(rho, u0)
 @test_throws IncompatibleBases sc_ket .+ semiclassical.State(spinup(SpinBasis(10)), u0)
 
 end # testsets
+end

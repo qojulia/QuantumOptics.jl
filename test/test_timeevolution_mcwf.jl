@@ -1,3 +1,4 @@
+@testitem "test_timeevolution_mcwf" begin
 using Test
 using QuantumOptics
 using Random, LinearAlgebra
@@ -32,6 +33,7 @@ Hint = sm ⊗ create(fockbasis) + sp ⊗ destroy(fockbasis)
 H = Ha + Hc + Hint
 Hdense = dense(H)
 Hlazy = LazySum(Ha, Hc, Hint)
+
 
 # Jump operators
 Ja = embed(basis, 1, sqrt(γ)*sm)
@@ -132,8 +134,7 @@ for i=1:length(T)
     @test err < 0.1
 end
 
-
-# Test single jump operator
+#Test single jump operator
 J1 = [Ja]
 J1_dense = map(dense, J1)
 J2 = [Ja, 0 * Jc]
@@ -278,3 +279,4 @@ tout, ψt, t_jump, j_index = timeevolution.mcwf(T, ψ0, 0Hdense, Jdense; display
 @test j_index[1] == 1
 
 end # testset
+end
