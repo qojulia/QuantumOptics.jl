@@ -1,7 +1,7 @@
 using QuantumOpticsBase
 using QuantumOpticsBase: check_samebases, check_multiplicable
 
-import OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, DiffEqCallbacks, DiffEqBase, ForwardDiff
+import OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, DiffEqCallbacks, DiffEqBase
 
 function recast! end
 
@@ -133,10 +133,20 @@ function _promote_time_and_state(u0, H::AbstractOperator, tspan)
     return tspan_promote, u0_promote
 end
 function _promote_time_and_state(u0, H::AbstractOperator, J, tspan)
-    # TODO: Find an alternative to promote_dual, which was moved to
-    #       an extension in DiffEqBase 6.162.0
-    ext = Base.get_extension(DiffEqBase, :DiffEqBaseForwardDiffExt)
-    Ts = ext.promote_dual(eltype(H), DiffEqBase.anyeltypedual(J))
+    Ht = eltype(H)
+    Jt = DiffEqBase.anyeltypedual(J) # finds dual eltype in J, otherwise returns Any
+    # ForwardDiff doesn't promote ForwardDiff.Dual over julia Base number types, but we want to promote 
+    # duals with DiffEq operations without using DiffEqBase.promote_dual in ext/DiffEqBaseForwardDiffExt.jl,
+    # so we have to tread carefully here
+    if DiffEqBase.isdualtype(Jt)
+        if DiffEqBase.isdualtype(Ht)
+            Ts = promote_type(Ht, Jt)
+        else
+            Ts = Jt
+        end
+    else
+        Ts = Ht
+    end
     Tt = real(Ts)
     p = Vector{Tt}(undef,0)
     u0_promote = DiffEqBase.promote_u0(u0, p, tspan[1])
