@@ -1,0 +1,51 @@
+name: Documentation Build
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [ opened, synchronize ]
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      # Checkout documentation repository
+      - name: Checkout Docs Repository
+        uses: actions/checkout@v2
+        with:
+          repository: qojulia/QuantumOptics.jl-documentation
+          path: docs-repo
+      
+      # Setup Julia environment
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.x'
+      
+      # Install dependencies
+      - name: Install Dependencies
+        run: |
+          cd docs-repo
+          julia --project=. -e '
+            using Pkg
+            Pkg.instantiate()
+            Pkg.develop(PackageSpec(path=pwd()))
+            Pkg.build("Documenter")
+          '
+
+      # Build documentation
+      - name: Build Documentation
+        run: |
+          cd docs-repo
+          julia --project=. make.jl
+      
+      # Run doctests
+      - name: Run Doctests
+        run: |
+          cd docs-repo
+          julia --project=. -e '
+            using Documenter
+            Documenter.doctest("QuantumOpticsBase"; manual=true)
+          '
