@@ -143,8 +143,29 @@ function _promote_time_and_state(u0, H::AbstractOperator, J, tspan)
     tspan_promote = DiffEqBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
     return tspan_promote, u0_promote
 end
-
-_promote_time_and_state(u0, f, tspan) = _promote_time_and_state(u0, f(first(tspan)..., u0), tspan)
+function _promote_time_and_state(u0, H::AbstractOperator, J, rates, tspan)
+    # TODO: Find an alternative to promote_dual, which was moved to
+    #       an extension in DiffEqBase 6.162.0
+    ext = Base.get_extension(DiffEqBase, :DiffEqBaseForwardDiffExt)
+    Ts = reduce(ext.promote_dual, (eltype(H), DiffEqBase.anyeltypedual(J), DiffEqBase.anyeltypedual(rates)))
+    Tt = real(Ts)
+    p = Vector{Tt}(undef,0)
+    u0_promote = DiffEqBase.promote_u0(u0, p, tspan[1])
+    tspan_promote = DiffEqBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
+    return tspan_promote, u0_promote
+end
+_promote_time_and_state(u0, f::Function, tspan) = _promote_time_and_state(u0, f(first(tspan)..., u0), tspan)
+function _promote_time_and_state(u0, f::Union{Tuple, Vector}, tspan)
+    # TODO: Find an alternative to promote_dual, which was moved to
+    #       an extension in DiffEqBase 6.162.0
+    ext = Base.get_extension(DiffEqBase, :DiffEqBaseForwardDiffExt)
+    Ts = reduce(ext.promote_dual, (eltype(f[1]), DiffEqBase.anyeltypedual.(f[2:end])...))
+    Tt = real(Ts)
+    p = Vector{Tt}(undef,0)
+    u0_promote = DiffEqBase.promote_u0(u0, p, tspan[1])
+    tspan_promote = DiffEqBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
+    return tspan_promote, u0_promote
+end
 
 @inline function DiffEqBase.promote_u0(u0::Ket, p, t0)
     u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
