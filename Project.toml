@@ -29,6 +29,7 @@ Arpack = "0.5.1 - 0.5.3"
 DiffEqBase = "6.162"
 DiffEqCallbacks = "2, 3, 4"
 DiffEqNoiseProcess = "5.23.0"
+DifferentiationInterface = "0.6.39"
 FFTW = "1"
 FiniteDiff = "2.27.0"
 ForwardDiff = "0.10, 1"
@@ -52,6 +53,7 @@ julia = "1.10"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -61,4 +63,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 
 [targets]
-test = ["Aqua", "FiniteDiff", "JET", "LinearAlgebra", "SparseArrays", "Random", "Test", "TestItemRunner"]
+test = ["Aqua", "DifferentiationInterface", "FiniteDiff", "JET", "LinearAlgebra", "SparseArrays", "Random", "Test", "TestItemRunner"]
