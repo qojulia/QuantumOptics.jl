@@ -25,7 +25,7 @@ QuantumOptics.jl is a numerical framework written in Julia that makes it easy to
 # Run all tests
 julia --project=. -e "using Pkg; Pkg.test()"
 
-# Run with specific GPU backend
+# Run with only specific GPU backend tests
 CUDA_TEST=true julia --project=. -e "using Pkg; Pkg.test()"
 AMDGPU_TEST=true julia --project=. -e "using Pkg; Pkg.test()"
 OpenCL_TEST=true julia --project=. -e "using Pkg; Pkg.test()"
