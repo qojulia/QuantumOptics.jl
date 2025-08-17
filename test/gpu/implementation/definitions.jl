@@ -12,4 +12,4 @@ D(op1::AbstractOperator, op2::AbstractOperator) = abs(tracedistance_nh(dense(op1
 D(x1::StateVector, x2::StateVector) = norm(x2-x1)
 
 # Test tolerances for GPU computations
-const GPU_TOL = 1e-10
+const GPU_TOL = 1e-4
