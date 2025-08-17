@@ -2,6 +2,7 @@
 
     include("implementation/test_platform.jl")
 
+    import pocl_jll
     using OpenCL: CLArray, cl
     const AT = CLArray
 
