@@ -1,0 +1,85 @@
+env:
+  JULIA_NUM_THREADS: auto
+  PYTHON: ""
+  PYCALL_DEBUG_BUILD: yes
+
+steps:
+  - label: "Package Tests"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - QuantumSavory/julia-xvfb#v1:
+      - JuliaCI/julia-test#v1: ~
+      - JuliaCI/julia-coverage#v1:
+          codecov: true
+    command:
+      - echo "Julia depot path $${JULIA_DEPOT_PATH}"
+      - julia --project='~' -e '
+        using Pkg;
+        pkg"dev .";'
+
+  - label: "JET Tests"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - QuantumSavory/julia-xvfb#v1:
+      - JuliaCI/julia-test#v1: ~
+      - JuliaCI/julia-coverage#v1:
+          codecov: true
+    env:
+      JET_TEST: true
+    command:
+      - echo "Julia depot path $${JULIA_DEPOT_PATH}"
+      - julia --project='~' -e '
+        using Pkg;
+        pkg"dev .";'
+
+  - label: "CUDA Tests"
+    agents:
+      queue: cuda
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - JuliaCI/julia-test#v1: ~
+      - JuliaCI/julia-coverage#v1:
+          codecov: true
+    env:
+      CUDA_TEST: true
+    command:
+      - echo "Julia depot path $${JULIA_DEPOT_PATH}"
+      - julia --project='~' -e '
+        using Pkg;
+        pkg"dev .";'
+
+  - label: "AMDGPU Tests"
+    agents:
+      queue: rocm
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - JuliaCI/julia-test#v1: ~
+      - JuliaCI/julia-coverage#v1:
+          codecov: true
+    env:
+      AMDGPU_TEST: true
+    command:
+      - echo "Julia depot path $${JULIA_DEPOT_PATH}"
+      - julia --project='~' -e '
+        using Pkg;
+        pkg"dev .";'
+
+  - label: "OpenCL Tests"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - QuantumSavory/julia-xvfb#v1:
+      - JuliaCI/julia-test#v1: ~
+      - JuliaCI/julia-coverage#v1:
+          codecov: true
+    env:
+      OpenCL_TEST: true
+    command:
+      - echo "Julia depot path $${JULIA_DEPOT_PATH}"
+      - julia --project='~' -e '
+        using Pkg;
+        pkg"dev .";'
