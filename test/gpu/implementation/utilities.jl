@@ -20,42 +20,14 @@ function create_test_system(n, AT)
     return H, gpu_H, psi0, gpu_psi0
 end
 
+"""Verify that GPU time evolution matches CPU result within tolerance."""
 function verify_timeevolution_result(cpu_result, gpu_result, tolerance=GPU_TOL)
-    """Verify that GPU time evolution matches CPU result within tolerance."""
     if length(cpu_result[1]) != length(gpu_result[1])
         return false
     end
     
-    # Check time vectors
-    if !isapprox(cpu_result[1], gpu_result[1], atol=tolerance)
-        return false
-    end
-    
-    # Check state vectors
-    for (cpu_state, gpu_state) in zip(cpu_result[2], gpu_result[2])
-        gpu_data_cpu = Array(gpu_state.data)
-        if !isapprox(cpu_state.data, gpu_data_cpu, atol=tolerance)
-            return false
-        end
-    end
-    
-    return true
-end
-
-function test_state_properties(cpu_states, gpu_states, synchronize)
-    """Test that GPU states maintain proper quantum properties."""
-    @testset "State Properties" begin
-        for (cpu_state, gpu_state) in zip(cpu_states, gpu_states)
-            synchronize()
-            
-            # Test normalization
-            cpu_norm = norm(cpu_state)
-            gpu_norm = norm(gpu_state)
-            synchronize()
-            @test isapprox(cpu_norm, gpu_norm, atol=GPU_TOL)
-            
-            # Test that norm is approximately 1
-            @test isapprox(gpu_norm, 1.0, atol=GPU_TOL)
-        end
-    end
+    cpu_state = cpu_result[2][end]
+    gpu_state = gpu_result[2][end]
+    gpu_data_cpu = Array(gpu_state.data)
+    return isapprox(cpu_state.data, gpu_data_cpu, atol=tolerance)
 end

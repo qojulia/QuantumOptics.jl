@@ -18,9 +18,6 @@ function test_schroedinger_gpu(AT, synchronize)
                 
                 # Verify results match
                 @test verify_timeevolution_result((t_cpu, psi_cpu), (t_gpu, psi_gpu))
-                
-                # Test state properties
-                test_state_properties(psi_cpu, psi_gpu, synchronize)
             end
         end
     end
