@@ -1,25 +1,70 @@
-using TestItemRunner
-using QuantumOptics
+# GPU test flags
+CUDA_flag = false
+AMDGPU_flag = false
+OpenCL_flag = false
 
-# Define test filters
-testfilter = ti->(!(:slow in ti.tags))
+if Sys.iswindows()
+    @info "Skipping GPU tests -- only executed on *NIX platforms."
+else
+    CUDA_flag = get(ENV, "CUDA_TEST", "") == "true"
+    AMDGPU_flag = get(ENV, "AMDGPU_TEST", "") == "true"
+    OpenCL_flag = get(ENV, "OpenCL_TEST", "") == "true"
 
-# GPU test filters
-gpu_test_filter = ti -> begin
-    cuda_test = get(ENV, "CUDA_TEST", "false") == "true"
-    amdgpu_test = get(ENV, "AMDGPU_TEST", "false") == "true" 
-    opencl_test = get(ENV, "OpenCL_TEST", "true") == "true"  # Default to true for CI
-    
-    # Include GPU tests based on environment variables
-    if :cuda in ti.tags
-        return cuda_test
-    elseif :amdgpu in ti.tags
-        return amdgpu_test
-    elseif :opencl in ti.tags
-        return opencl_test
-    else
-        return !(:slow in ti.tags) && !(:cuda in ti.tags) && !(:amdgpu in ti.tags) && !(:opencl in ti.tags)
+    CUDA_flag && @info "Running with CUDA tests."
+    AMDGPU_flag && @info "Running with AMDGPU tests."
+    OpenCL_flag && @info "Running with OpenCL tests."
+    if !any((CUDA_flag, AMDGPU_flag, OpenCL_flag))
+        @info "Skipping GPU tests -- must be explicitly enabled."
+        @info "Environment must set [CUDA, AMDGPU, OpenCL]_TEST=true."
     end
 end
 
-@run_package_tests filter=gpu_test_filter
+using Pkg
+CUDA_flag && Pkg.add("CUDA")
+AMDGPU_flag && Pkg.add("AMDGPU")
+OpenCL_flag && Pkg.add("OpenCL")
+if any((CUDA_flag, AMDGPU_flag, OpenCL_flag))
+    Pkg.add("Adapt")
+end
+
+using TestItemRunner
+using QuantumOptics
+
+# filter for the test
+testfilter = ti -> begin
+  exclude = Symbol[]
+  
+  if get(ENV,"JET_TEST","")=="true"
+    return :jet in ti.tags
+  else
+    push!(exclude, :jet)
+  end
+  
+  if CUDA_flag
+    return :cuda in ti.tags
+  else
+    push!(exclude, :cuda)
+  end
+
+  if AMDGPU_flag
+    return :amdgpu in ti.tags
+  else
+    push!(exclude, :amdgpu)
+  end
+
+  if OpenCL_flag
+    return :opencl in ti.tags
+  else
+    push!(exclude, :opencl)
+  end
+  
+  if !(VERSION >= v"1.10")
+    push!(exclude, :aqua)
+  end
+
+  return all(!in(exclude), ti.tags)
+end
+
+println("Starting tests with $(Threads.nthreads()) threads out of `Sys.CPU_THREADS = $(Sys.CPU_THREADS)`...")
+
+@run_package_tests filter=testfilter
