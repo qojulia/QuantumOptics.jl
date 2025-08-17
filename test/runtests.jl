@@ -22,7 +22,7 @@ end
 using Pkg
 CUDA_flag && Pkg.add("CUDA")
 AMDGPU_flag && Pkg.add("AMDGPU")
-OpenCL_flag && Pkg.add("OpenCL")
+OpenCL_flag && Pkg.add(["pocl_jll", "OpenCL"])
 if any((CUDA_flag, AMDGPU_flag, OpenCL_flag))
     Pkg.add("Adapt")
 end
