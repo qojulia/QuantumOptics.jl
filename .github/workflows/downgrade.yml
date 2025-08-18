@@ -1,0 +1,29 @@
+name: Downgrade
+on:
+  pull_request:
+    branches: [master, main]
+    paths-ignore:
+      - 'docs/**'
+  push:
+    branches: [master, main]
+    paths-ignore:
+      - 'docs/**'
+env:
+  PYTHON: ~
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ['1.10']
+    steps:
+      - uses: actions/checkout@v5
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+      - uses: julia-actions/julia-downgrade-compat@v2
+        with:
+          skip: Pkg,TOML,InteractiveUtils,Random,LinearAlgebra
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
