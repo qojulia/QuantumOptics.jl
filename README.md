@@ -32,6 +32,10 @@ For questions, support, and discussions about QuantumOptics.jl, please use the [
 
 Contributions of any kind are always welcome! Whether it's ideas for new features, bug reports, or our favorite case, sending pull requests.
 
+## Office Hours
+
+Office hours are held every Friday from 12:30 – 1:30 PM Eastern Time via [Zoom](https://umass-amherst.zoom.us/j/95986275946?pwd=6h7Wbai1bXIai0XQsatNRWaVbQlTDr.1). Before joining, make sure to check the [Julia community events calendar](https://julialang.org/community/#events) to confirm whether office hours are happening, rescheduled, or canceled for the week. Feel free to bring any questions or suggestions!
+
 ### Citing
 
 If you like **QuantumOptics.jl**, we would appreciate it if you starred the repository in order to help us increase its visibility. Furthermore, if you find the framework useful in your research, we would be grateful if you could cite our [publication](https://www.sciencedirect.com/science/article/pii/S0010465518300328) using the following bibtex entry:
