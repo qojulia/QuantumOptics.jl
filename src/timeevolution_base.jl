@@ -1,7 +1,7 @@
 using QuantumOpticsBase
 using QuantumOpticsBase: check_samebases, check_multiplicable
 
-import OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, DiffEqCallbacks, DiffEqBase, ForwardDiff
+import OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, DiffEqCallbacks, SciMLBase
 
 function recast! end
 
@@ -128,19 +128,29 @@ function _promote_time_and_state(u0, H::AbstractOperator, tspan)
     Ts = eltype(H)
     Tt = real(Ts)
     p = Vector{Tt}(undef,0)
-    u0_promote = DiffEqBase.promote_u0(u0, p, tspan[1])
-    tspan_promote = DiffEqBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
+    u0_promote = SciMLBase.promote_u0(u0, p, tspan[1])
+    tspan_promote = SciMLBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
     return tspan_promote, u0_promote
 end
 function _promote_time_and_state(u0, H::AbstractOperator, J, tspan)
-    # TODO: Find an alternative to promote_dual, which was moved to
-    #       an extension in DiffEqBase 6.162.0
-    ext = Base.get_extension(DiffEqBase, :DiffEqBaseForwardDiffExt)
-    Ts = ext.promote_dual(eltype(H), DiffEqBase.anyeltypedual(J))
+    Ht = eltype(H)
+    Jt = SciMLBase.anyeltypedual(J) # finds dual eltype in J, otherwise returns Any
+    # ForwardDiff doesn't promote ForwardDiff.Dual over julia Base number types, but we want to promote 
+    # duals with DiffEq operations without using SciMLBase.promote_dual in ext/SciMLBaseForwardDiffExt.jl,
+    # so we have to tread carefully here
+    if SciMLBase.isdualtype(Jt)
+        if SciMLBase.isdualtype(Ht)
+            Ts = promote_type(Ht, Jt)
+        else
+            Ts = Jt
+        end
+    else
+        Ts = Ht
+    end
     Tt = real(Ts)
     p = Vector{Tt}(undef,0)
-    u0_promote = DiffEqBase.promote_u0(u0, p, tspan[1])
-    tspan_promote = DiffEqBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
+    u0_promote = SciMLBase.promote_u0(u0, p, tspan[1])
+    tspan_promote = SciMLBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
     return tspan_promote, u0_promote
 end
 function _promote_time_and_state(u0, H::AbstractOperator, J, rates, tspan)
@@ -167,24 +177,24 @@ function _promote_time_and_state(u0, f::Union{Tuple, Vector}, tspan)
     return tspan_promote, u0_promote
 end
 
-@inline function DiffEqBase.promote_u0(u0::Ket, p, t0)
-    u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
+@inline function SciMLBase.promote_u0(u0::Ket, p, t0)
+    u0data_promote = SciMLBase.promote_u0(u0.data, p, t0)
     if u0data_promote !== u0.data
         u0_promote = Ket(u0.basis, u0data_promote)
         return u0_promote
     end
     return u0
 end
-@inline function DiffEqBase.promote_u0(u0::Bra, p, t0)
-    u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
+@inline function SciMLBase.promote_u0(u0::Bra, p, t0)
+    u0data_promote = SciMLBase.promote_u0(u0.data, p, t0)
     if u0data_promote !== u0.data
         u0_promote = Bra(u0.basis, u0data_promote)
         return u0_promote
     end
     return u0
 end
-@inline function DiffEqBase.promote_u0(u0::Operator, p, t0)
-    u0data_promote = DiffEqBase.promote_u0(u0.data, p, t0)
+@inline function SciMLBase.promote_u0(u0::Operator, p, t0)
+    u0data_promote = SciMLBase.promote_u0(u0.data, p, t0)
     if u0data_promote !== u0.data
         u0_promote = Operator(u0.basis_l, u0.basis_r, u0data_promote)
         return u0_promote
