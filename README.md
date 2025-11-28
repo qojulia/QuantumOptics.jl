@@ -2,7 +2,7 @@
 
 #
 
-[![Chat on Gitter][gitter-img]][gitter-url] ![Build_state](https://github.com/qojulia/QuantumOptics.jl/workflows/CI/badge.svg) [![Stable documentation][docs-img]][docs-url]
+![Build_state](https://github.com/qojulia/QuantumOptics.jl/workflows/CI/badge.svg) [![Stable documentation][docs-img]][docs-url]
 
 **QuantumOptics.jl** is a numerical framework written in [Julia] that makes it easy to simulate various kinds of quantum systems. It is inspired by the [Quantum Optics Toolbox] for MATLAB and the Python framework [QuTiP].
 
@@ -15,9 +15,9 @@ More information, documentation and examples can be found on our website http://
         [![Test coverage status on codecov][codecov-img]][codecov-url]
 
 
-### Project structure
+### Project Structure
 
-The source content associated with **QuantumOptics.jl** is distributed over several repositories under the [qojulia] organization on github:
+The source content associated with **QuantumOptics.jl** is distributed over several repositories under the [qojulia] organization on GitHub:
 
 * The main code: https://github.com/qojulia/QuantumOptics.jl
 * Documentation: https://github.com/qojulia/QuantumOptics.jl-documentation
@@ -26,9 +26,15 @@ The source content associated with **QuantumOptics.jl** is distributed over seve
 * Website: https://github.com/qojulia/QuantumOptics.jl-website
 
 
-### Questions & Contributions
+### Discussion and Help
 
-If you have any questions or need help, hop on our [gitter channel](https://gitter.im/QuantumOptics-jl/Lobby?source=orgpage) and ask away. Also, contributions of any kind are always welcome! Be it as ideas for new features, bug reports or, our favorite case, sending pull requests.
+For questions, support, and discussions about QuantumOptics.jl, please use the [GitHub issue tracker](https://github.com/qojulia/QuantumOptics.jl/issues) for bug reports and feature requests. For general discussions and help, visit the [Julia Discourse forum under the quantum topic](https://discourse.julialang.org/c/domain/quantum/52). You can also join the `#quantum-optics` channel on the [Julia Slack](https://julialang.org/slack/) for real-time discussions.
+
+Contributions of any kind are always welcome! Whether it's ideas for new features, bug reports, or our favorite case, sending pull requests.
+
+## Office Hours
+
+Office hours are held every Friday from 12:30 – 1:30 PM Eastern Time via [Zoom](https://umass-amherst.zoom.us/j/95986275946?pwd=6h7Wbai1bXIai0XQsatNRWaVbQlTDr.1). Before joining, make sure to check the [Julia community events calendar](https://julialang.org/community/#events) to confirm whether office hours are happening, rescheduled, or canceled for the week. Feel free to bring any questions or suggestions!
 
 ### Citing
 
@@ -54,8 +60,6 @@ If you like **QuantumOptics.jl**, we would appreciate it if you starred the repo
 [codecov-url]: https://codecov.io/gh/qojulia/QuantumOptics.jl
 [codecov-img]: https://codecov.io/gh/qojulia/QuantumOptics.jl/branch/master/graph/badge.svg
 
-[gitter-url]: https://gitter.im/QuantumOptics-jl/Lobby
-[gitter-img]: https://img.shields.io/gitter/room/nwjs/nw.js.svg
 
 [docs-url]: https://docs.qojulia.org/
 [docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
