@@ -15,9 +15,9 @@ More information, documentation and examples can be found on our website http://
         [![Test coverage status on codecov][codecov-img]][codecov-url]
 
 
-### Project structure
+### Project Structure
 
-The source content associated with **QuantumOptics.jl** is distributed over several repositories under the [qojulia] organization on github:
+The source content associated with **QuantumOptics.jl** is distributed over several repositories under the [qojulia] organization on GitHub:
 
 * The main code: https://github.com/qojulia/QuantumOptics.jl
 * Documentation: https://github.com/qojulia/QuantumOptics.jl-documentation
@@ -30,7 +30,7 @@ The source content associated with **QuantumOptics.jl** is distributed over seve
 
 For questions, support, and discussions about QuantumOptics.jl, please use the [GitHub issue tracker](https://github.com/qojulia/QuantumOptics.jl/issues) for bug reports and feature requests. For general discussions and help, visit the [Julia Discourse forum under the quantum topic](https://discourse.julialang.org/c/domain/quantum/52). You can also join the `#quantum-optics` channel on the [Julia Slack](https://julialang.org/slack/) for real-time discussions.
 
-Contributions of any kind are always welcome! Be it as ideas for new features, bug reports or, our favorite case, sending pull requests.
+Contributions of any kind are always welcome! Whether it's ideas for new features, bug reports, or our favorite case, sending pull requests.
 
 ### Citing
 
