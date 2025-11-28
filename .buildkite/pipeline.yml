@@ -44,9 +44,33 @@ steps:
             AMDGPU_TEST: false
             OPENCL_TEST: false
         - with:
+            LABEL: "AMDGPU"
+            QUEUE: rocm
+            JET_TEST: false
+            CUDA_TEST: false
+            AMDGPU_TEST: true
+            OPENCL_TEST: false
+        - with:
             LABEL: "OpenCL"
             QUEUE: default
             JET_TEST: false
             CUDA_TEST: false
             AMDGPU_TEST: false
             OPENCL_TEST: true
+
+  - label: "Downstream Tests - {{matrix.PACKAGE}}"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - QuantumSavory/julia-xvfb#v1:
+    command:
+      - echo "Julia depot path $${JULIA_DEPOT_PATH}"
+      - julia --project=$(mktemp -d) -e '
+        using Pkg;
+        pkg"dev .";
+        Pkg.add("{{matrix.PACKAGE}}");
+        Pkg.build("{{matrix.PACKAGE}}");
+        Pkg.test("{{matrix.PACKAGE}}");'
+    matrix:
+      setup:
+        PACKAGE: ["QuantumSavory", "WaveguideQED"]
