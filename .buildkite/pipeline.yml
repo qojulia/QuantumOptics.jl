@@ -5,16 +5,7 @@ env:
   PYCALL_DEBUG_BUILD: yes
 
 steps:
-  - label: "Package Tests"
-    plugins:
-      - JuliaCI/julia#v1:
-          version: "1"
-      - QuantumSavory/julia-xvfb#v1:
-      - JuliaCI/julia-test#v1:
-      - JuliaCI/julia-coverage#v1:
-          codecov: true
-
-  - label: "JET Tests"
+  - label: "QuantumOptics Tests - {{matrix.LABEL}}"
     plugins:
       - JuliaCI/julia#v1:
           version: "1"
@@ -23,39 +14,39 @@ steps:
       - JuliaCI/julia-coverage#v1:
           codecov: true
     env:
-      JET_TEST: true
-
-  - label: "CUDA Tests"
+      JET_TEST: "{{matrix.JET_TEST}}"
+      CUDA_TEST: "{{matrix.CUDA_TEST}}"
+      AMDGPU_TEST: "{{matrix.AMDGPU_TEST}}"
+      OpenCL_TEST: "{{matrix.OPENCL_TEST}}"
     agents:
-      queue: cuda
-    plugins:
-      - JuliaCI/julia#v1:
-          version: "1"
-      - JuliaCI/julia-test#v1:
-      - JuliaCI/julia-coverage#v1:
-          codecov: true
-    env:
-      CUDA_TEST: true
-
-#  - label: "AMDGPU Tests"
-#    agents:
-#      queue: rocm
-#    plugins:
-#      - JuliaCI/julia#v1:
-#          version: "1"
-#      - JuliaCI/julia-test#v1:
-#      - JuliaCI/julia-coverage#v1:
-#          codecov: true
-#    env:
-#      AMDGPU_TEST: true
-
-  - label: "OpenCL Tests"
-    plugins:
-      - JuliaCI/julia#v1:
-          version: "1"
-      - QuantumSavory/julia-xvfb#v1:
-      - JuliaCI/julia-test#v1:
-      - JuliaCI/julia-coverage#v1:
-          codecov: true
-    env:
-      OpenCL_TEST: true
+      queue: "{{matrix.QUEUE}}"
+    matrix:
+      setup:
+        LABEL: ["base tests"]
+        QUEUE: ["default"]
+        JET_TEST: ["false"]
+        CUDA_TEST: ["false"]
+        AMDGPU_TEST: ["false"]
+        OPENCL_TEST: ["false"]
+      adjustments:
+        - with:
+            LABEL: "JET"
+            QUEUE: default
+            JET_TEST: true
+            CUDA_TEST: false
+            AMDGPU_TEST: false
+            OPENCL_TEST: false
+        - with:
+            LABEL: "CUDA"
+            QUEUE: cuda
+            JET_TEST: false
+            CUDA_TEST: true
+            AMDGPU_TEST: false
+            OPENCL_TEST: false
+        - with:
+            LABEL: "OpenCL"
+            QUEUE: default
+            JET_TEST: false
+            CUDA_TEST: false
+            AMDGPU_TEST: false
+            OPENCL_TEST: true
