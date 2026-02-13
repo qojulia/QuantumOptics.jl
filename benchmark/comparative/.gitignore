@@ -1,0 +1,5 @@
+results/*.json
+results-collected/*.json
+sourcecode/
+checks/*.json
+__pycache__/
