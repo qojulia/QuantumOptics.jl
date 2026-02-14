@@ -1,47 +1,22 @@
 name: Benchmarks
 on:
-  pull_request:
+  pull_request_target:
+    branches: [master, main]
+permissions:
+  pull-requests: write
 
 concurrency:
+  # group by workflow and ref; the last slightly strange component ensures that for pull
+  # requests, we limit to 1 concurrent job, but for the master branch we don't
   group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main') || github.run_number }}
+  # Cancel intermediate builds, but only if it is a pull request build.
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
   benchmark:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: julia-actions/setup-julia@latest
+      - uses: MilesCranmer/AirspeedVelocity.jl@action-v1
         with:
-          version: '1'
-      - uses: julia-actions/julia-buildpkg@latest
-      - name: Install benchmark dependencies
-        run: julia -e 'using Pkg; pkg"add PkgBenchmark BenchmarkCI@0.1"'
-      - name: Run benchmarks
-        run: |
-          julia -e '
-            using BenchmarkCI
-            BenchmarkCI.judge()
-            BenchmarkCI.displayjudgement()
-          '
-      - name: Generate benchmark result
-        run: |
-          body=$(julia -e '
-          using BenchmarkCI
-          let
-              judgement = BenchmarkCI._loadjudge(BenchmarkCI.DEFAULT_WORKSPACE)
-              title = "Benchmark Result"
-              ciresult = BenchmarkCI.CIResult(; judgement, title)
-              BenchmarkCI.printcommentmd(stdout::IO, ciresult)
-          end
-          ')
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}"
-          echo $body > ./benchmark-result.artifact
-      - name: Record pull request number
-        run: echo ${{ github.event.pull_request.number }} > ./pull-request-number.artifact
-      - uses: actions/upload-artifact@v6
-        with:
-          name: benchmark-result
-          path: ./*.artifact
+          julia-version: '1'
+          tune: 'false'
