@@ -11,7 +11,6 @@ function master_h_heisenberg(tspan, A0::Operator, H::AbstractOperator, J;
                            Jdagger=dagger.(J),
                            fout=nothing,
                            kwargs...)
-    println(rates)
     _check_const(H)
     _check_const.(J)
     _check_const.(Jdagger)
@@ -30,7 +29,6 @@ Update `drho` according to a heisenberg picture Lindblad equation.
 See [`dmaster_h`](@ref).
 """
 function dmaster_h_heisenberg!(dA, H, J, Jdagger, rates::Nothing, A, dA_cache)
-    println("dmaster_h_heisenberg")
     QuantumOpticsBase.mul!(dA,H,A,eltype(A)(im),zero(eltype(A)))
     QuantumOpticsBase.mul!(dA,A,H,-eltype(A)(im),one(eltype(A)))
     for i=1:length(J)
