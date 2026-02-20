@@ -3,7 +3,7 @@
 """
     timeevolution.master_h_heisenberg(tspan, A0, H, J; <keyword arguments>)
 
-Integrate the heisenberg picture master equation with dmaster_h_heisenberg as derivative function.
+Integrate the Heisenberg picture master equation with `dmaster_h_heisenberg!` as derivative function.
 See [`master_h`](@ref) for the Schrödinger picture.
 """
 function master_h_heisenberg(tspan, A0::Operator, H::AbstractOperator, J;
