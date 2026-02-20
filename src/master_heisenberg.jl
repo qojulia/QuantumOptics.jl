@@ -1,6 +1,11 @@
 
 
+"""
+    timeevolution.master_h_heisenberg(tspan, A0, H, J; <keyword arguments>)
 
+Integrate the heisenberg picture master equation with dmaster_h_heisenberg as derivative function.
+See [`master_h`](@ref) for the Schrödinger picture.
+"""
 function master_h_heisenberg(tspan, A0::Operator, H::AbstractOperator, J;
                            rates=nothing,
                            Jdagger=dagger.(J),
@@ -17,6 +22,13 @@ function master_h_heisenberg(tspan, A0::Operator, H::AbstractOperator, J;
 end
 
 
+
+"""
+    dmaster_h_heisenberg!(dA, H, J, Jdagger, rates::Nothing, A, dA_cache)
+
+Update `drho` according to a heisenberg picture Lindblad equation.
+See [`dmaster_h`](@ref).
+"""
 function dmaster_h_heisenberg!(dA, H, J, Jdagger, rates::Nothing, A, dA_cache)
     println("dmaster_h_heisenberg")
     QuantumOpticsBase.mul!(dA,H,A,eltype(A)(im),zero(eltype(A)))
