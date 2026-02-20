@@ -6,6 +6,7 @@ function master_h_heisenberg(tspan, A0::Operator, H::AbstractOperator, J;
                            Jdagger=dagger.(J),
                            fout=nothing,
                            kwargs...)
+    println(rates)
     _check_const(H)
     _check_const.(J)
     _check_const.(Jdagger)
@@ -16,48 +17,47 @@ function master_h_heisenberg(tspan, A0::Operator, H::AbstractOperator, J;
 end
 
 
-function dmaster_h_heisenberg!(drho, H, J, Jdagger, rates::Nothing, rho, drho_cache)
-    QuantumOpticsBase.mul!(drho,H,rho,eltype(rho)(im),zero(eltype(rho)))
-    QuantumOpticsBase.mul!(drho,rho,H,-eltype(rho)(im),one(eltype(rho)))
+function dmaster_h_heisenberg!(dA, H, J, Jdagger, rates::Nothing, A, dA_cache)
+    println("dmaster_h_heisenberg")
+    QuantumOpticsBase.mul!(dA,H,A,eltype(A)(im),zero(eltype(A)))
+    QuantumOpticsBase.mul!(dA,A,H,-eltype(A)(im),one(eltype(A)))
     for i=1:length(J)
-        QuantumOpticsBase.mul!(drho_cache,Jdagger[i],rho)
-        QuantumOpticsBase.mul!(drho,drho_cache,J[i],true,true)
+        QuantumOpticsBase.mul!(dA_cache,Jdagger[i],A)
+        QuantumOpticsBase.mul!(dA,dA_cache,J[i],true,true)
 
-        QuantumOpticsBase.mul!(drho,Jdagger[i],drho_cache,eltype(rho)(-0.5),one(eltype(rho)))
-
-        QuantumOpticsBase.mul!(drho_cache,rho,Jdagger[i],true,false)
-        QuantumOpticsBase.mul!(drho,drho_cache,J[i],eltype(rho)(-0.5),one(eltype(rho)))
+        QuantumOpticsBase.mul!(dA_cache,Jdagger[i],J[i],eltype(A)(-0.5),zero(eltype(A)))
+        QuantumOpticsBase.mul!(dA,dA_cache,A,true,true)
+        QuantumOpticsBase.mul!(dA,A,dA_cache,true,true)
     end
-    return drho
-end
-
-function dmaster_h_heisenberg!(drho, H, J, Jdagger, rates::AbstractVector, rho, drho_cache)
-    QuantumOpticsBase.mul!(drho,H,rho,eltype(rho)(im),zero(eltype(rho)))
-    QuantumOpticsBase.mul!(drho,rho,H,-eltype(rho)(im),one(eltype(rho)))
-    for i=1:length(J)
-        QuantumOpticsBase.mul!(drho_cache,Jdagger[i],rho,eltype(rho)(rates[i]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,drho_cache,J[i],true,true)
-
-        QuantumOpticsBase.mul!(drho,Jdagger[i],drho_cache,eltype(rho)(-0.5),one(eltype(rho)))
-
-        QuantumOpticsBase.mul!(drho_cache,rho,Jdagger[i],eltype(rho)(rates[i]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,drho_cache,J[i],eltype(rho)(-0.5),one(eltype(rho)))
-    end
-    return drho
+    return dA
 end
 
 
-function dmaster_h_heisenberg!(drho, H, J, Jdagger, rates::AbstractMatrix, rho, drho_cache)
-    QuantumOpticsBase.mul!(drho,H,rho,eltype(rho)(im),zero(eltype(rho)))
-    QuantumOpticsBase.mul!(drho,rho,H,-eltype(rho)(im),one(eltype(rho)))
+function dmaster_h_heisenberg!(dA, H, J, Jdagger, rates::AbstractVector, A, dA_cache)
+    QuantumOpticsBase.mul!(dA,H,A,eltype(A)(im),zero(eltype(A)))
+    QuantumOpticsBase.mul!(dA,A,H,-eltype(A)(im),one(eltype(A)))
+    for i=1:length(J)
+        QuantumOpticsBase.mul!(dA_cache,Jdagger[i],A, eltype(A)(rates[i]),zero(eltype(A)))
+        QuantumOpticsBase.mul!(dA,dA_cache,J[i],true,true)
+
+        QuantumOpticsBase.mul!(dA_cache,Jdagger[i],J[i],eltype(A)(-0.5)*rates[i],zero(eltype(A)))
+        QuantumOpticsBase.mul!(dA,dA_cache,A,true,true)
+        QuantumOpticsBase.mul!(dA,A,dA_cache,true,true)
+    end
+    return dA
+end
+
+
+function dmaster_h_heisenberg!(dA, H, J, Jdagger, rates::AbstractMatrix, A, dA_cache)
+    QuantumOpticsBase.mul!(dA,H,A,eltype(A)(im),zero(eltype(A)))
+    QuantumOpticsBase.mul!(dA,A,H,-eltype(A)(im),one(eltype(A)))
     for j=1:length(J), i=1:length(J)
-        QuantumOpticsBase.mul!(drho_cache,Jdagger[i],rho,eltype(rho)(rates[i,j]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,drho_cache,J[j],true,true)
+        QuantumOpticsBase.mul!(dA_cache,Jdagger[i],A, eltype(A)(rates[i,j]),zero(eltype(A)))
+        QuantumOpticsBase.mul!(dA,dA_cache,J[j],true,true)
 
-        QuantumOpticsBase.mul!(drho,Jdagger[j],drho_cache,eltype(rho)(-0.5),one(eltype(rho)))
-
-        QuantumOpticsBase.mul!(drho_cache,rho,Jdagger[j],eltype(rho)(rates[i,j]),zero(eltype(rho)))
-        QuantumOpticsBase.mul!(drho,drho_cache,J[i],eltype(rho)(-0.5),one(eltype(rho)))
+        QuantumOpticsBase.mul!(dA_cache,Jdagger[i],J[j],eltype(A)(-0.5)*rates[i,j],zero(eltype(A)))
+        QuantumOpticsBase.mul!(dA,dA_cache,A,true,true)
+        QuantumOpticsBase.mul!(dA,A,dA_cache,true,true)
     end
-    return drho
+    return dA
 end
