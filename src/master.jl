@@ -4,6 +4,7 @@
 Integrate the master equation with dmaster_h as derivative function.
 
 Further information can be found at [`master`](@ref).
+See [`master_h_heisenberg`](@ref) for the Heisenberg picture.
 """
 function master_h(tspan, rho0::Operator, H::AbstractOperator, J;
                 rates=nothing,
