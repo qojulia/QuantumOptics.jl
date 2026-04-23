@@ -1,8 +1,8 @@
 env:
-  CODECOV_TOKEN: a2d17ea7-57f0-4612-9f2e-3ac77cf30c32
   JULIA_NUM_THREADS: auto
-  PYTHON: ""
-  PYCALL_DEBUG_BUILD: yes
+
+secrets:
+  CODECOV_TOKEN: CODECOV_TOKEN_qojulia
 
 steps:
   - label: "QuantumOptics Tests - {{matrix.LABEL}}"
@@ -23,7 +23,7 @@ steps:
     matrix:
       setup:
         LABEL: ["base tests"]
-        QUEUE: ["default"]
+        QUEUE: ["default-queue"]
         JET_TEST: ["false"]
         CUDA_TEST: ["false"]
         AMDGPU_TEST: ["false"]
@@ -31,7 +31,7 @@ steps:
       adjustments:
         - with:
             LABEL: "JET"
-            QUEUE: default
+            QUEUE: default-queue
             JET_TEST: true
             CUDA_TEST: false
             AMDGPU_TEST: false
@@ -52,7 +52,7 @@ steps:
             OPENCL_TEST: false
         - with:
             LABEL: "OpenCL"
-            QUEUE: default
+            QUEUE: default-queue
             JET_TEST: false
             CUDA_TEST: false
             AMDGPU_TEST: false
