@@ -1,7 +1,16 @@
 name: CI
 on:
-  - push
-  - pull_request
+  push:
+    branches: [master, main]
+    tags: ["*"]
+  pull_request:
+
+concurrency:
+  # group by workflow and ref; the last slightly strange component ensures that for pull
+  # requests, we limit to 1 concurrent job, but for the master branch we don't
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main') || github.run_number }}
+  # Cancel intermediate builds, but only if it is a pull request build.
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
   test:
@@ -17,11 +26,7 @@ jobs:
           - windows-latest
           - macOS-latest
         arch:
-          - x64
-          - x86
-        exclude:
-          - os: macOS-latest
-            arch: x86
+          - default
     steps:
       - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v3
