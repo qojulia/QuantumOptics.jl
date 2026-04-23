@@ -1,0 +1,28 @@
+name: Quantum Benchmarks
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.10'
+          
+      - name: Install Benchmark Dependencies
+        run: |
+          julia -e 'using Pkg; Pkg.add("BenchmarkTools")'
+          julia --project=. -e 'using Pkg; Pkg.instantiate()'
+          
+      - name: Run Physics Speed Test
+        run: julia --project=. benchmark/benchmarks.jl
