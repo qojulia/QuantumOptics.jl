@@ -1,0 +1,12 @@
+[deps]
+AnythingLLMDocs = "333fe5f5-19c9-4863-8caf-c9193e7dba62"
+DiffEqCallbacks = "459566f4-90b8-5000-8ac3-15dfb0a30def"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
+QuantumInterface = "5717a53b-5d69-4fa3-b976-0bf2f97ca1e5"
+QuantumOptics = "6e0679c1-51ea-5a7c-ac74-d61b76210b0c"
+QuantumOpticsBase = "4f57444f-1401-5e15-980d-4471b28d5678"
+StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
+
+[compat]
+Documenter = "1"

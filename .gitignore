@@ -1,6 +1,9 @@
-docs/build
-docs/source/examples/
-docs/source/tutorial/_tutorial.rst
+/docs/build/
+/docs/src/examples/
+/docs/examples/markdown/
+/docs/examples/julia/
+/docs/source/examples/
+/docs/source/tutorial/_tutorial.rst
 .ipynb_checkpoints
 *_files/
 Manifest.toml
