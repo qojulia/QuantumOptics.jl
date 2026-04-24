@@ -22,6 +22,7 @@ module timeevolution
     include("timeevolution_base.jl")
     include("time_dependent_operators.jl")
     include("master.jl")
+    include("master_heisenberg.jl")
     include("schroedinger.jl")
     include("mcwf.jl")
     include("bloch_redfield_master.jl")
