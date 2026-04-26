@@ -14,7 +14,7 @@ function master_h(tspan, rho0::Operator, H::AbstractOperator, J;
     _check_const.(J)
     _check_const.(Jdagger)
     check_master(rho0, H, J, Jdagger, rates)
-    tspan, rho0 = _promote_time_and_state(rho0, H, J, tspan)
+    tspan, rho0 = _promote_time_and_state(rho0, H, J, rates, tspan)
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
@@ -42,7 +42,7 @@ function master_nh(tspan, rho0::Operator, Hnh::AbstractOperator, J;
     _check_const.(J)
     _check_const.(Jdagger)
     check_master(rho0, Hnh, J, Jdagger, rates)
-    tspan, rho0 = _promote_time_and_state(rho0, Hnh, J, tspan)
+    tspan, rho0 = _promote_time_and_state(rho0, Hnh, J, rates, tspan)
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
@@ -88,7 +88,7 @@ function master(tspan, rho0::Operator, H::AbstractOperator, J;
     _check_const(H)
     _check_const.(J)
     _check_const.(Jdagger)
-    tspan, rho0 = _promote_time_and_state(rho0, H, J, tspan)
+    tspan, rho0 = _promote_time_and_state(rho0, H, J, rates, tspan)
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
@@ -172,14 +172,32 @@ function master_nh_dynamic(tspan, rho0::Operator, f;
                 rates=nothing,
                 fout=nothing,
                 kwargs...)
+    tspan, rho0 = _promote_time_and_state(rho0, f, tspan)
     tmp = copy(rho0)
     dmaster_(t, rho, drho) = dmaster_nh_dynamic!(drho, f, rates, rho, tmp, t)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
-
+function master_nh_dynamic(tspan, rho0::Operator, Hnh::AbstractTimeDependentOperator, J::Vector{<:AbstractTimeDependentOperator};
+    kwargs...)
+    promoted_tspan, rho0 = _promote_time_and_state(rho0, Hnh, J, tspan)
+    if promoted_tspan !== tspan # promote H
+        promoted_Hnh = TimeDependentSum(Hnh.coefficients, Hnh.static_op.operators; init_time=first(promoted_tspan))
+        promoted_J = [TimeDependentSum(Ji.coefficients, Ji.static_op.operators; init_time=first(promoted_tspan)) for Ji in J]
+        f = master_nh_dynamic_function(promoted_Hnh, promoted_J)
+    else
+        f = master_nh_dynamic_function(Hnh, J)
+    end
+    master_nh_dynamic(tspan, rho0, f; kwargs...)
+end
 function master_nh_dynamic(tspan, rho0::Operator, Hnh::AbstractTimeDependentOperator, J;
     kwargs...)
-    f = master_nh_dynamic_function(Hnh, J)
+    promoted_tspan, rho0 = _promote_time_and_state(rho0, Hnh, J, tspan)
+    if promoted_tspan !== tspan # promote H
+        promoted_Hnh = TimeDependentSum(Hnh.coefficients, Hnh.static_op.operators; init_time=first(promoted_tspan))
+        f = master_nh_dynamic_function(promoted_Hnh, J)
+    else
+        f = master_nh_dynamic_function(Hnh, J)
+    end
     master_nh_dynamic(tspan, rho0, f; kwargs...)
 end
 
@@ -218,6 +236,7 @@ function master_dynamic(tspan, rho0::Operator, f;
                 rates=nothing,
                 fout=nothing,
                 kwargs...)
+    tspan, rho0 = _promote_time_and_state(rho0, f, tspan)
     tmp = copy(rho0)
     dmaster_ = let f = f, tmp = tmp
         dmaster_(t, rho, drho) = dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
@@ -225,10 +244,27 @@ function master_dynamic(tspan, rho0::Operator, f;
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
+function master_dynamic(tspan, rho0::Operator, H::AbstractTimeDependentOperator, J::Vector{<:AbstractTimeDependentOperator};
+    kwargs...)
+    promoted_tspan, rho0 = _promote_time_and_state(rho0, H, J, tspan)
+    if promoted_tspan !== tspan # promote H
+        promoted_H = TimeDependentSum(H.coefficients, H.static_op.operators; init_time=first(promoted_tspan))
+        promoted_J = [TimeDependentSum(Ji.coefficients, Ji.static_op.operators; init_time=first(promoted_tspan)) for Ji in J]
+        f = master_h_dynamic_function(promoted_H, promoted_J)
+    else
+        f = master_h_dynamic_function(H, J)
+    end
+    return master_dynamic(promoted_tspan, rho0, f; kwargs...)
+end
 function master_dynamic(tspan, rho0::Operator, H::AbstractTimeDependentOperator, J;
     kwargs...)
-    f = master_h_dynamic_function(H, J)
-    master_dynamic(tspan, rho0, f; kwargs...)
+    promoted_tspan, rho0 = _promote_time_and_state(rho0, H, J, tspan)
+    if promoted_tspan !== tspan # promote H
+        promoted_H = TimeDependentSum(H.coefficients, H.static_op.operators; init_time=first(promoted_tspan))
+        return master_dynamic(promoted_tspan, rho0, master_h_dynamic_function(promoted_H, J); kwargs...)
+    else
+        return master_dynamic(promoted_tspan, rho0, master_h_dynamic_function(H, J); kwargs...)
+    end
 end
 
 # Automatically convert Ket states to density operators
