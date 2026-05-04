@@ -67,6 +67,7 @@ steps:
       USER_BIN="$$($$PYTHON_BIN -m site --user-base)/bin"
       export PATH="$${USER_BIN}:$${PATH}"
       export PYTHON="$$PYTHON_BIN"
+      export PYCALL_DEBUG_BUILD="yes"
       julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
       julia --project=docs -e 'using Pkg; Pkg.instantiate(); Pkg.build("PyCall")'
       julia -tauto --project=docs docs/make.jl
