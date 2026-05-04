@@ -1,46 +1,36 @@
-sourcedir = "./notebooks"
-markdowndir = "./markdown"
-juliadir = "./julia"
-targetpath_examples = get(ENV, "TARGETPATH_EXAMPLES", "../QuantumOptics.jl-documentation/src/examples")
-jupyter_kernel_name = "julia"
-
 using IJulia
-IJulia.installkernel(jupyter_kernel_name, "--project=@."; specname=jupyter_kernel_name, displayname=jupyter_kernel_name)
 
-if !isdir(markdowndir)
-    println("Creating markdown output directory at \"", markdowndir, "\"")
-    mkdir(markdowndir)
-end
-if !isdir(juliadir)
-    println("Creating julia source output directory at \"", juliadir, "\"")
-    mkdir(juliadir)
-end
+examples_dir = @__DIR__
+notebooks_dir = joinpath(examples_dir, "notebooks")
+markdown_dir = joinpath(examples_dir, "markdown")
+julia_dir = joinpath(examples_dir, "julia")
+docs_examples_dir = normpath(joinpath(examples_dir, "..", "src", "examples"))
+template_path = joinpath(examples_dir, "markdown_template.tpl")
+kernel_name = "quantumoptics-docs"
+timeout = 200
 
-names = filter(name->endswith(name, ".ipynb"), readdir(sourcedir))
+IJulia.installkernel(
+    kernel_name,
+    "--project=$(examples_dir)";
+    specname = kernel_name,
+    displayname = kernel_name,
+)
 
-ENV["JULIA_PROJECT"] = pwd()
-
-function convert2source(name)
-    sourcepath = joinpath(sourcedir, name)
-    run(`jupyter nbconvert --to=script --ExecutePreprocessor.kernel_name=$jupyter_kernel_name --ExecutePreprocessor.timeout=200 --output-dir=$juliadir $sourcepath`)
-end
-
-function convert2markdown(name)
-    sourcepath = joinpath(sourcedir, name)
-    run(`jupyter nbconvert --to markdown --ExecutePreprocessor.kernel_name=$jupyter_kernel_name --ExecutePreprocessor.timeout=200 --output-dir=$markdowndir --template=markdown_template.tpl --execute $sourcepath `)
+for dir in (markdown_dir, julia_dir, docs_examples_dir)
+    rm(dir; recursive = true, force = true)
+    mkpath(dir)
 end
 
-overwrite = true
+notebooks = sort(filter(endswith(".ipynb"), readdir(notebooks_dir; join = true)))
 
-for name in names
-    mdname = name[1:end-6] * ".md"
-    if overwrite || !isfile(joinpath(markdowndir, mdname))
-        # Convert notebook to julia file
-        convert2source(name)
-
-        # Execute notebook and convert to rst
-        convert2markdown(name)
-    end
+for notebook in notebooks
+    run(`jupyter nbconvert --to script --output-dir=$julia_dir $notebook`)
+    run(`jupyter nbconvert --to markdown --execute
+        --ExecutePreprocessor.kernel_name=$kernel_name
+        --ExecutePreprocessor.timeout=$timeout
+        --output-dir=$markdown_dir
+        --template-file=$template_path
+        $notebook`)
 end
 
-cp(markdowndir, targetpath_examples; force=true)
+cp(markdown_dir, docs_examples_dir; force = true)

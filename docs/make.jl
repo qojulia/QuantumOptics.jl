@@ -3,33 +3,17 @@ using Pkg
 docs_dir = @__DIR__
 package_dir = normpath(joinpath(docs_dir, ".."))
 examples_dir = joinpath(docs_dir, "examples")
-examples_target = joinpath(docs_dir, "src", "examples")
 
 function build_examples()
-    ENV["MPLBACKEND"] = get(ENV, "MPLBACKEND", "Agg")
-    ENV["TARGETPATH_EXAMPLES"] = examples_target
-
     Pkg.activate(examples_dir)
     Pkg.develop(PackageSpec(path = package_dir))
     Pkg.instantiate()
 
-    if haskey(ENV, "PYTHON")
-        Pkg.build("PyCall")
-    end
-    Pkg.build("IJulia")
-
-    cd(examples_dir) do
-        include(joinpath(examples_dir, "make.jl"))
-    end
-
+    include(joinpath(examples_dir, "make.jl"))
     Pkg.activate(docs_dir)
 end
 
-if lowercase(get(ENV, "QO_DOCS_SKIP_EXAMPLES", "false")) in ("true", "1", "yes")
-    @info "Skipping example notebook conversion."
-else
-    build_examples()
-end
+build_examples()
 
 using Documenter
 using AnythingLLMDocs
