@@ -8,6 +8,7 @@ docs_examples_dir = normpath(joinpath(examples_dir, "..", "src", "examples"))
 template_path = joinpath(examples_dir, "markdown_template.tpl")
 kernel_name = "quantumoptics-docs"
 timeout = 200
+python = get(ENV, "PYTHON", "python3")
 
 IJulia.installkernel(
     kernel_name,
@@ -24,8 +25,8 @@ end
 notebooks = sort(filter(endswith(".ipynb"), readdir(notebooks_dir; join = true)))
 
 for notebook in notebooks
-    run(`jupyter nbconvert --to script --output-dir=$julia_dir $notebook`)
-    run(`jupyter nbconvert --to markdown --execute
+    run(`$python -m jupyter nbconvert --to script --output-dir=$julia_dir $notebook`)
+    run(`$python -m jupyter nbconvert --to markdown --execute
         --ExecutePreprocessor.kernel_name=$kernel_name
         --ExecutePreprocessor.timeout=$timeout
         --output-dir=$markdown_dir
