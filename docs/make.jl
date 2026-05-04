@@ -129,4 +129,7 @@ makedocs(
 
 deploydocs(
     repo = "github.com/qojulia/QuantumOptics.jl.git",
+    devbranch = "master",
+    deploy_config = Documenter.Buildkite(),
+    push_preview = true,
 )

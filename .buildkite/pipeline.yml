@@ -51,6 +51,25 @@ steps:
             JET_TEST: false
             GPU_TEST: metal
 
+  - label: "Docs"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+      - QuantumSavory/julia-xvfb#v1:
+    secrets:
+      DOCUMENTER_KEY: DOCUMENTER_KEY_qojulia
+      ANYTHINGLLM_API_KEY: ANYTHINGLLM_API_KEY
+    env:
+      MPLBACKEND: Agg
+    command: |
+      PYTHON_BIN="$$(command -v python3 || command -v python)"
+      "$$PYTHON_BIN" -m pip install --user jupyter nbconvert nbformat matplotlib==3.8.3
+      USER_BIN="$$($$PYTHON_BIN -m site --user-base)/bin"
+      export PATH="$${USER_BIN}:$${PATH}"
+      export PYTHON="$$PYTHON_BIN"
+      julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+      julia -tauto --project=docs docs/make.jl
+
   - label: "Downstream Tests - {{matrix.PACKAGE}}"
     plugins:
       - JuliaCI/julia#v1:
