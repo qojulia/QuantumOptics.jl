@@ -1,5 +1,6 @@
 env:
   JULIA_NUM_THREADS: auto
+  PATH: /opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH}
 
 secrets:
   CODECOV_TOKEN: CODECOV_TOKEN_qojulia
@@ -9,15 +10,12 @@ steps:
     plugins:
       - JuliaCI/julia#v1:
           version: "1"
-      - QuantumSavory/julia-xvfb#v1:
       - JuliaCI/julia-test#v1:
       - JuliaCI/julia-coverage#v1:
           codecov: true
     env:
       JET_TEST: "{{matrix.JET_TEST}}"
-      CUDA_TEST: "{{matrix.CUDA_TEST}}"
-      AMDGPU_TEST: "{{matrix.AMDGPU_TEST}}"
-      OpenCL_TEST: "{{matrix.OPENCL_TEST}}"
+      GPU_TEST: "{{matrix.GPU_TEST}}"
     agents:
       queue: "{{matrix.QUEUE}}"
     matrix:
@@ -25,44 +23,38 @@ steps:
         LABEL: ["base tests"]
         QUEUE: ["default-queue"]
         JET_TEST: ["false"]
-        CUDA_TEST: ["false"]
-        AMDGPU_TEST: ["false"]
-        OPENCL_TEST: ["false"]
+        GPU_TEST: ["false"]
       adjustments:
         - with:
             LABEL: "JET"
             QUEUE: default-queue
             JET_TEST: true
-            CUDA_TEST: false
-            AMDGPU_TEST: false
-            OPENCL_TEST: false
+            GPU_TEST: false
         - with:
             LABEL: "CUDA"
             QUEUE: cuda
             JET_TEST: false
-            CUDA_TEST: true
-            AMDGPU_TEST: false
-            OPENCL_TEST: false
+            GPU_TEST: cuda
         - with:
             LABEL: "AMDGPU"
             QUEUE: rocm
             JET_TEST: false
-            CUDA_TEST: false
-            AMDGPU_TEST: true
-            OPENCL_TEST: false
+            GPU_TEST: amdgpu
         - with:
             LABEL: "OpenCL"
             QUEUE: default-queue
             JET_TEST: false
-            CUDA_TEST: false
-            AMDGPU_TEST: false
-            OPENCL_TEST: true
+            GPU_TEST: opencl
+        - with:
+            LABEL: "Metal"
+            QUEUE: macmini
+            JET_TEST: false
+            GPU_TEST: metal
 
   - label: "Downstream Tests - {{matrix.PACKAGE}}"
     plugins:
       - JuliaCI/julia#v1:
           version: "1"
-      - QuantumSavory/julia-xvfb#v1:
     command:
       - echo "Julia depot path $${JULIA_DEPOT_PATH}"
       - julia --project=$(mktemp -d) -e '

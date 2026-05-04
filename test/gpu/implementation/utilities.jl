@@ -1,6 +1,6 @@
 # Utility functions for GPU time evolution testing
 
-function create_test_system(n, AT)
+function create_test_system(n, AT; storage_eltype=ComplexF64)
     """Create a test quantum system and adapt it to the specified array type."""
     # Create basis
     basis = FockBasis(n-1)
@@ -9,14 +9,16 @@ function create_test_system(n, AT)
     a = destroy(basis)
     at = create(basis)
     H = dense(at * a)  # Number operator Hamiltonian
-    
+    H = Operator(H.basis_l, H.basis_r, Matrix{storage_eltype}(H.data))
+
     # Create initial state
     psi0 = coherentstate(basis, 0.5)
-    
+    psi0 = Ket(psi0.basis, Vector{storage_eltype}(psi0.data))
+
     # Adapt to GPU
     gpu_H = Adapt.adapt(AT, H)
     gpu_psi0 = Adapt.adapt(AT, psi0)
-    
+
     return H, gpu_H, psi0, gpu_psi0
 end
 
