@@ -1,29 +1,33 @@
 # GPU test flags
-CUDA_flag = false
-AMDGPU_flag = false
-OpenCL_flag = false
+GPU_TEST = "false"
 
 if Sys.iswindows()
     @info "Skipping GPU tests -- only executed on *NIX platforms."
 else
-    CUDA_flag = get(ENV, "CUDA_TEST", "") == "true"
-    AMDGPU_flag = get(ENV, "AMDGPU_TEST", "") == "true"
-    OpenCL_flag = get(ENV, "OpenCL_TEST", "") == "true"
+    GPU_TEST = lowercase(get(ENV, "GPU_TEST", "false"))
+    if !(GPU_TEST in ("false", "cuda", "amdgpu", "opencl", "metal"))
+        error("GPU_TEST must be one of: false, cuda, amdgpu, opencl, metal")
+    end
 
-    CUDA_flag && @info "Running with CUDA tests."
-    AMDGPU_flag && @info "Running with AMDGPU tests."
-    OpenCL_flag && @info "Running with OpenCL tests."
-    if !any((CUDA_flag, AMDGPU_flag, OpenCL_flag))
+    if GPU_TEST == "false"
         @info "Skipping GPU tests -- must be explicitly enabled."
-        @info "Environment must set [CUDA, AMDGPU, OpenCL]_TEST=true."
+        @info "Environment must set GPU_TEST to one of: cuda, amdgpu, opencl, metal."
+    else
+        @info "Running with $(GPU_TEST) tests."
     end
 end
+
+CUDA_flag = GPU_TEST == "cuda"
+AMDGPU_flag = GPU_TEST == "amdgpu"
+OpenCL_flag = GPU_TEST == "opencl"
+Metal_flag = GPU_TEST == "metal"
 
 using Pkg
 CUDA_flag && Pkg.add("CUDA")
 AMDGPU_flag && Pkg.add("AMDGPU")
 OpenCL_flag && Pkg.add(["pocl_jll", "OpenCL"])
-if any((CUDA_flag, AMDGPU_flag, OpenCL_flag))
+Metal_flag && Pkg.add("Metal")
+if any((CUDA_flag, AMDGPU_flag, OpenCL_flag, Metal_flag))
     Pkg.add("Adapt")
 end
 
@@ -57,7 +61,13 @@ testfilter = ti -> begin
   else
     push!(exclude, :opencl)
   end
-  
+
+  if Metal_flag
+    return :metal in ti.tags
+  else
+    push!(exclude, :metal)
+  end
+
   if !(VERSION >= v"1.10")
     push!(exclude, :aqua)
   end
