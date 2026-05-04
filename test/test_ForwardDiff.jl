@@ -24,7 +24,7 @@ f_schrod!(dpsi, psi, p, t) = timeevolution.dschroedinger!(dpsi, H(p), psi)
 function cost_schrod(p)
     prob = ODEProblem(f_schrod!, psi0, (0.0, pi), p)
     sol = solve(prob, DP5(); save_everystep=false)
-    return 1 - norm(sol[end])
+    return 1 - norm(sol.u[end])
 end
 
 p = [rand(), rand()]
