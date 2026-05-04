@@ -1,6 +1,6 @@
 using BenchmarkTools
 using QuantumOptics
-using OrdinaryDiffEq
+using OrdinaryDiffEqLowOrderRK
 using StochasticDiffEq
 using LinearAlgebra
 using PkgBenchmark
@@ -21,10 +21,10 @@ function bench_schroedinger(dim; pure=true)
     t₀, t₁ = (0.0, pi)
     H = sigmax(b)
     psi0 = spindown(b)
-    if pure 
+    if pure
         obj = psi0.data
         Hobj = H.data
-    else 
+    else
         obj = psi0
         Hobj = H
     end
@@ -57,11 +57,11 @@ function bench_stochastic_schroedinger(dim; pure=true)
     H = sigmax(b)
     Hs = sigmay(b)
     psi0 = spindown(b)
-    if pure 
+    if pure
         obj = psi0.data
         Hobj = H.data
         Hsobj = Hs.data
-    else 
+    else
         obj = psi0
         Hobj = H
         Hsobj = Hs
