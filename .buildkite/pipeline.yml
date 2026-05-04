@@ -57,7 +57,7 @@ steps:
           version: "1"
       - QuantumSavory/julia-xvfb#v1:
     secrets:
-      DOCUMENTER_KEY: DOCUMENTER_KEY_qojulia
+      DOCUMENTER_KEY: DOCUMENTER_KEY_QuantumOptics
       ANYTHINGLLM_API_KEY: ANYTHINGLLM_API_KEY
     env:
       MPLBACKEND: Agg
