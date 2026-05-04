@@ -21,7 +21,7 @@ prob = ODEProblem(f!, sc, (t₀, t₁))
 sol = solve(prob, DP5(); reltol = 1.0e-8, abstol = 1.0e-10, save_everystep=false)
 tout, ψt = semiclassical.schroedinger_dynamic([t₀, t₁], sc, fquantum, fclassical!; reltol = 1.0e-8, abstol = 1.0e-10)
 
-@test sol[end] ≈ ψt[end]
+@test sol.u[end] ≈ ψt[end]
 
 end
 end
