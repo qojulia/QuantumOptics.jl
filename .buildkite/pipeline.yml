@@ -62,12 +62,8 @@ steps:
     env:
       MPLBACKEND: Agg
     command: |
-      PYTHON_BIN="$$(command -v python3 || command -v python)"
-      "$$PYTHON_BIN" -m pip install --user jupyter nbconvert nbformat matplotlib==3.8.3
-      USER_BIN="$$($$PYTHON_BIN -m site --user-base)/bin"
-      export PATH="$${USER_BIN}:$${PATH}"
-      export PYTHON="$$PYTHON_BIN"
-      echo "Setting PYTHON=$PYTHON"
+      export PYTHON=/usr/bin/python3
+      /usr/bin/python3 -m pip install --user jupyter nbconvert nbformat matplotlib==3.8.3
       export PYCALL_DEBUG_BUILD="yes"
       julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
       julia --project=docs -e 'using Pkg; Pkg.instantiate(); Pkg.build("PyCall")'
