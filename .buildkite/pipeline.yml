@@ -51,6 +51,23 @@ steps:
             JET_TEST: false
             GPU_TEST: metal
 
+  - label: "Docs"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1"
+    secrets:
+      DOCUMENTER_KEY: DOCUMENTER_KEY_QuantumOptics
+      ANYTHINGLLM_API_KEY: ANYTHINGLLM_API_KEY
+    env:
+      MPLBACKEND: Agg
+    command: |
+      export PYTHON=/usr/bin/python3
+      /usr/bin/python3 -m pip install --user jupyter nbconvert nbformat matplotlib==3.8.3
+      export PYCALL_DEBUG_BUILD="yes"
+      julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
+      julia --project=docs -e 'using Pkg; Pkg.instantiate(); Pkg.build("PyCall")'
+      julia -tauto --project=docs docs/make.jl
+
   - label: "Downstream Tests - {{matrix.PACKAGE}}"
     plugins:
       - JuliaCI/julia#v1:
