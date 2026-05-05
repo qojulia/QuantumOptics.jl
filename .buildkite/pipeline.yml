@@ -55,7 +55,6 @@ steps:
     plugins:
       - JuliaCI/julia#v1:
           version: "1"
-      - QuantumSavory/julia-xvfb#v1:
     secrets:
       DOCUMENTER_KEY: DOCUMENTER_KEY_QuantumOptics
       ANYTHINGLLM_API_KEY: ANYTHINGLLM_API_KEY
