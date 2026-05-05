@@ -108,7 +108,7 @@ makedocs(
         size_threshold_warn = 300 * 2^10,
     ),
     checkdocs = :exports,
-    warnonly = [:docs_block, :missing_docs, :cross_references],
+    warnonly = [:missing_docs],
 )
 
 deploydocs(
