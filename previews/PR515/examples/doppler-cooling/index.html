@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Doppler cooling · QuantumOptics.jl</title><meta name="title" content="Doppler cooling · QuantumOptics.jl"/><meta property="og:title" content="Doppler cooling · QuantumOptics.jl"/><meta property="twitter:title" content="Doppler cooling · QuantumOptics.jl"/><meta name="description" content="Documentation for QuantumOptics.jl."/><meta property="og:description" content="Documentation for QuantumOptics.jl."/><meta property="twitter:description" content="Documentation for QuantumOptics.jl."/><meta property="og:url" content="https://docs.qojulia.org/examples/doppler-cooling/"/><meta property="twitter:url" content="https://docs.qojulia.org/examples/doppler-cooling/"/><link rel="canonical" href="https://docs.qojulia.org/examples/doppler-cooling/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="QuantumOptics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">QuantumOptics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Introduction</a></li><li><a class="tocitem" href="../../installation/">Installation</a></li><li><a class="tocitem" href="../../tutorial/">Tutorial</a></li><li><span class="tocitem">Quantum objects</span><ul><li><a class="tocitem" href="../../quantumobjects/quantumobjects/">Introduction</a></li><li><a class="tocitem" href="../../quantumobjects/bases/">Bases</a></li><li><a class="tocitem" href="../../quantumobjects/states/">States</a></li><li><a class="tocitem" href="../../quantumobjects/operators/">Operators</a></li></ul></li><li><span class="tocitem">Quantum systems</span><ul><li><a class="tocitem" href="../../quantumsystems/quantumsystems/">Introduction</a></li><li><a class="tocitem" href="../../quantumsystems/spin/">Spin</a></li><li><a class="tocitem" href="../../quantumsystems/fock/">Fock space</a></li><li><a class="tocitem" href="../../quantumsystems/charge/">Charge basis</a></li><li><a class="tocitem" href="../../quantumsystems/nlevel/">N-Level</a></li><li><a class="tocitem" href="../../quantumsystems/particle/">Particle</a></li><li><a class="tocitem" href="../../quantumsystems/subspace/">Subspace</a></li><li><a class="tocitem" href="../../quantumsystems/manybody/">Many-body</a></li></ul></li><li><span class="tocitem">Time-evolution</span><ul><li><a class="tocitem" href="../../timeevolution/timeevolution/">Introduction</a></li><li><a class="tocitem" href="../../timeevolution/schroedinger/">Schroedinger equation</a></li><li><a class="tocitem" href="../../timeevolution/master/">Master equation</a></li><li><a class="tocitem" href="../../timeevolution/mcwf/">Quantum trajectories</a></li><li><a class="tocitem" href="../../timeevolution/timedependent-problems/">Time-dependent problems</a></li></ul></li><li><a class="tocitem" href="../../metrics/">Metrics</a></li><li><a class="tocitem" href="../../steadystate/">Steady state</a></li><li><a class="tocitem" href="../../timecorrelations/">Two-time correlation functions</a></li><li><a class="tocitem" href="../../semiclassical/">Semi-classical systems</a></li><li><span class="tocitem">Stochastics</span><ul><li><a class="tocitem" href="../../stochastic/stochastic/">Introduction</a></li><li><a class="tocitem" href="../../stochastic/schroedinger/">Stochastic Schroedinger equation</a></li><li><a class="tocitem" href="../../stochastic/master/">Stochastic Master equation</a></li><li><a class="tocitem" href="../../stochastic/semiclassical/">Stochastic semiclassical systems</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../pumped-cavity/">Pumped cavity</a></li><li><a class="tocitem" href="../jaynes-cummings/">Jaynes-Cummings</a></li><li><a class="tocitem" href="../superradiant-laser/">Superradiant laser</a></li><li><a class="tocitem" href="../particle-in-harmonic-trap/">Particle in harmonic trap</a></li><li><a class="tocitem" href="../particle-into-barrier/">Particle into barrier</a></li><li><a class="tocitem" href="../wavepacket2D/">Wavepacket in 2D</a></li><li><a class="tocitem" href="../raman/">Raman transition</a></li><li><a class="tocitem" href="../two-qubit-entanglement/">2 qubit entanglement</a></li><li><a class="tocitem" href="../correlation-spectrum/">Correlation spectrum</a></li><li><a class="tocitem" href="../manybody-fourlevel-system/">Simple many-body system</a></li><li><a class="tocitem" href="../nparticles-in-double-well/">N particles in double well</a></li><li class="is-active"><a class="tocitem" href>Doppler cooling</a><ul class="internal"><li><a class="tocitem" href="#Neglecting-recoil"><span>Neglecting recoil</span></a></li><li><a class="tocitem" href="#Effects-of-recoil"><span>Effects of recoil</span></a></li><li><a class="tocitem" href="#Doppler-temperature-limit"><span>Doppler temperature limit</span></a></li></ul></li><li><a class="tocitem" href="../cavity-cooling/">Cavity cooling</a></li><li><a class="tocitem" href="../lasing-and-cooling/">Lasing and cooling</a></li><li><a class="tocitem" href="../three-level-maser/">Heat-pumped Maser</a></li><li><a class="tocitem" href="../optomech-cooling/">Optomechanical cavity</a></li><li><a class="tocitem" href="../ramsey/">Ramsey spectroscopy</a></li><li><a class="tocitem" href="../atom-dephasing/">Dephasing of Atom</a></li><li><a class="tocitem" href="../quantum-zeno-effect/">Quantum Zeno Effect</a></li><li><a class="tocitem" href="../quantum-kicked-top/">Quantum Kicked Top</a></li><li><a class="tocitem" href="../vortex/">Quantum Vortices</a></li><li><a class="tocitem" href="../spin-orbit-coupled-BEC1D/">Spinor BEC</a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Doppler cooling</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Doppler cooling</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl/blob/master/docs/src/examples/doppler-cooling.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><p><em>This notebook can be found on</em> <a href="https://github.com/qojulia/QuantumOptics.jl-examples/tree/master/notebooks/doppler-cooling.ipynb">github</a></p><h1 id="Doppler-cooling"><a class="docs-heading-anchor" href="#Doppler-cooling">Doppler cooling</a><a id="Doppler-cooling-1"></a><a class="docs-heading-anchor-permalink" href="#Doppler-cooling" title="Permalink"></a></h1><p>In this example, we will treat a simple model of Doppler cooling and show how the recoil an atom experiences when spontaneously emitting a photon limits the temperature.</p><p>To keep it simple, we will only consider one-dimensional, classical motion of a two-level atom coupled to a standing wave. The Hamiltonian of this system reads</p><p><span>$H = -\hbar\Delta\sigma^+\sigma^- + \hbar\Omega \cos(kx)\left(\sigma^+ + \sigma^-\right).$</span></p><p>Here, <span>$\Delta = \omega_\ell - \omega_\mathrm{a}$</span> is the detuning between the standing wave of frequency <span>$\omega_\ell$</span> and the atomic transition frequency <span>$\omega_\mathrm{a}$</span>. The standing wave has an amplitude <span>$\Omega$</span>. The spontaneous emission of the atom occurs at a rate <span>$\gamma$</span> and is taken into account with</p><p><span>$\mathcal{L}[\rho] = \frac{\gamma}{2}\left(2\sigma^-\rho\sigma^+ - \sigma^+\sigma^-\rho - \rho\sigma^+\sigma^-\right).$</span></p><p>The classical equations of motion for the atomic positon <span>$x$</span> and its momentum <span>$p$</span> are given by</p><p><span>$\dot{x} = \frac{p}{m},$</span></p><p><span>$\dot{p} = 2k\Omega\sin(kx)\Re\left\{\langle \sigma^-\rangle\right\}.$</span></p><p>Finally, we need to include the recoil. This is done via a classical &quot;jump&quot; in a semi-classical MCWF approach. Namely, if we consider quantum mechanical states of motion, the state of an atom in the excited state with a momentum <span>$p_0$</span> is</p><p><span>$|\psi\rangle = |e\rangle\otimes|p_0\rangle$</span>.</p><p>Now, the collapse operator of a spontaneous emission event where the photon is emitted into the <span>$x$</span>-direction is <span>$J = e^{ik\hat{x}}\sigma^-$</span>, where <span>$\hat{x}$</span> is the position operator. Such a jump maps to the atomic internal state to the ground state as well as providing a shift in momentum when applied.</p><p>Thus, the momentum expectation value changes when a jump occurs,</p><p><span>$p \equiv \langle\psi| \hat{p}|\psi \rangle =  p_0 ~\to~  \langle\psi|J^\dagger  \hat{p}J|\psi\rangle = \langle p | e^{-ikx}\hat{p}e^{ikx}|p \rangle = p_0 + \hbar k$</span>.</p><p>In the last step, we used the relation <span>$e^{-ikx}\hat{p}e^{ikx}= \hat{p} + \hbar k$</span> (the position operator is the generator of momentum translation), which can be shown using the canonical commutator <span>$[\hat{x},\hat{p}]=i\hbar$</span> and the Baker-Campbell-Hausdorff formula. </p><p>As we can see, in order to treat the recoil, a Monte-Carlo jump from the excited to the ground state needs to affect the classical momentum variable as well. Let us stress here, that the above relation holds only for spontaneous emission in the <span>$x$</span>-direction. We will later see how the different directions are taken into account.</p><pre><code class="language-julia hljs">using QuantumOptics
+using PyPlot
+using Statistics</code></pre><p>As usual, we start by defining the parameters we need.</p><pre><code class="language-julia hljs"># Parameters
+γ = 1.0
+Δ = -0.5γ
+const ωr = 5*1e-4*γ # Recoil frequency
+const k = 1.0
+const m = k^2/(2ωr)
+const λ = 2π/k
+const Ω = 0.4γ
+T = [0.0:10.0:40000.0;]</code></pre><p>We need to update the Hamiltonian dynamically according to the atomic position at time <span>$t$</span>. Therefore, we pre-define its parts only.</p><pre><code class="language-julia hljs"># Hilbert space
+b = SpinBasis(1//2)
+
+# Hamiltonian
+const sm = sigmam(b)
+const H0 = -Δ*sm&#39;*sm
+const Hint = Ω*(sm + sm&#39;) # ∝ cos(kx)
+
+# Jump operators
+const J = [sqrt(γ)*sm]
+const Jdagger = dagger.(J)</code></pre><p>As in all other semiclassical solvers, we need to define two separate functions which update the quantum mechanical and classical part, respectivley.</p><pre><code class="language-julia hljs"># Dynamic functions
+function fquantum(t,psi,u)
+    H = H0 + Hint*cos(k*u[1])
+    return H, J, Jdagger
+end
+
+function fclassical_master!(du,u,rho,t)
+    du[1] = u[2]/m
+    du[2] = 2Ω*k*sin(k*u[1])*real(expect(sm,rho))
+        
+    return nothing
+end
+</code></pre><h2 id="Neglecting-recoil"><a class="docs-heading-anchor" href="#Neglecting-recoil">Neglecting recoil</a><a id="Neglecting-recoil-1"></a><a class="docs-heading-anchor-permalink" href="#Neglecting-recoil" title="Permalink"></a></h2><p>In a first step, we can disregard the effects of recoil from spontaneous emission. Then, we can compute the time evolution of the atom in a master equation. We choose an initial state where the atom has a large momentum (<span>$\sim 100 \hbar k$</span>) in order to observe cooling.</p><pre><code class="language-julia hljs"># Initial state
+u0 = ComplexF64[0.1,100.0]
+ψ0 = semiclassical.State(spindown(b),u0);
+
+
+# Without recoil
+t, ρt = semiclassical.master_dynamic(T,ψ0,fquantum,fclassical_master!)
+
+x_nr = real.([ψ.classical[1] for ψ=ρt])
+p_nr = real.([ψ.classical[2] for ψ=ρt])
+</code></pre><pre><code class="language-julia hljs"># Plot
+figure(figsize=(12,4))
+subplot(121)
+plot(ωr .* t,p_nr./k)
+xlabel(L&quot;\omega_\mathrm{r} t&quot;)
+ylabel(L&quot;p/k&quot;);
+
+subplot(122)
+plot(ωr .* t,x_nr./λ)
+xlabel(L&quot;\omega_\mathrm{r} t&quot;)
+ylabel(L&quot;x/\lambda&quot;)
+</code></pre><p><img src="../doppler-cooling_files/doppler-cooling_12_0.png" alt="png"/></p><p>As we can see, the atom is cooled until it is trapped around a field-antinode. It then proceeds to oscillate back and forth in this trap.</p><h2 id="Effects-of-recoil"><a class="docs-heading-anchor" href="#Effects-of-recoil">Effects of recoil</a><a id="Effects-of-recoil-1"></a><a class="docs-heading-anchor-permalink" href="#Effects-of-recoil" title="Permalink"></a></h2><p>In order to include the momentum kicks the atom experiences when spontaneously emitting a photon, we switch to using the MCWF method. To this end, we need to define a jump function which tells the solver how it should act on the classical part of the system whenever a jump with the jump operator <code>J[i]</code> occurs. In our case there is only one jump operator, and we need to modify the momentum which we store in <code>u[2]</code>. For simplicity, we assume that the atom is equally likely to emit a photon in all directions. The momentum kick in 3D is therefore a random vector normalized to the length <code>k</code>. Still we only consider 1D motion, which is why we only pick one component of this random vector and add it to the momentum whenever a jump occurs.</p><p><strong>Note</strong>: We also need to define a new function updating the classical part, since it depends on an expectation value. Because of the way the MCWF method works, the quantum state <code>psi</code> is not normalized. We therefore need to renormalize when computing expectation values.</p><pre><code class="language-julia hljs"># Dynamic classical part -- note the normalization in the expectation value
+function fclassical_mcwf!(du,u,psi,t)
+    du[1] = u[2]/m
+    du[2] = 2Ω*k*sin(k*u[1])*real(expect(sm,psi)/norm(psi))
+        
+    return nothing
+end
+
+# Classical jump function
+function fjump_classical!(u,psi,i,t)
+    rand_vec = rand(3) .- 0.5
+    normalize!(rand_vec)
+    u[2] += k*rand_vec[1]
+    return nothing
+end
+</code></pre><p>Finally, we evolve the system in time. In order to compare the results to the previous ones obtained with the master equation, we need to average over many trajectories.</p><pre><code class="language-julia hljs"># Time evolution
+Ntraj = 25
+x = zeros(length(T))
+p = zeros(length(T))
+for i=1:Ntraj
+    t, ψt = semiclassical.mcwf_dynamic(T,ψ0,fquantum,fclassical_mcwf!,fjump_classical!)
+    x .+= real.([ψ.classical[1] for ψ=ψt])./Ntraj
+    p .+= real.([ψ.classical[2] for ψ=ψt])./Ntraj
+end</code></pre><pre><code class="language-julia hljs"># Plot
+figure(figsize=(12,4))
+subplot(121)
+plot(ωr.*t,p_nr./k)
+plot(ωr .*t,p./k)
+xlabel(L&quot;\omega_\mathrm{r} t&quot;)
+ylabel(L&quot;p/k&quot;);
+
+subplot(122)
+plot(ωr.*t,x_nr./λ)
+plot(ωr.*t,x./λ)
+xlabel(L&quot;\omega_\mathrm{r} t&quot;)
+ylabel(L&quot;x/\lambda&quot;)
+</code></pre><p><img src="../doppler-cooling_files/doppler-cooling_19_0.png" alt="png"/></p><p>We can still observe cooling when we include the recoil. However, the cooling is slower and less efficient. Furthermore, the atom is never trapped. This is because the potential walls created by the standing wave are rather low, such that the atom can pass over them if it receives a few momentum kicks.</p><h2 id="Doppler-temperature-limit"><a class="docs-heading-anchor" href="#Doppler-temperature-limit">Doppler temperature limit</a><a id="Doppler-temperature-limit-1"></a><a class="docs-heading-anchor-permalink" href="#Doppler-temperature-limit" title="Permalink"></a></h2><p>It can be shown that Doppler cooling is fundamentally limited by recoil. The temperature <span>$T_\mathrm{D}$</span> that can be reached is given by</p><p><span>$k_\mathrm{B} T_\mathrm{D} = \frac{\hbar\gamma}{2}.$</span></p><p>The temperature can in our case be computed from the momentum spread obtained from different MCWF trajectories. In order to speed up the computation we look at heating rather than cooling: starting with an atom with momentum <span>$0$</span>, it will be heated to the equilibrium temperature within a few recoil cycles. Then the cooling compensates the heating from the recoil.</p><p>We obtain the momentum statistics from the momentum distribution of the time evolution of only a few trajectories integrated for a very long time. The kinetic energy is then given by</p><p><span>$E_\mathrm{kin} = \frac{\langle p^2\rangle}{2m} = \frac{\Delta p^2 + \langle p \rangle^2}{2m},$</span></p><p>where <span>$\Delta p$</span> is the width of the momentum distribution. In equilibrium the kinetic energy in one dimension should be equal to <span>$E_\mathrm{kin}=k_\mathrm{B}T/2$</span>.</p><p>Note, that the Doppler temperature is approached for low saturation only. We therefore reduce the amplitude of the standing wave and define the updated parts of our model as needed. Still, we cannot expect to reach this limit perfectly.</p><pre><code class="language-julia hljs"># Parameters
+Ntraj = 20
+const Ω_D = 0.1γ
+const Hint_D = Ω_D*(sm + sm&#39;)
+
+# Define new functions with Ω_D
+function fquantum_D(t,psi,u)
+    H = H0 + Hint_D*cos(k*u[1])
+    return H, J, Jdagger
+end
+function fclassical_D!(du,u,psi,t)
+    du[1] = u[2]/m
+    du[2] = 2Ω_D*k*sin(k*u[1])*real(expect(sm,psi)/norm(psi))
+    
+    return nothing
+end
+
+# Longer integration time
+T = [0.0:2.0:2000000.0;]</code></pre><p>Note that, due to the long integration time, we decrease the accuracy of the solver setting <code>abstol</code> and <code>reltol</code>. Still the following computation may take up to a few minutes.</p><pre><code class="language-julia hljs"># Initial state with 0 momentum
+u0_D = ComplexF64[0.0,0.0]
+ψ0_D = semiclassical.State(spindown(b),u0_D);
+
+# &quot;Guess&quot; after which time the atom is heated to T_D
+t_index = div(length(T),3)
+T_ = [0.0;T[t_index:end]] #skip save-points before index
+
+# Time evolution
+p_dist = Float64[]
+x_dist = Float64[]
+for i=1:Ntraj
+    t, cl = semiclassical.mcwf_dynamic(T_,ψ0_D,fquantum_D,fclassical_D!,fjump_classical!;abstol=1e-4,reltol=1e-3,
+        fout=(t,psi)-&gt;real.(psi.classical));
+    x_ = getindex.(cl,1)
+    p_ = getindex.(cl,2)
+    p_dist = vcat(p_dist,p_[2:end])
+    x_dist = vcat(x_dist,x_[2:end])
+end</code></pre><pre><code class="language-julia hljs"># Plot momentum distribution
+figure(figsize=(12,4))
+subplot(121)
+h = hist(p_dist,100)
+xlabel(L&quot;p/k&quot;)
+ylabel(&quot;Frequency&quot;)
+
+# Plot position distribution within one wavelength
+subplot(122)
+x_mod_λ = [mod(x_,λ)/λ for x_=x_dist]
+hx = hist(x_mod_λ,50)
+x_max = maximum(hx[1])
+plot(hx[2],x_max .* cos.(2π.*hx[2]).^2, lw=3, label=&quot;Light intensity&quot;)
+xlabel(L&quot;x/\lambda&quot;)
+legend()
+
+tight_layout()</code></pre><p><img src="../doppler-cooling_files/doppler-cooling_26_0.png" alt="png"/></p><p>We can see that the momentum distribution is approximately symmetric around <span>$0$</span>. On the other hand, the position distribution (within one wavelength) is almost flat. This means, that the potential created by the standing wave does not suffice to trap the atom. It can be still seen that the atom tends to regions with large light intensities (high-field seeking).</p><p>As mentioned above, the kinetic energy can be computed from the width of the momentum distribution, and should be larger than (but close to) <span>$\hbar\gamma/4$</span>, which in the chosen units (<span>$\hbar=1$</span>, <span>$\gamma = 1$</span>) corresponds to a thermal energy of <span>$k_B T_D = 0.5$</span>. We compute the width of the distribution above as the FWHM.</p><pre><code class="language-julia hljs"># Compute FWHM
+ind1,ind2 = sortperm(abs.(h[1].-0.5*maximum(h[1])))[1:2]
+p_fwhm = abs(h[2][ind2]) + abs(h[2][ind1])
+
+# Compute kinetic energy; should be &gt;0.25
+E_kin = (p_fwhm^2+mean(p_dist)^2)/2m
+print(&quot;kB⋅T = &quot;, 2E_kin)</code></pre><pre><code class="nohighlight hljs">kB⋅T = 0.6235823659694247</code></pre><p>As expected, we cannot reach the Doppler temperature perfectly, but close enough!</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nparticles-in-double-well/">« N particles in double well</a><a class="docs-footer-nextpage" href="../cavity-cooling/">Cavity cooling »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 5 May 2026 03:11">Tuesday 5 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

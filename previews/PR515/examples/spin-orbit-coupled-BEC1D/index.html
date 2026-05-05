@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Spinor BEC · QuantumOptics.jl</title><meta name="title" content="Spinor BEC · QuantumOptics.jl"/><meta property="og:title" content="Spinor BEC · QuantumOptics.jl"/><meta property="twitter:title" content="Spinor BEC · QuantumOptics.jl"/><meta name="description" content="Documentation for QuantumOptics.jl."/><meta property="og:description" content="Documentation for QuantumOptics.jl."/><meta property="twitter:description" content="Documentation for QuantumOptics.jl."/><meta property="og:url" content="https://docs.qojulia.org/examples/spin-orbit-coupled-BEC1D/"/><meta property="twitter:url" content="https://docs.qojulia.org/examples/spin-orbit-coupled-BEC1D/"/><link rel="canonical" href="https://docs.qojulia.org/examples/spin-orbit-coupled-BEC1D/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="QuantumOptics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">QuantumOptics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Introduction</a></li><li><a class="tocitem" href="../../installation/">Installation</a></li><li><a class="tocitem" href="../../tutorial/">Tutorial</a></li><li><span class="tocitem">Quantum objects</span><ul><li><a class="tocitem" href="../../quantumobjects/quantumobjects/">Introduction</a></li><li><a class="tocitem" href="../../quantumobjects/bases/">Bases</a></li><li><a class="tocitem" href="../../quantumobjects/states/">States</a></li><li><a class="tocitem" href="../../quantumobjects/operators/">Operators</a></li></ul></li><li><span class="tocitem">Quantum systems</span><ul><li><a class="tocitem" href="../../quantumsystems/quantumsystems/">Introduction</a></li><li><a class="tocitem" href="../../quantumsystems/spin/">Spin</a></li><li><a class="tocitem" href="../../quantumsystems/fock/">Fock space</a></li><li><a class="tocitem" href="../../quantumsystems/charge/">Charge basis</a></li><li><a class="tocitem" href="../../quantumsystems/nlevel/">N-Level</a></li><li><a class="tocitem" href="../../quantumsystems/particle/">Particle</a></li><li><a class="tocitem" href="../../quantumsystems/subspace/">Subspace</a></li><li><a class="tocitem" href="../../quantumsystems/manybody/">Many-body</a></li></ul></li><li><span class="tocitem">Time-evolution</span><ul><li><a class="tocitem" href="../../timeevolution/timeevolution/">Introduction</a></li><li><a class="tocitem" href="../../timeevolution/schroedinger/">Schroedinger equation</a></li><li><a class="tocitem" href="../../timeevolution/master/">Master equation</a></li><li><a class="tocitem" href="../../timeevolution/mcwf/">Quantum trajectories</a></li><li><a class="tocitem" href="../../timeevolution/timedependent-problems/">Time-dependent problems</a></li></ul></li><li><a class="tocitem" href="../../metrics/">Metrics</a></li><li><a class="tocitem" href="../../steadystate/">Steady state</a></li><li><a class="tocitem" href="../../timecorrelations/">Two-time correlation functions</a></li><li><a class="tocitem" href="../../semiclassical/">Semi-classical systems</a></li><li><span class="tocitem">Stochastics</span><ul><li><a class="tocitem" href="../../stochastic/stochastic/">Introduction</a></li><li><a class="tocitem" href="../../stochastic/schroedinger/">Stochastic Schroedinger equation</a></li><li><a class="tocitem" href="../../stochastic/master/">Stochastic Master equation</a></li><li><a class="tocitem" href="../../stochastic/semiclassical/">Stochastic semiclassical systems</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../pumped-cavity/">Pumped cavity</a></li><li><a class="tocitem" href="../jaynes-cummings/">Jaynes-Cummings</a></li><li><a class="tocitem" href="../superradiant-laser/">Superradiant laser</a></li><li><a class="tocitem" href="../particle-in-harmonic-trap/">Particle in harmonic trap</a></li><li><a class="tocitem" href="../particle-into-barrier/">Particle into barrier</a></li><li><a class="tocitem" href="../wavepacket2D/">Wavepacket in 2D</a></li><li><a class="tocitem" href="../raman/">Raman transition</a></li><li><a class="tocitem" href="../two-qubit-entanglement/">2 qubit entanglement</a></li><li><a class="tocitem" href="../correlation-spectrum/">Correlation spectrum</a></li><li><a class="tocitem" href="../manybody-fourlevel-system/">Simple many-body system</a></li><li><a class="tocitem" href="../nparticles-in-double-well/">N particles in double well</a></li><li><a class="tocitem" href="../doppler-cooling/">Doppler cooling</a></li><li><a class="tocitem" href="../cavity-cooling/">Cavity cooling</a></li><li><a class="tocitem" href="../lasing-and-cooling/">Lasing and cooling</a></li><li><a class="tocitem" href="../three-level-maser/">Heat-pumped Maser</a></li><li><a class="tocitem" href="../optomech-cooling/">Optomechanical cavity</a></li><li><a class="tocitem" href="../ramsey/">Ramsey spectroscopy</a></li><li><a class="tocitem" href="../atom-dephasing/">Dephasing of Atom</a></li><li><a class="tocitem" href="../quantum-zeno-effect/">Quantum Zeno Effect</a></li><li><a class="tocitem" href="../quantum-kicked-top/">Quantum Kicked Top</a></li><li><a class="tocitem" href="../vortex/">Quantum Vortices</a></li><li class="is-active"><a class="tocitem" href>Spinor BEC</a><ul class="internal"><li><a class="tocitem" href="#Non-interacting-case"><span>Non-interacting case</span></a></li><li><a class="tocitem" href="#Including-two-body-interactions-(stripe-phase)"><span>Including two-body interactions (stripe phase)</span></a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Spinor BEC</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Spinor BEC</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl/blob/master/docs/src/examples/spin-orbit-coupled-BEC1D.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Spin-orbit-coupling-in-Bose-Einstein-Condensates"><a class="docs-heading-anchor" href="#Spin-orbit-coupling-in-Bose-Einstein-Condensates">Spin-orbit coupling in Bose-Einstein Condensates</a><a id="Spin-orbit-coupling-in-Bose-Einstein-Condensates-1"></a><a class="docs-heading-anchor-permalink" href="#Spin-orbit-coupling-in-Bose-Einstein-Condensates" title="Permalink"></a></h1><p>In this example we want to simulate a spin-orbit coupled Bose-Einstein condensate (BEC) in 1D. Spin-orbit coupling is induced via two Raman transitions. For this problem the <code>SumBasis</code> of <em>QuantumOptics.jl</em> allows us to easily construct the Hamiltonian and calculate its groundstate via exact diagonalization or imaginary time evolution using the &quot;Lazy&quot; formulation (i.e. split step method).</p><p>We consider a two-component BEC of atoms with two hyperfine states, which we call &quot;pseudospin&quot; <span>$\left|\uparrow\right&gt;$</span> and <span>$\left|\downarrow\right&gt;$</span>. These two states are coupled via a Raman process induced by two counterpropagating laser beams with pump strength <span>$\Omega_R$</span>. This configuration gives rise to a typical spin-1/2 configuration which can be represented by the single particle spinor Hamiltonian (for details see for example &quot;Pitaevskii, Lev, and Sandro Stringari, <em>Bose-Einstein condensation and superfluidity</em>, Vol. 164, Oxford University Press, 2016.&quot;). The Hamiltonian in matrix form reads</p><p><span>$h= \begin{pmatrix} \frac{\hat{p}^2}{2m} + \frac{\hbar\delta}{2} &amp; \hbar \Omega_R e^{i 2 k y} \\ \hbar \Omega_R e^{-i 2 k y} &amp; \frac{\hat{p}^2}{2m} - \frac{\hbar\delta}{2} \end{pmatrix}$</span>, <span>$\quad \quad$</span> (1)</p><p><span>$\hat{p}=-i\hbar\partial_x$</span> is the canonical momentum operator and <span>$k=2\pi/\lambda$</span> is the wave number of the two Raman beams. The energy difference between the two hyperfine states is called <span>$\delta$</span> and it acts as an effective magnetic field.</p><p>By performing a simple unitary transformation, this Hamiltonian can be transformed into the typical spin-orbit coupling form</p><p><span>$h_{SOC}=\frac{(p-\hbar k\sigma_z)^2}{2}+\frac{\hbar\Omega_R}{2}\sigma_x+\frac{\hbar\delta}{2}\sigma_z$</span>,<span>$\quad \quad$</span> (2)</p><p>where <span>$\sigma_{x,z}$</span> are the usual <span>$2 \times 2$</span> Pauli matrices.</p><p>This Hamiltonian exhibits the typical spin-orbit nature, i.e., different spin components couple to different momenta, by equal contributions of Rashba and Dresselhaus couplings. Hence, the employed Raman transitions give rise to spin-orbit coupling like it is found in solid state materials where for example the linear crystal momentum interacts with the spin of an electron.</p><p>The spin-orbit coupling Hamiltonian also has another important feature. The canonical momentum <span>$p=-i \hbar \partial_x$</span> does no longer coincide with the physical momentum of the spin-up and spin-down components. The physical momentum for a spin-up or spin-down particle is given as </p><p><span>$\mathcal{P}_\uparrow=p+\hbar k$</span> and <span>$\mathcal{P}_\downarrow=p-\hbar k$</span>. <span>$\quad \quad$</span> (3)</p><p>This also implies that <span>$h_{SOC}$</span> breaks time reversal and parity symmtery along the <span>$x$</span>-direction. In addition, Galilean invariance is broken. The relation (3) will be used later when comparing the numerical results with the analytics.</p><p>The many-body Hamiltonian in second quantization for bosonic particles occupying a one-dimensional space of length <span>$L$</span> is given via (for the moment we omit the two-body interactions, they will be added later)</p><p><span>$H=\int_L \underline{\Psi}(x)^\dagger h \underline{\Psi}(x)\, \mathrm{d}x$</span>,</p><p>where we introduced the spinor <span>$\underline{\Psi}(x)=\left(\hat{\Psi}_\uparrow(x),\hat{\Psi}_\downarrow(x)\right)^T$</span> consisting of the single component field operators <span>$\hat{\Psi}_{\uparrow/\downarrow}(x)$</span></p><p>Let us find the ground states for this system in the mean-field limit.</p><pre><code class="language-julia hljs">using QuantumOptics
+using OrdinaryDiffEq, DiffEqCallbacks
+using PyPlot
+
+#use latex fonts for axis labelling
+rc(&quot;text&quot;,usetex=false)
+rc(&quot;font&quot;, family=&quot;serif&quot;)</code></pre><h2 id="Non-interacting-case"><a class="docs-heading-anchor" href="#Non-interacting-case">Non-interacting case</a><a id="Non-interacting-case-1"></a><a class="docs-heading-anchor-permalink" href="#Non-interacting-case" title="Permalink"></a></h2><p>In this first part we want to find the ground state of the Hamiltonian without taking two-body interactions into account. This can be done by diagonalizing the spinor Hamiltonian.</p><p>First we define the size of the space and fix the the relevant physical parameters. Note that due to the spin orbit coupling nature of the Hamiltonian it is not sufficient to restrict the treatment to a single unit cell with periodic boundary conditions. The total size of the position basis sets the resolution in momentum space via <span>$\Delta p =  \hbar 2\pi/L$</span> where <span>$L$</span> is the total length of the position space. Due to the fact that spin-orbit coupling populates momenta which are not just multiples of <span>$\hbar k$</span>, the resolution of the momentum space must be very good. We restrict ourselves to <span>$N=100$</span> unitcells in this example, however, this number can be increased even further.</p><pre><code class="language-julia hljs"># define x-space
+Nunitcells = 100 #number of unit cells
+
+UC = 1/2
+Lx = UC * Nunitcells
+x_min = 0
+x_max = Lx
+x_steps_UC = 4 # steps for one unit cell
+const x_steps = x_steps_UC * Nunitcells
+dx = (x_max - x_min)/x_steps
+
+# external parameters
+ΩR = 3. # pump strength
+δ = 1e-10 # energy difference between hyperfine states
+k = 2*π; # Raman beam wavevector</code></pre><p>Next we specify the position and momentum bases and from this construct the position and momentum operators. Note that the wavefunctions of both spin components are defined on this space.</p><pre><code class="language-julia hljs"># Basis creation
+b_x = PositionBasis(x_min, x_max, x_steps)
+xx = samplepoints(b_x)
+
+b_p = MomentumBasis(b_x)
+pp = samplepoints(b_p)
+
+# position and momentum operators
+x = position(b_x)
+p = momentum(b_x)</code></pre><p>Now we generate the Hamiltonian. For this we first define the Hamiltonians for each spin component independently in the basis defined above.</p><p>The spinor Hamiltonian is then constructed as follows: The blocks along the main diagonal in Eq. (1) (kinetic Hamiltonian and Hamiltonian <span>$\propto \delta$</span>) can be correctly assigned by using the direct sum <span>$\oplus$</span> (or <code>directsum</code>) of the two single spin Hamiltonians. The off-diagonal blocks are assigned via the <code>setblock!</code> function.</p><pre><code class="language-julia hljs"># define single spin Hamiltonians
+Hkin = p^2/k^2 # units of ωᵣ
+
+Ω_R_fun(x) = ΩR/2 * exp.(1im * 2 * k * x)
+
+Ω_R = potentialoperator(b_x,Ω_R_fun)
+
+H_up = Hkin + δ/2 * one(b_x)
+H_down = Hkin - δ/2 * one(b_x)
+
+# build Hamiltonian in spinor basis
+H = H_up ⊕ H_down #diagonal blocks
+
+# assign off-diagonals
+setblock!(H,Ω_R,1,2) # off-diagonal block (1,2)
+setblock!(H,dagger(Ω_R),2,1) # off-diagonal block (2,1)
+
+H = (dagger(H) + H)/2; # make Hamiltonian hermitian</code></pre><p>To find the groundstate of this spinor Hamiltonian we can now use the eigenstates function.</p><p>In order to get the space dependent states for the two spin components separately again, we have to extract these states from the spinor after finding the ground state.</p><p>Since it is most instructive to analyze the momentum state distribution for this system as we will see later, we also calculate these quanities for the two groundstate wavefunctions by using the <code>transform</code> function.</p><pre><code class="language-julia hljs"># calculate groundstate
+e_gs, ψ_spinor_gs = eigenstates(H,1)
+
+# extract spin states (spin up --&gt; first half of spinor, spin down --&gt; second half of spinor)
+ψ_up_gs = getblock(ψ_spinor_gs[1],1)
+ψ_down_gs = getblock(ψ_spinor_gs[1],2)
+
+# calculate momentum space representation of the groundstates
+Tpx = transform(b_p, b_x)
+Txp = dagger(Tpx)
+ψ_up_gs_mom = Tpx * ψ_up_gs
+ψ_down_gs_mom = Tpx * ψ_down_gs</code></pre><p>Now we use <em>matplotlib</em> via <code>PyPlot</code> to plot the momentum space distribution of the two spin states and the corresponding density distribution in real space.</p><pre><code class="language-julia hljs">figure(figsize = (9.5,2.5), dpi = 100, facecolor = &quot;w&quot;, edgecolor = &quot;k&quot;)
+subplot(1,3,1)
+bar(pp./k,abs.(ψ_up_gs_mom.data),width = 0.2,color = &quot;blue&quot;)
+title(L&quot;\mathrm{spin}\uparrow, \, \, p-\mathrm{space}&quot;)
+xlabel(L&quot;p/(\hbar k)&quot;)
+ylabel(L&quot;|\psi_\uparrow(p)|&quot;)
+xlim(-2.5,2.5)
+ylim(0,1)
+subplot(1,3,2)
+bar(pp./k,abs.(ψ_down_gs_mom.data),width=0.2,color=&quot;orange&quot;)
+ylim(0,1)
+title(L&quot;\mathrm{spin}\downarrow, \, \, p-\mathrm{space}&quot;)
+xlabel(L&quot;p/(\hbar k)&quot;)
+ylabel(L&quot;|\psi_\downarrow(p)|&quot;)
+xlim(-2.5,2.5)
+subplot(1,3,3)
+plot(xx,abs2.(ψ_up_gs.data),color=&quot;blue&quot;)
+plot(xx,abs2.(ψ_down_gs.data),color=&quot;orange&quot;)
+title(L&quot;\mathrm{density},\,  \, x - \mathrm{space}&quot;)
+xlabel(L&quot;x/\lambda&quot;)
+ylabel(L&quot;|\psi_{\uparrow,\downarrow}(x)|&quot;)
+tight_layout()</code></pre><p><img src="../spin-orbit-coupled-BEC1D_files/spin-orbit-coupled-BEC1D_13_0.png" alt="png"/></p><p>We see that in the non-interacting case only one momentum is populated for each spinor component. In addition, the two spin states are not populated equally (if <span>$\Omega_R&lt;4\omega_\mathrm{rec}$</span>). We also see that the momentum which is occupied is not necessarily a multiple of <span>$\hbar k$</span> as it was already pointed out above. Note that the momenta we get are physical (!) momenta. To get the corresponding canonical momenta we need to shift the physical momentum obtained above by <span>$\pm \hbar k$</span> (with <span>$+$</span> for the spin-<span>$\downarrow$</span> component and <span>$-$</span> for the spin-<span>$\uparrow$</span> component) as we can see from Eq. (3).</p><p>The canonical momenta which are occupied for a given pump strength can be calculated analytically from (2):</p><p><span>$p_{\uparrow,\downarrow} = \hbar k\sqrt{1-\left(\frac{\hbar \Omega_R}{4 E_\mathrm{rec}}\right)^2}$</span> <span>$\quad$</span> <span>$\mathrm{for}$</span> <span>$\quad$</span> <span>$\Omega_R &lt; 4\omega_\mathrm{rec}$</span>, <span>$\quad$</span> (4)</p><p>where <span>$E_\mathrm{rec}=\frac{\hbar^2 k^2}{2m}=\hbar\omega_\mathrm{rec}$</span> is the recoil energy imposed by scattering a Raman photon. Let&#39;s compare our numerical results with this analytical formula.</p><p>For this we have to loop over a list of different pump strengths <span>$\Omega_R$</span>, find the groundstate and save the occupied momentum for each <span>$\Omega_R$</span>. To get the canonical momentum we also need to shift the physical momenta correspondingly.</p><pre><code class="language-julia hljs"># scan list
+NΩR = 40
+ΩRmin = 0.0
+ΩRmax = 5.0
+ΩR_l = [ΩRmin:(ΩRmax-ΩRmin)/(NΩR-1):ΩRmax;]
+
+p_can_occ_up_l = []
+p_can_occ_down_l = []
+
+# build Hamiltonian in spinor basis
+Hkin = p^2/k^2
+H_up = Hkin + δ * one(b_x)
+H_down = Hkin
+H = H_up ⊕ H_down # diagonal blocks
+
+for q in 1:NΩR
+    ΩR_scan = ΩR_l[q]
+    Ω_R_fun(x) = ΩR_scan/2 * exp.(1im * 2 * k * x)
+    Ω_R = potentialoperator(b_x,Ω_R_fun)
+
+    setblock!(H,Ω_R,1,2) # off-diagonal block (1,2)
+    setblock!(H,dagger(Ω_R),2,1) # off-diagonal block (2,1)
+    
+    H = (dagger(H) + H)/2; # make Hamiltonian hermitian
+
+    # calculate groundstate
+    e_gs, ψ_spinor_gs = eigenstates(H,1)
+
+    # extract spin states
+    ψ_up_gs = getblock(ψ_spinor_gs[1],1)
+    ψ_down_gs = getblock(ψ_spinor_gs[1],2)
+    
+    # transform to momentum space
+    ψ_up_gs_mom = Tpx * ψ_up_gs
+    ψ_down_gs_mom = Tpx * ψ_down_gs;
+
+    p_can_occ_up = pp[argmax(abs.(ψ_up_gs_mom.data))]./k.-1 # shift -1ħk to get canonical momentum
+    p_can_occ_down = pp[argmax(abs.(ψ_down_gs_mom.data))]./k.+1 # shift +1ħk to get canonical momentum
+
+    push!(p_can_occ_up_l,p_can_occ_up)
+    push!(p_can_occ_down_l,p_can_occ_down)
+end</code></pre><p>Now we can compare the numerically obtained results with the analytical formula in Eq. (4).</p><pre><code class="language-julia hljs"># define ΩR range for analytic plot
+NΩR_an = 200
+ΩRmin_an = 0
+ΩRmax_an = 4.0
+ΩR_l_an = [ΩRmin_an:(ΩRmax_an-ΩRmin_an)/(NΩR_an-1):ΩRmax_an;]
+
+p_can_analytic=k*sqrt.(1.0.-(ΩR_l_an/4).^2)./k #analytic formula (in correct units)
+
+figure(figsize = (9.5,3.2))
+subplot(121)
+scatter(ΩR_l,p_can_occ_down_l,color=&quot;red&quot;) #numerical
+plot(ΩR_l_an,p_can_analytic,&quot;--&quot;,linewidth=2,color=&quot;black&quot;) #analytical
+#ylim(0,1.05)
+xlabel(L&quot;$\Omega_R/\omega_\mathrm{rec}$&quot;)
+ylabel(L&quot;$p_{\uparrow,\downarrow}/(\hbar k)$&quot;)
+hlines(1.05,-.1,2)
+hlines(0.8,-.1,2)
+vlines(-0.1,0.8,1.05)
+vlines(2,0.8,1.05)
+subplot(122)
+scatter(ΩR_l[1:16],p_can_occ_down_l[1:16],color=&quot;red&quot;) #numerical
+plot(ΩR_l_an[1:98],p_can_analytic[1:98],&quot;--&quot;,linewidth=2,color=&quot;black&quot;) #analytical
+xlabel(L&quot;$\Omega_R/\omega_\mathrm{rec}$&quot;)
+ylabel(L&quot;$p_{\uparrow,\downarrow}/(\hbar k)$&quot;)
+tight_layout()</code></pre><p><img src="../spin-orbit-coupled-BEC1D_files/spin-orbit-coupled-BEC1D_17_0.png" alt="png"/></p><p>We find very good agreement between the numerical results (red dots) and the analytical expression (black dashed). The small deviations at <span>$\Omega_R=4\omega_\mathrm{rec}$</span> and the &quot;staircase&quot; behaviour one can observe in the momentum (magnified on the right side) is due to the chosen number of unitcells (<span>$N=100$</span>) resulting in a too small momentum space resolution to resolve the small differenerences between these momenta. If we would increase the number of unit cells even further the results would coincide even better with the analytics.</p><h2 id="Including-two-body-interactions-(stripe-phase)"><a class="docs-heading-anchor" href="#Including-two-body-interactions-(stripe-phase)">Including two-body interactions (stripe phase)</a><a id="Including-two-body-interactions-(stripe-phase)-1"></a><a class="docs-heading-anchor-permalink" href="#Including-two-body-interactions-(stripe-phase)" title="Permalink"></a></h2><p>Including two-body interactions adds another feature to this system. In this case the system can enter the so-called &quot;stripe phase&quot; if <span>$\Omega_R&lt;4\omega_\mathrm{rec}$</span> and <span>$\delta=0$</span>. The stripe phase is a periodic density modulation which spontaneously breaks the contiunuous symmetry of the Hamiltonian and, therefore, has supersolid properties. Let&#39;s see if we can reproduce this result. In this case the diagonalization of the Hamiltonian it is no longer sufficient, since two-body interactions can only be taken into account by including a non-linear interaction term in the equations of motion. This leads to two coupled Gross-Pitaevski equations</p><p><span>$i \hbar \partial_t \psi_\uparrow (x,t) = \left(-\frac{\hbar^2}{2m} \nabla^2 + g |\psi_\uparrow (x,t)|^2 + g_{\uparrow\downarrow}|\psi_\downarrow (x,t)|^2\right) \psi_\uparrow (x,t) + \frac{\hbar \Omega_R}{2}\psi_\downarrow(x,t)$</span></p><p><span>$i \hbar \partial_t \psi_\downarrow (x,t) = \left(-\frac{\hbar^2}{2m} \nabla^2 + g |\psi_\downarrow (x,t)|^2 + g_{\uparrow\downarrow}|\psi_\uparrow (x,t)|^2\right) \psi_\downarrow (x,t) + \frac{\hbar \Omega_R}{2}\psi_\uparrow(x,t)$</span></p><p>We already assumed <span>$g_{\uparrow\uparrow}=g_{\downarrow\downarrow}\equiv g$</span> and <span>$g_{\uparrow\downarrow}$</span>. To reduce the number of parameters we define the dimensionless quantitiy <span>$\gamma=\frac{g-g_{\downarrow\downarrow}}{g+g_{\downarrow\downarrow}}$</span>, which scales the ratio between intra-species and cross-species interactions.</p><p>First we define all the relavant parameters for the calculation.</p><pre><code class="language-julia hljs">#interaction strength
+γ = 0.8
+g = 10.0
+g_uu = g
+g_dd = g
+
+g_du = g * (1 - γ)/(1 + γ)
+g_ud = g_du</code></pre><p>To calculate the ground state of the coupled Gross-Piatevski equations we use the imaginary time evolution method. This method is most efficient if one uses a split-step solver, i.e., calculate the kinetic energy part of the time evolution in momentum space where <span>$H_\mathrm{kin}=p^2/(2m)$</span> is diagonal and the rest of the evolution in real-space.</p><p>In <em>QuantumOptics.jl</em> this is done via the &quot;Lazy&quot; formulation. This formulation can also be used in the spinor basis if one defines new transformation operators between real and momentum space via the <code>directsum</code> (<span>$\oplus$</span>) of the two transformation operators defined for the single spin components.</p><pre><code class="language-julia hljs">Txp = transform(b_x, b_p; ket_only=true)
+Tpx = transform(b_p, b_x; ket_only=true)
+Txp_tot = Txp ⊕ Txp
+Tpx_tot = Tpx ⊕ Tpx</code></pre><p>Since the imaginary time evolution does not conserve the norm of the state, we have to renormalize the state after every timestep. This can easily be done via a renormalization callback in <em>DifferentialEquations</em>.</p><pre><code class="language-julia hljs"># renormalization callback
+norm_func(u, t, integrator) = normalize!(u)
+ncb = FunctionCallingCallback(norm_func; func_everystep = true, func_start = false)</code></pre><p>Now we can calculate the time evolution of the coupled GPE equations. As an initial state we use the groundstate for the non-interacting case calculated above.</p><p>We already introduced the operators for transforming from momentum space to real space. To use the advantage of a split step integration we need to sum the different parts of the Hamiltonian using a <code>LazySum</code>. To demonstrate the contiunous symmetry breaking, which is expected to occur we include a random phase <span>$\phi$</span> to the two counterpropagating Raman beams. This phase can take any value out of <span>$[0,2\pi]$</span> due to the continuous symmetry of the Hamiltonian.</p><pre><code class="language-julia hljs"># kinetc energy  in momentum space
+p_p = momentum(b_p)
+Hkin_p = p_p^2/k^2
+Hkin_tot = Hkin_p ⊕ Hkin_p
+
+H_up = δ/2 * one(b_x)
+H_down = -δ/2 * one(b_x)
+H1 = H_up ⊕ H_down
+
+# Off-diagonal blocks
+ϕ = rand([0:0.01:2π;]) #random phase --&gt; spontaneous symmetry breaking 
+Ω_R_fun_int(x) = ΩR/2 * exp.(1im * 2 * k * x) * exp(1im * ϕ)
+Ω_R_int = potentialoperator(b_x,Ω_R_fun_int)
+
+setblock!(H1,Ω_R_int,1,2) #off-diagonal block (1,2)
+setblock!(H1,dagger(Ω_R_int),2,1) #off-diagonal block (2,1)
+
+# for state dependent non-linear interactions
+Hψ_up = sparse(one(b_x))
+Hψ_down = sparse(one(b_x))
+Hψ = Hψ_up ⊕ Hψ_down
+
+# Total Hamiltonian as lazy sum
+H_tot = -1im * LazySum(H1, LazyProduct(Txp_tot, Hkin_tot, Tpx_tot), Hψ) # --&gt; for imaginary time evolution
+
+ψ0 = ψ_up_gs ⊕ ψ_down_gs #initial state
+
+# integrator tolerances
+abstol_int = 1e-4
+reltol_int = 1e-4
+maxiters_int = 1e8
+
+# integration time settings
+t0 = 0
+tend = 20000
+dt = 10000;
+
+T = [t0:dt:tend;]
+
+function H_im(t, ψ) # Update state-dependent term in H
+    Hψ.data.nzval[1:x_steps] .= g_uu/dx * abs2.(getblock(ψ,1).data) + g_ud/dx * abs2.(getblock(ψ,2).data)
+    Hψ.data.nzval[x_steps+1:end] .= g_dd/dx * abs2.(getblock(ψ,2).data) + g_du/dx * abs2.(getblock(ψ,1).data)
+    return H_tot
+end
+
+tout, ψ_it = timeevolution.schroedinger_dynamic(T, ψ0, H_im, callback=ncb, abstol=abstol_int, reltol=reltol_int, maxiters=maxiters_int)
+
+ψ_spinor_gs_int = ψ_it[end]</code></pre><p>To visualize the state, we again extract the single spin wavefunctions and transform them into momentum space.</p><pre><code class="language-julia hljs"># extract state-Kets for 2 components
+ψ_up_int = getblock(ψ_spinor_gs_int,1)
+ψ_down_int = getblock(ψ_spinor_gs_int,2)
+
+# calculate momentum space distribution
+ψ_up_int_mom = Tpx * ψ_up_int
+ψ_down_int_mom = Tpx * ψ_down_int
+
+figure(figsize = (9.5,2.5), dpi=100, facecolor=&quot;w&quot;, edgecolor=&quot;k&quot;)
+subplot(1,3,1)
+bar(pp./k,abs.(ψ_up_int_mom.data),width=0.2,color=&quot;blue&quot;)
+xlim(-2.5,2.5)
+title(L&quot;\mathrm{spin}\uparrow, \, \, p-\mathrm{space}&quot;)
+xlabel(L&quot;p/(\hbar k)&quot;)
+ylabel(L&quot;|\psi(p)|&quot;)
+subplot(1,3,2)
+bar(pp./k,abs.(ψ_down_int_mom.data),width=0.2,color=&quot;orange&quot;)
+xlim(-2.5,2.5)
+title(L&quot;\mathrm{spin}\downarrow, \, \, p-\mathrm{space}&quot;)
+xlabel(L&quot;p/(\hbar k)&quot;)
+ylabel(L&quot;|\psi(p)|&quot;)
+subplot(1,3,3)
+plot(xx,abs2.(ψ_up_int.data),color=&quot;blue&quot;)
+plot(xx,abs2.(ψ_up_int.data),color=&quot;orange&quot;)
+title(L&quot;\mathrm{density},\,  \, x - \mathrm{space}&quot;)
+xlabel(L&quot;x/\lambda&quot;)
+ylabel(L&quot;|\psi_{\uparrow,\downarrow}(x)|&quot;)
+xlim(0,2)
+tight_layout()</code></pre><p><img src="../spin-orbit-coupled-BEC1D_files/spin-orbit-coupled-BEC1D_29_0.png" alt="png"/></p><p>We see that in contrast to the non-interacting case both spin components exhibit a spatially periodic denstiy distribution and they are populated equally. This phase is called the &quot;stripe phase&quot; of a spin-orbit coupled BEC. In this phase the continuous symmetry of the Hamiltonian is spontaneously broken. This can be seen by running the simulation above several times. The position of the maxima of the density distribution for the two spin components are shifted randomly in space. Hence, the stripe phase of a spin-orbit coupled BEC fulfills all criteria to be called a &quot;supersolid&quot; (coherent BEC with an additionally broken continuous symmetry).</p><p>Note that for weak interaction strengths <span>$g$</span> the stripe phase only occurs for small values of <span>$\Omega_R$</span>. In general, the stripe phase can only be realized as long as <span>$\Omega_R&lt;4\omega_\mathrm{rec}$</span>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../vortex/">« Quantum Vortices</a><a class="docs-footer-nextpage" href="../../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 5 May 2026 03:11">Tuesday 5 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
