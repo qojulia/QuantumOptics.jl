@@ -60,10 +60,6 @@ SparseOperator
 ```
 
 ```@docs
-LazyKet
-
-
-```@docs
 LazyTensor
 ```
 
@@ -251,10 +247,6 @@ current_time
 ```
 
 ```@docs
-static_operator
-```
-
-```@docs
 set_time!
 ```
 
@@ -353,36 +345,6 @@ wignersu2
 
 ```@docs
 ylm
-```
-
-### [Charge](@id API: Charge)
-
-```@docs
-ChargeBasis
-```
-
-```@docs
-ShiftedChargeBasis
-```
-
-```@docs
-chargestate
-```
-
-```@docs
-chargeop
-```
-
-```@docs
-expiφ
-```
-
-```@docs
-cosφ
-```
-
-```@docs
-sinφ
 ```
 
 ### [N-level](@id API: N-level)
@@ -549,10 +511,6 @@ sparseprojector
 
 ```@docs
 ManyBodyBasis
-```
-
-```@docs
-FermionBitstring
 ```
 
 ```@docs
