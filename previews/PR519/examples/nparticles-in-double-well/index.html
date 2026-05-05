@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>N particles in double well · QuantumOptics.jl</title><meta name="title" content="N particles in double well · QuantumOptics.jl"/><meta property="og:title" content="N particles in double well · QuantumOptics.jl"/><meta property="twitter:title" content="N particles in double well · QuantumOptics.jl"/><meta name="description" content="Documentation for QuantumOptics.jl."/><meta property="og:description" content="Documentation for QuantumOptics.jl."/><meta property="twitter:description" content="Documentation for QuantumOptics.jl."/><meta property="og:url" content="https://docs.qojulia.org/examples/nparticles-in-double-well/"/><meta property="twitter:url" content="https://docs.qojulia.org/examples/nparticles-in-double-well/"/><link rel="canonical" href="https://docs.qojulia.org/examples/nparticles-in-double-well/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="QuantumOptics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">QuantumOptics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Introduction</a></li><li><a class="tocitem" href="../../installation/">Installation</a></li><li><a class="tocitem" href="../../tutorial/">Tutorial</a></li><li><span class="tocitem">Quantum objects</span><ul><li><a class="tocitem" href="../../quantumobjects/quantumobjects/">Introduction</a></li><li><a class="tocitem" href="../../quantumobjects/bases/">Bases</a></li><li><a class="tocitem" href="../../quantumobjects/states/">States</a></li><li><a class="tocitem" href="../../quantumobjects/operators/">Operators</a></li></ul></li><li><span class="tocitem">Quantum systems</span><ul><li><a class="tocitem" href="../../quantumsystems/quantumsystems/">Introduction</a></li><li><a class="tocitem" href="../../quantumsystems/spin/">Spin</a></li><li><a class="tocitem" href="../../quantumsystems/fock/">Fock space</a></li><li><a class="tocitem" href="../../quantumsystems/charge/">Charge basis</a></li><li><a class="tocitem" href="../../quantumsystems/nlevel/">N-Level</a></li><li><a class="tocitem" href="../../quantumsystems/particle/">Particle</a></li><li><a class="tocitem" href="../../quantumsystems/subspace/">Subspace</a></li><li><a class="tocitem" href="../../quantumsystems/manybody/">Many-body</a></li></ul></li><li><span class="tocitem">Time-evolution</span><ul><li><a class="tocitem" href="../../timeevolution/timeevolution/">Introduction</a></li><li><a class="tocitem" href="../../timeevolution/schroedinger/">Schroedinger equation</a></li><li><a class="tocitem" href="../../timeevolution/master/">Master equation</a></li><li><a class="tocitem" href="../../timeevolution/mcwf/">Quantum trajectories</a></li><li><a class="tocitem" href="../../timeevolution/timedependent-problems/">Time-dependent problems</a></li></ul></li><li><a class="tocitem" href="../../metrics/">Metrics</a></li><li><a class="tocitem" href="../../steadystate/">Steady state</a></li><li><a class="tocitem" href="../../timecorrelations/">Two-time correlation functions</a></li><li><a class="tocitem" href="../../semiclassical/">Semi-classical systems</a></li><li><span class="tocitem">Stochastics</span><ul><li><a class="tocitem" href="../../stochastic/stochastic/">Introduction</a></li><li><a class="tocitem" href="../../stochastic/schroedinger/">Stochastic Schroedinger equation</a></li><li><a class="tocitem" href="../../stochastic/master/">Stochastic Master equation</a></li><li><a class="tocitem" href="../../stochastic/semiclassical/">Stochastic semiclassical systems</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../pumped-cavity/">Pumped cavity</a></li><li><a class="tocitem" href="../jaynes-cummings/">Jaynes-Cummings</a></li><li><a class="tocitem" href="../superradiant-laser/">Superradiant laser</a></li><li><a class="tocitem" href="../particle-in-harmonic-trap/">Particle in harmonic trap</a></li><li><a class="tocitem" href="../particle-into-barrier/">Particle into barrier</a></li><li><a class="tocitem" href="../wavepacket2D/">Wavepacket in 2D</a></li><li><a class="tocitem" href="../raman/">Raman transition</a></li><li><a class="tocitem" href="../two-qubit-entanglement/">2 qubit entanglement</a></li><li><a class="tocitem" href="../correlation-spectrum/">Correlation spectrum</a></li><li><a class="tocitem" href="../manybody-fourlevel-system/">Simple many-body system</a></li><li class="is-active"><a class="tocitem" href>N particles in double well</a><ul class="internal"><li><a class="tocitem" href="#One-particle-in-a-double-well"><span>One particle in a double-well</span></a></li><li><a class="tocitem" href="#Low-energy-subspace"><span>Low energy subspace</span></a></li><li><a class="tocitem" href="#Many-body-system"><span>Many-body system</span></a></li><li><a class="tocitem" href="#Many-body-system-with-particle-particle-interaction"><span>Many-body system with particle-particle interaction</span></a></li></ul></li><li><a class="tocitem" href="../doppler-cooling/">Doppler cooling</a></li><li><a class="tocitem" href="../cavity-cooling/">Cavity cooling</a></li><li><a class="tocitem" href="../atomic_dipole_arrays/">Dipole-coupled nanorings</a></li><li><a class="tocitem" href="../lasing-and-cooling/">Lasing and cooling</a></li><li><a class="tocitem" href="../three-level-maser/">Heat-pumped Maser</a></li><li><a class="tocitem" href="../optomech-cooling/">Optomechanical cavity</a></li><li><a class="tocitem" href="../ramsey/">Ramsey spectroscopy</a></li><li><a class="tocitem" href="../atom-dephasing/">Dephasing of Atom</a></li><li><a class="tocitem" href="../quantum-zeno-effect/">Quantum Zeno Effect</a></li><li><a class="tocitem" href="../quantum-kicked-top/">Quantum Kicked Top</a></li><li><a class="tocitem" href="../vortex/">Quantum Vortices</a></li><li><a class="tocitem" href="../spin-orbit-coupled-BEC1D/">Spinor BEC</a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>N particles in double well</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>N particles in double well</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl/blob/master/docs/src/examples/nparticles-in-double-well.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><p><em>This notebook can be found on</em> <a href="https://github.com/qojulia/QuantumOptics.jl-examples/tree/master/notebooks/nparticles-in-double-well.ipynb">github</a></p><h1 id="N-Particles-in-a-double-well-potential"><a class="docs-heading-anchor" href="#N-Particles-in-a-double-well-potential">N-Particles in a double-well potential</a><a id="N-Particles-in-a-double-well-potential-1"></a><a class="docs-heading-anchor-permalink" href="#N-Particles-in-a-double-well-potential" title="Permalink"></a></h1><p>In this example we will first solve the problem of a single particle in a double well potential. We then will assume that the particle is always trapped in one of the low energy states. This allows us to reduce the Hilbert space of the system to these states only. Using this reduced Hilbert space we will investigate the case of N indistinguishable particles in such a system. Finally we will add particle-particle interaction to obtain a more interesting problem.</p><pre><code class="language-julia hljs">using QuantumOptics
+using PyPlot</code></pre><h2 id="One-particle-in-a-double-well"><a class="docs-heading-anchor" href="#One-particle-in-a-double-well">One particle in a double-well</a><a id="One-particle-in-a-double-well-1"></a><a class="docs-heading-anchor-permalink" href="#One-particle-in-a-double-well" title="Permalink"></a></h2><p>First we choose a basis for a single particle, specify the double-well potential and calculate the Hamiltonian.</p><pre><code class="language-julia hljs">xmin = -3
+xmax = 3
+Nsteps = 200
+L = xmax - xmin
+m = 0.5
+E0 = 20
+
+b_position = PositionBasis(xmin, xmax, Nsteps)
+xpoints = samplepoints(b_position)
+
+x = position(b_position)
+p = momentum(b_position)
+
+potential = x -&gt; E0 + x^4 - 8*x^2
+V = potentialoperator(b_position, potential)
+Hkin = p^2/2m
+H = Hkin + dense(V)</code></pre><p>We find the lowest energy eigenstates, where instead of <span>$H$</span> we diagonalize <span>$(H + H^\dagger)/2$</span> to make it truly Hermitian (due to numerical errors, the operator <span>$p^2$</span> is not Hermitian, even though we know it has to be).</p><pre><code class="language-julia hljs">E, states = eigenstates((H + dagger(H))/2, 4);
+println(E)</code></pre><pre><code class="nohighlight hljs">[7.785756691253796, 7.922554575912717, 14.544347041748757, 15.224233540968992]</code></pre><p>which pairwise have nearly identical energies.  The corresponding states can be illustrated by plotting their respective probability distributions.</p><pre><code class="language-julia hljs">figure(figsize=(5, 3))
+subplot(2, 2, 1)
+plot(xpoints, abs2.(states[1].data))
+subplot(2, 2, 2)
+plot(xpoints, abs2.(states[2].data))
+subplot(2, 2, 3)
+plot(xpoints, abs2.(states[3].data))
+subplot(2, 2, 4)
+plot(xpoints, abs2.(states[4].data))
+tight_layout()</code></pre><p><img src="../nparticles-in-double-well_files/nparticles-in-double-well_8_0.png" alt="png"/></p><p>It turns out that combining them results in much nicer localized states. We plot them corresponding to their energies (orange bands in the potential on the left).</p><pre><code class="language-julia hljs">localizedstates = Ket[(states[1] - states[2])/sqrt(2),
+                      (states[1] + states[2])/sqrt(2),
+                      (states[3] - states[4])/sqrt(2),
+                      (states[3] + states[4])/sqrt(2)]
+
+figure(figsize=(10, 3))
+subplot(1, 2, 1)
+plot(xpoints, potential.(xpoints))
+for state in localizedstates
+    E1 = abs.(expect(H, state))
+    plot(xpoints[[1,end]], [E1, E1], &quot;C1&quot;)
+end
+
+subplot(2, 4, 7)
+plot(xpoints, abs2.(localizedstates[1].data))
+subplot(2, 4, 8)
+plot(xpoints, abs2.(localizedstates[2].data))
+subplot(2, 4, 3)
+plot(xpoints, abs2.(localizedstates[3].data))
+subplot(2, 4, 4)
+plot(xpoints, abs2.(localizedstates[4].data));
+tight_layout()</code></pre><p><img src="../nparticles-in-double-well_files/nparticles-in-double-well_10_0.png" alt="png"/></p><h2 id="Low-energy-subspace"><a class="docs-heading-anchor" href="#Low-energy-subspace">Low energy subspace</a><a id="Low-energy-subspace-1"></a><a class="docs-heading-anchor-permalink" href="#Low-energy-subspace" title="Permalink"></a></h2><p>We now assume that the energy in the system is always so low that it never reaches states besides the lowest four. This makes it possible to restrict the Hilbert space to the subspace generated by just these states. To specify the basis of this subspace one can use the <strong>SubspaceBasis</strong>. It needs to know the basis of the enveloping Hilbert space <span>$\mathcal{H}$</span> and the states <span>$|u_i\rangle$</span>, which are defined in <span>$\mathcal{H}$</span>, that form the basis of this subspace.</p><pre><code class="language-julia hljs">b_sub = SubspaceBasis(b_position, localizedstates)
+println(&quot;dim(subspace): &quot;, length(b_sub))</code></pre><pre><code class="nohighlight hljs">dim(subspace): 4</code></pre><p>Projectors can be used to convert states and operators from the superbasis to the subspace basis and vice versa. As the name already indicates, states that are not in the subspace are projected into it and then a basis change is performed.</p><pre><code class="language-julia hljs">P = projector(b_sub, b_position)
+Pt = dagger(P)
+
+x_sub = P*x*Pt
+Hkin_sub = P*Hkin*Pt
+V_sub = P*V*Pt
+H_sub = P*H*Pt;
+println(&quot;dim(H_sub): &quot;, length(H_sub.basis_l), &quot;x&quot;, length(H_sub.basis_r))</code></pre><pre><code class="nohighlight hljs">dim(H_sub): 4
+
+x4</code></pre><p>As example we can simulate the time evolution of the system in this subspace. Initially we put the particle into the ground state of the left well. Over time it starts oscillating between the left and right well ground states.</p><pre><code class="language-julia hljs">T = [0:0.1:23;]
+psi0_sub = basisstate(b_sub, 1)
+
+tout, psi_t = timeevolution.schroedinger(T, psi0_sub, H_sub)
+
+figure(figsize=[10, 3])
+subplot(1, 2, 1)
+plot(tout, [abs2.(psi.data[1]) for psi in psi_t])
+plot(tout, [abs2.(psi.data[2]) for psi in psi_t])
+
+subplot(1, 2, 2)
+# Plot particle probablity distribution in the super Hilbert space.
+for i=1:10:length(T)
+    plot(xpoints, abs2.((Pt*psi_t[i]).data), &quot;k&quot;, alpha=0.6*(T[i]/T[end])^4+0.2)
+end
+plot(xpoints, abs2.((Pt*psi_t[1]).data), &quot;C0&quot;, label=&quot;Initial state&quot;)
+plot(xpoints, abs2.((Pt*psi_t[end]).data), &quot;C1&quot;, label=&quot;Final state&quot;)
+legend()</code></pre><p><img src="../nparticles-in-double-well_files/nparticles-in-double-well_16_0.png" alt="png"/></p><h2 id="Many-body-system"><a class="docs-heading-anchor" href="#Many-body-system">Many-body system</a><a id="Many-body-system-1"></a><a class="docs-heading-anchor-permalink" href="#Many-body-system" title="Permalink"></a></h2><p>Starting with this subspace basis consisting of the four lowest trapped states we build up the corresponding many-body basis. Instead of asking the question in which state a single particle is, we want to know how many particles are in each of these four levels. To define the many-body basis one simply has to specify the associated one-body basis and select the desired many-body states. For example if we have a system consisting of two fermions we could generate the relevant occupation states with the <strong>fermionstates()</strong> function:</p><pre><code class="language-julia hljs">states = fermionstates(b_sub, 2)
+for i in 1:length(states)
+    println(&quot;$i: &quot;, states[i])
+end</code></pre><pre><code class="nohighlight hljs">1: 
+
+[1, 1, 0, 0]
+2: [1, 0, 1, 0]
+3: [1, 0, 0, 1]
+4: [0, 1, 1, 0]
+5: [0, 1, 0, 1]
+6: [0, 0, 1, 1]</code></pre><p>However, in this case we want two bosons, which can be achieved with the <strong>bosonstates()</strong> function.</p><pre><code class="language-julia hljs">Nparticles = 2
+b_mb = ManyBodyBasis(b_sub, bosonstates(b_sub, Nparticles))</code></pre><p>Calculating the many-body operators from the corresponding operators in the associated one-body subspace basis is straight forward using the <strong>manybodyoperator()</strong> function. Basically it uses the relation</p><p class="math-container">\[
+    \tilde{A} = \sum_{st} c_s^\dagger c_t \langle u_s| A |u_t \rangle
+\]</p><p>to convert the one-body operator <span>$A$</span> to the many-body operator <span>$\tilde{A}$</span>.</p><pre><code class="language-julia hljs">Hkin_mb = manybodyoperator(b_mb, Hkin_sub)
+V_mb = manybodyoperator(b_mb, V_sub)
+H_mb = manybodyoperator(b_mb, H_sub)</code></pre><p>To measure the number of particles in a specific state one has two possibilities. In the one-body subspace basis this would correspond to the operator <span>$|u_i\rangle\langle u_i|$</span>.</p><pre><code class="language-julia hljs">n1_sub = basisstate(b_sub, 1) ⊗ dagger(basisstate(b_sub, 1))
+n1_mb = manybodyoperator(b_mb, sparse(n1_sub))</code></pre><p>Alternatively, one can use the <strong>number()</strong> function.</p><pre><code class="language-julia hljs">n1_mb = number(b_mb, 1)
+n2_mb = number(b_mb, 2)
+n3_mb = number(b_mb, 3)
+n4_mb = number(b_mb, 4)</code></pre><p>As example we will now simulate the time evolution of this many-body system. Since the particles aren&#39;t interacting in any way, the result is, besides a factor two, identical to the single-body case. Initially both particles are in the ground state of the left well.</p><pre><code class="language-julia hljs">psi0_mb = basisstate(b_mb, [2, 0, 0, 0])
+tout, psi_t_mb = timeevolution.schroedinger(T, psi0_mb, H_mb)</code></pre><p>To obtain the particle density in the position basis one has to be a little bit creative. The important observation is that the probability density at the point <span>$x_i$</span> can be calculated by <span>$n(x_i) = \langle \Psi| X_i |\Psi\rangle$</span> where <span>$X_i = |x_i\rangle \langle x_i|$</span>. By first projecting the operator <span>$X_i$</span> into the one-body subspace and then transforming this operator into its many-body equivalent we can calculate the particle probability density as expectation value of this many-body operator.</p><pre><code class="language-julia hljs">&quot;&quot;&quot;
+Sparse operator |x_i&gt;&lt;x_i| in position basis.
+&quot;&quot;&quot;
+function nx(b::PositionBasis, i)
+    op = SparseOperator(b)
+    op.data[i, i] = 1.
+    op
+end
+
+&quot;&quot;&quot;
+Probability density in the position basis of the given many body state.
+&quot;&quot;&quot;
+function probabilitydensity_x(state)
+    n = Vector{Float64}(undef, length(b_position))
+    for i=1:length(b_position)
+        nx_i = nx(b_position, i)
+        nx_i_sub = P*nx_i*Pt
+        nx_i_mb = manybodyoperator(b_mb, nx_i_sub)
+        n[i] = real(expect(nx_i_mb, state))
+    end
+    n
+end</code></pre><p>This allows us to reproduce the one-body results.</p><pre><code class="language-julia hljs">figure(figsize=[10, 3])
+subplot(1, 2, 1)
+plot(tout, real(expect(n1_mb, psi_t_mb)))
+plot(tout, real(expect(n2_mb, psi_t_mb)))
+
+subplot(1, 2, 2)
+T_ = tout[tout.&lt;23]
+plot(xpoints, real(probabilitydensity_x(psi_t_mb[1])), label=&quot;Initial state&quot;)
+plot(xpoints, real(probabilitydensity_x(psi_t_mb[length(T_)])), label=&quot;Final state&quot;)
+legend()</code></pre><p><img src="../nparticles-in-double-well_files/nparticles-in-double-well_32_0.png" alt="png"/></p><h2 id="Many-body-system-with-particle-particle-interaction"><a class="docs-heading-anchor" href="#Many-body-system-with-particle-particle-interaction">Many-body system with particle-particle interaction</a><a id="Many-body-system-with-particle-particle-interaction-1"></a><a class="docs-heading-anchor-permalink" href="#Many-body-system-with-particle-particle-interaction" title="Permalink"></a></h2><p>In principle it is possible to include arbitrary particle-particle interactions. The only limitations is that the dimension of the interaction operator might get too large. In this case we will use a Coulomb interaction between the particles. Defining it in the position basis is straight forward. Note that we cheated a little bit to avoid infinitely high interaction when both particles are at the same position.</p><pre><code class="language-julia hljs">using LinearAlgebra
+
+b2_position = b_position ⊗ b_position
+x1 = embed(b2_position, 1, x)
+x2 = embed(b2_position, 2, x);
+r = x1 - x2
+d = abs.(diag(r.data)).^-1
+d[d.==Inf] .= d[2]
+data = sparse(diagm(0 =&gt; d))
+H_coulomb = SparseOperator(b2_position, b2_position, data)</code></pre><p>As before we then project this interaction operator into the chosen subspace.</p><pre><code class="language-julia hljs">H_coulomb_sub = (P⊗P)*H_coulomb*(Pt⊗Pt)</code></pre><p>The <strong>manybodyoperator()</strong> function automatically detects that this is a two-particle interaction operator and uses the relation</p><p class="math-container">\[
+    \tilde{A} = \sum_{stkl} c_s^\dagger c_k^\dagger c_t c_l \langle u_s | \langle u_k| A |u_t \rangle |i_l \rangle
+\]</p><p>to calculate the corresponding many-body operator.</p><pre><code class="language-julia hljs">H_coulomb_mb = manybodyoperator(b_mb, H_coulomb_sub)</code></pre><p>We will now calculate the lowest eigenstates for the case of attrictive and for the case of repulsive interaction.</p><pre><code class="language-julia hljs">H1 = H_mb - H_coulomb_mb
+H2 = H_mb + H_coulomb_mb
+E_coulomb_attractive, states_coulomb_attractive = eigenstates((H1+dagger(H1))/2)
+E_coulomb_repulsive, states_coulomb_repulsive = eigenstates((H2+dagger(H2))/2)</code></pre><p>It is interesting to see how the particle-particle correlation looks. For this the same approach as before for the probability density can be used. In the position basis this correlation can be calculated as expectation value of the two-particle operator <span>$X_1 \otimes X_2 = |x_1 x_2\rangle\langle x_1 x_2|$</span>. However, since this turns out to be rather slow at the moment (further improvements are definitively possible), we will only evaluate this correlation function at a limited set of points.</p><pre><code class="language-julia hljs">&quot;&quot;&quot;
+Probability density in the position basis of the given many body state.
+&quot;&quot;&quot;
+function probabilitydensity_x1x2(state, indices)
+    P2 = P ⊗ P
+    P2t = dagger(P2)
+    n = Matrix{Float64}(undef, length(indices), length(indices))
+    for i=1:length(indices)
+        nx_i_sub = P*nx(b_position, indices[i])*Pt
+        for j=1:length(indices)
+            nx_j_sub = P*nx(b_position, indices[j])*Pt
+            nx_ij_sub = nx_i_sub ⊗ nx_j_sub
+            nx_ij_mb = manybodyoperator(b_mb, nx_ij_sub)
+            n[i, j] = real(expect(nx_ij_mb, state))
+        end
+    end
+    n
+end</code></pre><p>Let&#39;s first investigate the case of attractive interaction. Looking at the energy spectrum we see that the lowest energies always come as pairs.</p><pre><code class="language-julia hljs">println(abs.(E_coulomb_attractive)[1:4])</code></pre><pre><code class="nohighlight hljs">[2.479150152478671, 2.5038564341978358, 11.680386858764512, 11.70498105698214]</code></pre><p>It turns out that superpositions of these pairs results are much nicer localized states. Unsurprisingly, for the case of attractive interaction the particles tend to stay in the same positions. (For a nicer representation of the particle correlation increase the number of included points and wait...).</p><pre><code class="language-julia hljs">indices = [1:20:length(b_position);]
+
+n_attractive1 = probabilitydensity_x1x2(states_coulomb_attractive[1] + states_coulomb_attractive[2], indices)
+n_attractive2 = probabilitydensity_x1x2(states_coulomb_attractive[1] - states_coulomb_attractive[2], indices)
+n_attractive3 = probabilitydensity_x1x2(states_coulomb_attractive[3] + states_coulomb_attractive[4], indices)
+n_attractive4 = probabilitydensity_x1x2(states_coulomb_attractive[3] - states_coulomb_attractive[4], indices)</code></pre><pre><code class="language-julia hljs">figure(figsize=[10,2])
+subplot(1, 4, 1)
+pcolor(n_attractive1)
+subplot(1, 4, 2)
+pcolor(n_attractive2)
+subplot(1, 4, 3)
+pcolor(n_attractive3)
+subplot(1, 4, 4)
+pcolor(n_attractive4)</code></pre><p><img src="../nparticles-in-double-well_files/nparticles-in-double-well_47_0.png" alt="png"/></p><p>The energy spectrum for the case of repulsive interaction is a little bit different. There exists a single, energywise nicely separated groundstate. The second and third as well as the fourth ond fifth states again form pairs with degenerate energies.</p><pre><code class="language-julia hljs">println(abs.(E_coulomb_repulsive)[1:5])</code></pre><pre><code class="nohighlight hljs">[16.25013476475928, 23.25441029019158, 23.33080755832947, 26.248293185655875, 26.288571073200536]</code></pre><p>But also in this case there are no surprises - for repulsive interaction the particles tend to stay in separated wells.</p><pre><code class="language-julia hljs">indices = [1:20:length(b_position);]
+
+n_repulsive1 = probabilitydensity_x1x2(states_coulomb_repulsive[1], indices)
+n_repulsive2 = probabilitydensity_x1x2(states_coulomb_repulsive[2], indices)
+n_repulsive3 = probabilitydensity_x1x2(states_coulomb_repulsive[3], indices)</code></pre><pre><code class="language-julia hljs">figure(figsize=[10,3])
+subplot(1, 3, 1)
+pcolor(n_repulsive1)
+subplot(1, 3, 2)
+pcolor(n_repulsive2)
+subplot(1, 3, 3)
+pcolor(n_repulsive3);</code></pre><p><img src="../nparticles-in-double-well_files/nparticles-in-double-well_52_0.png" alt="png"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../manybody-fourlevel-system/">« Simple many-body system</a><a class="docs-footer-nextpage" href="../doppler-cooling/">Doppler cooling »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 5 May 2026 05:36">Tuesday 5 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Dipole-coupled nanorings · QuantumOptics.jl</title><meta name="title" content="Dipole-coupled nanorings · QuantumOptics.jl"/><meta property="og:title" content="Dipole-coupled nanorings · QuantumOptics.jl"/><meta property="twitter:title" content="Dipole-coupled nanorings · QuantumOptics.jl"/><meta name="description" content="Documentation for QuantumOptics.jl."/><meta property="og:description" content="Documentation for QuantumOptics.jl."/><meta property="twitter:description" content="Documentation for QuantumOptics.jl."/><meta property="og:url" content="https://docs.qojulia.org/examples/atomic_dipole_arrays/"/><meta property="twitter:url" content="https://docs.qojulia.org/examples/atomic_dipole_arrays/"/><link rel="canonical" href="https://docs.qojulia.org/examples/atomic_dipole_arrays/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="QuantumOptics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">QuantumOptics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Introduction</a></li><li><a class="tocitem" href="../../installation/">Installation</a></li><li><a class="tocitem" href="../../tutorial/">Tutorial</a></li><li><span class="tocitem">Quantum objects</span><ul><li><a class="tocitem" href="../../quantumobjects/quantumobjects/">Introduction</a></li><li><a class="tocitem" href="../../quantumobjects/bases/">Bases</a></li><li><a class="tocitem" href="../../quantumobjects/states/">States</a></li><li><a class="tocitem" href="../../quantumobjects/operators/">Operators</a></li></ul></li><li><span class="tocitem">Quantum systems</span><ul><li><a class="tocitem" href="../../quantumsystems/quantumsystems/">Introduction</a></li><li><a class="tocitem" href="../../quantumsystems/spin/">Spin</a></li><li><a class="tocitem" href="../../quantumsystems/fock/">Fock space</a></li><li><a class="tocitem" href="../../quantumsystems/charge/">Charge basis</a></li><li><a class="tocitem" href="../../quantumsystems/nlevel/">N-Level</a></li><li><a class="tocitem" href="../../quantumsystems/particle/">Particle</a></li><li><a class="tocitem" href="../../quantumsystems/subspace/">Subspace</a></li><li><a class="tocitem" href="../../quantumsystems/manybody/">Many-body</a></li></ul></li><li><span class="tocitem">Time-evolution</span><ul><li><a class="tocitem" href="../../timeevolution/timeevolution/">Introduction</a></li><li><a class="tocitem" href="../../timeevolution/schroedinger/">Schroedinger equation</a></li><li><a class="tocitem" href="../../timeevolution/master/">Master equation</a></li><li><a class="tocitem" href="../../timeevolution/mcwf/">Quantum trajectories</a></li><li><a class="tocitem" href="../../timeevolution/timedependent-problems/">Time-dependent problems</a></li></ul></li><li><a class="tocitem" href="../../metrics/">Metrics</a></li><li><a class="tocitem" href="../../steadystate/">Steady state</a></li><li><a class="tocitem" href="../../timecorrelations/">Two-time correlation functions</a></li><li><a class="tocitem" href="../../semiclassical/">Semi-classical systems</a></li><li><span class="tocitem">Stochastics</span><ul><li><a class="tocitem" href="../../stochastic/stochastic/">Introduction</a></li><li><a class="tocitem" href="../../stochastic/schroedinger/">Stochastic Schroedinger equation</a></li><li><a class="tocitem" href="../../stochastic/master/">Stochastic Master equation</a></li><li><a class="tocitem" href="../../stochastic/semiclassical/">Stochastic semiclassical systems</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../pumped-cavity/">Pumped cavity</a></li><li><a class="tocitem" href="../jaynes-cummings/">Jaynes-Cummings</a></li><li><a class="tocitem" href="../superradiant-laser/">Superradiant laser</a></li><li><a class="tocitem" href="../particle-in-harmonic-trap/">Particle in harmonic trap</a></li><li><a class="tocitem" href="../particle-into-barrier/">Particle into barrier</a></li><li><a class="tocitem" href="../wavepacket2D/">Wavepacket in 2D</a></li><li><a class="tocitem" href="../raman/">Raman transition</a></li><li><a class="tocitem" href="../two-qubit-entanglement/">2 qubit entanglement</a></li><li><a class="tocitem" href="../correlation-spectrum/">Correlation spectrum</a></li><li><a class="tocitem" href="../manybody-fourlevel-system/">Simple many-body system</a></li><li><a class="tocitem" href="../nparticles-in-double-well/">N particles in double well</a></li><li><a class="tocitem" href="../doppler-cooling/">Doppler cooling</a></li><li><a class="tocitem" href="../cavity-cooling/">Cavity cooling</a></li><li class="is-active"><a class="tocitem" href>Dipole-coupled nanorings</a></li><li><a class="tocitem" href="../lasing-and-cooling/">Lasing and cooling</a></li><li><a class="tocitem" href="../three-level-maser/">Heat-pumped Maser</a></li><li><a class="tocitem" href="../optomech-cooling/">Optomechanical cavity</a></li><li><a class="tocitem" href="../ramsey/">Ramsey spectroscopy</a></li><li><a class="tocitem" href="../atom-dephasing/">Dephasing of Atom</a></li><li><a class="tocitem" href="../quantum-zeno-effect/">Quantum Zeno Effect</a></li><li><a class="tocitem" href="../quantum-kicked-top/">Quantum Kicked Top</a></li><li><a class="tocitem" href="../vortex/">Quantum Vortices</a></li><li><a class="tocitem" href="../spin-orbit-coupled-BEC1D/">Spinor BEC</a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Dipole-coupled nanorings</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Dipole-coupled nanorings</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl/blob/master/docs/src/examples/atomic_dipole_arrays.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><p><em>This notebook can be found on</em> <a href="https://github.com/qojulia/QuantumOptics.jl/tree/master/docs/examples/notebooks/atomic_dipole_arrays.ipynb">github</a></p><h1 id="Excitation-transfer-between-dipole-coupled-nanorings"><a class="docs-heading-anchor" href="#Excitation-transfer-between-dipole-coupled-nanorings">Excitation transfer between dipole-coupled nanorings</a><a id="Excitation-transfer-between-dipole-coupled-nanorings-1"></a><a class="docs-heading-anchor-permalink" href="#Excitation-transfer-between-dipole-coupled-nanorings" title="Permalink"></a></h1><p>In this example we look at the radiation pattern and transfer of collective states in rings of two-level emitters with transition frequency <span>$\omega_0$</span> following closely the work of M. Moreno-Cardoner et al, 10.1103/PhysRevA.100.023806.</p><p>By considering only a single excitation for the system the Hamiltonian can be cast in non-Hermitian form and the dynamics follow the Schroedinger equation <span>$\dot{|\Psi\rangle} = \frac{1}{i\hbar} H_\mathrm{nh} {|\Psi\rangle}$</span> with</p><p class="math-container">\[ H_\mathrm{nh}  = \sum_{i\neq j} (\Omega_{ij}-\frac{i}{2}\Gamma_{ij}) \sigma^-_i \sigma^+_j\]</p><p>For a symmetric ring, where the dipole orientations preserve the rotational symmetry (e.g. if the dipoles are oriented perpendicularly to the plane of the ring, or tangentially to the ring), the collective modes in the single-excitation manifold are perfect spin waves given by <span>$|\Psi_m\rangle = S^+_m |g\rangle$</span>, with</p><p class="math-container">\[S^+_m = \frac{1}{\sqrt{N}} \sum_{j=1}^N e^{i m \phi_j} \sigma_j^+.\]</p><p>Here <span>$\phi_j = 2\pi (j-1)/N$</span> is the angle associated with position <span>$j \ (j=1,...,N)$</span>, and <span>$m = 0,\pm 1,\pm 2,...,\lceil \pm (N-1)/2 \rceil$</span> corresponds to the angular momentum of the mode.</p><p>First we load the necessary libraries.</p><pre><code class="language-julia hljs">using QuantumOptics
+using PyPlot
+using LinearAlgebra
+
+function GreenTensor(r::AbstractVector{&lt;:Number}, k::Real=2π)
+    n = norm(r)
+    rn = r ./ n
+    kr = k * n
+    exp(im * kr) * (
+        (1 / kr + im / kr^2 - 1 / kr^3) * Matrix(I, 3, 3) -
+        (1 / kr + 3im / kr^2 - 3 / kr^3) * (rn * rn&#39;)
+    )
+end</code></pre><pre><code class="nohighlight hljs">GreenTensor (generic function with 2 methods)</code></pre><p>Next we define the parameters, operators, basis and the geometry for two rings with 10 emitters each. Here  we choose a tangential polarization for the dipole transitions.</p><pre><code class="language-julia hljs">N1 = 10 # number of emitters in first ring
+Γ0 = 1.0 # decay rate
+d = 0.1 # dipole distance
+k0 = 2pi # corresponds to λ=1
+
+# Ring Geometry
+ϕ(j) = 2π/N1*(j-1) # Angle separating atoms
+Rot(φ) = [cos(φ) -sin(φ) 0;sin(φ) cos(φ) 0; 0 0 1] # Tangential polarization
+R = 0.5d/sin((ϕ(2)/2))
+pos = [[R*cos(ϕ(j)), R*sin(ϕ(j)), 0.0] for j=1:N1];
+dips = [normalize(Rot(pi/2)*pos[i]) for i=1:N1];
+
+# add second ring of same size
+for i = 1:N1
+    push!(pos,pos[i]+[0.0,2R+2d,0.0])
+    push!(dips,normalize(Rot(-pi/2)*pos[i]))
+end
+
+# create N-Level basis for the whole system
+N2 = length(pos)
+b = NLevelBasis(N2)
+sm(i) = transition(b, N2, i)
+sp(i) = transition(b, i, N2)
+σ = sm.([1:N2;])
+σp = sp.([1:N2;])</code></pre><p>The collective dipole and decay matrix elements are related to the Green&#39;s tensor <span>$G(\vec{r}-\vec{r}_i,\omega_0)$</span> in free space. In this example we start with the most subradiant state of the first ring corresponding to <span>$m = \lceil \pm (N-1)/2 \rceil$</span> and let the state evolve in time.</p><p>We also calculate the output field <span>$E^+(\vec{r}) = \frac{|\vec{\mu}|k_0^2}{\epsilon_0}\sum_i G(\vec{r}-\vec{r}_i,\omega_0)\cdot \vec{\mu}_i\sigma^-_i$</span> of the system and then the intensity <span>$I(\vec{r}) = \langle E^+ E^- \rangle$</span> at a point <span>$\vec{r}$</span>, which is generated by all the dipoles.</p><pre><code class="language-julia hljs">G(i,j) = transpose(dips[i]) * GreenTensor(pos[i] - pos[j], k0) * dips[j]
+
+function Ω(i,j)
+    if i==j
+        return 0.0
+    else
+        return -3pi/k0*0.5*real(G(i,j))
+    end
+end
+
+function Γ(i,j)
+    if i==j
+        return 1.0
+    else
+        return 6pi/k0*0.5*imag(G(i,j))
+    end
+end
+
+# Eigenstates for the 1. ring
+H_nh = sum((Ω(i,j)-1im*Γ(i,j)*0.5)*sp(i)*sm(j) for i=1:N1,j=1:N1) 
+λ = eigenstates(dense(H_nh);warning = false)
+psi0 = λ[2][end] # initial state, most subradiant
+
+
+# Schroedinger time evolution for both rings
+tspan = [0.0:0.2:100;]
+Heff = sum((Ω(i,j)-1im*Γ(i,j)*0.5)*sp(i)*sm(j) for i=1:N2,j=1:N2)
+tout,psit = timeevolution.schroedinger(tspan,psi0,H_nh)
+
+function Ep(r,N) # electric field
+    out = [0*transition(NLevelBasis(N), N, N) for i=1:3]
+    for i=1:N
+        G_ = GreenTensor(r - pos[i], k0)
+        Gpi = (G_ * dips[i])
+        @inbounds for j=1:3
+            out[j].data .+= sm(i).data .* Gpi[j]
+        end
+    end
+    out
+end
+
+function Intensity(r,N)
+    E = Ep(r,N)
+    sum(dagger(e)*e for e=E)
+end
+
+I_exp(r, ψ) = real(expect(Intensity(r,N2), ψ))</code></pre><pre><code class="nohighlight hljs">I_exp (generic function with 1 method)</code></pre><p>Finally a grid in real space for the radiation field is defined and the instances of time are chosen such that the excitation is either almost completely in ring one or two.</p><pre><code class="language-julia hljs"># Define grid
+xmin = -0.75+R ; xmax = 0.75-R;
+x = collect(range(-0.5, stop=0.5, length=61))
+y = collect(range(-0.5, stop=2R+0.5, length=61))
+z = 1.5R
+grid = [[x1, y1, z1] for x1=x, y1=y, z1=z];
+
+figure(figsize=(9, 3))
+kspan = [1,81,181]
+for k = 1:3
+    t = kspan[k];t2 = tout[t]
+    I_profile = [I_exp(gr, psit[t]) for gr=grid];
+    subplot(1,3,k)
+    title(&quot;t/Γ₀ = $t2&quot;)
+    contourf(y, x, I_profile, 100,cmap=&quot;viridis&quot;)
+    for i = 1:N2
+        plot(pos[i][2],pos[i][1],&quot;wo&quot;,markersize=6,alpha=0.5)
+    end
+    xlabel(&quot;x&quot;)
+    ylabel(&quot;y&quot;)
+    tight_layout()
+end
+</code></pre><p><img src="../atomic_dipole_arrays_files/atomic_dipole_arrays_8_0.png" alt="png"/></p><p>To look more closely at the transport behaviour of the two rings we define a projector which counts only excitations in the second ring and look at its time evolution for the 5 most subradiant states starting in the first ring.</p><pre><code class="language-julia hljs">function projector(psi)
+    acc = 0.0
+    for i = N1+1:N2
+        acc += expect(sp(i)*sm(i),psi)
+    end
+    return acc
+end
+
+figure(figsize=(7, 4))
+for i = 1:4
+    psi0 = λ[2][end+1-i]
+    tout,psit = timeevolution.schroedinger(tspan,psi0,Heff)
+    subplot(2,2,i)
+    plot(tout,projector.(psit))
+    xlabel(&quot;Γ₀t&quot;)
+    ylabel(&quot;2.Ring population&quot;)
+    tight_layout()
+    ylim(0,1)
+end
+</code></pre><pre><code class="nohighlight hljs">/root/.local/lib/python3.10/site-packages/matplotlib/cbook.py:1699: ComplexWarning: Casting complex values to real discards the imaginary part
+  return math.isfinite(val)
+/root/.local/lib/python3.10/site-packages/matplotlib/cbook.py:1345: ComplexWarning: Casting complex values to real discards the imaginary part
+  return np.asarray(x, float)</code></pre><p><img src="../atomic_dipole_arrays_files/atomic_dipole_arrays_10_1.png" alt="png"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../cavity-cooling/">« Cavity cooling</a><a class="docs-footer-nextpage" href="../lasing-and-cooling/">Lasing and cooling »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 5 May 2026 05:36">Tuesday 5 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
