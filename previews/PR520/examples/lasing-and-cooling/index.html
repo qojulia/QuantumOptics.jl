@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Lasing and cooling · QuantumOptics.jl</title><meta name="title" content="Lasing and cooling · QuantumOptics.jl"/><meta property="og:title" content="Lasing and cooling · QuantumOptics.jl"/><meta property="twitter:title" content="Lasing and cooling · QuantumOptics.jl"/><meta name="description" content="Documentation for QuantumOptics.jl."/><meta property="og:description" content="Documentation for QuantumOptics.jl."/><meta property="twitter:description" content="Documentation for QuantumOptics.jl."/><meta property="og:url" content="https://docs.qojulia.org/examples/lasing-and-cooling/"/><meta property="twitter:url" content="https://docs.qojulia.org/examples/lasing-and-cooling/"/><link rel="canonical" href="https://docs.qojulia.org/examples/lasing-and-cooling/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="QuantumOptics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">QuantumOptics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Introduction</a></li><li><a class="tocitem" href="../../installation/">Installation</a></li><li><a class="tocitem" href="../../tutorial/">Tutorial</a></li><li><span class="tocitem">Quantum objects</span><ul><li><a class="tocitem" href="../../quantumobjects/quantumobjects/">Introduction</a></li><li><a class="tocitem" href="../../quantumobjects/bases/">Bases</a></li><li><a class="tocitem" href="../../quantumobjects/states/">States</a></li><li><a class="tocitem" href="../../quantumobjects/operators/">Operators</a></li></ul></li><li><span class="tocitem">Quantum systems</span><ul><li><a class="tocitem" href="../../quantumsystems/quantumsystems/">Introduction</a></li><li><a class="tocitem" href="../../quantumsystems/spin/">Spin</a></li><li><a class="tocitem" href="../../quantumsystems/fock/">Fock space</a></li><li><a class="tocitem" href="../../quantumsystems/charge/">Charge basis</a></li><li><a class="tocitem" href="../../quantumsystems/nlevel/">N-Level</a></li><li><a class="tocitem" href="../../quantumsystems/particle/">Particle</a></li><li><a class="tocitem" href="../../quantumsystems/subspace/">Subspace</a></li><li><a class="tocitem" href="../../quantumsystems/manybody/">Many-body</a></li></ul></li><li><span class="tocitem">Time-evolution</span><ul><li><a class="tocitem" href="../../timeevolution/timeevolution/">Introduction</a></li><li><a class="tocitem" href="../../timeevolution/schroedinger/">Schroedinger equation</a></li><li><a class="tocitem" href="../../timeevolution/master/">Master equation</a></li><li><a class="tocitem" href="../../timeevolution/mcwf/">Quantum trajectories</a></li><li><a class="tocitem" href="../../timeevolution/timedependent-problems/">Time-dependent problems</a></li></ul></li><li><a class="tocitem" href="../../metrics/">Metrics</a></li><li><a class="tocitem" href="../../steadystate/">Steady state</a></li><li><a class="tocitem" href="../../timecorrelations/">Two-time correlation functions</a></li><li><a class="tocitem" href="../../semiclassical/">Semi-classical systems</a></li><li><span class="tocitem">Stochastics</span><ul><li><a class="tocitem" href="../../stochastic/stochastic/">Introduction</a></li><li><a class="tocitem" href="../../stochastic/schroedinger/">Stochastic Schroedinger equation</a></li><li><a class="tocitem" href="../../stochastic/master/">Stochastic Master equation</a></li><li><a class="tocitem" href="../../stochastic/semiclassical/">Stochastic semiclassical systems</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../pumped-cavity/">Pumped cavity</a></li><li><a class="tocitem" href="../jaynes-cummings/">Jaynes-Cummings</a></li><li><a class="tocitem" href="../superradiant-laser/">Superradiant laser</a></li><li><a class="tocitem" href="../particle-in-harmonic-trap/">Particle in harmonic trap</a></li><li><a class="tocitem" href="../particle-into-barrier/">Particle into barrier</a></li><li><a class="tocitem" href="../wavepacket2D/">Wavepacket in 2D</a></li><li><a class="tocitem" href="../raman/">Raman transition</a></li><li><a class="tocitem" href="../two-qubit-entanglement/">2 qubit entanglement</a></li><li><a class="tocitem" href="../correlation-spectrum/">Correlation spectrum</a></li><li><a class="tocitem" href="../manybody-fourlevel-system/">Simple many-body system</a></li><li><a class="tocitem" href="../nparticles-in-double-well/">N particles in double well</a></li><li><a class="tocitem" href="../doppler-cooling/">Doppler cooling</a></li><li><a class="tocitem" href="../cavity-cooling/">Cavity cooling</a></li><li class="is-active"><a class="tocitem" href>Lasing and cooling</a></li><li><a class="tocitem" href="../three-level-maser/">Heat-pumped Maser</a></li><li><a class="tocitem" href="../optomech-cooling/">Optomechanical cavity</a></li><li><a class="tocitem" href="../ramsey/">Ramsey spectroscopy</a></li><li><a class="tocitem" href="../atom-dephasing/">Dephasing of Atom</a></li><li><a class="tocitem" href="../quantum-zeno-effect/">Quantum Zeno Effect</a></li><li><a class="tocitem" href="../quantum-kicked-top/">Quantum Kicked Top</a></li><li><a class="tocitem" href="../vortex/">Quantum Vortices</a></li><li><a class="tocitem" href="../spin-orbit-coupled-BEC1D/">Spinor BEC</a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Lasing and cooling</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Lasing and cooling</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl/blob/master/docs/src/examples/lasing-and-cooling.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><p><em>This notebook can be found on</em> <a href="https://github.com/qojulia/QuantumOptics.jl/tree/master/docs/examples/notebooks/lasing-and-cooling.ipynb">github</a></p><h1 id="Simultaneous-Lasing,-Cooling-and-Trapping"><a class="docs-heading-anchor" href="#Simultaneous-Lasing,-Cooling-and-Trapping">Simultaneous Lasing, Cooling and Trapping</a><a id="Simultaneous-Lasing,-Cooling-and-Trapping-1"></a><a class="docs-heading-anchor-permalink" href="#Simultaneous-Lasing,-Cooling-and-Trapping" title="Permalink"></a></h1><p>In this example, we investigate simulatenous cooling and lasing of a superradiant laser. The superradiant laser operates in the bad cavity regime, i.e. the linewidth of the lasing transition <span>$\Gamma$</span> is much smaller than the linewidth of the cavity <span>$\kappa$</span>. Usually, this is achieved by using a narrow atomic transitions, e.g. the clock transition of  Strontium <span>$(\Gamma \approx 1\mathrm{mHz})$</span>. The advantage of a superradiant clock laser is its very narrow  linewidth but also robustness against noise. In a simple model we describe the superradiant laser by <span>$N$</span> incoherently pumped two-level atoms inside a cavity, and additionally we include motion along the cavity axis within a semicalssical treatment. The Hamiltonian of the system is  <span>$H = \hbar \Delta a^\dagger a + \hbar \sum_{i = 1}^{N} g(r_i) [ a \sigma_{i}^{+} + a^{\dagger} \sigma_{i}^{-}]$</span>, where <span>$\Delta = \omega_c - \omega_a$</span> is the detuing between the cavity resonance frequeny <span>$ω_c$</span> and the atomic transition frequency <span>$ω_a$</span>. The position-dependent cavity-atom coupling of the <span>$i$</span>-th atoms is given by <span>$g(r_i) = g  \cos(kr_i)$</span>, with <span>$k$</span> the wavevector of the cavtiy photons. The cavity field is described by the bosonic creation and annihilation operators <span>$a^{\dagger}$</span> and <span>$a$</span>, respectively, and the identical two-level  atoms are characterized by the atomic excitation and deexcitation operators <span>$\sigma^+$</span> and <span>$\sigma^-$</span>, respectively. The atomic decay, the photon losses through the cavity mirrors, and the incoherent pump are modeled by their corresponding Liouvillian operators, <span>$\mathcal{L}_{\text{sp}}[\rho] = \frac{1}{2} \Gamma \sum_{i}(2 \sigma_i^- \rho \sigma_i^+ - \sigma_i^+ \sigma_i^- \rho - \rho \sigma_i^+ \sigma_i^-)$</span>,</p><p><span>$\mathcal{L}_{\text{cav}}[\rho] = \frac{1}{2} \kappa (2 a \rho a^\dagger - a^\dagger a \rho - \rho a^\dagger a)$</span></p><p>and</p><p><span>$\mathcal{L}_{\text{pump}}[\rho] = \frac{1}{2} R \sum_{i} (2 \sigma^+_i \rho \sigma^-_i - \sigma^-_i \sigma^+_i \rho - \rho \sigma^-_i \sigma^+_i )$</span>, with the incoherent pump rate <span>$R$</span>. To obtain the equations for the particles&#39; semiclassical motion we use the Ehrenfest theorem leading to <span>$\dot{r}_i = 2 \omega_{\text{r}} p_i$</span></p><p>and</p><p><span>$\dot{p}_i = 2 g  \sin(k r_i) \langle a \sigma_{i}^{+} + a^{\dagger} \sigma_{i}^{-} \rangle$</span>, where <span>$p_i$</span> is the momentum of the <span>$i$</span>-th particle and <span>$\omega_r =  \hbar k^2/2m$</span> the recoil frequency. The time evolution of the system described above can be calculated by using the implemented semiclassical master equation. First we import the needed libraries and define the variables, Hilbertspaces and operators of the system.</p><pre><code class="language-julia hljs">using QuantumOptics
+using PyPlot
+using OrdinaryDiffEq
+using Interpolations</code></pre><pre><code class="language-julia hljs">n_p = 3 #photonen cutoff
+N_a = 2 #number of atoms
+
+#all variables and parameters are given in units of the following three
+Γ = 1.0 #spontaneous emission rate
+k = 1.0 #wavevector of the atom transition and the cavity field
+ħ = 1.0 #Planck constant
+
+ω_r = 0.1Γ #recoil frequency
+Δ = 5.0Γ #cavity atom detuning Δ=ω_c-ω_a
+g = 5.0Γ #coupling constant
+κ = 20Γ #cavity loss rate
+R = 8.0Γ #pump rate
+λ = 2π/k #wavelength
+
+#defining the basis of the Hilbertspace
+b_c = FockBasis(n_p) #Fockbasis (cavity field)
+b_a = SpinBasis(1//2) #2-level basis (atom)
+b_all = tensor([b_a for i=1:N_a]...)⊗b_c #complete joint quantum basis
+
+#defining operators
+a = embed(b_all, N_a + 1, destroy(b_c)) #field annihilation operator
+ad = dagger(a) #field creation operator
+sm = [[embed(b_all, i, sigmam(b_a)) for i=1:N_a]...] #array of atom σ- operators
+sp = dagger.(sm) #array of atom σ+ operators
+
+#for faster computation we precalculate frequently used operator products
+smad = [[sm[i]*ad for i=1:N_a]...]
+spa = dagger.(smad)
+spsm = sp.*sm
+ada = ad*a
+spsm_ar = [sp[i]*sm[j] for i=1:N_a, j=1:N_a]
+spa_plus_smad = spa + smad</code></pre><p>Now we define the Hamiltonian and the Liouvillian, as well as the functions to update the quantum operators and the classical variables for the semiclassical time evolution. </p><pre><code class="language-julia hljs">H0 = Δ*ad*a #field and two-level atom Hamiltonian in rotaing frame
+
+#Jump-Operators for Liouvillian
+J = [[sm[i] for i=1:N_a]..., [sp[i] for i=1:N_a]..., a]
+Jd = dagger.(J)
+
+#rates of the dissipative processes
+rates = [[Γ for i=1:N_a]..., [R for i=1:N_a]..., κ]
+
+#function to update the Hammiltonian at every timestep
+function f_q(t,ψ,u)
+    #update H
+    H_int = g*sum(cos.(u[1:N_a]*k).*spa_plus_smad)
+    H = H0 + H_int
+    #J and rates are always the same
+    return H, J, Jd, rates
+end
+
+#function to update classical variables (Ehrenfest-theorem)
+function f_cl!(du,u,ψ,t)
+    #update position
+    for i = 1:N_a
+        du[i] = 2*ω_r*u[N_a + i]
+    end
+    #update momentum
+    for i = 1:N_a
+        du[N_a + i] = 1/k*2*g*sin(u[i]*k)*real(expect(spa[i],ψ))       
+    end
+end</code></pre><p>Here we define the initial state and calculate the time evolution of the semiclassical system and compute the time evolution.</p><pre><code class="language-julia hljs">#initial state
+d_atoms = 0.5λ #initial atom spacing
+#initial classical position and momentum of the atoms:
+u = ComplexF64[[i for i=0:N_a-1]*d_atoms...,([i for i=0:N_a-1]*0.1.+1.5)ħ*k...]
+#initial semi-classical state: all spins down and 0 photons + classical variables
+ψ = semiclassical.State(tensor([spindown(b_a) for i=1:N_a]...,fockstate(b_c, 0)),u)
+
+#semi-classical time evolution
+timestep = 0.1
+t_max = 500
+T=[0:timestep:t_max;]/Γ
+t,ρt = semiclassical.master_dynamic(T,ψ,f_q,f_cl!)</code></pre><p>We calculate some expectation values and plot the results.</p><pre><code class="language-julia hljs">#analyzing data
+r = [[Float64[] for i=1:N_a]...] #postions of the particles at every timestep
+p = [[Float64[] for i=1:N_a]...] #momenta of the particles
+E_kin = [[Float64[] for i=1:N_a]...] #kinetic energies of the particles
+n = Float64[] #number of photons in the cavity
+popu = [[Float64[] for i=1:N_a]...] #excited state population of the particles
+g2_0 = Float64[] #second order correlation function
+
+for it=1:N_a
+    r[it] = [ρt[i].classical[it] for i=1:length(ρt)]
+    p[it] = [ρt[i].classical[N_a + it] for i=1:length(ρt)]
+    E_kin[it] = [(ρt[i].classical[N_a + it])^2 for i=1:length(ρt)]
+    popu[it] = [real(expect(spsm[it],ρt[i])) for i=1:length(ρt)]
+end
+n = [real(expect(ada,ρt[i])) for i=1:length(ρt)]
+g2_0=[real(expect(ad*ad*a*a,ρt[i])/(expect(ada,ρt[i]))^2)
+    for i=[2,[2:1:length(ρt);]...]]
+E_kin_all = sum(E_kin); #overall kinetic energy</code></pre><pre><code class="language-julia hljs">figure(figsize=(10, 6))
+#position
+subplot(221)
+for i=1:N_a
+    plot(t*Γ, r[i]/λ, label=&quot;atom $(i)&quot;)
+end
+xlabel(&quot;tΓ&quot;)
+ylabel(&quot;r/λ&quot;)
+legend()
+
+#overall kinetic energy
+subplot(222)
+plot(t*Γ, E_kin_all/E_kin_all[1])
+xlabel(&quot;tΓ&quot;)
+ylabel(&quot;kin. energy&quot;)
+
+#cavity photon number
+subplot(223)
+plot(t*Γ, n)
+xlabel(&quot;tΓ&quot;)
+ylabel(&quot;n&quot;)
+
+#overall population per atom
+subplot(224)
+plot(t*Γ, sum(popu)/N_a)
+xlabel(&quot;tΓ&quot;)
+ylabel(&quot;average population per atom&quot;)</code></pre><p><img src="../lasing-and-cooling_files/lasing-and-cooling_19_0.png" alt="png"/></p><p>Finally, we calculate the spectrum of the output field. Obviously there is no steady state for our system since the particles always move. Therefore, we calculate the two-time correlation function just for the final state of the cooling process. Due to the semiclassical motion we need to precalculate the positions of the particles to obtain the spectrum, see <a href="https://arxiv.org/abs/1906.01945">arXiv:1906.01945</a> for details.</p><pre><code class="language-julia hljs">#calculate semiclassical spectrum
+T_spec = [0:0.01:50;]
+t1, ρt1 = semiclassical.master_dynamic(T_spec,ρt[end],f_q,f_cl!; alg=Tsit5())
+r_spec = [[Float64[] for i=1:N_a]...] #postions of the particles at every timestep
+
+#produce continous particle trajectories for further calculations
+r_spline = []
+for it=1:N_a
+    r_spec[it] = [real(ρt1.classical[it]) for ρt1=ρt1]
+    push!(r_spline, interpolate((t1,), r_spec[it], Gridded(Linear())))
+end
+
+function Ht(t,rho)
+    u = [r_spline[it](t) for it=1:N_a]
+    H_int = g*sum(cos.(u[1:N_a]*k).*spa_plus_smad)
+    H = H0 + H_int
+    return H, J, Jd, rates
+end
+
+
+aρ0 = a*ρt[end].quantum
+τ, aρt = timeevolution.master_dynamic(T_spec,aρ0,Ht; alg=Tsit5())
+corr = expect(ad, aρt)
+ω, spec = timecorrelations.correlation2spectrum(τ, corr)
+spec_0 = spec .- minimum(spec) #set spectrum minimum to 0
+spec_0_norm = spec_0./maximum(spec_0)</code></pre><pre><code class="language-julia hljs">figure(figsize=(5, 3))
+plot(ω/Γ, spec_0_norm)
+xlabel(&quot;ω/Γ&quot;)
+ylabel(&quot;spectrum&quot;)
+xlim(xmin=-45, xmax=45)</code></pre><p><img src="../lasing-and-cooling_files/lasing-and-cooling_22_0.png" alt="png"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../cavity-cooling/">« Cavity cooling</a><a class="docs-footer-nextpage" href="../three-level-maser/">Heat-pumped Maser »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 5 May 2026 05:35">Tuesday 5 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

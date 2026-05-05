@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Quantum Vortices · QuantumOptics.jl</title><meta name="title" content="Quantum Vortices · QuantumOptics.jl"/><meta property="og:title" content="Quantum Vortices · QuantumOptics.jl"/><meta property="twitter:title" content="Quantum Vortices · QuantumOptics.jl"/><meta name="description" content="Documentation for QuantumOptics.jl."/><meta property="og:description" content="Documentation for QuantumOptics.jl."/><meta property="twitter:description" content="Documentation for QuantumOptics.jl."/><meta property="og:url" content="https://docs.qojulia.org/examples/vortex/"/><meta property="twitter:url" content="https://docs.qojulia.org/examples/vortex/"/><link rel="canonical" href="https://docs.qojulia.org/examples/vortex/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="QuantumOptics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">QuantumOptics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Introduction</a></li><li><a class="tocitem" href="../../installation/">Installation</a></li><li><a class="tocitem" href="../../tutorial/">Tutorial</a></li><li><span class="tocitem">Quantum objects</span><ul><li><a class="tocitem" href="../../quantumobjects/quantumobjects/">Introduction</a></li><li><a class="tocitem" href="../../quantumobjects/bases/">Bases</a></li><li><a class="tocitem" href="../../quantumobjects/states/">States</a></li><li><a class="tocitem" href="../../quantumobjects/operators/">Operators</a></li></ul></li><li><span class="tocitem">Quantum systems</span><ul><li><a class="tocitem" href="../../quantumsystems/quantumsystems/">Introduction</a></li><li><a class="tocitem" href="../../quantumsystems/spin/">Spin</a></li><li><a class="tocitem" href="../../quantumsystems/fock/">Fock space</a></li><li><a class="tocitem" href="../../quantumsystems/charge/">Charge basis</a></li><li><a class="tocitem" href="../../quantumsystems/nlevel/">N-Level</a></li><li><a class="tocitem" href="../../quantumsystems/particle/">Particle</a></li><li><a class="tocitem" href="../../quantumsystems/subspace/">Subspace</a></li><li><a class="tocitem" href="../../quantumsystems/manybody/">Many-body</a></li></ul></li><li><span class="tocitem">Time-evolution</span><ul><li><a class="tocitem" href="../../timeevolution/timeevolution/">Introduction</a></li><li><a class="tocitem" href="../../timeevolution/schroedinger/">Schroedinger equation</a></li><li><a class="tocitem" href="../../timeevolution/master/">Master equation</a></li><li><a class="tocitem" href="../../timeevolution/mcwf/">Quantum trajectories</a></li><li><a class="tocitem" href="../../timeevolution/timedependent-problems/">Time-dependent problems</a></li></ul></li><li><a class="tocitem" href="../../metrics/">Metrics</a></li><li><a class="tocitem" href="../../steadystate/">Steady state</a></li><li><a class="tocitem" href="../../timecorrelations/">Two-time correlation functions</a></li><li><a class="tocitem" href="../../semiclassical/">Semi-classical systems</a></li><li><span class="tocitem">Stochastics</span><ul><li><a class="tocitem" href="../../stochastic/stochastic/">Introduction</a></li><li><a class="tocitem" href="../../stochastic/schroedinger/">Stochastic Schroedinger equation</a></li><li><a class="tocitem" href="../../stochastic/master/">Stochastic Master equation</a></li><li><a class="tocitem" href="../../stochastic/semiclassical/">Stochastic semiclassical systems</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../pumped-cavity/">Pumped cavity</a></li><li><a class="tocitem" href="../jaynes-cummings/">Jaynes-Cummings</a></li><li><a class="tocitem" href="../superradiant-laser/">Superradiant laser</a></li><li><a class="tocitem" href="../particle-in-harmonic-trap/">Particle in harmonic trap</a></li><li><a class="tocitem" href="../particle-into-barrier/">Particle into barrier</a></li><li><a class="tocitem" href="../wavepacket2D/">Wavepacket in 2D</a></li><li><a class="tocitem" href="../raman/">Raman transition</a></li><li><a class="tocitem" href="../two-qubit-entanglement/">2 qubit entanglement</a></li><li><a class="tocitem" href="../correlation-spectrum/">Correlation spectrum</a></li><li><a class="tocitem" href="../manybody-fourlevel-system/">Simple many-body system</a></li><li><a class="tocitem" href="../nparticles-in-double-well/">N particles in double well</a></li><li><a class="tocitem" href="../doppler-cooling/">Doppler cooling</a></li><li><a class="tocitem" href="../cavity-cooling/">Cavity cooling</a></li><li><a class="tocitem" href="../lasing-and-cooling/">Lasing and cooling</a></li><li><a class="tocitem" href="../three-level-maser/">Heat-pumped Maser</a></li><li><a class="tocitem" href="../optomech-cooling/">Optomechanical cavity</a></li><li><a class="tocitem" href="../ramsey/">Ramsey spectroscopy</a></li><li><a class="tocitem" href="../atom-dephasing/">Dephasing of Atom</a></li><li><a class="tocitem" href="../quantum-zeno-effect/">Quantum Zeno Effect</a></li><li><a class="tocitem" href="../quantum-kicked-top/">Quantum Kicked Top</a></li><li class="is-active"><a class="tocitem" href>Quantum Vortices</a></li><li><a class="tocitem" href="../spin-orbit-coupled-BEC1D/">Spinor BEC</a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Quantum Vortices</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Quantum Vortices</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/qojulia/QuantumOptics.jl/blob/master/docs/src/examples/vortex.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><p><em>This notebook can be found on</em> <a href="https://github.com/qojulia/QuantumOptics.jl/tree/master/docs/examples/notebooks/vortex.ipynb">github</a></p><h1 id="Quantum-Vortices"><a class="docs-heading-anchor" href="#Quantum-Vortices">Quantum Vortices</a><a id="Quantum-Vortices-1"></a><a class="docs-heading-anchor-permalink" href="#Quantum-Vortices" title="Permalink"></a></h1><p>In this example, we will implement the Gross–Pitaevskii equation to find the vortex solution for a 2D Bose-Einstein condensate trapped in a harmonic potential.  The time-independent Gross–Pitaevskii equation is</p><p><span>$i \hbar \frac{\partial \Psi (\mathbf{r},t)}{\partial t} = \left(-\frac{\hbar^2}{2m} \nabla^2 + V(\mathbf{r}) + g |\Psi (\mathbf{r},t)|^2 \right) \Psi (\mathbf{r},t)$</span>,</p><p>where <span>$\Psi (\mathbf{r},t)$</span> is the condensate wavefunction, <span>$V(\mathbf{r})$</span> is an external potential, and <span>$g$</span> describes interactions between particles.</p><p>In order to generate vortices, we have to add a rotational term to the effective Hamiltonian</p><p><span>$\Omega \left( x  p_y  - y p_x \right)$</span>,</p><p>where <span>$\Omega$</span> is the angular velocity, and find the groundstate of the system. This part is tricky because the Hamiltonian depends on the wavefunction so we cannot simply diagonalize it. However, we can use some alternative methods such as imaginary time evolution which simply damps out all the excited states from an arbitrary initial state leaving us with the groundstate only. Numerical generation of vortices is quite challenging so we will use a couple of tricks in this code to help them to emerge. We proceed as usual by loading the needed libraries, defining the parameters and the Hilbert space and the operators of the system.</p><pre><code class="language-julia hljs">using QuantumOptics
+using PyPlot </code></pre><p>The first trick we will use is the introduction of a slight asymetry to the harmonic trap</p><pre><code class="language-julia hljs">ωx = 1; # harmonic potential frequency x
+ωy = (1 + 10^-3); # harmonic potential frequency y, 10^-3 introduces a slight asymetry
+m = 1; # mass of an atom
+Ω = 0.6; # angular velocity
+
+r = 5 # size of the space
+
+# position Basis
+nx=64; bx = PositionBasis(-r, r, nx); # position basis size nx
+ny=64; by = PositionBasis(-r, r, ny); # position basis size nx
+
+# momentum Basis
+bpx = MomentumBasis(bx);
+bpy = MomentumBasis(by);
+
+# position operators in position space
+x  =   position(bx)⊗one(by); # position operator
+y  =   one(bx)⊗position(by); # position operator
+
+# momentum operators in momentum space
+Px = momentum(bpx) ⊗ one(bpy) 
+Py = one(bpx) ⊗ momentum(bpy)</code></pre><p>To speed up the calculations a little bit, we will also use the split-step method</p><pre><code class="language-julia hljs"># composite bases
+compbx = bx ⊗ by
+compbp = bpx ⊗ bpy
+
+# FFT
+Txp = transform(compbx, compbp)
+Tpx = transform(compbp, compbx) 
+
+#kinetic Energy
+Hkin = Px^2/2m + Py^2/2m # kinetic energy in momentum space
+
+Hkin_FFT = LazyProduct(Txp, Hkin, Tpx) # lazy tensor for the split-step method
+
+# rotation
+# lazy prodycts for the split-step method
+Hrot_1 = -1*LazyProduct(x,Txp,Py,Tpx)
+Hrot_2 = 1*LazyProduct(y,Txp,Px,Tpx)
+
+# harmonic potential
+Hhar = 0.5*(ωx^2*x^2+ωy^2*y^2)</code></pre><p>Finally, we can prepare initial state and damp all the excited states. The closer we are to the ground state the faster we get to the actual ground state.</p><pre><code class="language-julia hljs">#initial state
+p1 = 0
+p2 = 0
+σx = 3
+σy = 3
+
+ϕin = gaussianstate(bx, 0, p1, σx)⊗gaussianstate(by, 0, p2, σy)
+normalize!(ϕin)</code></pre><p>Let&#39;s see how the initial state looks like:</p><pre><code class="language-julia hljs">density = Array(transpose(reshape((abs2.(ϕin.data)), (nx, ny))));
+phase = Array(transpose(reshape((angle.(ϕin.data)), (nx, ny))));
+figure(figsize=(12, 4))
+subplot(1,2,1)
+title(&quot;density&quot;)
+imshow(density)
+colorbar()
+axis(&quot;off&quot;)
+subplot(1,2,2)
+title(&quot;phase&quot;)
+imshow(phase)
+colorbar()
+axis(&quot;off&quot;)</code></pre><p><img src="../vortex_files/vortex_13_0.png" alt="png"/></p><p>It is also a good idea to prepare a phase mask for the initial state. We will want to get two vortices so the phase has to jump twice.</p><pre><code class="language-julia hljs">mask = Array{Complex{Float64}}(undef, 0)
+j = 2 # number of vortices
+for x = 1:nx
+    for y = 1:ny
+        push!(mask,exp(j*1im*atan(x-nx/2,y-ny/2))/2)
+    end
+end
+
+newstate = (abs.(ϕin.data)).*mask
+ϕin = Ket(compbx,newstate)</code></pre><p>And see once again the initial state</p><pre><code class="language-julia hljs">density = Array(transpose(reshape((abs2.(ϕin.data)), (nx, ny))));
+phase = Array(transpose(reshape((angle.(ϕin.data)), (nx, ny))));
+figure(figsize=(12, 4))
+subplot(1,2,1)
+title(&quot;density&quot;)
+imshow(density)
+colorbar()
+axis(&quot;off&quot;)
+subplot(1,2,2)
+title(&quot;phase&quot;)
+imshow(phase)
+colorbar()
+axis(&quot;off&quot;)</code></pre><p><img src="../vortex_files/vortex_17_0.png" alt="png"/></p><p>We are now very close to the ground state. Let&#39;s kill the contributions from the excited states and get finally nice vortices. Another tricky thing that we have to take into account is the normalization of the wavefunction. In the imaginary time evolution the wavefunction amplitude decreases from step to step. We will normalize the wavefunction after every step.</p><pre><code class="language-julia hljs"># GPE 
+
+dx = 2r/nx
+g = 100. # interaction strength
+Hg = diagonaloperator(bx, Ket(bx).data)⊗diagonaloperator(by, Ket(by).data) # ∝ |ψ|^2
+
+H_tot = -1im*LazySum(Hkin_FFT, Hg, Ω*Hrot_1, Ω*Hrot_2, Hhar) # imaginary time evolution 
+
+function Hgp(t, ψ) # Update state-dependent term in H
+    normalize!(ψ) # &lt;- the wavefunction will be always normalized to 1
+    H_tot.operators[2].data.nzval .= g*abs2.(ψ.data)/(dx^2) # we need to update the second term in the Hamiltonian
+    return H_tot
+end
+
+# groundstate  
+
+# imaginary time evolution
+T = [0:0.42:4;]
+tout, ψt = timeevolution.schroedinger_dynamic(T, ϕin, Hgp)
+
+# this should be the ground state
+ϕ = ψt[end]</code></pre><p>Let&#39;s also see how the vortices emerged from our intial state</p><pre><code class="language-julia hljs">density = [Array(transpose(reshape((abs2.(ψ.data)), (nx, ny)))) for ψ=ψt ];
+figure(figsize=(12, 8))
+for i = 1:length(ψt)
+    subplot(4,5,i)
+    imshow(density[i])
+    axis(&quot;off&quot;);
+end</code></pre><p><img src="../vortex_files/vortex_21_0.png" alt="png"/></p><p>And also the phase which should not change too much</p><pre><code class="language-julia hljs">phase = [Array(transpose(reshape((angle.(ψ.data)), (nx, ny)))) for ψ=ψt ];
+figure(figsize=(12, 8))
+for i = 1:length(ψt)
+    subplot(4,5,i)
+    imshow(phase[i])
+    axis(&quot;off&quot;);
+end</code></pre><p><img src="../vortex_files/vortex_23_0.png" alt="png"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quantum-kicked-top/">« Quantum Kicked Top</a><a class="docs-footer-nextpage" href="../spin-orbit-coupled-BEC1D/">Spinor BEC »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 5 May 2026 05:35">Tuesday 5 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
