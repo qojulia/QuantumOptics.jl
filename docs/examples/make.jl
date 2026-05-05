@@ -25,8 +25,8 @@ end
 notebooks = sort(filter(endswith(".ipynb"), readdir(notebooks_dir; join = true)))
 
 for notebook in notebooks
-    run(`$python -m jupyter nbconvert --to script --output-dir=$julia_dir $notebook`)
-    run(`$python -m jupyter nbconvert --to markdown --execute
+    run(`$python -m nbconvert --to script --output-dir=$julia_dir $notebook`)
+    run(`$python -m nbconvert --to markdown --execute
         --ExecutePreprocessor.kernel_name=$kernel_name
         --ExecutePreprocessor.timeout=$timeout
         --output-dir=$markdown_dir
