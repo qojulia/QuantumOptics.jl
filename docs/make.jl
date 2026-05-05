@@ -107,7 +107,7 @@ makedocs(
         size_threshold = 400 * 2^10,
         size_threshold_warn = 300 * 2^10,
     ),
-    checkdocs = :exports,
+    checkdocs = :public,
     warnonly = [:missing_docs],
 )
 

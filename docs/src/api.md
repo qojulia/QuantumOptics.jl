@@ -59,11 +59,6 @@ DenseOperator
 SparseOperator
 ```
 
-```@docs; canonical=false
-LazyKet
-```
-
-
 ```@docs
 LazyTensor
 ```
@@ -251,10 +246,6 @@ sparse(::AbstractOperator)
 current_time
 ```
 
-```@docs; canonical=false
-static_operator
-```
-
 ```@docs
 set_time!
 ```
@@ -354,36 +345,6 @@ wignersu2
 
 ```@docs
 ylm
-```
-
-### [Charge](@id API: Charge operators)
-
-```@docs; canonical=false
-ChargeBasis
-```
-
-```@docs; canonical=false
-ShiftedChargeBasis
-```
-
-```@docs; canonical=false
-chargestate
-```
-
-```@docs; canonical=false
-chargeop
-```
-
-```@docs; canonical=false
-expiφ
-```
-
-```@docs; canonical=false
-cosφ
-```
-
-```@docs; canonical=false
-sinφ
 ```
 
 ### [N-level](@id API: N-level)
@@ -550,10 +511,6 @@ sparseprojector
 
 ```@docs
 ManyBodyBasis
-```
-
-```@docs; canonical=false
-FermionBitstring
 ```
 
 ```@docs
