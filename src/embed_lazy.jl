@@ -1,12 +1,4 @@
-# src/embed_lazy.jl
-# Lazy embedding utilities for QuantumOptics.
-#
-# embed_lazy is defined here (not in QuantumOpticsBase, which does not provide
-# this function) and is exported from the QuantumOptics module.
-
 using QuantumOpticsBase
-
-# ====================== Internal Basis Checks ======================
 
 function _embed_lazy_check_basis(basis_l::CompositeBasis, basis_r::CompositeBasis,
                                  index::Integer, op::AbstractOperator)
@@ -57,8 +49,6 @@ compatibility check), since no embedding is needed.
 """
 function embed_lazy end
 
-# --- AbstractOperator → LazyTensor ---
-
 function embed_lazy(basis::CompositeBasis, index::Integer, op::AbstractOperator)
     _embed_lazy_check_basis(basis, basis, index, op)
     LazyTensor(basis, index, op)
@@ -70,7 +60,7 @@ function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
     LazyTensor(basis_l, basis_r, index, op)
 end
 
-# --- LazyTensor (single-index shortcut) ---
+# LazyTensor (single-index shortcut)
 
 function embed_lazy(basis::CompositeBasis, index::Integer, op::LazyTensor)
     length(op.operators) == 1 ||
@@ -85,7 +75,7 @@ function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
     LazyTensor(basis_l, basis_r, index, first(values(op.operators)), op.factor)
 end
 
-# --- LazyTensor (multi-index) ---
+# LazyTensor (multi-index)
 
 function embed_lazy(basis::CompositeBasis, indices, op::LazyTensor)
     _embed_lazy_check_basis(basis, basis, indices, op.operators)
@@ -97,8 +87,6 @@ function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
     _embed_lazy_check_basis(basis_l, basis_r, indices, op.operators)
     LazyTensor(basis_l, basis_r, indices, op.operators, op.factor)
 end
-
-# --- LazySum ---
 
 function embed_lazy(basis::CompositeBasis, index::Integer, op::LazySum)
     LazySum(basis, basis, op.factors,
@@ -121,8 +109,6 @@ function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
     LazySum(basis_l, basis_r, op.factors,
             map(o -> embed_lazy(basis_l, basis_r, indices, o), op.operators))
 end
-
-# --- TimeDependentSum ---
 
 function embed_lazy(basis::CompositeBasis, index::Integer, op::TimeDependentSum)
     TimeDependentSum(QuantumOpticsBase.coefficients(op),
@@ -150,8 +136,22 @@ function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
                      init_time = current_time(op))
 end
 
-# --- Vector of operators → LazyTensor ---
+# Disambiguating method: CompositeBasis + single Integer index + vector of ops
+function embed_lazy(basis::CompositeBasis, index::Integer,
+                    operators::AbstractVector{<:AbstractOperator})
+    length(operators) == 1 ||
+        throw(ArgumentError("embed_lazy with a single index requires a single-element operator vector."))
+    embed_lazy(basis, index, only(operators))
+end
 
+function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Integer,
+                    operators::AbstractVector{<:AbstractOperator})
+    length(operators) == 1 ||
+        throw(ArgumentError("embed_lazy with a single index requires a single-element operator vector."))
+    embed_lazy(basis_l, basis_r, index, only(operators))
+end
+
+# Multi-index versions
 function embed_lazy(basis::CompositeBasis, indices,
                     operators::AbstractVector{<:AbstractOperator})
     _embed_lazy_check_basis(basis, basis, indices, operators)
@@ -164,7 +164,7 @@ function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis, indices,
     LazyTensor(basis_l, basis_r, indices, Tuple(operators))
 end
 
-# ====================== Non-Composite Basis (identity embed) ======================
+# Non-Composite Basis (identity embed)
 
 function embed_lazy(b::Basis, index::Integer, op::AbstractOperator)
     _embed_lazy_check_basis(b, index, op)
@@ -194,7 +194,7 @@ function embed_lazy(b::Basis, index::Integer,
     operators
 end
 
-# ====================== Convenience (no-index) ======================
+# Convenience (no-index)
 
 embed_lazy(b::Basis, op) = embed_lazy(b, 1, op)
 embed_lazy(b::CompositeBasis, op) = embed_lazy(b, 1, op)
