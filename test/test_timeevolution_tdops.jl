@@ -34,6 +34,15 @@ test_settime(Htup)
 
 H = TimeDependentSum(1.0=>H0, cos=>Hd)
 
+H_lazy = embed_lazy(b, 1, H)
+H_eager = embed(b, 1, H)
+
+@test H_lazy isa TimeDependentSum
+@test dense(H_lazy) == dense(H_eager)
+
+psi = basisstate(b, 1)
+@test H_lazy * psi == H_eager * psi
+
 # function types not homogeneous
 @test timeevolution._tuplify(H) !== H
 

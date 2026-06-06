@@ -113,6 +113,19 @@ H = LazySum(LazyProduct(dagger(sm1), sm1), LazyProduct(dagger(sm2), sm2))
 nothing # hide
 ```
 
+For the common case of embedding local operators into a composite basis while preserving the lazy structure, use [`embed_lazy`](@ref) instead of [`embed`](@ref):
+
+```@example operators
+sx = sigmax(b0)
+sz = sigmaz(b0)
+
+H_lazy = embed_lazy(b, 1, sx) + embed_lazy(b, 2, sz)
+H_sum = embed_lazy(b, 1, LazySum(sx, 0.5 * sz))
+nothing # hide
+```
+
+Compared with [`embed`](@ref), `embed_lazy` keeps the result in lazy form and defers matrix materialization until you call [`dense`](@ref) or [`sparse`](@ref). That makes it a better fit when the embedded operator is used directly in a Hamiltonian or multiplied with a state.
+
 **Note**
 
 

@@ -12,9 +12,11 @@ export
     steadystate,
     timecorrelations,
     semiclassical,
-    stochastic
+    stochastic,
+    embed_lazy
 
 
+include("embed_lazy.jl")
 include("phasespace.jl")
 module timeevolution
     export diagonaljumps, @skiptimechecks
