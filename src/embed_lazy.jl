@@ -1,200 +1,132 @@
 using QuantumOpticsBase
 
-function _embed_lazy_check_basis(basis_l::CompositeBasis, basis_r::CompositeBasis,
-                                 index::Integer, op::AbstractOperator)
-    (basis_l.bases[index] == op.basis_l && basis_r.bases[index] == op.basis_r) ||
-        throw(IncompatibleBases())
-end
-
-function _embed_lazy_check_basis(basis_l::CompositeBasis, basis_r::CompositeBasis,
-                                 indices, operators)
-    length(indices) == length(operators) ||
-        throw(ArgumentError("embed_lazy requires length(indices) == length(operators)."))
-    for (index, op) in zip(indices, operators)
-        basis_l.bases[index] == op.basis_l || throw(IncompatibleBases())
-        basis_r.bases[index] == op.basis_r || throw(IncompatibleBases())
-    end
-    return nothing
-end
-
-function _embed_lazy_check_basis(b::Basis, index::Integer, op::AbstractOperator)
-    index == 1 || throw(ArgumentError("For non-composite basis, embed index must be 1."))
-    b == op.basis_l || throw(IncompatibleBases())
-    return nothing
-end
-
-function _embed_lazy_check_basis(b::Basis, index::Integer,
-                                 ops::Union{Tuple,AbstractVector})
-    index == 1 || throw(ArgumentError("For non-composite basis, embed index must be 1."))
-    for op in ops
-        b == op.basis_l || throw(IncompatibleBases())
-    end
-    return nothing
-end
-
-# ====================== embed_lazy ======================
-
 """
     embed_lazy(basis, index, op)
     embed_lazy(basis_l, basis_r, index, op)
     embed_lazy(basis, indices, operators)
 
-Embed `op` into `basis` at position `index` (or positions `indices`) using
-lazy operators (`LazyTensor`, `LazySum`). Unlike `embed`, this avoids
-materialising the full tensor-product operator and therefore scales much better
-for large composite systems.
+Embed `op` into a composite `basis` at position `index` (or positions `indices`)
+without materialising the full tensor-product matrix. Returns a `LazyTensor` or
+`LazySum` that defers allocation until you call `dense` or `sparse`.
 
-For a non-composite `Basis` the operator is returned unchanged (after a
-compatibility check), since no embedding is needed.
+On a non-composite `Basis` the operator is returned as-is after a compatibility check.
+
+See also: [`embed`](@ref)
 """
 function embed_lazy end
 
-function embed_lazy(basis::CompositeBasis, index::Integer, op::AbstractOperator)
-    _embed_lazy_check_basis(basis, basis, index, op)
-    LazyTensor(basis, index, op)
+
+"""
+    _check_subsystem(basis_l, basis_r, index, op)
+
+Verify that `op` is compatible with the subsystem at `index` in `basis_l` and
+`basis_r`. Throws `IncompatibleBases` if the bases do not match.
+"""
+function _check_subsystem(basis_l, basis_r, index, op)
+    (basis_l.bases[index] == op.basis_l && basis_r.bases[index] == op.basis_r) ||
+        throw(IncompatibleBases())
 end
 
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
+"""
+    _check_subsystems(basis_l, basis_r, indices, ops)
+
+Verify that each operator in `ops` is compatible with the corresponding subsystem
+in `basis_l` and `basis_r`. Also checks that `indices` and `ops` have the same
+length before iterating.
+"""
+function _check_subsystems(basis_l, basis_r, indices, ops)
+    length(indices) == length(ops) ||
+        throw(ArgumentError("length(indices) must equal length(operators)"))
+    for (i, op) in zip(indices, ops)
+        _check_subsystem(basis_l, basis_r, i, op)
+    end
+end
+
+
+"""
+    embed_lazy(basis_l, basis_r, index, op)
+    embed_lazy(basis_l, basis_r, index, op::LazyTensor)
+    embed_lazy(basis_l, basis_r, index, op::LazySum)
+    embed_lazy(basis_l, basis_r, index, op::TimeDependentSum)
+
+Single-index embedding into a `CompositeBasis`. The asymmetric `(basis_l, basis_r)`
+form. The symmetric shortcut `embed_lazy(b, index, op)` at the end delegates here 
+so there is only one place to update if the logic changes.
+
+Each operator type dispatches separately because the wrapping differs: plain operators
+go into a `LazyTensor` directly, `LazySum` maps recursively over its terms, and
+`TimeDependentSum` re-embeds only the static part while preserving the time-varying
+coefficients unchanged.
+"""
+function embed_lazy(bl::CompositeBasis, br::CompositeBasis,
                     index::Integer, op::AbstractOperator)
-    _embed_lazy_check_basis(basis_l, basis_r, index, op)
-    LazyTensor(basis_l, basis_r, index, op)
+    _check_subsystem(bl, br, index, op)
+    LazyTensor(bl, br, index, op)
 end
 
-# LazyTensor (single-index shortcut)
-
-function embed_lazy(basis::CompositeBasis, index::Integer, op::LazyTensor)
-    length(op.operators) == 1 ||
-        throw(ArgumentError("embed_lazy with a single index requires a single-operator LazyTensor."))
-    LazyTensor(basis, index, first(values(op.operators)), op.factor)
-end
-
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
+function embed_lazy(bl::CompositeBasis, br::CompositeBasis,
                     index::Integer, op::LazyTensor)
     length(op.operators) == 1 ||
-        throw(ArgumentError("embed_lazy with a single index requires a single-operator LazyTensor."))
-    LazyTensor(basis_l, basis_r, index, first(values(op.operators)), op.factor)
+        throw(ArgumentError("single-index embed_lazy needs a single-operator LazyTensor"))
+    LazyTensor(bl, br, index, first(values(op.operators)), op.factor)
 end
 
-# LazyTensor (multi-index)
-
-function embed_lazy(basis::CompositeBasis, indices, op::LazyTensor)
-    _embed_lazy_check_basis(basis, basis, indices, op.operators)
-    LazyTensor(basis, basis, indices, op.operators, op.factor)
-end
-
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
-                    indices, op::LazyTensor)
-    _embed_lazy_check_basis(basis_l, basis_r, indices, op.operators)
-    LazyTensor(basis_l, basis_r, indices, op.operators, op.factor)
-end
-
-function embed_lazy(basis::CompositeBasis, index::Integer, op::LazySum)
-    LazySum(basis, basis, op.factors,
-            map(o -> embed_lazy(basis, index, o), op.operators))
-end
-
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
+function embed_lazy(bl::CompositeBasis, br::CompositeBasis,
                     index::Integer, op::LazySum)
-    LazySum(basis_l, basis_r, op.factors,
-            map(o -> embed_lazy(basis_l, basis_r, index, o), op.operators))
+    LazySum(bl, br, op.factors, map(o -> embed_lazy(bl, br, index, o), op.operators))
 end
 
-function embed_lazy(basis::CompositeBasis, indices, op::LazySum)
-    LazySum(basis, basis, op.factors,
-            map(o -> embed_lazy(basis, indices, o), op.operators))
-end
-
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
-                    indices, op::LazySum)
-    LazySum(basis_l, basis_r, op.factors,
-            map(o -> embed_lazy(basis_l, basis_r, indices, o), op.operators))
-end
-
-function embed_lazy(basis::CompositeBasis, index::Integer, op::TimeDependentSum)
-    TimeDependentSum(QuantumOpticsBase.coefficients(op),
-                     embed_lazy(basis, index, QuantumOpticsBase.static_operator(op));
-                     init_time = current_time(op))
-end
-
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
+function embed_lazy(bl::CompositeBasis, br::CompositeBasis,
                     index::Integer, op::TimeDependentSum)
-    TimeDependentSum(QuantumOpticsBase.coefficients(op),
-                     embed_lazy(basis_l, basis_r, index, QuantumOpticsBase.static_operator(op));
-                     init_time = current_time(op))
+    TimeDependentSum(
+        QuantumOpticsBase.coefficients(op),
+        embed_lazy(bl, br, index, QuantumOpticsBase.static_operator(op));
+        init_time = current_time(op)
+    )
 end
 
-function embed_lazy(basis::CompositeBasis, indices, op::TimeDependentSum)
-    TimeDependentSum(QuantumOpticsBase.coefficients(op),
-                     embed_lazy(basis, indices, QuantumOpticsBase.static_operator(op));
-                     init_time = current_time(op))
+embed_lazy(b::CompositeBasis, index::Integer, op) = embed_lazy(b, b, index, op)
+
+
+"""
+    embed_lazy(basis_l, basis_r, indices, op::LazyTensor)
+    embed_lazy(basis_l, basis_r, indices, op::LazySum)
+    embed_lazy(basis_l, basis_r, indices, operators)
+
+Multi-index embedding into a `CompositeBasis`. A `LazyTensor` already carries its
+own operator dictionary, so we validate the existing operators against the new basis
+and re-wrap rather than constructing from scratch. A plain vector of operators is
+assembled into a fresh `LazyTensor`. `LazySum` recurses over its terms the same way
+as in the single-index case.
+"""
+function embed_lazy(bl::CompositeBasis, br::CompositeBasis,
+                    indices, op::LazyTensor)
+    _check_subsystems(bl, br, indices, op.operators)
+    LazyTensor(bl, br, indices, op.operators, op.factor)
 end
 
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis,
-                    indices, op::TimeDependentSum)
-    TimeDependentSum(QuantumOpticsBase.coefficients(op),
-                     embed_lazy(basis_l, basis_r, indices, QuantumOpticsBase.static_operator(op));
-                     init_time = current_time(op))
+function embed_lazy(bl::CompositeBasis, br::CompositeBasis,
+                    indices, op::LazySum)
+    LazySum(bl, br, op.factors, map(o -> embed_lazy(bl, br, indices, o), op.operators))
 end
 
-# Disambiguating method: CompositeBasis + single Integer index + vector of ops
-function embed_lazy(basis::CompositeBasis, index::Integer,
+function embed_lazy(bl::CompositeBasis, br::CompositeBasis, indices,
                     operators::AbstractVector{<:AbstractOperator})
-    length(operators) == 1 ||
-        throw(ArgumentError("embed_lazy with a single index requires a single-element operator vector."))
-    embed_lazy(basis, index, only(operators))
+    _check_subsystems(bl, br, indices, operators)
+    LazyTensor(bl, br, indices, Tuple(operators))
 end
 
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis, index::Integer,
-                    operators::AbstractVector{<:AbstractOperator})
-    length(operators) == 1 ||
-        throw(ArgumentError("embed_lazy with a single index requires a single-element operator vector."))
-    embed_lazy(basis_l, basis_r, index, only(operators))
-end
+embed_lazy(b::CompositeBasis, indices, op) = embed_lazy(b, b, indices, op)
 
-# Multi-index versions
-function embed_lazy(basis::CompositeBasis, indices,
-                    operators::AbstractVector{<:AbstractOperator})
-    _embed_lazy_check_basis(basis, basis, indices, operators)
-    LazyTensor(basis, basis, indices, Tuple(operators))
-end
 
-function embed_lazy(basis_l::CompositeBasis, basis_r::CompositeBasis, indices,
-                    operators::AbstractVector{<:AbstractOperator})
-    _embed_lazy_check_basis(basis_l, basis_r, indices, operators)
-    LazyTensor(basis_l, basis_r, indices, Tuple(operators))
-end
+"""
+    embed_lazy(b::Basis, index, op)
 
-# Non-Composite Basis (identity embed)
-
-function embed_lazy(b::Basis, index::Integer, op::AbstractOperator)
-    _embed_lazy_check_basis(b, index, op)
+When `b` is not a `CompositeBasis` there is nothing to embed into. The operator already 
+lives on the full space. We verify that `index` is 1 (the only meaningful position 
+on a non-composite basis) and return `op` unchanged.
+"""
+function embed_lazy(b::Basis, index::Integer, op)
+    index == 1 || throw(ArgumentError("index must be 1 for a non-composite basis"))
     op
 end
-
-function embed_lazy(b::Basis, index::Integer, op::LazyTensor)
-    _embed_lazy_check_basis(b, index, collect(values(op.operators)))
-    op
-end
-
-function embed_lazy(b::Basis, index::Integer, op::LazySum)
-    _embed_lazy_check_basis(b, index, op.operators)
-    op
-end
-
-function embed_lazy(b::Basis, index::Integer, op::TimeDependentSum)
-    _embed_lazy_check_basis(b, index, QuantumOpticsBase.static_operator(op))
-    TimeDependentSum(QuantumOpticsBase.coefficients(op),
-                     QuantumOpticsBase.static_operator(op);
-                     init_time = current_time(op))
-end
-
-function embed_lazy(b::Basis, index::Integer,
-                    operators::AbstractVector{<:AbstractOperator})
-    _embed_lazy_check_basis(b, index, operators)
-    operators
-end
-
-# Convenience (no-index)
-
-embed_lazy(b::Basis, op) = embed_lazy(b, 1, op)
-embed_lazy(b::CompositeBasis, op) = embed_lazy(b, 1, op)
