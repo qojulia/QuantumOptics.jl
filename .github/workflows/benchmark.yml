@@ -1,20 +1,49 @@
 name: Benchmarks
+
 on:
-  pull_request_target:
+  pull_request:
     branches: [master, main]
-permissions:
-  pull-requests: write
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Run the full AirspeedVelocity benchmark suite"
+        required: false
+        default: "false"
 
 concurrency:
-  # group by workflow and ref; the last slightly strange component ensures that for pull
-  # requests, we limit to 1 concurrent job, but for the master branch we don't
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main') || github.run_number }}
-  # Cancel intermediate builds, but only if it is a pull request build.
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.run_number }}
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
   benchmark:
+    name: Benchmark smoke
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.full != 'true' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1'
+      - uses: actions/cache@v5
+        env:
+          cache-name: benchmark-smoke-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Project.toml', 'benchmark/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.cache-name }}-
+            ${{ runner.os }}-
+      - name: Run benchmark smoke gate
+        run: julia --project=benchmark benchmark/run_smoke.jl
+
+  full-benchmark:
+    name: Full AirspeedVelocity benchmark
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full == 'true' }}
+    permissions:
+      pull-requests: write
     steps:
       - uses: MilesCranmer/AirspeedVelocity.jl@action-v1
         with:
