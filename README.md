@@ -23,6 +23,15 @@ The source content associated with **QuantumOptics.jl** is distributed over seve
 * Documentation: https://github.com/qojulia/QuantumOptics.jl-documentation
 * Examples: https://github.com/qojulia/QuantumOptics.jl-examples
 * Benchmarks: https://github.com/qojulia/QuantumOptics.jl-benchmarks
+* Benchmark smoke check for contributors:
+
+      julia --project=benchmark benchmark/run_smoke.jl
+
+  This command is a lightweight gate that instantiates the benchmark environment,
+  loads the benchmark suite, and runs one tiny benchmark. It is intended to catch
+  benchmark-suite bitrot in pull requests; full comparative benchmark reports are
+  still maintained separately.
+
 * Website: https://github.com/qojulia/QuantumOptics.jl-website
 
 
