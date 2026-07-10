@@ -111,3 +111,10 @@ for dim in (1//2, 20//1, 50//1, 100//1)
         SUITE[name]["qo types"][string(dim)] = @benchmarkable solve(prob, EM(), dt=1/100; save_everystep=false) setup=(prob=eval($bench)($dim; pure=false))
     end
 end
+
+const RUN_CI = true
+for file in readdir(joinpath(@__DIR__, "comparative", "QuantumOptics.jl"))
+    if endswith(file, ".jl") && file != "benchmarkutils.jl"
+        include(joinpath(@__DIR__, "comparative", "QuantumOptics.jl", file))
+    end
+end
