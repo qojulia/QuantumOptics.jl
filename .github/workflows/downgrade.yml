@@ -34,6 +34,8 @@ jobs:
           mode: 'forcedeps'
           julia_version: 'min'
       - uses: julia-actions/julia-buildpkg@v1
+      - name: Instantiate the locked test environment
+        run: julia --color=yes --project=test -e 'import Pkg; Pkg.instantiate()'
       - name: Run tests without re-resolving
         env:
           JULIA_LOAD_PATH: ${{ github.workspace }}/test:${{ github.workspace }}:@stdlib
