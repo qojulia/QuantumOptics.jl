@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@v3
         with:
-          version: '1.12'
+          version: 'min'
       - uses: julia-actions/cache@v3
         with:
           delete-old-caches: false
@@ -32,9 +32,9 @@ jobs:
           projects: '.,test'
           skip: LinearAlgebra,Random,SparseArrays
           mode: 'forcedeps'
-          julia_version: '1.12'
+          julia_version: 'min'
       - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
-        with:
-          allow_reresolve: false
-          force_latest_compatible_version: false
+      - name: Run tests without re-resolving
+        env:
+          JULIA_LOAD_PATH: ${{ github.workspace }}/test:${{ github.workspace }}:@stdlib
+        run: julia --color=yes --check-bounds=yes --project=test test/runtests.jl
