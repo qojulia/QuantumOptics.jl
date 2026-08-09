@@ -68,7 +68,7 @@ testfilter = ti -> begin
     push!(exclude, :metal)
   end
 
-  if !(VERSION >= v"1.10")
+  if !(VERSION >= v"1.10") || get(ENV, "QUANTUMSAVORY_DOWNGRADE_TEST", "") == "true"
     push!(exclude, :aqua)
   end
 
