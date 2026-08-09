@@ -11,8 +11,7 @@ steps:
       - JuliaCI/julia#v1:
           version: "1"
       - JuliaCI/julia-test#v1:
-      - JuliaCI/julia-coverage#v1:
-          codecov: true
+      - JuliaCI/julia-coverage#v1: ~
     env:
       JET_TEST: "{{matrix.JET_TEST}}"
       GPU_TEST: "{{matrix.GPU_TEST}}"
@@ -28,30 +27,31 @@ steps:
         - with:
             LABEL: "JET"
             QUEUE: default-queue
-            JET_TEST: true
-            GPU_TEST: false
+            JET_TEST: "true"
+            GPU_TEST: "false"
         - with:
             LABEL: "CUDA"
             QUEUE: cuda
-            JET_TEST: false
+            JET_TEST: "false"
             GPU_TEST: cuda
         - with:
             LABEL: "AMDGPU"
             QUEUE: rocm
-            JET_TEST: false
+            JET_TEST: "false"
             GPU_TEST: amdgpu
         - with:
             LABEL: "OpenCL"
             QUEUE: default-queue
-            JET_TEST: false
+            JET_TEST: "false"
             GPU_TEST: opencl
         - with:
             LABEL: "Metal"
             QUEUE: macmini
-            JET_TEST: false
+            JET_TEST: "false"
             GPU_TEST: metal
 
   - label: "Docs"
+    branches: "!dependabot/*"
     plugins:
       - JuliaCI/julia#v1:
           version: "1"
