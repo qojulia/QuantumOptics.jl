@@ -16,6 +16,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  QUANTUMSAVORY_DOWNGRADE_TEST: "true"
+
 jobs:
   test:
     runs-on: ubuntu-latest
