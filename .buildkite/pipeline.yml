@@ -51,6 +51,7 @@ steps:
             GPU_TEST: metal
 
   - label: "Docs"
+    branches: "!dependabot/*"
     plugins:
       - JuliaCI/julia#v1:
           version: "1"
