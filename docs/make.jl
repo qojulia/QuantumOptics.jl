@@ -116,4 +116,5 @@ deploydocs(
     devbranch = "master",
     deploy_config = Documenter.Buildkite(),
     push_preview = true,
+    versions = nothing,
 )
