@@ -30,6 +30,7 @@ pages = [
         "quantumobjects/bases.md",
         "quantumobjects/states.md",
         "quantumobjects/operators.md",
+        "quantumobjects/superoperators.md",
     ],
     "Quantum systems" => [
         "Introduction" => "quantumsystems/quantumsystems.md",
