@@ -102,7 +102,10 @@ makedocs(
     modules = doc_modules,
     pages = pages,
     format = Documenter.HTML(
-        assets = anythingllm_assets,
+        assets = [
+            asset("assets/favicon.png", class = :ico, islocal = true),
+            anythingllm_assets...,
+        ],
         canonical = "https://docs.qojulia.org/",
         size_threshold = 400 * 2^10,
         size_threshold_warn = 300 * 2^10,
