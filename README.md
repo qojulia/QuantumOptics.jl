@@ -17,11 +17,11 @@ More information, documentation and examples can be found on our website http://
 
 ## Project Structure
 
-The source content associated with **QuantumOptics.jl** is distributed over several repositories under the [qojulia] organization on GitHub:
+The source content associated with **QuantumOptics.jl** is maintained in this repository and related repositories under the [qojulia] organization on GitHub:
 
 * The main code: https://github.com/qojulia/QuantumOptics.jl
-* Documentation: https://github.com/qojulia/QuantumOptics.jl-documentation
-* Examples: https://github.com/qojulia/QuantumOptics.jl-examples
+* Documentation: https://github.com/qojulia/QuantumOptics.jl/tree/master/docs/src
+* Examples: https://github.com/qojulia/QuantumOptics.jl/tree/master/docs/examples
 * Benchmarks: https://github.com/qojulia/QuantumOptics.jl-benchmarks
 * Website: https://github.com/qojulia/QuantumOptics.jl-website
 
