@@ -61,8 +61,12 @@ steps:
     env:
       MPLBACKEND: Agg
     command: |
-      export PYTHON=/usr/bin/python3
-      /usr/bin/python3 -m pip install --user jupyter nbconvert nbformat matplotlib==3.8.3
+      docs_python_env="$(mktemp -d)"
+      uv venv --python /usr/bin/python3 "$${docs_python_env}"
+      uv pip install --python "$${docs_python_env}/bin/python" --requirement docs/requirements.txt
+      export PATH="$${docs_python_env}/bin:$${PATH}"
+      export PYTHON="$${docs_python_env}/bin/python"
+      export JUPYTER="$${docs_python_env}/bin/jupyter"
       export PYCALL_DEBUG_BUILD="yes"
       julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
       julia --project=docs -e 'using Pkg; Pkg.instantiate(); Pkg.build("PyCall")'
