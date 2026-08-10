@@ -61,6 +61,8 @@ pages = [
     "Examples" => [
         "Pumped cavity" => "examples/pumped-cavity.md",
         "Jaynes-Cummings" => "examples/jaynes-cummings.md",
+        "Numerical derivation of a master equation" =>
+            "examples/numerical-derivation-of-master-equation.md",
         "Superradiant laser" => "examples/superradiant-laser.md",
         "Particle in harmonic trap" => "examples/particle-in-harmonic-trap.md",
         "Particle into barrier" => "examples/particle-into-barrier.md",
