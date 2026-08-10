@@ -72,6 +72,7 @@ pages = [
         "N particles in double well" => "examples/nparticles-in-double-well.md",
         "Doppler cooling" => "examples/doppler-cooling.md",
         "Cavity cooling" => "examples/cavity-cooling.md",
+        "Dipole-coupled nanorings" => "examples/atomic_dipole_arrays.md",
         "Lasing and cooling" => "examples/lasing-and-cooling.md",
         "Heat-pumped Maser" => "examples/three-level-maser.md",
         "Optomechanical cavity" => "examples/optomech-cooling.md",
