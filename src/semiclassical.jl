@@ -38,6 +38,7 @@ State{B}(q::T, c::C) where {B,T<:QuantumState{B},C} = State(q,c)
 # Standard interfaces
 Base.zero(x::State) = State(zero(x.quantum), zero(x.classical))
 Base.length(x::State) = length(x.quantum) + length(x.classical)
+Base.isempty(x::State) = iszero(length(x))
 Base.axes(x::State) = (Base.OneTo(length(x)),)
 Base.size(x::State) = size(x.quantum)
 Base.ndims(x::Type{<:State{B,T,C}}) where {B,T<:QuantumState{B},C} = ndims(T)
