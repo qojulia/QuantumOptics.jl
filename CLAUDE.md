@@ -17,6 +17,7 @@ QuantumOptics.jl is a numerical framework written in Julia that makes it easy to
   - `spectralanalysis.jl` - Spectral analysis tools
 - `test/` - Comprehensive test suite
 - `benchmark/` - Performance benchmarking
+- `docs/` - Documentation sources and executable notebook examples
 
 ## Development Commands
 
@@ -36,8 +37,10 @@ julia --project=. -e "using TestItemRunner; @run_package_tests filter=ti->contai
 
 ### Building Documentation
 ```bash
-# Build documentation (handled by the main QuantumOptics.jl-documentation repository)
-# See: https://github.com/qojulia/QuantumOptics.jl-documentation
+# Install the Python dependencies as shown in the Docs step of .buildkite/pipeline.yml,
+# then build the documentation from the repository root.
+julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.build("PyCall")'
+julia -tauto --project=docs docs/make.jl
 ```
 
 ### Package Management

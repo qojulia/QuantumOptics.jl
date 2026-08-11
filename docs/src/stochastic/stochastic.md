@@ -24,7 +24,7 @@ Note, that we need to set the keyword `dt` here, since the default algorithm is 
 
 The default algorithm is a basic **Euler-Maruyama** method with fixed step size. This choice has been made, since this algorithm is versatile yet easy to understand. Note, that this means that by default, stochastic problems are solved in the **Ito** sense.
 
-To override the default algorithm, simply set the `alg` keyword argument with one of the solvers you found [here](http://docs.juliadiffeq.org/stable/solvers/sde_solve.html#Full-List-of-Methods-1), e.g.
+To override the default algorithm, simply set the `alg` keyword argument with one of the solvers you found [here](https://docs.sciml.ai/DiffEqDocs/stable/solvers/sde_solve/#Full-List-of-Methods), e.g.
 
 ```@example stochastic-intro
 import StochasticDiffEq # hide
@@ -43,4 +43,4 @@ nothing # hide
 
 corresponds to the default for a single noise term in the Schrödinger equation. Note, that the default is complex noise for semiclassical stochastic equations, where only classical noise is included (for details see [stochastic semiclassical systems](@ref stochastic-semiclassical))
 
-For details on the available algorithms and further control over the solvers, we refer to the [documentation](http://docs.juliadiffeq.org/stable/) of [**DifferentialEquations.jl**](https://github.com/SciML/DifferentialEquations.jl).
+For details on the available algorithms and further control over the solvers, we refer to the [documentation](https://docs.sciml.ai/DiffEqDocs/stable/) of [**DifferentialEquations.jl**](https://github.com/SciML/DifferentialEquations.jl).

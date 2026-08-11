@@ -1,7 +1,7 @@
 # Time-evolution
 
 
-**QuantumOptics.jl** implements various solvers to simulate the dynamics of closed as well as open quantum systems. The interfaces are designed to be as consistent as possible which makes it easy to switch between different methods. Internally, all of them rely on [**DifferentialEquations.jl**](https://github.com/SciML/), which is a very rich numerical library for the solution of differential equations. It offers quite a few options for the user to tailor the solver to their specific needs. The defaults are chosen for to suit commonly encountered problems and should work fine for most use cases. If you require more specialized methods, such as the choice of algorithm, please refer to the documentation of **DifferentialEquations.jl**, which can be found [here](http://docs.juliadiffeq.org/stable/).
+**QuantumOptics.jl** implements various solvers to simulate the dynamics of closed as well as open quantum systems. The interfaces are designed to be as consistent as possible which makes it easy to switch between different methods. Internally, all of them rely on [**DifferentialEquations.jl**](https://github.com/SciML/), which is a very rich numerical library for the solution of differential equations. It offers quite a few options for the user to tailor the solver to their specific needs. The defaults are chosen for to suit commonly encountered problems and should work fine for most use cases. If you require more specialized methods, such as the choice of algorithm, please refer to the documentation of **DifferentialEquations.jl**, which can be found [here](https://docs.sciml.ai/DiffEqDocs/stable/).
 
 ```@example
 using QuantumOptics # hide

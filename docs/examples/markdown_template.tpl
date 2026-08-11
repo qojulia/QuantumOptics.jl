@@ -1,5 +1,11 @@
 {% extends 'markdown/index.md.j2'%}
 
+{% block body_header %}
+```@meta
+EditURL = "../../examples/notebooks/{{ resources.metadata.name }}.ipynb"
+```
+{% endblock body_header %}
+
 {% block input %}
 {%- set text = cell.source| replace("\nshow()", "") %}
 {%- if text %}
