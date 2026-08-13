@@ -20,4 +20,3 @@ jobs:
           julia-version: '1'
           tune: 'false'
           job-summary: 'true'
-          extra-pkgs: 'OrdinaryDiffEqCore@4.4.0'
