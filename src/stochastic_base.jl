@@ -3,7 +3,7 @@ using QuantumOpticsBase: check_samebases, check_multiplicable
 using Random: AbstractRNG, randn!
 import ..timeevolution: recast!, QO_CHECKS, pure_inference, as_vector
 
-import DiffEqCallbacks, StochasticDiffEq, OrdinaryDiffEqCore, DiffEqNoiseProcess
+import DiffEqCallbacks, StochasticDiffEq, SciMLBase, DiffEqNoiseProcess
 
 """
     integrate_stoch(tspan, df::Function, dg{Function}, x0{ComplexF64},
@@ -65,7 +65,7 @@ function integrate_stoch(tspan, df, dg, x0,
                                          save_start = false,
                                          tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
-    full_cb = OrdinaryDiffEqCore.CallbackSet(callback, ncb, scb)
+    full_cb = SciMLBase.CallbackSet(callback, ncb, scb)
 
     prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),
                     noise=noise_,

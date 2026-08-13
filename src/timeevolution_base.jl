@@ -1,7 +1,7 @@
 using QuantumOpticsBase
 using QuantumOpticsBase: check_samebases, check_multiplicable
 
-import OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, DiffEqCallbacks, SciMLBase
+import OrdinaryDiffEqLowOrderRK, DiffEqCallbacks, SciMLBase
 
 function recast! end
 
@@ -44,25 +44,25 @@ function integrate(tspan, df, x0,
                                          save_start = false,
                                          tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
-    prob = OrdinaryDiffEqCore.ODEProblem{true}(df_, x0,(convert(tType, tspan[1]),convert(tType, tspan[end])))
+    prob = SciMLBase.ODEProblem{true}(df_, x0,(convert(tType, tspan[1]),convert(tType, tspan[end])))
 
     if steady_state
         affect! = function (integrator)
             !save_everystep && scb.affect!(integrator,true)
-            OrdinaryDiffEqCore.terminate!(integrator)
+            SciMLBase.terminate!(integrator)
         end
         _cb = SciMLBase.DiscreteCallback(
                                 SteadyStateCondtion(copy(state),tol,state),
                                 affect!;
                                 save_positions = (false,false))
-        cb = OrdinaryDiffEqCore.CallbackSet(_cb,scb)
+        cb = SciMLBase.CallbackSet(_cb,scb)
     else
         cb = scb
     end
 
-    full_cb = OrdinaryDiffEqCore.CallbackSet(callback,cb)
+    full_cb = SciMLBase.CallbackSet(callback,cb)
 
-    sol = OrdinaryDiffEqCore.solve(
+    sol = SciMLBase.solve(
                 prob,
                 alg;
                 reltol = 1.0e-6,
