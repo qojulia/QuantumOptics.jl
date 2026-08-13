@@ -4,7 +4,6 @@ FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-MKL_jll = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 OrdinaryDiffEqLowOrderRK = "1344f307-1e59-4825-a18e-ace9aa3fa4c6"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 QuantumOptics = "6e0679c1-51ea-5a7c-ac74-d61b76210b0c"
@@ -16,5 +15,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 
 [compat]
-MKL_jll = "2022.2.0, 2023, 2024, 2025"
 TestItemRunner = "1.1.5"
