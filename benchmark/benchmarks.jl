@@ -54,8 +54,8 @@ end
 function bench_stochastic_schroedinger(dim; pure=true)
     b = SpinBasis(dim)
     t₀, t₁ = (0.0, pi)
-    H = sigmax(b)
-    Hs = sigmay(b)
+    H = sigmax(b)/dim
+    Hs = sigmay(b)/dim
     psi0 = spindown(b)
     if pure
         obj = psi0.data
@@ -73,10 +73,10 @@ end
 function bench_stochastic_master(dim; pure=true)
     b = SpinBasis(dim)
     t₀, t₁ = (0.0, pi)
-    H = sigmax(b)
-    Hs = sigmay(b)
+    H = sigmax(b)/dim
+    Hs = sigmay(b)/dim
     psi0 = spindown(b)
-    J = sigmam(b)
+    J = sigmam(b)/dim
     rho0 = dm(psi0)
     rates = [0.3]
     if pure
