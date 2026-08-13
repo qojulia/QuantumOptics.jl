@@ -51,7 +51,7 @@ function integrate(tspan, df, x0,
             !save_everystep && scb.affect!(integrator,true)
             OrdinaryDiffEqCore.terminate!(integrator)
         end
-        _cb = OrdinaryDiffEqCore.DiscreteCallback(
+        _cb = SciMLBase.DiscreteCallback(
                                 SteadyStateCondtion(copy(state),tol,state),
                                 affect!;
                                 save_positions = (false,false))
