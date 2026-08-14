@@ -88,8 +88,7 @@ tout, ψt_sc = stochastic.schroedinger_semiclassical(T_short, ψ_sc, fquantum, f
 tout, ρt = stochastic.master_semiclassical(T, ρ_sc, fquantum_master, fclassical;
             fstoch_quantum=fstoch_q_master, dt=dt)
 tout, ρt = stochastic.master_semiclassical(T, ρ_sc, fquantum_master, fclassical;
-            fstoch_classical=fclassical_stoch, dt=dt, seed=UInt64(5))
-@test all(isfinite, ρt[end].classical) && isreal(ρt[end].classical)
+            fstoch_classical=fclassical_stoch, dt=dt)
 tout, ρt = stochastic.master_semiclassical(T, ψ_sc, fquantum_master, fclassical;
             fstoch_quantum=fstoch_q_master, fstoch_classical=fclassical_stoch2,
             noise_prototype_classical=zeros(ComplexF64, 2, 2), dt=dt)

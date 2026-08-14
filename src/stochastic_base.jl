@@ -39,13 +39,11 @@ function integrate_stoch(tspan, df, dg, x0,
     end
 
     nc = isa(noise_prototype_classical, Nothing) ? 0 : size(noise_prototype_classical)[2]
-    if isa(noise, Nothing)
-        nnoise = n + nc == 0 ? length(x0) : n + nc
-        Tnoise = real(eltype(x0))
-        if nnoise == 1
-            noise_ = StochasticDiffEq.RealWienerProcess(0.0, zero(Tnoise))
+    if isa(noise, Nothing) && n > 0
+        if n + nc == 1
+            noise_ = StochasticDiffEq.RealWienerProcess(0.0, real(zero(eltype(x0))))
         else
-            noise_ = StochasticDiffEq.RealWienerProcess!(0.0, zeros(Tnoise, nnoise))
+            noise_ = StochasticDiffEq.RealWienerProcess!(0.0, zeros(real(eltype(x0)), n + nc))
         end
     else
         noise_ = noise
