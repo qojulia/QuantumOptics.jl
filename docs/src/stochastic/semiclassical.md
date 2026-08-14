@@ -120,7 +120,7 @@ nothing # hide
 
 Note, that the above can be combined with the quantum noise function from before (without any further changes) by passing the corresponding function. The entire discussion above can be used in the same fashion for stochastic master equations.
 
-For details on non-diagonal noise, please refer to the **DifferentialEquations** [documentation](http://docs.juliadiffeq.org/stable/).
+For details on non-diagonal noise, please refer to the **DifferentialEquations** [documentation](https://docs.sciml.ai/DiffEqDocs/stable/).
 
 
 ## [Functions](@id stochastic-semiclassical: Functions)

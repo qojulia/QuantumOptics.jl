@@ -66,7 +66,7 @@ stochastic.schroedinger(tspan, ψ0, H, Hs; dt=dt, callback=ncb)
 nothing # hide
 ```
 
-is the same as setting `normalize_state=true`. See also **DifferentialEquations.jl's** [callback library](http://docs.juliadiffeq.org/latest/features/callback_library.html#FunctionCallingCallback-1).
+is the same as setting `normalize_state=true`. See also **DifferentialEquations.jl's** [callback library](https://docs.sciml.ai/DiffEqDocs/stable/features/callback_library/).
 
 
 ## [Detection schemes with the stochastic Schrödinger equation ](@id schroedinger-homodyne)
