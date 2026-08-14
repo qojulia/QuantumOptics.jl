@@ -1,7 +1,7 @@
 @testitem "ForwardDiff_long_test" tags=[:slow] begin
 using Test
 using QuantumOptics
-using OrdinaryDiffEqCore, OrdinaryDiffEqLowOrderRK, OrdinaryDiffEqTsit5, OrdinaryDiffEqVerner
+using SciMLBase, OrdinaryDiffEqLowOrderRK, OrdinaryDiffEqTsit5, OrdinaryDiffEqVerner
 import ForwardDiff as FD
 import Random
 

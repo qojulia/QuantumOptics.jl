@@ -9,7 +9,7 @@ import LinearAlgebra: normalize, normalize!
 import RecursiveArrayTools
 
 using Random, LinearAlgebra
-import OrdinaryDiffEqCore
+import SciMLBase
 
 # TODO: Remove imports
 import DiffEqCallbacks, RecursiveArrayTools.copyat_or_push!
@@ -38,6 +38,7 @@ State{B}(q::T, c::C) where {B,T<:QuantumState{B},C} = State(q,c)
 # Standard interfaces
 Base.zero(x::State) = State(zero(x.quantum), zero(x.classical))
 Base.length(x::State) = length(x.quantum) + length(x.classical)
+Base.isempty(x::State) = iszero(length(x))
 Base.axes(x::State) = (Base.OneTo(length(x)),)
 Base.size(x::State) = size(x.quantum)
 Base.ndims(x::Type{<:State{B,T,C}}) where {B,T<:QuantumState{B},C} = ndims(T)
@@ -351,7 +352,7 @@ function jump_callback(jumpfun::F, seed, scb, save_before!::G,
         return nothing
     end
 
-    return OrdinaryDiffEqCore.ContinuousCallback(djumpnorm,dojump,
+    return SciMLBase.ContinuousCallback(djumpnorm,dojump,
                      save_positions = (false,false))
 end
 as_vector(psi::State) = vcat(psi.quantum.data[:], psi.classical)

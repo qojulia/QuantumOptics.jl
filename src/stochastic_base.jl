@@ -3,7 +3,7 @@ using QuantumOpticsBase: check_samebases, check_multiplicable
 using Random: AbstractRNG, randn!
 import ..timeevolution: recast!, QO_CHECKS, pure_inference, as_vector
 
-import DiffEqCallbacks, StochasticDiffEq, OrdinaryDiffEqCore, DiffEqNoiseProcess
+import DiffEqCallbacks, StochasticDiffEq, SciMLBase, DiffEqNoiseProcess
 
 """
     integrate_stoch(tspan, df::Function, dg{Function}, x0{ComplexF64},
@@ -41,9 +41,9 @@ function integrate_stoch(tspan, df, dg, x0,
     nc = isa(noise_prototype_classical, Nothing) ? 0 : size(noise_prototype_classical)[2]
     if isa(noise, Nothing) && n > 0
         if n + nc == 1
-            noise_ = StochasticDiffEq.RealWienerProcess(0.0, 0.0)
+            noise_ = StochasticDiffEq.RealWienerProcess(0.0, real(zero(eltype(x0))))
         else
-            noise_ = StochasticDiffEq.RealWienerProcess!(0.0, zeros(n + nc))
+            noise_ = StochasticDiffEq.RealWienerProcess!(0.0, zeros(real(eltype(x0)), n + nc))
         end
     else
         noise_ = noise
@@ -63,7 +63,7 @@ function integrate_stoch(tspan, df, dg, x0,
                                          save_start = false,
                                          tdir = first(tspan)<last(tspan) ? one(eltype(tspan)) : -one(eltype(tspan)))
 
-    full_cb = OrdinaryDiffEqCore.CallbackSet(callback, ncb, scb)
+    full_cb = SciMLBase.CallbackSet(callback, ncb, scb)
 
     prob = StochasticDiffEq.SDEProblem{true}(df_, dg_, x0,(tspan[1],tspan[end]),
                     noise=noise_,

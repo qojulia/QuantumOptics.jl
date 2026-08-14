@@ -10,6 +10,7 @@ b = SpinBasis(1//2)
 psi0 = spindown(b)
 u0 = ComplexF64[0.5, 0.75]
 sc = semiclassical.State(psi0, u0)
+@test !isempty(sc)
 t₀, t₁ = (0.0, pi)
 σx = sigmax(b)
 
