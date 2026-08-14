@@ -8,6 +8,10 @@ using PkgBenchmark
 
 const SUITE = BenchmarkGroup()
 
+real_zero(x::AbstractArray) = zeros(real(eltype(x)), size(x))
+real_zero(x::Ket) = Ket(x.basis, real_zero(x.data))
+real_zero(x::Operator) = Operator(x.basis_l, x.basis_r, real_zero(x.data))
+
 prob_list = ("schroedinger", "master", "stochastic_schroedinger", "stochastic_master")
 for prob in prob_list
     SUITE[prob] = BenchmarkGroup([prob])
@@ -68,7 +72,8 @@ function bench_stochastic_schroedinger(dim; pure=true)
     end
     schroed!(dpsi, psi, p, t) = timeevolution.dschroedinger!(dpsi, Hobj, psi)
     stoch_schroed!(dpsi, psi, p, t) = timeevolution.dschroedinger!(dpsi, Hsobj, psi)
-    prob = SDEProblem(schroed!, stoch_schroed!, obj, (t₀, t₁))
+    noise = RealWienerProcess!(t₀, real_zero(obj))
+    prob = SDEProblem(schroed!, stoch_schroed!, obj, (t₀, t₁); noise=noise)
 end
 function bench_stochastic_master(dim; pure=true)
     b = SpinBasis(dim)
@@ -92,7 +97,8 @@ function bench_stochastic_master(dim; pure=true)
     end
     master!(drho, rho, p, t) = timeevolution.dmaster_h!(drho, Hobj, [Jobj], [Jdag], rates, rho, copy(obj))
     stoch_master!(drho, rho, p, t) = timeevolution.dmaster_h!(drho, Hsobj, [Jobj], [Jdag], rates, rho, copy(obj))
-    prob = SDEProblem(master!, stoch_master!, obj, (t₀, t₁))
+    noise = RealWienerProcess!(t₀, real_zero(obj))
+    prob = SDEProblem(master!, stoch_master!, obj, (t₀, t₁); noise=noise)
 end
 
 for dim in (1//2, 20//1, 50//1, 100//1)
