@@ -1,0 +1,10 @@
+bench_ptrace();
+bench_expect_state();
+bench_expect_operator();
+bench_multiplication_sparse_sparse();
+bench_multiplication_sparse_dense();
+bench_multiplication_dense_sparse();
+bench_multiplication_dense_dense();
+bench_timeevolution_master_cavity();
+bench_timeevolution_master_jaynescummings();
+bench_timeevolution_master_particle();
