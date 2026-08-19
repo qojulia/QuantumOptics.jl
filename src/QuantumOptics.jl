@@ -49,4 +49,6 @@ end
 
 using .timeevolution
 
+include("precompile.jl")
+
 end # module
