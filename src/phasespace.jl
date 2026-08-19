@@ -1,4 +1,3 @@
-import WignerSymbols: clebschgordan
 import QuantumOpticsBase:
     qfunc,
     wigner,
@@ -368,6 +367,24 @@ function qfuncsu2(rho::Operator{B,B}, theta::Real, phi::Real) where B<:SpinBasis
     return result
 end
 
+# Closed form for ⟨1,q; S,M-q | S+1,M⟩.
+function _clebschgordan_1(q::Integer, S::Integer, M::Integer, ::Type{T}) where {T<:Real}
+    if q == 0
+        numerator = (S + 1)^2 - M^2
+        denominator = (S + 1) * (2S + 1)
+    elseif q == 1
+        numerator = (S + M) * (S + M + 1)
+        denominator = 2 * (S + 1) * (2S + 1)
+    elseif q == -1
+        numerator = (S - M) * (S - M + 1)
+        denominator = 2 * (S + 1) * (2S + 1)
+    else
+        throw(ArgumentError("q must be -1, 0, or 1"))
+    end
+    W = promote_type(T, Float32)
+    return T(sqrt(W(numerator) / W(denominator)))
+end
+
 """
     wignersu2(ket,Ntheta;Nphi=2Ntheta)
     wignersu2(rho,Ntheta;Nphi=2Ntheta)
@@ -386,29 +403,30 @@ This version calculates the Wigner SU(2) function at a position given by θ and 
 function wignersu2(rho::Operator{B,B}, theta::Real, phi::Real) where B<:SpinBasis
 
     N = length(basis(rho))-1
+    T = real(eltype(rho))
 
     ### Tensor generation ###
-    BandT = Array{Vector{real(eltype(rho))}}(undef, N,N+1)
+    BandT = Array{Vector{T}}(undef, N,N+1)
     BandT[1,1] = collect(range(-N/2, stop=N/2, length=N+1))
     BandT[1,2] = -collect(sqrt.(range(1, stop=N, length=N)).*sqrt.(range((N)/2, stop=1/2, length=N)))
-    BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
-        clebschgordan(1,-1,1,1,2,0)*[zeros(N+1-length(BandT[1,2])); BandT[1,2].*BandT[1,2]] -
-        clebschgordan(1,1,1,-1,2,0)*[BandT[1,2].*BandT[1,2]; zeros(N+1-length(BandT[1,2]))]
-    BandT[2,2] = clebschgordan(1,0,1,1,2,1)BandT[1,1][1:N].*BandT[1,2]+
-        clebschgordan(1,1,1,0,2,1)*BandT[1,2][1:N].*BandT[1,1][2:end]
+    BandT[2,1] = _clebschgordan_1(0,1,0,T)*BandT[1,1].*BandT[1,1] -
+        _clebschgordan_1(-1,1,0,T)*[zeros(N+1-length(BandT[1,2])); BandT[1,2].*BandT[1,2]] -
+        _clebschgordan_1(1,1,0,T)*[BandT[1,2].*BandT[1,2]; zeros(N+1-length(BandT[1,2]))]
+    BandT[2,2] = _clebschgordan_1(0,1,1,T)BandT[1,1][1:N].*BandT[1,2]+
+        _clebschgordan_1(1,1,1,T)*BandT[1,2][1:N].*BandT[1,1][2:end]
     BandT[2,3] = BandT[1,2][1:N+1-(2)].*BandT[1,2][2:end]
 
     @inbounds for S=2:N-1
-        BandT[S+1,1] = clebschgordan(1,0,S,0,S+1,0)*BandT[1,1].*BandT[S,1] -
-            [zeros(N+1-length(BandT[1,2])); clebschgordan(1,-1,S,1,S+1,0)*BandT[1,2].*BandT[S,2]] -
-            clebschgordan(1,1,S,-1,S+1,0)*[BandT[1,2].*BandT[S,2]; zeros(N+1-length(BandT[1,2]))]
-        BandT[S+1,S+1] = clebschgordan(1,0,S,S,S+1,S)BandT[1,1][1:N+1-S].*BandT[S,S+1]+
-            clebschgordan(1,1,S,S-1,S+1,S)*BandT[1,2][1:N+1-S].*BandT[S,S][2:end]
+        BandT[S+1,1] = _clebschgordan_1(0,S,0,T)*BandT[1,1].*BandT[S,1] -
+            [zeros(N+1-length(BandT[1,2])); _clebschgordan_1(-1,S,0,T)*BandT[1,2].*BandT[S,2]] -
+            _clebschgordan_1(1,S,0,T)*[BandT[1,2].*BandT[S,2]; zeros(N+1-length(BandT[1,2]))]
+        BandT[S+1,S+1] = _clebschgordan_1(0,S,S,T)BandT[1,1][1:N+1-S].*BandT[S,S+1]+
+            _clebschgordan_1(1,S,S,T)*BandT[1,2][1:N+1-S].*BandT[S,S][2:end]
         BandT[S+1,S+2] = BandT[1,2][1:N+1-(S+1)].*BandT[S,S+1][2:end]
         @inbounds for M=1:S-1
-            BandT[S+1,M+1] = clebschgordan(1, 0, S, M, S+1,M)*BandT[1,1][1:N+1-M].*BandT[S,M+1] +
-                clebschgordan(1,1,S,M-1,S+1,M)*BandT[1,2][1:N+1-M].*BandT[S,M][2:end] -
-                clebschgordan(1,-1,S,M+1,S+1,M)*[zeros(1); BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M]]
+            BandT[S+1,M+1] = _clebschgordan_1(0,S,M,T)*BandT[1,1][1:N+1-M].*BandT[S,M+1] +
+                _clebschgordan_1(1,S,M,T)*BandT[1,2][1:N+1-M].*BandT[S,M][2:end] -
+                _clebschgordan_1(-1,S,M,T)*[zeros(1); BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M]]
         end
 
     end
@@ -436,29 +454,30 @@ end
 function wignersu2(rho::Operator{B,B}, Ntheta::Integer; Nphi::Integer=2Ntheta) where B<:SpinBasis
 
     N = length(basis(rho))-1
+    T = real(eltype(rho))
 
     ### Tensor generation ###
-    BandT = Array{Vector{real(eltype(rho))}}(undef, N,N+1)
+    BandT = Array{Vector{T}}(undef, N,N+1)
     BandT[1,1] = collect(range(-N/2, stop=N/2, length=N+1))
     BandT[1,2] = -collect(sqrt.(range(1, stop=N, length=N)).*sqrt.(range((N)/2, stop=1/2, length=N)))
-    BandT[2,1] = clebschgordan(1,0,1,0,2,0)*BandT[1,1].*BandT[1,1] -
-        clebschgordan(1,-1,1,1,2,0)*[zeros(N+1-length(BandT[1,2])); BandT[1,2].*BandT[1,2]] -
-        clebschgordan(1,1,1,-1,2,0)*[BandT[1,2].*BandT[1,2]; zeros(N+1-length(BandT[1,2]))]
-    BandT[2,2] = clebschgordan(1,0,1,1,2,1)BandT[1,1][1:N].*BandT[1,2]+
-        clebschgordan(1,1,1,0,2,1)*BandT[1,2][1:N].*BandT[1,1][2:end]
+    BandT[2,1] = _clebschgordan_1(0,1,0,T)*BandT[1,1].*BandT[1,1] -
+        _clebschgordan_1(-1,1,0,T)*[zeros(N+1-length(BandT[1,2])); BandT[1,2].*BandT[1,2]] -
+        _clebschgordan_1(1,1,0,T)*[BandT[1,2].*BandT[1,2]; zeros(N+1-length(BandT[1,2]))]
+    BandT[2,2] = _clebschgordan_1(0,1,1,T)BandT[1,1][1:N].*BandT[1,2]+
+        _clebschgordan_1(1,1,1,T)*BandT[1,2][1:N].*BandT[1,1][2:end]
     BandT[2,3] = BandT[1,2][1:N+1-(2)].*BandT[1,2][2:end]
 
     @inbounds for S=2:N-1
-        BandT[S+1,1] = clebschgordan(1,0,S,0,S+1,0)*BandT[1,1].*BandT[S,1] -
-            [zeros(N+1-length(BandT[1,2])); clebschgordan(1,-1,S,1,S+1,0)*BandT[1,2].*BandT[S,2]] -
-            clebschgordan(1,1,S,-1,S+1,0)*[BandT[1,2].*BandT[S,2]; zeros(N+1-length(BandT[1,2]))]
-        BandT[S+1,S+1] = clebschgordan(1,0,S,S,S+1,S)BandT[1,1][1:N+1-S].*BandT[S,S+1]+
-            clebschgordan(1,1,S,S-1,S+1,S)*BandT[1,2][1:N+1-S].*BandT[S,S][2:end]
+        BandT[S+1,1] = _clebschgordan_1(0,S,0,T)*BandT[1,1].*BandT[S,1] -
+            [zeros(N+1-length(BandT[1,2])); _clebschgordan_1(-1,S,0,T)*BandT[1,2].*BandT[S,2]] -
+            _clebschgordan_1(1,S,0,T)*[BandT[1,2].*BandT[S,2]; zeros(N+1-length(BandT[1,2]))]
+        BandT[S+1,S+1] = _clebschgordan_1(0,S,S,T)BandT[1,1][1:N+1-S].*BandT[S,S+1]+
+            _clebschgordan_1(1,S,S,T)*BandT[1,2][1:N+1-S].*BandT[S,S][2:end]
         BandT[S+1,S+2] = BandT[1,2][1:N+1-(S+1)].*BandT[S,S+1][2:end]
         @inbounds for M=1:S-1
-            BandT[S+1,M+1] = clebschgordan(1, 0, S, M, S+1,M)*BandT[1,1][1:N+1-M].*BandT[S,M+1] +
-                clebschgordan(1,1,S,M-1,S+1,M)*BandT[1,2][1:N+1-M].*BandT[S,M][2:end] -
-                clebschgordan(1,-1,S,M+1,S+1,M)*[0.0im; BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M]]
+            BandT[S+1,M+1] = _clebschgordan_1(0,S,M,T)*BandT[1,1][1:N+1-M].*BandT[S,M+1] +
+                _clebschgordan_1(1,S,M,T)*BandT[1,2][1:N+1-M].*BandT[S,M][2:end] -
+                _clebschgordan_1(-1,S,M,T)*[0.0im; BandT[1,2][1:N-M].*BandT[S,M+2][1:N-M]]
         end
     end
 

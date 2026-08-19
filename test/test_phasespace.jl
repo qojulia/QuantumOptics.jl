@@ -169,6 +169,34 @@ qsu2dm = sum(qfuncsu2(dmrs,res).*costhetam)*(π/res)^2
 @test isapprox(wsu2, 1.0, atol=1e-2)
 @test isapprox(wsu2dm, 1.0, atol=1e-2)
 
+@testset "SU(2) Wigner rotation covariance" begin
+    basis = SpinBasis(2)
+    data = ComplexF64[1 + im, 2 - im, -1 + 2im, 3, 2 + im]
+    normalize!(data)
+    state = dm(Ket(basis, data))
+
+    beta = 0.37
+    theta = 1.1
+    phi = -0.8
+    rotation = exp(-0.5im * beta * dense(sigmay(basis)))
+    rotated_state = rotation * state * dagger(rotation)
+
+    x = sin(theta) * cos(phi)
+    y = sin(theta) * sin(phi)
+    z = cos(theta)
+    rotated_x = cos(beta) * x + sin(beta) * z
+    rotated_y = y
+    rotated_z = -sin(beta) * x + cos(beta) * z
+    rotated_theta = acos(clamp(rotated_z, -1, 1))
+    rotated_phi = atan(rotated_y, rotated_x)
+
+    @test isapprox(
+        wignersu2(rotated_state, theta, phi),
+        wignersu2(state, rotated_theta, rotated_phi);
+        atol=1e-12,
+    )
+end
+
 
 # Test CSS for large spin number (#326)
 b = SpinBasis(35)  # S=35 overflows `binomial` function, e.g. binomial(70, 26)
