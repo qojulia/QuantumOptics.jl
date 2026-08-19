@@ -50,5 +50,6 @@ end
 using .timeevolution
 
 include("precompile.jl")
+include("precompile_statements.jl")
 
 end # module
