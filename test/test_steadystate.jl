@@ -61,10 +61,10 @@ tss, ρss = steadystate.master(Hdense, Jdense; tol=1e-4)
 ρss = steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), tol=1e-8)
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
-ρss = steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), nev = 1)
+ρss = @inferred steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), nev = 1)
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
-ρss = steadystate.eigenvector(liouvillian(Hdense, Jdense))
+ρss = @inferred steadystate.eigenvector(liouvillian(Hdense, Jdense))
 @test tracedistance(ρss, ρt[end]) < 1e-6
 
 @test_throws TypeError steadystate.eigenvector(H, J; ncv="a")
@@ -72,10 +72,12 @@ tss, ρss = steadystate.master(Hdense, Jdense; tol=1e-4)
 ev, ops = steadystate.liouvillianspectrum(Hdense, Jdense)
 @test tracedistance(ρss, ops[1]) < 1e-12
 @test ev[sortperm(abs.(ev))] == ev
+@test isconcretetype(eltype(ops))
 
 ev, ops = steadystate.liouvillianspectrum(H, sqrt(2).*J; rates=0.5.*ones(length(J)), nev = 1)
 @test tracedistance(ρss, ops[1]/tr(ops[1])) < 1e-12
 @test ev[sortperm(abs.(ev))] == ev
+@test isconcretetype(eltype(ops))
 
 # Test iterative solvers
 ρss, h = steadystate.iterative(Hdense, Jdense; log=true)
