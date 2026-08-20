@@ -29,6 +29,14 @@ function master(H::AbstractOperator, J;
                         tol = tol, kwargs...)
 end
 
+function _eigenoperators(L, vectors, indices)
+    dims = (length(L.basis_r[1]), length(L.basis_r[2]))
+    return [
+        DenseOperator(L.basis_r[1], L.basis_r[2], reshape(vectors[:, i], dims))
+        for i in indices
+    ]
+end
+
 """
     steadystate.liouvillianspectrum(L)
     steadystate.liouvillianspectrum(H, J)
@@ -45,12 +53,7 @@ sorted according to the absolute value of the eigenvalues.
 function liouvillianspectrum(L::DenseSuperOpType; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR, kwargs...)
     d, v = eigen(L.data; kwargs...)
     indices = sortperm(abs.(d))[1:nev]
-    ops = DenseOpType[]
-    for i in indices
-        data = reshape(v[:,i], length(L.basis_r[1]), length(L.basis_r[2]))
-        op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
-        push!(ops, op)
-    end
+    ops = _eigenoperators(L, v, indices)
     return d[indices], ops
 end
 
@@ -64,13 +67,10 @@ function liouvillianspectrum(L::SparseSuperOpType; nev::Int = min(10, length(L.b
             rethrow(err)
         end
     end
+    # Arpack does not infer the eigenvector matrix type.
+    v = v::Matrix{eltype(d)}
     indices = sortperm(abs.(d))[1:nev]
-    ops = DenseOpType[]
-    for i in indices
-        data = reshape(v[:,i], length(L.basis_r[1]), length(L.basis_r[2]))
-        op = DenseOperator(L.basis_r[1], L.basis_r[2], data)
-        push!(ops, op)
-    end
+    ops = _eigenoperators(L, v, indices)
     return d[indices], ops
 end
 
