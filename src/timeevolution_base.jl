@@ -129,7 +129,7 @@ function _promote_time_and_state(u0, H::AbstractOperator, tspan)
     Tt = real(Ts)
     p = Vector{Tt}(undef,0)
     u0_promote = SciMLBase.promote_u0(u0, p, tspan[1])
-    tspan_promote = SciMLBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
+    tspan_promote = SciMLBase.promote_tspan(u0_promote.data, p, tspan, nothing, NamedTuple())
     return tspan_promote, u0_promote
 end
 function _promote_time_and_state(u0, H::AbstractOperator, J, tspan)
@@ -150,7 +150,7 @@ function _promote_time_and_state(u0, H::AbstractOperator, J, tspan)
     Tt = real(Ts)
     p = Vector{Tt}(undef,0)
     u0_promote = SciMLBase.promote_u0(u0, p, tspan[1])
-    tspan_promote = SciMLBase.promote_tspan(u0_promote.data, p, tspan, nothing, Dict{Symbol, Any}())
+    tspan_promote = SciMLBase.promote_tspan(u0_promote.data, p, tspan, nothing, NamedTuple())
     return tspan_promote, u0_promote
 end
 
