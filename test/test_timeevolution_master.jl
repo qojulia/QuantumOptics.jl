@@ -142,6 +142,35 @@ tout, ρt = timeevolution.master_nh(T, ρ₀, Hnh, Junscaled; rates=rates_vector
 @test tracedistance(ρt[end], ρ) < 1e-5
 
 
+@testset "Mixed jump operator representations" begin
+    b = SpinBasis(1//2)
+    psi0 = spinup(b)
+    rho0 = dm(psi0)
+    Hmixed = dense(0.3 * sigmax(b))
+    sparse_jump = sigmam(b)
+    mixed_jumps = [sparse_jump, dense(sparse_jump)]
+    dense_jumps = dense.(mixed_jumps)
+    mixed_rates = [0.4, 0.7]
+    mixed_times = [0.0, 2.0]
+    Hmixed_nh = timeevolution.nh_hamiltonian(
+        Hmixed, mixed_jumps, dagger.(mixed_jumps), mixed_rates)
+
+    @test !isconcretetype(eltype(mixed_jumps))
+    for (solver, Hamiltonian) in (
+            (timeevolution.master, Hmixed),
+            (timeevolution.master_h, Hmixed),
+            (timeevolution.master_nh, Hmixed_nh))
+        tout_mixed, rho_mixed = solver(
+            mixed_times, rho0, Hamiltonian, mixed_jumps; rates=mixed_rates)
+        tout_dense, rho_dense = solver(
+            mixed_times, rho0, Hamiltonian, dense_jumps; rates=mixed_rates)
+
+        @test tout_mixed == tout_dense
+        @test maximum(tracedistance.(rho_mixed, rho_dense)) < 1e-12
+    end
+end
+
+
 # Test explicit gamma matrix
 alpha = 0.3
 R = [cos(alpha) -sin(alpha); sin(alpha) cos(alpha)]

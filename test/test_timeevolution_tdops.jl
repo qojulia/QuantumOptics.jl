@@ -18,6 +18,9 @@ a = destroy(b)
 H0 = number(b)
 Hd = (a + a')
 
+Hvec = [H0, Hd]
+@test timeevolution._tuplify(Hvec) === Hvec
+
 # function and op types homogeneous
 H = TimeDependentSum(cos=>H0, cos=>Hd)
 Htup = timeevolution._tuplify(H)

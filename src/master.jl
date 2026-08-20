@@ -1,3 +1,20 @@
+function _dmaster_h_function(H, J, Jdagger, rates, tmp)
+    J_ = _tuplify(J)
+    Jdagger_ = _tuplify(Jdagger)
+    return let H = H, J = J_, Jdagger = Jdagger_, rates = rates, tmp = tmp
+        (t, rho, drho) -> dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
+    end
+end
+
+function _dmaster_nh_function(Hnh, Hnhdagger, J, Jdagger, rates, tmp)
+    J_ = _tuplify(J)
+    Jdagger_ = _tuplify(Jdagger)
+    return let Hnh = Hnh, Hnhdagger = Hnhdagger, J = J_, Jdagger = Jdagger_,
+            rates = rates, tmp = tmp
+        (t, rho, drho) -> dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
+    end
+end
+
 """
     timeevolution.master_h(tspan, rho0, H, J; <keyword arguments>)
 
@@ -16,7 +33,7 @@ function master_h(tspan, rho0::Operator, H::AbstractOperator, J;
     check_master(rho0, H, J, Jdagger, rates)
     tspan, rho0 = _promote_time_and_state(rho0, H, J, tspan)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
+    dmaster_ = _dmaster_h_function(H, J, Jdagger, rates, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -44,7 +61,7 @@ function master_nh(tspan, rho0::Operator, Hnh::AbstractOperator, J;
     check_master(rho0, Hnh, J, Jdagger, rates)
     tspan, rho0 = _promote_time_and_state(rho0, Hnh, J, tspan)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
+    dmaster_ = _dmaster_nh_function(Hnh, Hnhdagger, J, Jdagger, rates, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -92,17 +109,13 @@ function master(tspan, rho0::Operator, H::AbstractOperator, J;
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
-        dmaster_h_ = let tmp = tmp
-            dmaster_h_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
-        end
+        dmaster_h_ = _dmaster_h_function(H, J, Jdagger, rates, tmp)
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
         Hnh = nh_hamiltonian(H,J,Jdagger,rates)
         Hnhdagger = dagger(Hnh)
         tmp = copy(rho0)
-        dmaster_nh_ = let tmp = tmp
-            dmaster_nh_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
-        end
+        dmaster_nh_ = _dmaster_nh_function(Hnh, Hnhdagger, J, Jdagger, rates, tmp)
         return integrate_master(tspan, dmaster_nh_, rho0, fout; kwargs...)
     end
 end
