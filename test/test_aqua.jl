@@ -11,5 +11,9 @@ using QuantumOptics
     phasespace_funcs = [:qfunc, :wigner, :coherentspinstate, :qfuncsu2, :wignersu2]
     pirates = [pirate for pirate in Aqua.Piracy.hunt(QuantumOptics) if pirate.name ∉ phasespace_funcs]
     @test isempty(pirates)
+
+    if isdefined(Test, :detect_closure_boxes)
+        @test isempty(getfield(Test, :detect_closure_boxes)(QuantumOptics))
+    end
 end
 end
