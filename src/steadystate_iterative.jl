@@ -110,15 +110,17 @@ function _linmap_liouvillian(rho,H,J,Jdagger,rates)
     end
 
     # Linear mapping
-    function f!(y,x)
-        # Reshape
-        rho.data .= @views reshape(x[1:end-1], M, M)
-        # Apply function
-        dmaster_(drho,rho)
-        # Recast data
-        copyto!(y, 1, drho.data, 1, M^2)
-        y[end] = tr(rho)
-        return y
+    f! = let dmaster_ = dmaster_
+        function f!(y,x)
+            # Reshape
+            rho.data .= @views reshape(x[1:end-1], M, M)
+            # Apply function
+            dmaster_(drho,rho)
+            # Recast data
+            copyto!(y, 1, drho.data, 1, M^2)
+            y[end] = tr(rho)
+            return y
+        end
     end
 
     return LinearMaps.LinearMap{eltype(rho)}(f!,M^2+1;ismutating=true,issymmetric=false,ishermitian=false,isposdef=false)

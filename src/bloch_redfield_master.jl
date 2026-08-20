@@ -62,36 +62,40 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops; J=SparseOpType[], use
     end
 
     #Calculate secular cutoff scale if needed
-    if use_secular
+    w_cutoff = if use_secular
         dw_min = minimum(abs.(W[W .!= 0.0]))
-        w_cutoff = dw_min * secular_cutoff
+        dw_min * secular_cutoff
+    else
+        nothing
     end
 
     #Initialize R_abcd array
     data = zeros(ComplexF64, N, N, N, N)
     #Loop through all indices and calculate elements - seems to be as efficient as any fancy broadcasting implementation (and much simpler to read)
-    Threads.@threads for idx in CartesianIndices(data)
+    let data = data, w_cutoff = w_cutoff
+        Threads.@threads for idx in CartesianIndices(data)
 
-        a, b, c, d = Tuple(idx) #Unpack indices
+            a, b, c, d = Tuple(idx) #Unpack indices
 
-        #Skip any values that are larger than the secular cutoff
-        if use_secular && abs(W[a, b] - W[c, d]) > w_cutoff
-            continue
+            #Skip any values that are larger than the secular cutoff
+            if use_secular && abs(W[a, b] - W[c, d]) > w_cutoff
+                continue
+            end
+
+            """ Term 1 """
+            sum!(view(data, idx), @views A[a, c, :] .* A[d, b, :] .* (Jw[c, a, :] .+ Jw[d, b, :]) ) #Broadcasting over interaction operators
+
+            """ Term 2 (b == d) """
+            if b == d
+                data[idx] -= @views sum( A[a, :, :] .* A[:, c, :] .* Jw[c, :, :] ) #Broadcasting over interaction operators and extra sum over n
+            end
+
+            """ Term 3 (a == c) """
+            if a == c
+                data[idx] -= @views sum( A[d, :, :] .* A[:, b, :] .* Jw[d, :, :] ) #Broadcasting over interaction operators and extra sum over n
+            end
+
         end
-
-        """ Term 1 """
-        sum!(view(data, idx), @views A[a, c, :] .* A[d, b, :] .* (Jw[c, a, :] .+ Jw[d, b, :]) ) #Broadcasting over interaction operators
-
-        """ Term 2 (b == d) """
-        if b == d
-            data[idx] -= @views sum( A[a, :, :] .* A[:, c, :] .* Jw[c, :, :] ) #Broadcasting over interaction operators and extra sum over n
-        end
-
-        """ Term 3 (a == c) """
-        if a == c
-            data[idx] -= @views sum( A[d, :, :] .* A[:, b, :] .* Jw[d, :, :] ) #Broadcasting over interaction operators and extra sum over n
-        end
-
     end
 
     data *= 0.5 #Don't forget the factor of 1/2

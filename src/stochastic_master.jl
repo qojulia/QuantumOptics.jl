@@ -66,8 +66,10 @@ function master(tspan, rho0::T, H::AbstractOperator{B,B},
         end
         Hnhdagger = dagger(Hnh)
 
-        dmaster_nh_determ(t, rho, drho) =
-            dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
+        dmaster_nh_determ = let Hnh = Hnh
+            dmaster_nh_determ(t, rho, drho) =
+                dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
+        end
         integrate_master_stoch(tspan, dmaster_nh_determ, dmaster_stoch, rho0, fout, n; kwargs...)
     end
 end
