@@ -92,13 +92,17 @@ function master(tspan, rho0::Operator, H::AbstractOperator, J;
     isreducible = check_master(rho0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(rho0)
-        dmaster_h_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
+        dmaster_h_ = let tmp = tmp
+            dmaster_h_(t, rho, drho) = dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
+        end
         return integrate_master(tspan, dmaster_h_, rho0, fout; kwargs...)
     else
         Hnh = nh_hamiltonian(H,J,Jdagger,rates)
         Hnhdagger = dagger(Hnh)
         tmp = copy(rho0)
-        dmaster_nh_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
+        dmaster_nh_ = let tmp = tmp
+            dmaster_nh_(t, rho, drho) = dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
+        end
         return integrate_master(tspan, dmaster_nh_, rho0, fout; kwargs...)
     end
 end

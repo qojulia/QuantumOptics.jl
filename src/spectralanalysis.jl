@@ -132,12 +132,16 @@ function eigenstates(op::Operator, ds::LapackDiag; warning=true)
     b = basis(op)
     if ishermitian(op)
         D, V = eigen(Hermitian(op.data), 1:ds.n)
-        states = [Ket(b, V[:, k]) for k=1:length(D)]
+        states = let V = V
+            [Ket(b, V[:, k]) for k=1:length(D)]
+        end
         return D, states
     else
         warning && @warn(nonhermitian_warning)
         D, V = eigen(op.data)
-        states = [Ket(b, V[:, k]) for k=1:length(D)]
+        states = let V = V
+            [Ket(b, V[:, k]) for k=1:length(D)]
+        end
         perm = sortperm(D, by=real)
         permute!(D, perm)
         permute!(states, perm)
@@ -153,7 +157,9 @@ function eigenstates(op::Operator, ds::KrylovDiag; warning::Bool=true, kwargs...
     else
         D, Vs = eigsolve(op.data, ds.v0, ds.n, :SR; krylovdim = ds.krylovdim, kwargs...)
     end
-    states = [Ket(b, Vs[k]) for k=1:ds.n]
+    states = let Vs = Vs
+        [Ket(b, Vs[k]) for k=1:ds.n]
+    end
     D[1:ds.n], states
 end
 
