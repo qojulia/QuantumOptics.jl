@@ -441,9 +441,7 @@ end
     x = [vec(rho.data); zero(eltype(rho))]
     y = similar(x)
 
-    # The heterogeneous operator vector currently causes runtime dispatch in
-    # the matrix-free iterative Liouvillian.
-    JET.@test_opt broken = true target_modules = (
+    JET.@test_opt target_modules = (
         QuantumOptics.steadystate,
         QuantumOptics.timeevolution,
     ) LinearAlgebra.mul!(y, linear_map, x)

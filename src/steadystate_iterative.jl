@@ -1,4 +1,5 @@
-using ..timeevolution: nh_hamiltonian, dmaster_h!, dmaster_nh!, check_master
+using ..timeevolution: nh_hamiltonian, _dmaster_h_function,
+    _dmaster_nh_function, check_master
 
 """
     iterative!(rho0, H, J, [method!], args...; [log=false], kwargs...) -> rho[, log]
@@ -104,9 +105,10 @@ function _linmap_liouvillian(rho,H,J,Jdagger,rates)
     if isreducible
         Hnh = nh_hamiltonian(H,J,Jdagger,rates)
         Hnhdagger = dagger(Hnh)
-        dmaster_ = (drho,rho) -> dmaster_nh!(drho,Hnh,Hnhdagger,J,Jdagger,rates,rho,Jrho_cache)
+        dmaster_ = _dmaster_nh_function(
+            Hnh,Hnhdagger,J,Jdagger,rates,Jrho_cache)
     else
-        dmaster_ = (drho,rho) -> dmaster_h!(drho,H,J,Jdagger,rates,rho,Jrho_cache)
+        dmaster_ = _dmaster_h_function(H,J,Jdagger,rates,Jrho_cache)
     end
 
     # Linear mapping
@@ -115,7 +117,7 @@ function _linmap_liouvillian(rho,H,J,Jdagger,rates)
             # Reshape
             rho.data .= @views reshape(x[1:end-1], M, M)
             # Apply function
-            dmaster_(drho,rho)
+            dmaster_(nothing,rho,drho)
             # Recast data
             copyto!(y, 1, drho.data, 1, M^2)
             y[end] = tr(rho)
