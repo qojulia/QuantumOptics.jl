@@ -133,6 +133,35 @@ Ja_lazy = LazyTensor(basis, 1, sqrt(γ)*sm)
 Jc_lazy = LazyTensor(basis, 2, sqrt(κ)*destroy(fockbasis))
 Jlazy = [Ja_lazy, Jc_lazy]
 
+op_eager = embed(basis, 1, sqrt(γ) * sm)
+op_lazy = embed_lazy(basis, 1, sqrt(γ) * sm)
+psi = Ket(basis, randn(ComplexF64, length(basis)))
+
+@test op_lazy isa LazyTensor
+@test dense(op_lazy) == dense(op_eager)
+@test op_lazy * psi == op_eager * psi
+
+local_sum = LazySum(sx, 0.5 * sz)
+sum_eager = embed(basis, 1, local_sum)
+sum_lazy = embed_lazy(basis, 1, local_sum)
+
+@test sum_lazy isa LazySum
+@test dense(sum_lazy) == dense(sum_eager)
+@test sum_lazy * psi == sum_eager * psi
+
+multi_lazy = embed_lazy(basis, [1, 2], [sx, dense(sz)])
+multi_eager = embed(basis, [1, 2], [sx, dense(sz)])
+
+@test multi_lazy isa LazyTensor
+@test dense(multi_lazy) == dense(multi_eager)
+@test multi_lazy * psi == multi_eager * psi
+
+eager_alloc = @allocated embed(basis, 1, sm)
+lazy_alloc = @allocated embed_lazy(basis, 1, sm)
+@test lazy_alloc < eager_alloc
+
+@test_throws QuantumOpticsBase.IncompatibleBases embed_lazy(basis, 1, destroy(fockbasis))
+
 ρss = steadystate.iterative(Hlazy, Jlazy)
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
