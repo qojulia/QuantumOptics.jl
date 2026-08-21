@@ -429,17 +429,9 @@ end
     dense_jump = dense(sparse_jump)
 
     L = liouvillian(H, [dense_jump])
-    if VERSION < v"1.12"
-        # Julia 1.10's compatible JET/compiler combination reports dispatches
-        # in the standard-library dense eigenvalue implementation.
-        JET.@test_opt broken = true target_modules = (
-            QuantumOptics.steadystate,
-        ) steadystate.eigenvector(L)
-    else
-        JET.@test_opt target_modules = (
-            QuantumOptics.steadystate,
-        ) steadystate.eigenvector(L)
-    end
+    JET.@test_opt target_modules = (
+        QuantumOptics.steadystate,
+    ) steadystate.eigenvector(L)
 
     mixed_jumps = [sparse_jump, dense_jump]
     Jdagger = dagger.(mixed_jumps)
