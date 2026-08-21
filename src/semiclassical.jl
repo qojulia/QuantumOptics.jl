@@ -135,6 +135,35 @@ RecursiveArrayTools.recursivecopy!(dest::State, src::State) = copyto!(dest, src)
 RecursiveArrayTools.recursivecopy(x::State) = copy(x)
 RecursiveArrayTools.recursivefill!(x::State, a) = fill!(x, a)
 
+function _dschroedinger_dynamic_function(fquantum, fclassical!)
+    return let fquantum = fquantum, fclassical! = fclassical!
+        (t, state, dstate) ->
+            dschroedinger_dynamic!(dstate, fquantum, fclassical!, state, t)
+    end
+end
+
+function _dmaster_h_dynamic_function(fquantum, fclassical!, rates, tmp)
+    return let fquantum = fquantum, fclassical! = fclassical!, rates = rates, tmp = tmp
+        (t, state, dstate) ->
+            dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, tmp, t)
+    end
+end
+
+function _dmcwf_h_dynamic_function(fquantum, fclassical!, rates, tmp)
+    return let fquantum = fquantum, fclassical! = fclassical!, rates = rates, tmp = tmp
+        (t, psi, dpsi) ->
+            dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, tmp, t)
+    end
+end
+
+function _jump_dynamic_function(fquantum, fclassical!, fjump_classical!, rates, probs)
+    return let fquantum = fquantum, fclassical! = fclassical!,
+            fjump_classical! = fjump_classical!, rates = rates, probs = probs
+        (rng, t, psi, psi_new) -> jump_dynamic(
+            rng, t, psi, fquantum, fclassical!, fjump_classical!, psi_new, probs, rates)
+    end
+end
+
 """
     semiclassical.schroedinger_dynamic(tspan, state0, fquantum, fclassical[; fout, ...])
 
@@ -157,9 +186,7 @@ Integrate time-dependent Schrödinger equation coupled to a classical system.
 function schroedinger_dynamic(tspan, state0::State, fquantum, fclassical!;
                 fout=nothing,
                 kwargs...)
-    dschroedinger_ = let fquantum = fquantum, fclassical! = fclassical!
-        dschroedinger_(t, state, dstate) = dschroedinger_dynamic!(dstate, fquantum, fclassical!, state, t)
-    end
+    dschroedinger_ = _dschroedinger_dynamic_function(fquantum, fclassical!)
     x0 = Vector{eltype(state0)}(undef, length(state0))
     recast!(x0,state0)
     state = copy(state0)
@@ -191,9 +218,7 @@ function master_dynamic(tspan, state0::State{B,T}, fquantum, fclassical!;
                 fout=nothing,
                 tmp=copy(state0.quantum),
                 kwargs...) where {B,T<:Operator}
-    dmaster_ = let fquantum = fquantum, fclassical! = fclassical!
-        dmaster_(t, state, dstate) = dmaster_h_dynamic!(dstate, fquantum, fclassical!, rates, state, tmp, t)
-    end
+    dmaster_ = _dmaster_h_dynamic_function(fquantum, fclassical!, rates, tmp)
     x0 = Vector{eltype(state0)}(undef, length(state0))
     recast!(x0,state0)
     state = copy(state0)
@@ -242,14 +267,11 @@ function mcwf_dynamic(tspan, psi0::State{B,T}, fquantum, fclassical!, fjump_clas
                 fout=nothing,
                 kwargs...) where {B,T<:Ket}
     tmp=copy(psi0.quantum)
-    dmcwf_ = let fquantum = fquantum, fclassical! = fclassical!
-        dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, fquantum, fclassical!, rates, psi, tmp, t)
-    end
+    dmcwf_ = _dmcwf_h_dynamic_function(fquantum, fclassical!, rates, tmp)
     J = fquantum(first(tspan), psi0.quantum, psi0.classical)[2]
     probs = zeros(real(eltype(psi0)), length(J))
-    j_ = let fquantum = fquantum, fclassical! = fclassical!, fjump_classical! = fjump_classical!, probs = probs
-        j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, fquantum, fclassical!, fjump_classical!, psi_new, probs, rates)
-    end
+    j_ = _jump_dynamic_function(
+        fquantum, fclassical!, fjump_classical!, rates, probs)
     x0 = Vector{eltype(psi0)}(undef, length(psi0))
     recast!(x0,psi0)
     psi = copy(psi0)

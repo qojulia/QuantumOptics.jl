@@ -1,9 +1,18 @@
 using QuantumOpticsBase
 using QuantumOpticsBase: check_samebases, check_multiplicable
 using Random: AbstractRNG, randn!
-import ..timeevolution: recast!, QO_CHECKS, pure_inference, as_vector
+import ..timeevolution: recast!, QO_CHECKS, pure_inference, as_vector, _ode_rhs_function
 
 import DiffEqCallbacks, StochasticDiffEq, SciMLBase, DiffEqNoiseProcess
+
+function _sde_noise_function(dg, state, dstate, n)
+    return let dg = dg, state = state, dstate = dstate, n = n
+        function sde_noise(dx, x, p, t)
+            recast!(state, x)
+            dg(dx, t, state, dstate, n)
+        end
+    end
+end
 
 """
     integrate_stoch(tspan, df::Function, dg{Function}, x0{ComplexF64},
@@ -21,17 +30,8 @@ function integrate_stoch(tspan, df, dg, x0,
             ncb=nothing,
             kwargs...)
 
-    function df_(dx, x, p, t)
-        recast!(state,x)
-        recast!(dstate,dx)
-        df(t, state, dstate)
-        recast!(dx,dstate)
-    end
-
-    function dg_(dx, x, p, t)
-        recast!(state,x)
-        dg(dx, t, state, dstate, n)
-    end
+    df_ = _ode_rhs_function(df, state, dstate)
+    dg_ = _sde_noise_function(dg, state, dstate, n)
 
     function fout_(x, t, integrator)
         recast!(state,x)
