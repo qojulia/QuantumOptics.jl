@@ -5,6 +5,18 @@ import OrdinaryDiffEqLowOrderRK, DiffEqCallbacks, SciMLBase
 
 function recast! end
 
+function _ode_rhs_function(df, state, dstate)
+    return let df = df, state = state, dstate = dstate
+        function ode_rhs(dx, x, p, t)
+            recast!(state, x)
+            recast!(dstate, dx)
+            df(t, state, dstate)
+            recast!(dx, dstate)
+            return nothing
+        end
+    end
+end
+
 """
     integrate(tspan, df::Function, x0::Vector{ComplexF64},
             state::T, dstate::T, fout::Function; kwargs...)
@@ -17,15 +29,7 @@ function integrate(tspan, df, x0,
             steady_state = false, tol = 1e-3, save_everystep = false, saveat=tspan,
             callback = nothing, kwargs...)
 
-    df_ = let df = df
-        function df_(dx, x, p, t)
-            recast!(state,x)
-            recast!(dstate,dx)
-            df(t, state, dstate)
-            recast!(dx,dstate)
-            return nothing
-        end
-    end
+    df_ = _ode_rhs_function(df, state, dstate)
 
     fout_ = let fout = fout, state = state
         function fout_(x, t, integrator)

@@ -20,6 +20,24 @@ function _jump_function(J, rates, probs)
     end
 end
 
+function _dmcwf_h_dynamic_function(f, rates, tmp)
+    return let f = f, rates = rates, tmp = tmp
+        (t, psi, dpsi) -> dmcwf_h_dynamic!(dpsi, f, rates, psi, tmp, t)
+    end
+end
+
+function _dmcwf_nh_dynamic_function(f)
+    return let f = f
+        (t, psi, dpsi) -> dmcwf_nh_dynamic!(dpsi, f, psi, t)
+    end
+end
+
+function _jump_dynamic_function(f, rates, probs)
+    return let f = f, rates = rates, probs = probs
+        (rng, t, psi, psi_new) -> jump_dynamic(rng, t, psi, f, psi_new, probs, rates)
+    end
+end
+
 """
     mcwf_h(tspan, rho0, Hnh, J; <keyword arguments>)
 
@@ -64,9 +82,7 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J;
     _check_const(Hnh)
     _check_const.(J)
     check_mcwf(psi0, Hnh, J, J, nothing)
-    f = let Hnh = Hnh
-        f(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
-    end
+    f = _dschroedinger_function(Hnh)
     probs = zeros(real(eltype(psi0)), length(J))
     j = _jump_function(J, nothing, probs)
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
@@ -145,9 +161,7 @@ function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
                 Hnh -= complex(float(eltype(H)))(0.5im*rates[i])*Jdagger[i]*J[i]
             end
         end
-        dmcwf_nh_ = let Hnh = Hnh  # Hnh type often not inferrable
-            dmcwf_nh_(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
-        end
+        dmcwf_nh_ = _dschroedinger_function(Hnh)
         probs = zeros(real(eltype(psi0)), length(J))
         j_nh = _jump_function(J, rates, probs)
         integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed,
@@ -200,14 +214,10 @@ function mcwf_dynamic(tspan, psi0::Ket, f;
     fout=nothing, display_beforeevent=false, display_afterevent=false,
     kwargs...)
     tmp = copy(psi0)
-    dmcwf_ = let f = f, tmp = tmp, rates = rates
-        dmcwf_(t, psi, dpsi) = dmcwf_h_dynamic!(dpsi, f, rates, psi, tmp, t)
-    end
+    dmcwf_ = _dmcwf_h_dynamic_function(f, rates, tmp)
     J = f(first(tspan), psi0)[2]
     probs = zeros(real(eltype(psi0)), length(J))
-    j_ = let f = f, probs = probs, rates = rates
-        j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, probs, rates)
-    end
+    j_ = _jump_dynamic_function(f, rates, probs)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
         fout;
         display_beforeevent=display_beforeevent,
@@ -232,14 +242,10 @@ function mcwf_nh_dynamic(tspan, psi0::Ket, f;
     seed=rand(UInt), rates=nothing,
     fout=nothing, display_beforeevent=false, display_afterevent=false,
     kwargs...)
-    dmcwf_ = let f = f
-        dmcwf_(t, psi, dpsi) = dmcwf_nh_dynamic!(dpsi, f, psi, t)
-    end
+    dmcwf_ = _dmcwf_nh_dynamic_function(f)
     J = f(first(tspan), psi0)[2]
     probs = zeros(real(eltype(psi0)), length(J))
-    j_ = let f = f, probs = probs, rates = rates
-        j_(rng, t, psi, psi_new) = jump_dynamic(rng, t, psi, f, psi_new, probs, rates)
-    end
+    j_ = _jump_dynamic_function(f, rates, probs)
     integrate_mcwf(dmcwf_, j_, tspan, psi0, seed,
         fout;
         display_beforeevent=display_beforeevent,
@@ -379,15 +385,7 @@ function integrate_mcwf(dmcwf::T, jumpfun::J, tspan,
     cb = jump_callback(jumpfun, seed, scb, save_before!, save_after!, save_t_index, psi0, rng_state)
     full_cb = SciMLBase.CallbackSet(callback,cb,scb)
 
-    df_ = let state = state, dstate = dstate  # help inference along
-        function df_(dx, x, p, t)
-            recast!(state,x)
-            recast!(dstate,dx)
-            dmcwf(t, state, dstate)
-            recast!(dx,dstate)
-            return nothing
-        end
-    end
+    df_ = _ode_rhs_function(dmcwf, state, dstate)
 
     prob = SciMLBase.ODEProblem{true}(df_, as_vector(psi0), (tspan_[1],tspan_[end]))
 
