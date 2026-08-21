@@ -118,6 +118,48 @@ tout, Ψt = timeevolution.mcwf_nh(T, Ψ₀, Hnh, J; seed=UInt(2), reltol=1e-6)
 @test norm(Ψt[end]-Ψ) > 0.1
 
 
+@testset "Mixed jump operator representations" begin
+    b = SpinBasis(1//2)
+    psi0 = spinup(b)
+    Hmixed = dense(0.3 * sigmax(b))
+    sparse_jump = sigmam(b)
+    mixed_jumps = [sparse_jump, dense(sparse_jump)]
+    dense_jumps = dense.(mixed_jumps)
+    mixed_rates = [0.4, 0.7]
+    mixed_times = [0.0, 2.0]
+
+    function test_same_trajectory(mixed_result, dense_result)
+        @test mixed_result[1] == dense_result[1]
+        @test all(norm(mixed_result[2][i] - dense_result[2][i]) < 1e-12
+            for i in eachindex(mixed_result[2]))
+        @test mixed_result[3] ≈ dense_result[3]
+        @test mixed_result[4] == dense_result[4]
+        @test length(mixed_result[3]) == 1
+    end
+
+    for solver in (timeevolution.mcwf, timeevolution.mcwf_h)
+        mixed = solver(mixed_times, psi0, Hmixed, mixed_jumps;
+            rates=mixed_rates, seed=UInt(1), display_jumps=true)
+        dense_result = solver(mixed_times, psi0, Hmixed, dense_jumps;
+            rates=mixed_rates, seed=UInt(1), display_jumps=true)
+        test_same_trajectory(mixed, dense_result)
+    end
+
+    scaled_mixed_jumps = [sqrt(mixed_rates[i]) * mixed_jumps[i]
+        for i in eachindex(mixed_jumps)]
+    scaled_dense_jumps = dense.(scaled_mixed_jumps)
+    Hmixed_nh = timeevolution.nh_hamiltonian(
+        Hmixed, scaled_mixed_jumps, dagger.(scaled_mixed_jumps), nothing)
+    mixed = timeevolution.mcwf_nh(
+        mixed_times, psi0, Hmixed_nh, scaled_mixed_jumps;
+        seed=UInt(1), display_jumps=true)
+    dense_result = timeevolution.mcwf_nh(
+        mixed_times, psi0, Hmixed_nh, scaled_dense_jumps;
+        seed=UInt(1), display_jumps=true)
+    test_same_trajectory(mixed, dense_result)
+end
+
+
 
 # Test convergence to master solution
 tout_master, ρt_master = timeevolution.master(T, ρ₀, H, J)

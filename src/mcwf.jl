@@ -5,6 +5,21 @@ import ..timeevolution: dschroedinger!
 # TODO: Remove imports
 import RecursiveArrayTools.copyat_or_push!
 
+function _dmcwf_h_function(H, J, Jdagger, rates, tmp)
+    J_ = _tuplify(J)
+    Jdagger_ = _tuplify(Jdagger)
+    return let H = H, J = J_, Jdagger = Jdagger_, rates = rates, tmp = tmp
+        (t, psi, dpsi) -> dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
+    end
+end
+
+function _jump_function(J, rates, probs)
+    J_ = _tuplify(J)
+    return let J = J_, rates = rates, probs = probs
+        (rng, t, psi, psi_new) -> jump(rng, t, psi, J, psi_new, probs, rates)
+    end
+end
+
 """
     mcwf_h(tspan, rho0, Hnh, J; <keyword arguments>)
 
@@ -22,13 +37,9 @@ function mcwf_h(tspan, psi0::Ket, H::AbstractOperator, J;
     _check_const.(J)
     _check_const.(Jdagger)
     check_mcwf(psi0, H, J, Jdagger, rates)
-    f = let H = H, J = J, Jdagger = Jdagger, rates = rates, tmp = tmp
-        f(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
-    end
+    f = _dmcwf_h_function(H, J, Jdagger, rates, tmp)
     probs = zeros(real(eltype(psi0)), length(J))
-    j = let J = J, probs = probs, rates = rates
-        j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, probs, rates)
-    end
+    j = _jump_function(J, rates, probs)
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
         display_beforeevent=display_beforeevent,
         display_afterevent=display_afterevent,
@@ -57,9 +68,7 @@ function mcwf_nh(tspan, psi0::Ket, Hnh::AbstractOperator, J;
         f(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
     end
     probs = zeros(real(eltype(psi0)), length(J))
-    j = let J = J, probs = probs
-        j(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, probs, nothing)
-    end
+    j = _jump_function(J, nothing, probs)
     integrate_mcwf(f, j, tspan, psi0, seed, fout;
         display_beforeevent=display_beforeevent,
         display_afterevent=display_afterevent,
@@ -117,13 +126,9 @@ function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
     isreducible = check_mcwf(psi0, H, J, Jdagger, rates)
     if !isreducible
         tmp = copy(psi0)
-        dmcwf_h_ = let H = H, J = J, Jdagger = Jdagger, rates = rates, tmp = tmp
-            dmcwf_h_(t, psi, dpsi) = dmcwf_h!(dpsi, H, J, Jdagger, rates, psi, tmp)
-        end
+        dmcwf_h_ = _dmcwf_h_function(H, J, Jdagger, rates, tmp)
         probs = zeros(real(eltype(psi0)), length(J))
-        j_h = let J = J, probs = probs, rates = rates
-            j_h(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, probs, rates)
-        end
+        j_h = _jump_function(J, rates, probs)
         integrate_mcwf(dmcwf_h_, j_h, tspan, psi0, seed,
             fout;
             display_beforeevent=display_beforeevent,
@@ -144,9 +149,7 @@ function mcwf(tspan, psi0::Ket, H::AbstractOperator, J;
             dmcwf_nh_(t, psi, dpsi) = dschroedinger!(dpsi, Hnh, psi)
         end
         probs = zeros(real(eltype(psi0)), length(J))
-        j_nh = let J = J, probs = probs, rates = rates
-            j_nh(rng, t, psi, psi_new) = jump(rng, t, psi, J, psi_new, probs, rates)
-        end
+        j_nh = _jump_function(J, rates, probs)
         integrate_mcwf(dmcwf_nh_, j_nh, tspan, psi0, seed,
             fout;
             display_beforeevent=display_beforeevent,
