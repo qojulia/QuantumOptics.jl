@@ -1,6 +1,21 @@
 using ...semiclassical
 import ...semiclassical: State
 
+function _dschroedinger_semiclassical_stochastic_function(
+        fstoch_quantum, fstoch_classical)
+    return let fstoch_quantum = fstoch_quantum, fstoch_classical = fstoch_classical
+        (dx, t, state, dstate, n) -> dschroedinger_stochastic(
+            dx, t, state, fstoch_quantum, fstoch_classical, dstate, n)
+    end
+end
+
+function _dmaster_semiclassical_stochastic_function(fstoch_quantum, fstoch_classical)
+    return let fstoch_quantum = fstoch_quantum, fstoch_classical = fstoch_classical
+        (dx, t, state, dstate, n) -> dmaster_stoch_dynamic(
+            dx, t, state, fstoch_quantum, fstoch_classical, dstate, n)
+    end
+end
+
 """
     stochastic.schroedinger_semiclassical(tspan, state0, fquantum, fclassical![; fout, ...])
 Integrate time-dependent Schrödinger equation coupled to a classical system.
@@ -46,8 +61,8 @@ function schroedinger_semiclassical(tspan, state0::S, fquantum,
                 normalize_state::Bool=false,
                 kwargs...) where {B<:Basis,T<:Ket{B},S<:State{B,T}}
     tspan_ = convert(Vector{float(eltype(tspan))}, tspan)
-    dschroedinger_det(t, state, dstate) =
-            semiclassical.dschroedinger_dynamic!(dstate, fquantum, fclassical!, state, t)
+    dschroedinger_det = semiclassical._dschroedinger_dynamic_function(
+        fquantum, fclassical!)
 
     if isa(fstoch_quantum, Nothing) && isa(fstoch_classical, Nothing)
         throw(ArgumentError("No stochastic functions provided!"))
@@ -86,8 +101,8 @@ function schroedinger_semiclassical(tspan, state0::S, fquantum,
         ncb = nothing
     end
 
-    dschroedinger_stoch(dx, t, state, dstate, n) =
-            dschroedinger_stochastic(dx, t, state, fstoch_quantum, fstoch_classical, dstate, n)
+    dschroedinger_stoch = _dschroedinger_semiclassical_stochastic_function(
+        fstoch_quantum, fstoch_classical)
 
     integrate_stoch(tspan_, dschroedinger_det, dschroedinger_stoch, x0, state, dstate, fout, n;
                     noise_prototype_classical = noise_prototype_classical,
@@ -167,11 +182,10 @@ function master_semiclassical(tspan, rho0::S,
         end
     end
 
-    dmaster_determ(t, rho, drho) =
-            semiclassical.dmaster_h_dynamic!(drho, fquantum, fclassical!, rates, rho, tmp, t)
-
-    dmaster_stoch(dx, t, rho, drho, n) =
-        dmaster_stoch_dynamic(dx, t, rho, fstoch_quantum, fstoch_classical, drho, n)
+    dmaster_determ = semiclassical._dmaster_h_dynamic_function(
+        fquantum, fclassical!, rates, tmp)
+    dmaster_stoch = _dmaster_semiclassical_stochastic_function(
+        fstoch_quantum, fstoch_classical)
 
     integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch, rho0, fout, n;
                 noise_prototype_classical=noise_prototype_classical,

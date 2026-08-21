@@ -1,3 +1,15 @@
+function _dschroedinger_function(H)
+    return let H = H
+        (t, psi, dpsi) -> dschroedinger!(dpsi, H, psi)
+    end
+end
+
+function _dschroedinger_dynamic_function(f)
+    return let f = f
+        (t, psi, dpsi) -> dschroedinger_dynamic!(dpsi, f, psi, t)
+    end
+end
+
 """
     timeevolution.schroedinger(tspan, psi0, H; fout)
 
@@ -16,7 +28,7 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator;
                 fout=nothing,
                 kwargs...) where {T<:Union{AbstractOperator,StateVector}}
     _check_const(H)
-    dschroedinger_(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
+    dschroedinger_ = _dschroedinger_function(H)
     tspan, psi0 = _promote_time_and_state(psi0, H, tspan) # promote only if ForwardDiff.Dual
     x0 = psi0.data
     state = copy(psi0)
@@ -46,9 +58,7 @@ Instead of a function `f`, this takes a time-dependent operator `H`.
 function schroedinger_dynamic(tspan, psi0, f;
                 fout=nothing,
                 kwargs...)
-    dschroedinger_ = let f = f
-        dschroedinger_(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, f, psi, t)
-    end
+    dschroedinger_ = _dschroedinger_dynamic_function(f)
     tspan, psi0 = _promote_time_and_state(psi0, f, tspan) # promote only if ForwardDiff.Dual
     x0 = psi0.data
     state = copy(psi0)

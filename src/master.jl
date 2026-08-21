@@ -15,6 +15,24 @@ function _dmaster_nh_function(Hnh, Hnhdagger, J, Jdagger, rates, tmp)
     end
 end
 
+function _dmaster_liouville_function(L)
+    return let L = L
+        (t, rho, drho) -> dmaster_liouville!(drho, L, rho)
+    end
+end
+
+function _dmaster_h_dynamic_function(f, rates, tmp)
+    return let f = f, rates = rates, tmp = tmp
+        (t, rho, drho) -> dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
+    end
+end
+
+function _dmaster_nh_dynamic_function(f, rates, tmp)
+    return let f = f, rates = rates, tmp = tmp
+        (t, rho, drho) -> dmaster_nh_dynamic!(drho, f, rates, rho, tmp, t)
+    end
+end
+
 """
     timeevolution.master_h(tspan, rho0, H, J; <keyword arguments>)
 
@@ -145,7 +163,7 @@ function master(tspan, rho0::Operator, L::SuperOperator; fout=nothing, kwargs...
     rho_ = Ket(b,reshape(rho0.data, dim))
     L_ = Operator(b,b,L.data)
     tspan, rho_ = _promote_time_and_state(rho_, L_, tspan)
-    dmaster_(t,rho,drho) = dmaster_liouville!(drho,L_,rho)
+    dmaster_ = _dmaster_liouville_function(L_)
 
     # Rewrite into density matrix when saving
     tmp = copy(rho0)
@@ -190,7 +208,7 @@ function master_nh_dynamic(tspan, rho0::Operator, f;
                 fout=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_(t, rho, drho) = dmaster_nh_dynamic!(drho, f, rates, rho, tmp, t)
+    dmaster_ = _dmaster_nh_dynamic_function(f, rates, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 
@@ -236,9 +254,7 @@ function master_dynamic(tspan, rho0::Operator, f;
                 fout=nothing,
                 kwargs...)
     tmp = copy(rho0)
-    dmaster_ = let f = f, tmp = tmp
-        dmaster_(t, rho, drho) = dmaster_h_dynamic!(drho, f, rates, rho, tmp, t)
-    end
+    dmaster_ = _dmaster_h_dynamic_function(f, rates, tmp)
     integrate_master(tspan, dmaster_, rho0, fout; kwargs...)
 end
 

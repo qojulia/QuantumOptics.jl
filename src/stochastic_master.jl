@@ -1,4 +1,17 @@
-import ...timeevolution: dmaster_h!, dmaster_nh!, dmaster_h_dynamic!, check_master
+import ...timeevolution: dmaster_h!, dmaster_nh!, dmaster_h_dynamic!, check_master,
+    _dmaster_h_function, _dmaster_nh_function, _dmaster_h_dynamic_function
+
+function _dmaster_stochastic_function(C, Cdagger)
+    return let C = C, Cdagger = Cdagger
+        (dx, t, rho, drho, n) -> dmaster_stochastic(dx, rho, C, Cdagger, drho, n)
+    end
+end
+
+function _dmaster_stochastic_dynamic_function(f)
+    return let f = f
+        (dx, t, rho, drho, n) -> dmaster_stoch_dynamic(dx, t, rho, f, drho, n)
+    end
+end
 
 """
     stochastic.master(tspan, rho0, H, J, C; <keyword arguments>)
@@ -42,12 +55,11 @@ function master(tspan, rho0::T, H::AbstractOperator{B,B},
 
     n = length(C)
 
-    dmaster_stoch(dx, t, rho, drho, n) = dmaster_stochastic(dx, rho, C, Cdagger, drho, n)
+    dmaster_stoch = _dmaster_stochastic_function(C, Cdagger)
 
     isreducible = check_master(rho0, H, J, Jdagger, rates) && check_master_stoch(rho0, C, Cdagger)
     if !isreducible
-        dmaster_h_determ(t, rho, drho) =
-            dmaster_h!(drho, H, J, Jdagger, rates, rho, tmp)
+        dmaster_h_determ = _dmaster_h_function(H, J, Jdagger, rates, tmp)
         integrate_master_stoch(tspan, dmaster_h_determ, dmaster_stoch, rho0, fout, n; kwargs...)
     else
         Hnh = copy(H)
@@ -66,10 +78,8 @@ function master(tspan, rho0::T, H::AbstractOperator{B,B},
         end
         Hnhdagger = dagger(Hnh)
 
-        dmaster_nh_determ = let Hnh = Hnh
-            dmaster_nh_determ(t, rho, drho) =
-                dmaster_nh!(drho, Hnh, Hnhdagger, J, Jdagger, rates, rho, tmp)
-        end
+        dmaster_nh_determ = _dmaster_nh_function(
+            Hnh, Hnhdagger, J, Jdagger, rates, tmp)
         integrate_master_stoch(tspan, dmaster_nh_determ, dmaster_stoch, rho0, fout, n; kwargs...)
     end
 end
@@ -119,8 +129,8 @@ function master_dynamic(tspan, rho0::T, fdeterm, fstoch;
         n = noise_processes
     end
 
-    dmaster_determ(t, rho, drho) = dmaster_h_dynamic!(drho, fdeterm, rates, rho, tmp, t)
-    dmaster_stoch(dx, t, rho, drho, n) = dmaster_stoch_dynamic(dx, t, rho, fstoch, drho, n)
+    dmaster_determ = _dmaster_h_dynamic_function(fdeterm, rates, tmp)
+    dmaster_stoch = _dmaster_stochastic_dynamic_function(fstoch)
     integrate_master_stoch(tspan, dmaster_determ, dmaster_stoch, rho0, fout, n; kwargs...)
 end
 master_dynamic(tspan, psi0::Ket, args...; kwargs...) = master_dynamic(tspan, dm(psi0), args...; kwargs...)

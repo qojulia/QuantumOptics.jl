@@ -110,6 +110,11 @@ function bloch_redfield_tensor(H::AbstractOperator, a_ops; J=SparseOpType[], use
 
 end #Function
 
+function _dmaster_br_function(L)
+    return let L = L
+        (t, rho, drho) -> dmaster_br(drho, rho, L)
+    end
+end
 
 """
     timeevolution.master_bloch_redfield(tspan, rho0, R, H; <keyword arguments>)
@@ -146,7 +151,7 @@ function master_bloch_redfield(tspan,
     L_ = isa(L, SparseSuperOpType) ? SparseOperator(basis_comp, L.data) : DenseOperator(basis_comp, L.data)
 
     # Derivative function
-    dmaster_br_(t, rho, drho) = dmaster_br(drho, rho, L_)
+    dmaster_br_ = _dmaster_br_function(L_)
 
     return integrate_br(tspan, dmaster_br_, rho0_eb, transf_op, inv_transf_op, fout; kwargs...)
 end

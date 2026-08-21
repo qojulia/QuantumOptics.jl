@@ -93,6 +93,20 @@ steadystate.iterative!(ρss, H, J)
 ρss = steadystate.iterative(H, sqrt(2) .* J; rates=diagm(0=>[0.5,0.5]))
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
+@testset "Mixed jump operator representations" begin
+    b = SpinBasis(1//2)
+    Hmixed = dense(0.3 * sigmax(b))
+    sparse_jump = sigmam(b)
+    mixed_jumps = [sparse_jump, dense(sparse_jump)]
+    dense_jumps = dense.(mixed_jumps)
+    mixed_rates = [0.4, 0.7]
+
+    rho_mixed = steadystate.iterative(Hmixed, mixed_jumps; rates=mixed_rates)
+    rho_dense = steadystate.iterative(Hmixed, dense_jumps; rates=mixed_rates)
+
+    @test tracedistance(rho_mixed, rho_dense) < 1e-12
+end
+
 # Test different float types
 ρss32 = Operator(basis, basis, Matrix{ComplexF32}(ρ₀.data))
 Hdense32 = Operator(basis, basis, Matrix{ComplexF32}(H.data))

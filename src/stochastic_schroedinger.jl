@@ -1,4 +1,17 @@
-import ...timeevolution: dschroedinger!, dschroedinger_dynamic!, check_schroedinger
+import ...timeevolution: dschroedinger!, dschroedinger_dynamic!, check_schroedinger,
+    _dschroedinger_function, _dschroedinger_dynamic_function
+
+function _dschroedinger_stochastic_function(Hs)
+    return let Hs = Hs
+        (dx, t, psi, dpsi, n) -> dschroedinger_stochastic(dx, psi, Hs, dpsi, n)
+    end
+end
+
+function _dschroedinger_stochastic_dynamic_function(f)
+    return let f = f
+        (dx, t, psi, dpsi, n) -> dschroedinger_stochastic(dx, t, psi, f, dpsi, n)
+    end
+end
 
 """
     stochastic.schroedinger(tspan, state0, H, Hs[; fout, ...])
@@ -38,8 +51,8 @@ function schroedinger(tspan, psi0::T, H::AbstractOperator{B,B}, Hs::Vector;
         @assert isa(h, AbstractOperator{B,B})
     end
 
-    dschroedinger_determ(t, psi, dpsi) = dschroedinger!(dpsi, H, psi)
-    dschroedinger_stoch(dx, t, psi, dpsi, n) = dschroedinger_stochastic(dx, psi, Hs, dpsi, n)
+    dschroedinger_determ = _dschroedinger_function(H)
+    dschroedinger_stoch = _dschroedinger_stochastic_function(Hs)
 
     if normalize_state
         norm_func(u, t, integrator) = normalize!(u)
@@ -99,8 +112,8 @@ function schroedinger_dynamic(tspan, psi0::Ket, fdeterm, fstoch;
     x0 = psi0.data
     state = copy(psi0)
 
-    dschroedinger_determ(t, psi, dpsi) = dschroedinger_dynamic!(dpsi, fdeterm, psi, t)
-    dschroedinger_stoch(dx, t, psi, dpsi, n) = dschroedinger_stochastic(dx, t, psi, fstoch, dpsi, n)
+    dschroedinger_determ = _dschroedinger_dynamic_function(fdeterm)
+    dschroedinger_stoch = _dschroedinger_stochastic_dynamic_function(fstoch)
 
     if normalize_state
         norm_func(u, t, integrator) = normalize!(u)
