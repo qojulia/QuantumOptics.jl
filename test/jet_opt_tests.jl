@@ -24,4 +24,21 @@ promoted_span_sum(args...) =
         @__MODULE__,
     ) promoted_span_sum(rho, H, J, times)
 end
+
+@testset "Semiclassical broadcasting" begin
+    b = SpinBasis(1//2)
+    psi = spindown(b)
+    classical = ComplexF64[0.7, 0.2]
+
+    ket_state = semiclassical.State(psi, classical)
+    operator_state = semiclassical.State(dm(psi), classical)
+
+    JET.@test_opt target_modules = (
+        QuantumOptics.semiclassical,
+    ) Base.materialize(Base.broadcasted(*, ket_state, 2.0))
+
+    JET.@test_opt target_modules = (
+        QuantumOptics.semiclassical,
+    ) Base.materialize(Base.broadcasted(*, operator_state, 2.0))
+end
 end

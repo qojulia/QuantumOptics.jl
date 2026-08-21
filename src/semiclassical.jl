@@ -76,6 +76,9 @@ Broadcast.BroadcastStyle(::StateStyle{B1}, ::StateStyle{B2}) where {B1,B2} = thr
 Broadcast.BroadcastStyle(::StateStyle{B}, ::Broadcast.DefaultArrayStyle{0}) where {B} = StateStyle{B}()
 Broadcast.BroadcastStyle(::Broadcast.DefaultArrayStyle{0}, ::StateStyle{B}) where {B} = StateStyle{B}()
 
+_rebuild_quantum(q::Ket, data) = Ket(q.basis, data)
+_rebuild_quantum(q::Operator, data) = Operator(q.basis_l, q.basis_r, data)
+
 # Out-of-place broadcasting
 @inline function Base.copy(bc::Broadcast.Broadcasted{<:StateStyle{B},Axes,F,Args}) where {B,Axes,F,Args<:Tuple}
     bcf = Broadcast.flatten(bc)
@@ -95,8 +98,7 @@ Broadcast.BroadcastStyle(::Broadcast.DefaultArrayStyle{0}, ::StateStyle{B}) wher
     @inbounds @simd for I in 1:Nc
         data_c[I] = bcf[I+Nq]
     end
-    type = eval(nameof(typeof(qobj)))
-    return State{B}(type(basis(qobj), data_q), data_c)
+    return State{B}(_rebuild_quantum(qobj, data_q), data_c)
 end
 
 for f ∈ [:find_quantum, :find_classical]
