@@ -52,6 +52,12 @@ sorted according to the absolute value of the eigenvalues.
 """
 function liouvillianspectrum(L::DenseSuperOpType; nev::Int = min(10, length(L.basis_r[1])*length(L.basis_r[2])), which::Symbol = :LR, kwargs...)
     d, v = eigen(L.data; kwargs...)
+    # Julia 1.10 does not infer the concrete eigenvalue and eigenvector arrays.
+    T = eltype(L.data)
+    if T <: LinearAlgebra.BlasFloat
+        d = d::Union{Vector{real(T)}, Vector{complex(T)}}
+        v = v::Union{Matrix{T}, Matrix{complex(T)}}
+    end
     indices = sortperm(abs.(d))[1:nev]
     ops = _eigenoperators(L, v, indices)
     return d[indices], ops
@@ -67,7 +73,9 @@ function liouvillianspectrum(L::SparseSuperOpType; nev::Int = min(10, length(L.b
             rethrow(err)
         end
     end
-    # Arpack does not infer the eigenvector matrix type.
+    # Arpack can return real or complex eigenvalues for real input.
+    T = typeof(zero(eltype(L.data))/sqrt(one(eltype(L.data))))
+    d = d::Union{Vector{T}, Vector{complex(T)}}
     v = v::Matrix{eltype(d)}
     indices = sortperm(abs.(d))[1:nev]
     ops = _eigenoperators(L, v, indices)

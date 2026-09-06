@@ -2,6 +2,7 @@
 using Test
 using QuantumOptics
 using LinearAlgebra
+using SparseArrays
 
 @testset "steadystate" begin
 
@@ -78,6 +79,24 @@ ev, ops = steadystate.liouvillianspectrum(H, sqrt(2).*J; rates=0.5.*ones(length(
 @test tracedistance(ρss, ops[1]/tr(ops[1])) < 1e-12
 @test ev[sortperm(abs.(ev))] == ev
 @test isconcretetype(eltype(ops))
+
+@testset "Real and complex eigenspectra" begin
+    b = FockBasis(1)
+    for T in (Float32, Float64, ComplexF32, ComplexF64), coupling in (0, 1), storage in (identity, sparse)
+        data = T[-3 coupling 0 0; 0 -2 coupling 0; 0 0 -1 coupling; 0 0 0 0]
+        L = SuperOperator((b, b), (b, b), storage(data))
+        values, states = steadystate.liouvillianspectrum(L; nev=2)
+        @test values ≈ [0, -1] atol=1e-5
+        @test all(norm(L * state - value * state) < 1e-5 for (value, state) in zip(values, states))
+    end
+    # Hermitian complex input has real eigenvalues; real input can have complex pairs.
+    for data in ([-3 im 0 0; -im -2 0 0; 0 0 -1 0; 0 0 0 0],
+                 [0.0 -1 0 0; 1 0 0 0; 0 0 -2 0; 0 0 0 -3]), storage in (identity, sparse)
+        L = SuperOperator((b, b), (b, b), storage(data))
+        values, states = steadystate.liouvillianspectrum(L; nev=2)
+        @test all(norm(L * state - value * state) < 1e-5 for (value, state) in zip(values, states))
+    end
+end
 
 # Test iterative solvers
 ρss, h = steadystate.iterative(Hdense, Jdense; log=true)
