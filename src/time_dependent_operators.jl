@@ -18,13 +18,6 @@ _tuplify(o::AbstractVector{T}) where T = isconcretetype(T) ? o : (o...,)
 _tuplify(o::Tuple) = o
 _tuplify(o::AbstractOperator) = o
 
-_set_times!(ops, t) = foreach(op -> set_time!(op, t), ops)
-function _set_times!(ops::Tuple, t)
-    # map preserves specialization for each operator type without boxing t.
-    map(op -> set_time!(op, t), ops)
-    return nothing
-end
-
 """
     schroedinger_dynamic_function(H::AbstractTimeDependentOperator)
 
@@ -70,8 +63,8 @@ function master_h_dynamic_function(H::AbstractTimeDependentOperator, Js)
 
     return let Hop = Htup, Jops = Js_tup, Jdops = Jdags_tup
         function _tdop_master_wrapper_1(t, _)
-            _set_times!(Jops, t)
-            _set_times!(Jdops, t)
+            foreach(op -> set_time!(op, t), Jops)
+            foreach(op -> set_time!(op, t), Jdops)
             set_time!(Hop, t)
             return Hop, Jops, Jdops
         end
@@ -97,8 +90,8 @@ function master_nh_dynamic_function(Hnh::AbstractTimeDependentOperator, Js)
 
     return let Hop = Hnhtup, Hdop = Htdagup, Jops = Js_tup, Jdops = Jdags_tup
         function _tdop_master_wrapper_2(t, _)
-            _set_times!(Jops, t)
-            _set_times!(Jdops, t)
+            foreach(op -> set_time!(op, t), Jops)
+            foreach(op -> set_time!(op, t), Jdops)
             set_time!(Hop, t)
             set_time!(Hdop, t)
             return Hop, Hdop, Jops, Jdops
