@@ -60,6 +60,8 @@ steps:
       ANYTHINGLLM_API_KEY: ANYTHINGLLM_API_KEY
     env:
       MPLBACKEND: Agg
+      # PyCall is not thread-safe in the docs build or its notebook kernels.
+      JULIA_NUM_THREADS: "1"
     command: |
       docs_python_env="$(mktemp -d)"
       uv venv --python /usr/bin/python3 "$${docs_python_env}"
@@ -70,7 +72,7 @@ steps:
       export PYCALL_DEBUG_BUILD="yes"
       julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
       julia --project=docs -e 'using Pkg; Pkg.instantiate(); Pkg.build("PyCall")'
-      julia -tauto --project=docs docs/make.jl
+      julia --project=docs docs/make.jl
 
   - label: "Downstream Tests - {{matrix.PACKAGE}}"
     plugins:
