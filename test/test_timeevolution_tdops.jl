@@ -26,14 +26,14 @@ H = TimeDependentSum(cos=>H0, cos=>Hd)
 Htup = timeevolution._tuplify(H)
 @test Htup === H
 test_settime(Htup)
-@test (@allocated(test_settime)) == 0
+@test (@allocated test_settime(Htup)) == 0
 
 # op types not homogeneous
 H = TimeDependentSum(cos=>H0, cos=>dense(Hd), cos=>LazySum(H0), cos=>LazySum(dense(Hd)))
 Htup = timeevolution._tuplify(H)
 @test Htup !== H
 test_settime(Htup)
-@test (@allocated(test_settime)) == 0
+@test (@allocated test_settime(Htup)) == 0
 
 H = TimeDependentSum(1.0=>H0, cos=>Hd)
 
