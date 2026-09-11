@@ -23,13 +23,18 @@ QuantumOptics.jl is a numerical framework written in Julia that makes it easy to
 
 ### Running Tests
 ```bash
-# Run all tests
+# Run the default CPU tests, including Aqua
 julia --project=. -e "using Pkg; Pkg.test()"
 
+# Run the optional slow and JET tests separately
+SLOW_TEST=true julia --project=. -e "using Pkg; Pkg.test()"
+JET_TEST=true julia --project=. -e "using Pkg; Pkg.test()"
+
 # Run with only specific GPU backend tests
-CUDA_TEST=true julia --project=. -e "using Pkg; Pkg.test()"
-AMDGPU_TEST=true julia --project=. -e "using Pkg; Pkg.test()"
-OpenCL_TEST=true julia --project=. -e "using Pkg; Pkg.test()"
+GPU_TEST=cuda julia --project=. -e "using Pkg; Pkg.test()"
+GPU_TEST=amdgpu julia --project=. -e "using Pkg; Pkg.test()"
+GPU_TEST=opencl julia --project=. -e "using Pkg; Pkg.test()"
+GPU_TEST=metal julia --project=. -e "using Pkg; Pkg.test()"
 
 # Run specific test files
 julia --project=. -e "using TestItemRunner; @run_package_tests filter=ti->contains(string(ti.name), \"schroedinger\")"
@@ -75,8 +80,9 @@ The test suite uses TestItemRunner and includes:
 - Code quality tests (Aqua.jl, JET.jl)
 
 Special test configurations:
+- Slow tests run when `SLOW_TEST=true` environment variable is set
 - JET tests run when `JET_TEST=true` environment variable is set
-- GPU tests run when `CUDA_TEST=true`, `AMDGPU_TEST=true`, or `OpenCL_TEST=true` are set
+- GPU tests run when `GPU_TEST` is set to `cuda`, `amdgpu`, `opencl`, or `metal`
 
 ## Key Dependencies
 
