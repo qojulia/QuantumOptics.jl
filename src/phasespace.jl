@@ -28,7 +28,7 @@ function qfunc(rho::AbstractOperator{B,B}, xvec::AbstractVector, yvec::AbstractV
     tmp2 = Ket(b)
     result = Matrix{eltype(rho)}(undef, Nx, Ny)
     @inbounds for j=1:Ny, i=1:Nx
-        result[i, j] = _qfunc_operator(rho, complex(xvec[i], yvec[j])/sqrt(2), tmp1, tmp2)
+        result[i, j] = _qfunc_operator(rho, Complex(xvec[i], yvec[j])/sqrt(2), tmp1, tmp2)
     end
     result
 end
@@ -53,7 +53,7 @@ function qfunc(psi::Ket{B}, xvec::AbstractVector, yvec::AbstractVector) where B<
     points = length(xvec)*length(yvec)
     N = length(b)::Int
     N0 = b.offset
-    _conj_alpha = [complex(x, -y)/sqrt(2) for x=xvec, y=yvec]
+    _conj_alpha = [Complex(x, -y)/sqrt(2) for x=xvec, y=yvec]
 
     # Compute overlap <α|ψ> as reversed sum
     q = psi.data[N]/sqrt(b.N) .* _conj_alpha
@@ -84,7 +84,7 @@ function qfunc(psi::Ket{B}, xvec::AbstractVector, yvec::AbstractVector) where B<
 end
 
 function qfunc(state::Union{Ket{B}, AbstractOperator{B,B}}, x, y) where B<:FockBasis
-    qfunc(state, complex(x, y)/sqrt(2))
+    qfunc(state, Complex(x, y)/sqrt(2))
 end
 
 function _qfunc_operator(rho, alpha, tmp1, tmp2)
@@ -109,7 +109,7 @@ function wigner(rho::Operator{B,B}, x, y) where B<:FockBasis
     b = basis(rho)
     N = b.N
     N0 = b.offset
-    _2α = complex(x, y)*sqrt(2)
+    _2α = Complex(x, y)*sqrt(2)
     abs2_2α = abs2(_2α)
     w = complex(0.)
     coefficient = complex(0.)
@@ -126,7 +126,7 @@ function wigner(rho::Operator{B,B}, xvec::AbstractVector, yvec::AbstractVector) 
     b = basis(rho)
     N = b.N
     N0 = b.offset
-    _2α = [complex(x, y)*sqrt(2) for x=xvec, y=yvec]
+    _2α = [Complex(x, y)*sqrt(2) for x=xvec, y=yvec]
     abs2_2α = abs2.(_2α)
     w = zero(_2α)
     b0 = similar(_2α)
