@@ -428,10 +428,12 @@ end
     sparse_jump = sigmam(b)
     dense_jump = dense(sparse_jump)
 
-    L = liouvillian(H, [dense_jump])
-    JET.@test_opt target_modules = (
-        QuantumOptics.steadystate,
-    ) steadystate.eigenvector(L)
+    if VERSION >= v"1.11"
+        L = liouvillian(H, [dense_jump])
+        JET.@test_opt target_modules = (
+            QuantumOptics.steadystate,
+        ) steadystate.eigenvector(L)
+    end
 
     mixed_jumps = [sparse_jump, dense_jump]
     Jdagger = dagger.(mixed_jumps)
