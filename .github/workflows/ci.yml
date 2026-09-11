@@ -27,6 +27,17 @@ jobs:
           - macOS-latest
         arch:
           - default
+        include:
+          # Keep every supported Julia minor covered as the latest release advances.
+          - version: '1.10'
+            os: ubuntu-latest
+            arch: default
+          - version: '1.11'
+            os: ubuntu-latest
+            arch: default
+          - version: '1.12'
+            os: ubuntu-latest
+            arch: default
     steps:
       - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@v3
