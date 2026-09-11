@@ -45,7 +45,7 @@ julia --project=. -e "using TestItemRunner; @run_package_tests filter=ti->contai
 # Install the Python dependencies as shown in the Docs step of .buildkite/pipeline.yml,
 # then build the documentation from the repository root.
 julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.build("PyCall")'
-julia -tauto --project=docs docs/make.jl
+julia -t1 --project=docs docs/make.jl
 ```
 
 ### Package Management
