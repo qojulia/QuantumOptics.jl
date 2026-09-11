@@ -61,11 +61,16 @@ tss, ρss = steadystate.master(Hdense, Jdense; tol=1e-4)
 ρss = steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), tol=1e-8)
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
-ρss = @inferred steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), nev = 1)
+ρss = steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), nev = 1)
 @test tracedistance(ρss, ρt[end]) < 1e-3
 
-ρss = @inferred steadystate.eigenvector(liouvillian(Hdense, Jdense))
+ρss = steadystate.eigenvector(liouvillian(Hdense, Jdense))
 @test tracedistance(ρss, ρt[end]) < 1e-6
+
+if VERSION >= v"1.11"
+    @inferred steadystate.eigenvector(H, sqrt(2).*J; rates=0.5.*ones(length(J)), nev = 1)
+    @inferred steadystate.eigenvector(liouvillian(Hdense, Jdense))
+end
 
 @test_throws TypeError steadystate.eigenvector(H, J; ncv="a")
 
