@@ -31,6 +31,12 @@ Wrho_coherent = wigner(rho_coherent, X, Y)
 Wpsi_fock = wigner(psi_fock, X, Y)
 Wrho_fock = wigner(rho_fock, X, Y)
 
+# Numeric coordinates also work when their vectors have an abstract element type.
+@test qfunc(psi_coherent, Any[X...], Any[Y...]) ≈ Qpsi_coherent
+@test qfunc(rho_coherent, Any[X...], Any[Y...]) ≈ Qrho_coherent
+@test wigner(psi_coherent, Any[X...], Any[Y...]) ≈ Wpsi_coherent
+@test wigner(rho_coherent, Any[X...], Any[Y...]) ≈ Wrho_coherent
+
 laguerre3(x) = (-x^3+9x^2-18x+6)/6
 
 for (i,x)=enumerate(X), (j,y)=enumerate(Y)
