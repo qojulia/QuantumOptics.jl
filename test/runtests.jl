@@ -37,7 +37,11 @@ using QuantumOptics
 # filter for the test
 testfilter = ti -> begin
   exclude = Symbol[:slow]
-  
+
+  if get(ENV, "SLOW_TEST", "") == "true"
+    return :slow in ti.tags
+  end
+
   if get(ENV,"JET_TEST","")=="true"
     return :jet in ti.tags
   else
