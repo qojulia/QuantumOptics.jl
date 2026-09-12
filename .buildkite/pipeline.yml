@@ -8,7 +8,7 @@ secrets:
 steps:
   - label: "QuantumOptics Tests - {{matrix.LABEL}}"
     plugins:
-      - QuantumSavory/julia#v1.14:
+      - QuantumSavory/julia#v1:
           version: "1"
       - JuliaCI/julia-test#v1:
       - JuliaCI/julia-coverage#v1: ~
@@ -53,7 +53,7 @@ steps:
   - label: "Docs"
     branches: "!dependabot/*"
     plugins:
-      - QuantumSavory/julia#v1.14:
+      - QuantumSavory/julia#v1:
           version: "1"
     secrets:
       DOCUMENTER_KEY: DOCUMENTER_KEY_QuantumOptics
@@ -76,7 +76,7 @@ steps:
 
   - label: "Downstream Tests - {{matrix.PACKAGE}}"
     plugins:
-      - QuantumSavory/julia#v1.14:
+      - QuantumSavory/julia#v1:
           version: "1"
     command:
       - echo "Julia depot path $${JULIA_DEPOT_PATH}"
