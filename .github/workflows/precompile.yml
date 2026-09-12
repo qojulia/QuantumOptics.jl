@@ -36,13 +36,12 @@ jobs:
           python3 - <<'PY'
           import os
           import subprocess
-          import tomllib
 
           def metadata(ref):
-              project = tomllib.loads(subprocess.check_output(
-                  ["git", "show", f"{ref}:Project.toml"], text=True))
-              project.pop("version", None)
-              return project
+              project = subprocess.check_output(["git", "show", f"{ref}:Project.toml"])
+              # Match the benchmark harness: ignore only the package version.
+              return subprocess.check_output(
+                  ["sed", r"1,/^\[/ { /^version = /d; }"], input=project)
 
           comparable = metadata(os.environ["BASE_SHA"]) == metadata(os.environ["HEAD_SHA"])
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
