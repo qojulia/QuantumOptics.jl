@@ -22,38 +22,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Check dependency metadata
-        id: dependencies
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          python3 - <<'PY'
-          import os
-          import subprocess
-
-          def metadata(ref):
-              project = subprocess.check_output(["git", "show", f"{ref}:Project.toml"])
-              # Match the benchmark harness: ignore only the package version.
-              return subprocess.check_output(
-                  ["sed", r"1,/^\[/ { /^version = /d; }"], input=project)
-
-          comparable = metadata(os.environ["BASE_SHA"]) == metadata(os.environ["HEAD_SHA"])
-          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-              print(f"comparable={str(comparable).lower()}", file=output)
-          if not comparable:
-              reason = (
-                  "Cold-start comparison skipped: base and head have different dependency metadata. "
-                  "The benchmark harness requires identical dependency metadata to use one shared environment."
-              )
-              print(reason)
-              with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
-                  print(reason, file=summary)
-          PY
       - uses: QuantumSavory/julia-precompile-benchmark@v3
-        if: steps.dependencies.outputs.comparable == 'true'
