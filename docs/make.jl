@@ -22,6 +22,17 @@ using QuantumInterface
 using QuantumOptics
 using QuantumOpticsBase
 
+# Keep the shared guide in sync with the installed QuantumOpticsBase release.
+mktempdir() do base_dir
+    base_tag = "v$(pkgversion(QuantumOpticsBase))"
+    run(`git clone --depth=1 --branch $base_tag https://github.com/qojulia/QuantumOpticsBase.jl.git $base_dir`)
+    guide = read(joinpath(base_dir, "docs", "src", "visualization.md"), String)
+    open(joinpath(docs_dir, "src", "visualization.md"), "w") do io
+        println(io, "```@meta\nEditURL = \"https://github.com/qojulia/QuantumOpticsBase.jl/blob/$base_tag/docs/src/visualization.md\"\n```\n")
+        write(io, guide)
+    end
+end
+
 pages = [
     "index.md",
     "installation.md",
@@ -43,6 +54,7 @@ pages = [
         "quantumsystems/subspace.md",
         "quantumsystems/manybody.md",
     ],
+    "Visualizations" => "visualization.md",
     "Time-evolution" => [
         "Introduction" => "timeevolution/timeevolution.md",
         "Schroedinger equation" => "timeevolution/schroedinger.md",

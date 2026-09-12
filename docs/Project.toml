@@ -1,5 +1,6 @@
 [deps]
 AnythingLLMDocs = "333fe5f5-19c9-4863-8caf-c9193e7dba62"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DiffEqCallbacks = "459566f4-90b8-5000-8ac3-15dfb0a30def"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterCodeBlocks = "b6400b83-267f-4b55-9fd8-bffc853bdfd8"
@@ -10,5 +11,7 @@ QuantumOpticsBase = "4f57444f-1401-5e15-980d-4471b28d5678"
 StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 
 [compat]
+CairoMakie = "0.15.11"
 Documenter = "1"
 DocumenterCodeBlocks = "1"
+QuantumOpticsBase = "0.5.16"
