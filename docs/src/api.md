@@ -897,6 +897,19 @@ ChiMatrix
 DenseChiMatrix
 ```
 
+## [Visualizations](@id API: Visualizations)
+
+```@docs
+blochsphereplot
+blochsphereplot!
+fockdistributionplot
+fockdistributionplot!
+wignerplot
+wignerplot!
+wavefunctionplot
+wavefunctionplot!
+```
+
 ## [Printing](@id API: Printing)
 
 ```@docs

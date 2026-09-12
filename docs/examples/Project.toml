@@ -9,3 +9,6 @@ QuantumOptics = "6e0679c1-51ea-5a7c-ac74-d61b76210b0c"
 QuantumOpticsBase = "4f57444f-1401-5e15-980d-4471b28d5678"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
+
+[compat]
+QuantumOpticsBase = "0.5.16"
