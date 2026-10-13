@@ -34,7 +34,7 @@ Contributions of any kind are always welcome! Whether it's ideas for new feature
 
 ## Office Hours
 
-Office hours are held every Friday from 12:30 – 1:30 PM Eastern Time via [Zoom](https://umass-amherst.zoom.us/j/95986275946?pwd=6h7Wbai1bXIai0XQsatNRWaVbQlTDr.1). Before joining, make sure to check the [Julia community events calendar](https://julialang.org/community/#events) to confirm whether office hours are happening, rescheduled, or canceled for the week. Feel free to bring any questions or suggestions!
+Office hours can be scheduled on-demand at [cal.com/krastanov/quantum-savory-office-hours](https://cal.com/krastanov/quantum-savory-office-hours). Feel free to bring any questions or suggestions!
 
 ## Citing
 
